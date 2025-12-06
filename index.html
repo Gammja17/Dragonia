@@ -141,6 +141,13 @@
         .d-btn:hover { background: rgba(255, 215, 0, 0.2); border-color: #ffd700; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         
         .interaction-prompt { position: absolute; background: rgba(0,0,0,0.7); color: #ffd700; padding: 5px 10px; border-radius: 10px; font-size: 12px; pointer-events: none; transform: translate(-50%, -100%); white-space: nowrap; border: 1px solid #ffd700; display: none; z-index: 150; }
+        .hud-details {
+        transition: 0.2s ease;
+        }
+
+        .hud-toggle:hover {
+            background: rgba(255,255,255,0.18);
+        }
     </style>
 </head>
 <body>
@@ -189,6 +196,8 @@
         </div>
         
         <div class="hud-panel">
+
+            <!-- 플레이어 이름/레벨 -->
             <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">
                 <div style="font-size:2rem; filter:drop-shadow(0 0 10px gold);">🐲</div>
                 <div>
@@ -197,30 +206,55 @@
                 </div>
             </div>
 
+            <!-- EXP -->
             <div class="stat-group">
                 <div class="stat-header"><span>EXP</span> <span id="ui-xp-text">0%</span></div>
                 <div class="progress-track"><div id="bar-xp" class="progress-fill xp-bar" style="width:0%"></div></div>
             </div>
+
+            <!-- HP -->
             <div class="stat-group">
                 <div class="stat-header"><span>HP</span> <span id="ui-hp-text">100</span></div>
                 <div class="progress-track"><div id="bar-hp" class="progress-fill hp-bar" style="width:100%"></div></div>
             </div>
+
+            <!-- Hunger -->
             <div class="stat-group">
                 <div class="stat-header"><span>HUNGER</span></div>
                 <div class="progress-track"><div id="bar-hunger" class="progress-fill hunger-bar" style="width:100%"></div></div>
             </div>
 
+            <!-- Meat -->
             <div class="inv-slot">
                 <span>🍖 Meat:</span> <span id="ui-meat" style="color:#e67e22;">0</span>
             </div>
+
+
+            <!-- ▼ 상세보기 버튼 -->
+            <button id="toggleHUD" class="hud-toggle" style="
+                pointer-events:auto; 
+                margin-top:12px; width:100%;
+                background:rgba(255,255,255,0.12);
+                border:1px solid rgba(255,255,255,0.25);
+                color:white; padding:8px 0;
+                border-radius:10px; cursor:pointer;
+                font-size:0.9rem;
+            ">▼ 상세보기</button>
+
+            <!-- 접히는 상세 HUD 영역 (처음엔 비어 있음, 필요시 내용 넣으면 됨) -->
+            <div id="hudDetails" class="hud-details" style="
+                display:none;
+                margin-top:15px;
+                color:#ccc;
+                font-size:0.85rem;
+                line-height:1.4;
+            ">
+                <!-- 감자가 추가 HUD 넣고 싶을 때 여기에 넣으면 됨 -->
+                <div style="opacity:0.6"></div>
+            </div>
+
         </div>
 
-        <div class="controls-hint">
-            <div><span class="key">WASD</span> Fly &nbsp; <span class="key">SHIFT</span> Dash</div>
-            <div><span class="key">SPACE</span> Flame Breath</div>
-            <div><span class="key">E</span> Interact (Eat/Carry)</div>
-            <div><span class="key">T</span> Talk (VN Mode) &nbsp; <span class="key">L</span> Flirt</div>
-        </div>
     </div>
 
     <!-- Visual Novel Dialogue UI -->
@@ -1105,6 +1139,22 @@ const ctx = canvas.getContext('2d');
             }
         });
     });
+
+    const hudToggle = document.getElementById('toggleHUD');
+    const hudDetails = document.getElementById('hudDetails');
+
+    hudToggle.addEventListener('click', () => {
+        const open = hudDetails.style.display === 'block';
+
+        if (open) {
+            hudDetails.style.display = 'none';
+            hudToggle.textContent = '▼ 상세보기';
+        } else {
+            hudDetails.style.display = 'block';
+            hudToggle.textContent = '▲ 닫기';
+        }
+    });
+
 
 </script>
 </body>
