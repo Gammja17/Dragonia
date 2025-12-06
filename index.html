@@ -8,6 +8,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
 
+        * { box-sizing: border-box; }
+
         body {
             margin: 0; padding: 0;
             background-color: #050505;
@@ -21,26 +23,9 @@
             pointer-events: none;
         }
 
-        /* HUD 전체 ON/OFF 버튼 */
-        #hud-toggle-main {
-            position: absolute; top: 20px; left: 20px;
-            padding: 6px 12px;
-            border-radius: 999px;
-            background: rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: #fff;
-            font-size: 0.85rem;
-            cursor: pointer;
-            pointer-events: auto;
-            z-index: 40;
-        }
-        #hud-toggle-main:hover {
-            background: rgba(255,255,255,0.18);
-        }
-
-        /* HUD 패널 */
+        /* HUD PANEL */
         .hud-panel {
-            position: absolute; top: 60px; left: 20px;
+            position: absolute; top: 20px; left: 20px;
             background: rgba(20, 20, 30, 0.6);
             backdrop-filter: blur(12px);
             padding: 20px; border-radius: 20px;
@@ -49,43 +34,65 @@
             transition: transform 0.2s, opacity 0.2s;
             pointer-events: auto;
         }
-        .hud-panel:hover { transform: scale(1.02); background: rgba(20, 20, 30, 0.8); }
+        .hud-panel:hover { background: rgba(20, 20, 30, 0.8); }
+
+        .hud-collapsed {
+            display: none;
+        }
+
+        #hud-show-btn {
+            position: absolute; top: 20px; left: 20px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.4);
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            font-size: 0.8rem;
+            cursor: pointer;
+            pointer-events: auto;
+            display: none;
+            z-index: 50;
+        }
+        #hud-show-btn:hover {
+            background: rgba(255,255,255,0.12);
+        }
 
         .stat-group { margin-bottom: 15px; }
         .stat-header { display: flex; justify-content: space-between; font-size: 0.9rem; color: #aab; margin-bottom: 6px; font-weight: 600; letter-spacing: 1px;}
-
+        
         .progress-track {
             width: 100%; height: 8px;
             background: rgba(0,0,0,0.5);
             border-radius: 10px; overflow: hidden;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
         }
-        .progress-fill { height: 100%; border-radius: 10px; transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-
+        .progress-fill { height: 100%; border-radius: 10px; transition: width 0.3s ease-out; }
+        
         .xp-bar { background: linear-gradient(90deg, #a55eea, #fed330); box-shadow: 0 0 10px #a55eea; }
         .hp-bar { background: linear-gradient(90deg, #ff5252, #ff793f); box-shadow: 0 0 10px #ff5252; }
         .hunger-bar { background: linear-gradient(90deg, #fa8231, #f7b731); box-shadow: 0 0 10px #fa8231; }
 
-        /* Inventory */
         .inv-slot {
             display: inline-flex; align-items: center; gap: 8px;
             background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 15px;
             font-size: 1rem; color: #fff; font-weight: bold; margin-top: 10px;
         }
 
-        /* Raid Warning */
         #raid-warning {
             position: absolute; top: 15%; left: 50%;
             transform: translate(-50%, -50%);
-            color: #ff3838; font-size: 4rem; font-weight: 900;
+            color: #ff3838; font-size: 3rem; font-weight: 900;
             text-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
             display: none; letter-spacing: 5px;
             animation: shake 0.5s infinite;
             text-align: center; width: 100%; z-index: 20;
         }
-        @keyframes shake { 0% { transform: translate(-52%, -50%); } 50% { transform: translate(-48%, -50%); } 100% { transform: translate(-52%, -50%); } }
+        @keyframes shake {
+            0% { transform: translate(-52%, -50%); }
+            50% { transform: translate(-48%, -50%); }
+            100% { transform: translate(-52%, -50%); }
+        }
 
-        /* Customizer */
         #customizer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
@@ -105,7 +112,6 @@
             -webkit-background-clip: text; font-weight: 900; letter-spacing: -2px;
             text-shadow: 0 10px 30px rgba(0, 114, 255, 0.4);
         }
-
         button.start-btn {
             padding: 15px; font-size: 1.2rem; background: linear-gradient(45deg, #11998e, #38ef7d);
             color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold;
@@ -113,7 +119,6 @@
         }
         button.start-btn:hover { transform: scale(1.05); }
 
-        /* Pointers */
         .quest-arrow {
             position: absolute; width: 50px; height: 50px;
             background: rgba(255, 255, 255, 0.9); border-radius: 50%;
@@ -122,16 +127,14 @@
             z-index: 5; transition: all 0.2s;
         }
 
-        /* Guide */
-        .controls-hint {
-            position: absolute; bottom: 30px; left: 30px;
-            color: rgba(255,255,255,0.5); font-size: 12px;
-            text-transform: uppercase; letter-spacing: 1px;
-            line-height: 1.8;
+        .interaction-prompt {
+            position: absolute; background: rgba(0,0,0,0.7); color: #ffd700;
+            padding: 5px 10px; border-radius: 10px; font-size: 12px;
+            pointer-events: none; transform: translate(-50%, -100%);
+            white-space: nowrap; border: 1px solid #ffd700; display: none; z-index: 150;
         }
-        .key { color: #fff; font-weight: bold; border-bottom: 1px solid #555; }
 
-        /* VN Overlay */
+        /* Dialogue / VN */
         #dialogue-overlay {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 35vh;
             background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.8));
@@ -148,17 +151,90 @@
         #d-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         #d-portrait { width: 60px; height: 60px; background: #333; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 30px; }
         #d-name { color: #f1c40f; font-size: 1.8rem; font-weight: bold; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
-        #d-text { color: #ecf0f1; font-size: 1.3rem; line-height: 1.6; margin-bottom: 25px; min-height: 60px; text-shadow: 1px 1px 2px black; font-family: 'Noto Sans KR', sans-serif; }
-
-        #d-options { display: flex; gap: 15px; flex-wrap: wrap; }
+        #d-text { color: #ecf0f1; font-size: 1.2rem; line-height: 1.6; margin-bottom: 18px; min-height: 60px; text-shadow: 1px 1px 2px black; font-family: 'Noto Sans KR', sans-serif; }
+        #d-options { display: flex; gap: 10px; flex-wrap: wrap; }
         .d-btn {
-            background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255,255,255,0.3);
-            padding: 12px 25px; cursor: pointer; border-radius: 30px; font-size: 1.1rem;
-            transition: all 0.2s; font-family: 'Noto Sans KR', sans-serif;
+            background: rgba(255, 255, 255, 0.08); color: white; border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px; cursor: pointer; border-radius: 30px; font-size: 0.95rem;
+            transition: all 0.15s; font-family: 'Noto Sans KR', sans-serif;
         }
-        .d-btn:hover { background: rgba(255, 215, 0, 0.2); border-color: #ffd700; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .d-btn:hover { background: rgba(255, 215, 0, 0.2); border-color: #ffd700; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
-        .interaction-prompt { position: absolute; background: rgba(0,0,0,0.7); color: #ffd700; padding: 5px 10px; border-radius: 10px; font-size: 12px; pointer-events: none; transform: translate(-50%, -100%); white-space: nowrap; border: 1px solid #ffd700; display: none; z-index: 150; }
+        .controls-hint {
+            position: absolute; bottom: 25px; left: 30px;
+            color: rgba(255,255,255,0.5); font-size: 11px;
+            text-transform: uppercase; letter-spacing: 1px;
+            line-height: 1.6;
+            pointer-events: none;
+        }
+        .key { color: #fff; font-weight: bold; border-bottom: 1px solid #555; }
+
+        /* Kids panel (애 관리) */
+        #kids-panel {
+            position: absolute;
+            bottom: 20px; right: 20px;
+            width: 320px;
+            max-height: 60vh;
+            background: rgba(10,10,20,0.9);
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            padding: 15px;
+            color: #ecf0f1;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: auto;
+            z-index: 60;
+        }
+        #kids-header {
+            display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;
+        }
+        #kids-list {
+            overflow-y:auto; padding-right:4px;
+        }
+        .kid-row {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:6px 8px; border-radius:10px;
+            background:rgba(255,255,255,0.04); margin-bottom:4px; font-size:0.9rem;
+        }
+        .kid-stage { font-size: 0.8rem; opacity: 0.7; }
+        .kid-heart { color:#e74c3c; margin-left:4px; }
+
+        #kids-toggle-btn {
+            margin-top:10px;
+            width:100%;
+            padding:8px 0;
+            border-radius:10px;
+            border:1px solid rgba(255,255,255,0.25);
+            background:rgba(0,0,0,0.4);
+            color:#fff;
+            font-size:0.9rem;
+            cursor:pointer;
+        }
+        #kids-toggle-btn:hover {
+            background:rgba(255,255,255,0.08);
+        }
+
+        #hud-collapse-btn {
+            margin-top:10px;
+            width:100%;
+            padding:6px 0;
+            border-radius:10px;
+            border:1px solid rgba(255,255,255,0.25);
+            background:rgba(255,255,255,0.08);
+            color:#fff;
+            font-size:0.85rem;
+            cursor:pointer;
+        }
+        #hud-collapse-btn:hover {
+            background:rgba(255,255,255,0.18);
+        }
+
+        .biome-badge {
+            position: absolute; top: 30px; right: 30px; background: rgba(0,0,0,0.8); color: #ecf0f1; padding: 10px 20px; border-radius: 4px; font-weight: 600; letter-spacing: 1px; font-size: 0.9rem; border-left: 3px solid #2ecc71;
+            pointer-events:auto;
+        }
     </style>
 </head>
 <body>
@@ -166,16 +242,16 @@
     <div id="customizer">
         <h1 class="title-logo">DRAGONIA</h1>
         <p style="color:#aab; margin-bottom:40px; font-size:1.1rem;">THE ORIGIN UPDATE</p>
-
+        
         <div class="card">
             <input type="text" id="c-name" value="Bahamut" style="padding:15px; border-radius:10px; border:none; background:rgba(0,0,0,0.3); color:white; font-size:1.2rem; text-align:center;">
-
+            
             <div style="display:flex; justify-content:space-between; color:#ddd; font-weight:bold; align-items:center;">
                 <span>Type</span>
                 <select id="c-type" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:5px;">
-                    <option value="STANDARD">Standard</option>
+                    <option value="WESTERN">Western</option>
                     <option value="WYVERN">Wyvern (Speed)</option>
-                    <option value="SERPENT">Serpent (Mystic)</option>
+                    <option value="EASTERN">Eastern (Serpent)</option>
                     <option value="BEHEMOTH">Behemoth (Tank)</option>
                 </select>
             </div>
@@ -189,64 +265,74 @@
             <div style="display:flex; justify-content:space-between; color:#ddd; align-items:center;">
                 <span>Wing Color</span> <input type="color" id="c-wing" value="#8e44ad" style="background:none; border:none; width:40px; height:30px; cursor:pointer;">
             </div>
-
+            
             <button class="start-btn" id="start-btn">AWAKEN</button>
         </div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
-
+    
     <div id="raid-warning">⚔️ RAID INBOUND ⚔️</div>
     <div id="quest-pointer" class="quest-arrow" style="display:none;">🥚</div>
     <div id="nest-pointer" class="quest-arrow" style="display:none; background:#d35400; color:white;">🏠</div>
     <div id="interact-tip" class="interaction-prompt">💬 Talk (T)</div>
 
     <div id="ui-layer" style="display:none;">
-
-        <!-- HUD 전체 ON/OFF 버튼 -->
-        <button id="hud-toggle-main">⏴ HUD</button>
-
-        <div class="biome-badge" style="position: absolute; top: 30px; right: 30px; background: rgba(0,0,0,0.8); color: #ecf0f1; padding: 10px 20px; border-radius: 4px; font-weight: 600; letter-spacing: 1px; font-size: 0.9rem; border-left: 3px solid #2ecc71; pointer-events:auto;">
+        <div class="biome-badge">
             <span id="biome-text">Wild Forest</span>
         </div>
+        
+        <button id="hud-show-btn">▶ HUD</button>
 
         <div class="hud-panel" id="hud-panel">
-
-            <!-- 플레이어 이름/레벨 -->
             <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">
                 <div style="font-size:2rem; filter:drop-shadow(0 0 10px gold);">🐲</div>
                 <div>
                     <div style="font-weight:bold; font-size:1.3rem; color:#fff;" id="ui-name">Player</div>
                     <div style="font-size:0.9rem; color:#a55eea;">LVL <span id="ui-lvl">1</span></div>
+                    <div style="font-size:0.75rem; color:#95a5a6; margin-top:2px;">
+                        Partner: <span id="ui-partner">없음</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- EXP -->
             <div class="stat-group">
                 <div class="stat-header"><span>EXP</span> <span id="ui-xp-text">0%</span></div>
                 <div class="progress-track"><div id="bar-xp" class="progress-fill xp-bar" style="width:0%"></div></div>
             </div>
 
-            <!-- HP -->
             <div class="stat-group">
                 <div class="stat-header"><span>HP</span> <span id="ui-hp-text">100</span></div>
                 <div class="progress-track"><div id="bar-hp" class="progress-fill hp-bar" style="width:100%"></div></div>
             </div>
 
-            <!-- Hunger -->
             <div class="stat-group">
                 <div class="stat-header"><span>HUNGER</span></div>
                 <div class="progress-track"><div id="bar-hunger" class="progress-fill hunger-bar" style="width:100%"></div></div>
             </div>
 
-            <!-- Meat -->
             <div class="inv-slot">
                 <span>🍖 Meat:</span> <span id="ui-meat" style="color:#e67e22;">0</span>
             </div>
+
+            <button id="kids-toggle-btn">🐣 애 관리 열기</button>
+            <button id="hud-collapse-btn">◀ HUD 숨기기</button>
         </div>
     </div>
 
-    <!-- Visual Novel Dialogue UI -->
+    <!-- Kids panel -->
+    <div id="kids-panel">
+        <div id="kids-header">
+            <div>🐣 애 관리</div>
+            <button id="kids-close" style="background:none;border:none;color:#bdc3c7;cursor:pointer;font-size:0.8rem;">닫기</button>
+        </div>
+        <div style="font-size:0.75rem; color:#95a5a6; margin-bottom:6px;">
+            최대 자식 수: <span id="kids-max">6</span>명 / 현재: <span id="kids-count">0</span>명
+        </div>
+        <div id="kids-list"></div>
+    </div>
+
+    <!-- Dialogue UI -->
     <div id="dialogue-overlay">
         <div id="d-header">
             <div id="d-portrait">🐉</div>
@@ -256,1028 +342,1335 @@
         <div id="d-options"></div>
     </div>
 
+    <div class="controls-hint">
+        <div><span class="key">WASD</span> 이동 • <span class="key">Space</span> 불꽃 • <span class="key">E</span> 줍기/먹기 • <span class="key">T</span> 말 걸기 • <span class="key">L</span> 플러팅</div>
+        <div><span class="key">K</span> 애 관리 열기</div>
+    </div>
+
 <script>
-    const canvas = document.getElementById('gameCanvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const ctx = canvas.getContext('2d');
+const canvas = document.getElementById('gameCanvas');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const ctx = canvas.getContext('2d');
 
-    // --- UI REFERENCES ---
-    const dOverlay = document.getElementById('dialogue-overlay');
-    const dName = document.getElementById('d-name');
-    const dText = document.getElementById('d-text');
-    const dOptions = document.getElementById('d-options');
-    const interactTip = document.getElementById('interact-tip');
-    const questPointer = document.getElementById('quest-pointer');
-    const nestPointer = document.getElementById('nest-pointer');
-    const raidWarning = document.getElementById('raid-warning');
-    const uiLayer = document.getElementById('ui-layer');
-    const customizer = document.getElementById('customizer');
+// DIALOGUE UI
+const dOverlay = document.getElementById('dialogue-overlay');
+const dName = document.getElementById('d-name');
+const dText = document.getElementById('d-text');
+const dOptions = document.getElementById('d-options');
 
-    // Config
-    const WORLD_SIZE = 2400;
-    const TILE_SIZE = 200;
+const interactTip = document.getElementById('interact-tip');
+const questPointer = document.getElementById('quest-pointer');
+const nestPointer = document.getElementById('nest-pointer');
+const raidWarning = document.getElementById('raid-warning');
+const uiLayer = document.getElementById('ui-layer');
+const customizer = document.getElementById('customizer');
 
-    // Globals
-    let gameActive = false;
-    let isDialogueOpen = false;
-    let lastTime = 0;
-    let gameTime = 0;
-    let raidTimer = 120; // 1 min first raid
+const hudPanel = document.getElementById('hud-panel');
+const hudShowBtn = document.getElementById('hud-show-btn');
+const kidsToggleBtn = document.getElementById('kids-toggle-btn');
+const kidsPanel = document.getElementById('kids-panel');
+const kidsClose = document.getElementById('kids-close');
+const kidsList = document.getElementById('kids-list');
+const kidsCountSpan = document.getElementById('kids-count');
+const kidsMaxSpan = document.getElementById('kids-max');
+const hudCollapseBtn = document.getElementById('hud-collapse-btn');
 
-    // Utils
-    const rand = (min, max) => Math.random() * (max - min) + min;
-    const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-    const lerp = (a, b, t) => a + (b - a) * t;
+const WORLD_SIZE = 2600;   // 살짝 확장
+const TILE_SIZE = 200;
 
-    function showToast(msg, icon='✨') {
-        const n = document.createElement('div');
-        n.style.cssText = "position:fixed; bottom:20%; left:50%; transform:translate(-50%); background:rgba(0,0,0,0.8); color:#ffd700; padding:10px 20px; border-radius:50px; font-weight:bold; animation:fade 3s forwards; pointer-events:none; white-space:nowrap; z-index:300;";
-        n.innerHTML = `${icon} ${msg}`;
-        document.body.appendChild(n);
-        setTimeout(()=>n.remove(), 3000);
+// GAME STATE
+let gameActive = false;
+let isDialogueOpen = false;
+let lastTime = 0;
+let gameTime = 0;
+let raidTimer = 120;
+let elderTutorialDone = false;
+let playerPartner = null;
+
+// KIDS SYSTEM
+const MAX_KIDS = 6;
+let kidsRegistry = []; // {id,name,stage,affection,entityRef}
+
+// utils
+const rand = (min,max)=>Math.random()*(max-min)+min;
+const dist = (a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const lerp = (a,b,t)=>a+(b-a)*t;
+function shadeColor(color, percent) {
+    let f=parseInt(color.slice(1),16),t=percent<0?0:255,p=percent<0?percent*-1:percent,R=f>>16,G=f>>8&0x00FF,B=f&0x0000FF;
+    return "#"+(0x1000000+(Math.round((t-R)*p)+R)*0x10000+(Math.round((t-G)*p)+G)*0x100+(Math.round((t-B)*p)+B)).toString(16).slice(1);
+}
+function showToast(msg, icon='✨') {
+    const n = document.createElement('div');
+    n.style.cssText = "position:fixed; bottom:20%; left:50%; transform:translate(-50%); background:rgba(0,0,0,0.8); color:#ffd700; padding:10px 20px; border-radius:50px; font-weight:bold; animation:fade 3s forwards; pointer-events:none; white-space:nowrap; z-index:300;";
+    n.innerHTML = `${icon} ${msg}`;
+    document.body.appendChild(n);
+    setTimeout(()=>n.remove(), 3000);
+}
+const style = document.createElement('style');
+style.innerHTML = `@keyframes fade { 0% {opacity:0; transform:translate(-50%, 20px);} 10%{opacity:1; transform:translate(-50%,0);} 80%{opacity:1; transform:translate(-50%,-10px);} 100%{opacity:0; transform:translate(-50%,-30px);} }`;
+document.head.appendChild(style);
+
+// BIOMES
+const BIOMES = {
+    VILLAGE: { name: 'Dragon Village', color: '#795548', dot: '#d35400', safe: true },
+    LAKE: { name: 'Mystic Lake', color: '#3498db', dot: '#2980b9', safe: true },
+    FOREST: { name: 'Wild Forest', color: '#27ae60', dot: '#2ecc71', safe: false }
+};
+function getBiome(x, y) {
+    if (x > 800 && x < 1600 && y > 800 && y < 1600) return 'VILLAGE';
+    if (dist({x,y}, {x:2000, y:2000}) < 600) return 'LAKE';
+    return 'FOREST';
+}
+
+// DIALOGUES
+const DIALOGUES = {
+    WISE: {
+        idle: [
+            "바람이 심상치 않군...",
+            "고대 드래곤의 숨결이 느껴지는군.",
+            "이 숲의 역사는 생각보다 깊지.",
+            "하늘을 자주 보거라. 징조가 떠 있지."
+        ]
+    },
+    BRAVE: {
+        idle: [
+            "오늘도 싸울 준비는 끝났다!",
+            "훈련 안 한 용에게 내일은 없다!",
+            "마을은 내가 지킨다.",
+            "불 냄새가 좋군."
+        ]
+    },
+    PLAYFUL: {
+        idle: [
+            "나랑 술래잡기 할 사람~?",
+            "구름 저거 먹으면 무슨 맛일까?",
+            "심심해 심심해~",
+            "날개 간지러워!"
+        ]
+    },
+    GRUMPY: {
+        idle: [
+            "누가 또 떠들어...",
+            "낮잠 시간이라고 했지...",
+            "허리 아파 죽겠는데...",
+            "조용히 좀 못 하나."
+        ]
     }
-    const style = document.createElement('style');
-    style.innerHTML = `@keyframes fade { 0% {opacity:0; transform:translate(-50%, 20px);} 10%{opacity:1; transform:translate(-50%,0);} 80%{opacity:1; transform:translate(-50%,-10px);} 100%{opacity:0; transform:translate(-50%,-30px);} }`;
-    document.head.appendChild(style);
+};
 
-    function shadeColor(color, percent) {
-        var f=parseInt(color.slice(1),16),t=percent<0?0:255,p=percent<0?percent*-1:percent,R=f>>16,G=f>>8&0x00FF,B=f&0x0000FF;
-        return "#"+(0x1000000+(Math.round((t-R)*p)+R)*0x10000+(Math.round((t-G)*p)+G)*0x100+(Math.round((t-B)*p)+B)).toString(16).slice(1);
-    }
-
-    // Canvas rounded rect helper (roundRect 대체)
-    function roundedRectPath(ctx, x, y, w, h, r) {
-        const rr = Math.min(r, w/2, h/2);
-        ctx.moveTo(x + rr, y);
-        ctx.lineTo(x + w - rr, y);
-        ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
-        ctx.lineTo(x + w, y + h - rr);
-        ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
-        ctx.lineTo(x + rr, y + h);
-        ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
-        ctx.lineTo(x, y + rr);
-        ctx.quadraticCurveTo(x, y, x + rr, y);
-    }
-
-    // --- BIOMES ---
-    const BIOMES = {
-        VILLAGE: { name: 'Dragon Village', color: '#795548', dot: '#d35400', safe: true },
-        LAKE: { name: 'Mystic Lake', color: '#3498db', dot: '#2980b9', safe: true },
-        FOREST: { name: 'Wild Forest', color: '#27ae60', dot: '#2ecc71', safe: false }
-    };
-
-    function getBiome(x, y) {
-        if (x > 800 && x < 1600 && y > 800 && y < 1600) return 'VILLAGE';
-        if (dist({x,y}, {x:2000, y:2000}) < 700) return 'LAKE';
-        return 'FOREST';
-    }
-
-    // --- DIALOGUE SYSTEM ---
-    const DIALOGUES = {
-        WISE: {
-            idle: ["바람이 심상치 않군...", "고대 드래곤의 가호가 있기를.", "이 숲의 역사는 깊지.", "어린 용들이 잘 자라야 할 텐데."],
-            greet: ["어서오게, 젊은 용이여.", "지혜를 구하러 왔나?", "오늘도 평화롭군."]
+const NPC_SCRIPTS = {
+    TUTORIAL: {
+        intro: {
+            text: "일어났느냐, 낯선 용이여. 하늘에서 떨어져 이곳 마을 중앙에 쓰러져 있더구나.",
+            options: [{t:"여기는 어디죠?", next:'where', eff:0}]
         },
-        BRAVE: {
-            idle: ["근육이 근질거리는군!", "인간들이 오면 다 태워버리겠어.", "훈련은 게을리하면 안 돼.", "오늘 저녁은 고기다!"],
-            greet: ["한 판 붙어볼까?", "마을은 내가 지킨다!", "강해 보이는데?"]
+        where: {
+            text: "이곳은 드래곤들의 마지막 안식처, '드래곤 빌리지'란다. 나는 촌장 엘더라고 하지.",
+            options: [{t:"머리가 아파요...", next:'pain', eff:0}]
         },
-        PLAYFUL: {
-            idle: ["나랑 술래잡기 할 사람?", "저 구름 맛있게 생겼어!", "심심해 심심해~", "날개 간지러워!"],
-            greet: ["안녕! 나랑 놀자!", "우와 네 비늘 예쁘다!", "헤헤, 반가워!"]
+        pain: {
+            text: "큰 충격을 받았으니 그럴만도 하지. 우선 이 [고기]를 좀 먹고 기운을 차리게나.",
+            options: [{t:"감사합니다. (고기 받기)", next:'meat', eff:5}]
         },
-        GRUMPY: {
-            idle: ["...시끄러워.", "혼자 있고 싶군.", "요즘 젊은 것들은...", "낮잠 잘 시간이야."],
-            greet: ["뭐야, 저리 가.", "용건만 간단히.", "귀찮게 하지 마."]
+        meat: {
+            text: "조작법을 알려주지. [WASD]로 움직이고, [Space]로 불꽃을 뿜을 수 있다. [E]키로 물건을 줍거나 먹을 수 있지.",
+            options: [{t:"알겠습니다!", next:'warn', eff:0}]
+        },
+        warn: {
+            text: "하지만 조심해라. 숲 밖에는 [인간 사냥꾼]들이 우리 알을 노리고 있다. 우리와 함께 마을을 지켜다오.",
+            options: [{t:"제가 지키겠습니다!", next:'end', eff:10}]
+        },
+        end: {
+            text: "든든하군. 마을을 자유롭게 둘러보거라. 둥지와 편의시설을 마련해 두었다.",
+            options: []
         }
-    };
-
-    const NPC_SCRIPTS = {
-        TUTORIAL: {
-            intro: { text: "일어났느냐, 낯선 용이여. 하늘에서 떨어져 이곳 마을 중앙에 쓰러져 있더구나.", options: [{t:"여기는 어디죠?", next:'where', eff:0}] },
-            where: { text: "이곳은 드래곤들의 마지막 안식처, '드래곤 빌리지'란다. 나는 촌장 엘더라고 한다.", options: [{t:"머리가 아파요...", next:'pain', eff:0}] },
-            pain: { text: "큰 충격을 받았으니 그럴만도 하지. 우선 이 [고기]를 좀 먹고 기운을 차리게나.", options: [{t:"감사합니다. (고기 받기)", next:'meat', eff:5}] },
-            meat: { text: "조작법을 알려주지. [WASD]로 움직이고, [Space]로 불꽃을 뿜을 수 있다. [E]키로 물건을 줍거나 먹을 수 있지.", options: [{t:"알겠습니다!", next:'warn', eff:0}] },
-            warn: { text: "하지만 조심해라. 숲 밖에는 [인간 사냥꾼]들이 우리 알을 노리고 있다. 우리와 함께 마을을 지켜다오.", options: [{t:"제가 지키겠습니다!", next:'end', eff:10}] },
-            end: { text: "든든하군. 마을을 자유롭게 둘러보거라. 둥지와 편의시설을 마련해 두었다.", options: [] }
+    },
+    WISE: {
+        intro: {
+            text: "흐음... 자네의 날개에서 범상치 않은 기운이 느껴지는군. 무슨 일로 왔는가?",
+            options: [
+                {t:"지혜를 구하러 왔습니다.", next:'wisdom', eff:5},
+                {t:"그냥 지나가던 길입니다.", next:'end', eff:0}
+            ]
         },
-        WISE: {
-            intro: { text: "흐음... 자네의 날개에서 범상치 않은 기운이 느껴지는군. 무슨 일로 왔는가?", options: [{t:"지혜를 구하러 왔습니다.", next:'wisdom', eff:5}, {t:"그냥 지나가던 길입니다.", next:'end', eff:0}] },
-            wisdom: { text: "허허, 배우려는 자세가 좋군. 이 숲은 위험하지만, 그만큼 보물도 많다네. 특히 인간들을 조심하게.", options: [{t:"명심하겠습니다.", next:'end', eff:10}, {t:"제가 다 이길 수 있습니다.", next:'arrogant', eff:-5}] },
-            arrogant: { text: "자만은 금물이야! 아직 어린 용이군. 쯧쯧.", options: [{t:"(자리를 뜬다)", next:'end', eff:0}] },
-            end: { text: "조심해서 가시게.", options: [] }
+        wisdom: {
+            text: "배우려는 자세가 좋군. 이 숲은 위험하지만, 그만큼 보물도 많다네. 특히 인간들을 조심하게.",
+            options: [
+                {t:"명심하겠습니다.", next:'end', eff:8},
+                {t:"제가 다 이길 수 있습니다.", next:'arrogant', eff:-5}
+            ]
         },
-        BRAVE: {
-            intro: { text: "거기 너! 눈빛이 살아있는데? 나랑 한 판 붙어볼 텐가?", options: [{t:"좋습니다! (전투 연습)", next:'fight', eff:10}, {t:"아니요, 사양합니다.", next:'coward', eff:-5}] },
-            fight: { text: "하하하! 좋아! 나중에 훈련장에서 보자고. 마음에 들어!", options: [{t:"기대하겠습니다.", next:'end', eff:5}] },
-            coward: { text: "뭐야, 겁쟁이인가? 실망이군.", options: [{t:"...", next:'end', eff:0}] },
-            end: { text: "강해져서 돌아와라!", options: [] }
+        arrogant: {
+            text: "자만은 금물이야! 아직 어린 용이군.",
+            options: [{t:"(머쓱하게 물러난다)", next:'end', eff:0}]
         },
-        PLAYFUL: {
-            intro: { text: "와아! 안녕! 너 비늘 색깔 진짜 예쁘다! 나랑 술래잡기 할래?", options: [{t:"그래, 놀자!", next:'play', eff:15}, {t:"지금은 바빠.", next:'busy', eff:-5}] },
-            play: { text: "신난다! 내가 술래 할게! 도망쳐! 꺄르륵!", options: [{t:"(같이 뛰어논다)", next:'end', eff:5}] },
-            busy: { text: "힝... 다들 바쁘대. 재미없어.", options: [{t:"미안해.", next:'end', eff:0}] },
-            end: { text: "또 봐!", options: [] }
-        },
-        GRUMPY: {
-            intro: { text: "아... 귀찮게 또 누가 온 거야. 무슨 일이야?", options: [{t:"인사하러 왔습니다.", next:'polite', eff:5}, {t:"비켜주세요.", next:'angry', eff:-10}] },
-            polite: { text: "인사는 무슨. 용건 없으면 저리 가. 난 낮잠 자야 돼.", options: [{t:"안녕히 계세요.", next:'end', eff:0}] },
-            angry: { text: "뭐? 이 녀석이 감히! 콧김으로 날려버릴라!", options: [{t:"죄송합니다.", next:'end', eff:0}] },
-            end: { text: "함부로 깨우지 마.", options: [] }
-        },
-        FLIRT: {
-            low: { text: "어... 우리 아직 그렇게 친한 사이는 아니지 않아?", options: [{t:"미안, 너무 급했어.", next:'end', eff:0}] },
-            mid: { text: "음... 너 꽤 매력적이긴 해. 좀 더 시간을 갖자.", options: [{t:"기다릴게.", next:'end', eff:5}] },
-            high: { text: "사실... 나도 널 기다리고 있었어. 우리 둥지를 꾸려볼까?", options: [{t:"좋아! 둥지로 가자!", next:'partner', eff:20}, {t:"아직 마음의 준비가...", next:'end', eff:-5}] }
+        end: {
+            text: "조심해서 가시게.",
+            options: []
         }
-    };
+    },
+    BRAVE: {
+        intro: {
+            text: "거기 너! 눈빛이 마음에 드는군. 힘 자랑이나 해볼까?",
+            options: [
+                {t:"좋습니다! (전투 연습)", next:'fight', eff:10},
+                {t:"아니요, 사양합니다.", next:'coward', eff:-5}
+            ]
+        },
+        fight: {
+            text: "하하하! 좋아! 나중에 훈련장에서 보자고. 기대하겠다!",
+            options: [{t:"저도 기대할게요.", next:'end', eff:5}]
+        },
+        coward: {
+            text: "뭐야, 겁이 난 건가? 아직은 초보인가 보군.",
+            options: [{t:"…강해져서 돌아올게요.", next:'end', eff:2}]
+        },
+        end: { text: "언제든 싸울 준비를 해둬라!", options: [] }
+    },
+    PLAYFUL: {
+        intro: {
+            text: "우와! 새 얼굴이다! 나랑 놀래, 아니면 얘기할래?",
+            options: [
+                {t:"놀자!", next:'play', eff:12},
+                {t:"얘기나 하죠.", next:'chat', eff:5},
+                {t:"지금은 바빠요.", next:'busy', eff:-3}
+            ]
+        },
+        play: {
+            text: "신난다! 내가 술래! 도망쳐~ 꺄르르!",
+            options: [{t:"같이 뛰어논다.", next:'end', eff:5}]
+        },
+        chat: {
+            text: "어제 구름 모양 봤어? 딱 용 꼬리 같았는데!",
+            options: [{t:"그거 멋지다.", next:'end', eff:5}]
+        },
+        busy: {
+            text: "힝… 다들 바쁘대. 나중에는 꼭 같이 놀자?",
+            options: [{t:"미안, 다음엔 꼭.", next:'end', eff:2}]
+        },
+        end: { text: "또 봐!", options: [] }
+    },
+    GRUMPY: {
+        intro: {
+            text: "하… 또 누구야. 무슨 일이지?",
+            options: [
+                {t:"인사하러 왔습니다.", next:'polite', eff:4},
+                {t:"좀 비켜주세요.", next:'angry', eff:-8}
+            ]
+        },
+        polite: {
+            text: "인사 같은 건 필요 없는데… 뭐, 정성은 봐주지.",
+            options: [{t:"방해해서 죄송해요.", next:'end', eff:0}]
+        },
+        angry: {
+            text: "뭐라고? 감히 나한테 명령을 해?",
+            options: [{t:"죄송합니다!", next:'end', eff:0}]
+        },
+        end: {
+            text: "용건 없으면 얼른 가.",
+            options: []
+        }
+    },
+    FLIRT: {
+        low: {
+            text: "어… 우리 아직 그렇게 친한 사이는 아니지 않아?",
+            options: [{t:"미안, 너무 급했네요.", next:'end', eff:0}]
+        },
+        mid: {
+            text: "흐음… 너, 생각보다 꽤 매력적이야. 좀 더 같이 있어볼까?",
+            options: [{t:"천천히 알아가요.", next:'end', eff:6}]
+        },
+        high: {
+            text: "사실… 나도 너를 기다리고 있었어. 우리 둥지를 같이 지켜볼래?",
+            options: [
+                {t:"좋아요. 파트너가 되죠.", next:'partner', eff:15},
+                {t:"아직 마음의 준비가…", next:'end', eff:-3}
+            ]
+        },
+        end: { text: "흠… 일단은 여기까지.", options: [] }
+    }
+};
 
-    // --- GRAPHICS --- (grass)
-    const grassCanvas = document.createElement('canvas');
-    grassCanvas.width = TILE_SIZE; grassCanvas.height = TILE_SIZE;
-    const gCtx = grassCanvas.getContext('2d');
-    gCtx.fillStyle = '#0b2e13'; gCtx.fillRect(0,0,TILE_SIZE,TILE_SIZE);
-    for(let i=0; i<50; i++) {
-        gCtx.fillStyle = Math.random()<0.5 ? '#145c28' : '#0f401b';
-        const s = rand(2, 5); gCtx.fillRect(rand(0,TILE_SIZE), rand(0,TILE_SIZE), s, s);
+// GRASS
+const grassCanvas = document.createElement('canvas');
+grassCanvas.width = TILE_SIZE; grassCanvas.height = TILE_SIZE;
+const gCtx = grassCanvas.getContext('2d');
+gCtx.fillStyle = '#0b2e13'; gCtx.fillRect(0,0,TILE_SIZE,TILE_SIZE);
+for(let i=0;i<50;i++){
+    gCtx.fillStyle = Math.random()<0.5 ? '#145c28' : '#0f401b';
+    const s = rand(2,5); gCtx.fillRect(rand(0,TILE_SIZE), rand(0,TILE_SIZE), s, s);
+}
+
+// CAMERA
+let cam = {x:0,y:0,w:canvas.width,h:canvas.height};
+function isOnScreen(e,m=200){
+    return (e.x+m>cam.x && e.x-m<cam.x+cam.w && e.y+m>cam.y && e.y-m<cam.y+cam.h);
+}
+
+// BASE CLASS
+class Entity {
+    constructor(x,y){this.x=x;this.y=y;this.remove=false;}
+    drawShadow(ctx,r){
+        ctx.fillStyle='rgba(0,0,0,0.4)';
+        ctx.beginPath();ctx.ellipse(0,0,r,r*0.4,0,0,Math.PI*2);ctx.fill();
+    }
+}
+
+// DRAGON
+class Dragon extends Entity {
+    constructor(x,y,config,isPlayer=false){
+        super(x,y);
+        this.isPlayer = isPlayer;
+        this.config = config;
+        this.colors = {
+            body: config.colors.body,
+            bodyDark: shadeColor(config.colors.body,-0.3),
+            wing: config.colors.wing,
+            wingDark: shadeColor(config.colors.wing,-0.4),
+            belly: config.colors.belly
+        };
+        this.species = config.species || 'WESTERN'; // WESTERN, WYVERN, EASTERN, BEHEMOTH
+
+        this.level=1; this.hp=100; this.maxHp=100; this.xp=0; this.maxXp=100; this.hunger=100;
+        this.angle=0; this.wingFrame=Math.random()*10; this.hoverY=0;
+        this.inventory={meat:0}; this.carrying=null;
+
+        this.homeX=x; this.homeY=y;
+        this.state='WANDER'; this.timer=0;
+        this.chatTimer = rand(5,15);
+        this.currentChat = null; this.chatFade=0;
+        this.hasEgg=false;
+        this.relation=0;
     }
 
-    // --- CAMERA ---
-    let cam = { x:0, y:0, w:0, h:0 };
-    function isOnScreen(e, m=200) {
-        return (e.x+m > cam.x && e.x-m < cam.x+cam.w && e.y+m > cam.y && e.y-m < cam.y+cam.h);
-    }
-
-    // --- ENTITIES ---
-    class Entity {
-        constructor(x, y) { this.x=x; this.y=y; this.remove=false; }
-        drawShadow(ctx, r) {
-            ctx.fillStyle = 'rgba(0,0,0,0.4)';
-            ctx.beginPath(); ctx.ellipse(0,0,r,r*0.4,0,0,Math.PI*2); ctx.fill();
+    gainXp(amount){
+        this.xp += amount;
+        if(this.xp >= this.maxXp){
+            this.level++;
+            this.xp -= this.maxXp;
+            this.maxXp = Math.floor(this.maxXp*1.3);
+            this.maxHp += 20;
+            this.hp = this.maxHp;
+            if(this.isPlayer){
+                showToast(`LEVEL UP! LV.${this.level}`,'🔥');
+                for(let i=0;i<25;i++) entities.particles.push(new Particle(this.x,this.y,'#f1c40f',1.2));
+                limitParticles();
+            }
         }
     }
 
-    class Dragon extends Entity {
-        constructor(x, y, config, isPlayer=false) {
-            super(x, y);
-            this.isPlayer = isPlayer;
-            this.config = config;
-            this.colors = {
-                body: config.colors.body, bodyDark: shadeColor(config.colors.body, -0.3),
-                wing: config.colors.wing, wingDark: shadeColor(config.colors.wing, -0.4),
-                belly: config.colors.belly
-            };
-            this.level=1; this.hp=100; this.maxHp=100; this.xp=0; this.maxXp=100; this.hunger=100;
-            this.angle=0; this.wingFrame=rand(0, 10); this.hoverY=0;
-            this.inventory={meat:0}; this.carrying=null;
-
-            // Social
-            this.homeX=x; this.homeY=y; this.state='WANDER'; this.timer=0;
-            this.chatTimer = rand(5, 15);
-            this.currentChat = null; this.chatFade = 0;
-            this.hasEgg = false; this.relation = 0;
+    takeDamage(dmg){
+        this.hp -= dmg;
+        for(let i=0;i<5;i++) entities.particles.push(new Particle(this.x,this.y,'#e74c3c',0.8));
+        limitParticles();
+        if(this.hp<=0 && this.isPlayer){
+            showToast("쓰러졌습니다... 마을에서 부활합니다.","💀");
+            this.hp = this.maxHp; this.x=1200; this.y=1200;
         }
+    }
 
-        gainXp(amount) {
-            this.xp += amount;
-            if(this.xp >= this.maxXp) {
-                this.level++; this.xp -= this.maxXp; this.maxXp = Math.floor(this.maxXp * 1.3);
-                this.maxHp += 20; this.hp = this.maxHp;
-                if(this.isPlayer) {
-                    showToast(`LEVEL UP! LV.${this.level}`, '🔥');
-                    for(let i=0; i<20; i++) entities.particles.push(new Particle(this.x, this.y, '#f1c40f', 1.0));
+    update(dt,input){
+        if(this.chatFade>0) this.chatFade -= dt*0.3;
+        this.hoverY = Math.sin(gameTime*2 + this.x*0.01)*10;
+
+        if(this.isPlayer){
+            if(isDialogueOpen) return;
+            let dx=0,dy=0;
+            if(input.keys['w'])dy=-1;
+            if(input.keys['s'])dy=1;
+            if(input.keys['a'])dx=-1;
+            if(input.keys['d'])dx=1;
+            let spd = 260*(input.keys['shift']?1.5:1);
+
+            if(dx||dy){
+                this.angle = Math.atan2(dy,dx);
+                this.x += Math.cos(this.angle)*spd*dt;
+                this.y += Math.sin(this.angle)*spd*dt;
+                this.wingFrame += 16*dt;
+                this.hunger -= 0.5*dt;
+            }else{
+                this.wingFrame += 5*dt;
+                this.hunger -= 0.1*dt;
+            }
+
+            this.x = Math.max(50,Math.min(WORLD_SIZE-50,this.x));
+            this.y = Math.max(50,Math.min(WORLD_SIZE-50,this.y));
+
+            // Interaction - nearest NPC
+            let nearestNPC = entities.npcs.find(n=>dist(this,n)<180);
+            if(nearestNPC){
+                interactTip.style.display='block';
+                interactTip.style.left = (window.innerWidth/2 + (nearestNPC.x - cam.x)) + 'px';
+                interactTip.style.top = (window.innerHeight/2 + (nearestNPC.y - cam.y) - 60) + 'px';
+            }else{
+                interactTip.style.display='none';
+            }
+
+            if(input.keys[' ']&&!input.prevKeys[' ']) this.attack();
+            if(input.keys['e']&&!input.prevKeys['e']) this.interact();
+            if(input.keys['t']&&!input.prevKeys['t']){ if(nearestNPC) startDialogue(nearestNPC,'TALK'); }
+            if(input.keys['l']&&!input.prevKeys['l']){ if(nearestNPC) startDialogue(nearestNPC,'FLIRT'); }
+            if(input.keys['k']&&!input.prevKeys['k']){ toggleKidsPanel(); }
+
+            if(Math.random()<0.12) this.updateUI();
+        }else{
+            if(isDialogueOpen) return;
+            this.chatTimer -= dt;
+            if(this.chatTimer<=0){
+                const lines = (DIALOGUES[this.config.personality] || {idle:[]}).idle || [];
+                if(lines.length){
+                    this.say(lines[Math.floor(Math.random()*lines.length)]);
                 }
+                this.chatTimer = rand(10,25);
+            }
+
+            // PARTNER_FOLLOW AI
+            if(this.state === 'PARTNER_FOLLOW'){
+                const d = dist(this, player);
+                if(d>110){
+                    this.angle = Math.atan2(player.y - this.y, player.x - this.x);
+                    this.x += Math.cos(this.angle)*220*dt;
+                    this.y += Math.sin(this.angle)*220*dt;
+                    this.wingFrame += 14*dt;
+                }else{
+                    this.wingFrame += 7*dt;
+                }
+
+                // 파트너가 둥지까지 가서 알 낳기
+                let nest = entities.nests[0];
+                if(nest && !nest.hasEgg && dist(this,nest)<100 && kidsRegistry.length<MAX_KIDS){
+                    nest.hasEgg = true; this.hasEgg=true;
+                    this.state='WANDER';
+                    this.say("우리 알을 부탁해.");
+                    showToast(`${this.config.name}가 알을 낳았습니다!`,'🥚');
+                    for(let i=0;i<20;i++) entities.particles.push(new Particle(nest.x,nest.y,'#fff',1));
+                    limitParticles();
+                }
+            }else{
+                // WANDER
+                this.timer-=dt;
+                if(this.timer<=0){
+                    this.timer = rand(3,8);
+                    this.angle = rand(0,Math.PI*2);
+                }
+                if(dist(this,{x:this.homeX,y:this.homeY})>500){
+                    this.angle = Math.atan2(this.homeY-this.y,this.homeX-this.x);
+                }
+                this.x += Math.cos(this.angle)*60*dt;
+                this.y += Math.sin(this.angle)*60*dt;
+                this.wingFrame += 6*dt;
             }
         }
 
-        takeDamage(dmg) {
-            this.hp -= dmg;
-            for(let i=0; i<5; i++) entities.particles.push(new Particle(this.x, this.y, '#e74c3c', 0.8));
-            if(this.hp <= 0 && this.isPlayer) {
-                showToast("쓰러졌습니다... 마을에서 부활합니다.", "💀");
-                this.hp = this.maxHp; this.x = 1200; this.y = 1200;
-            }
-        }
+        this.x = Math.max(50,Math.min(WORLD_SIZE-50,this.x));
+        this.y = Math.max(50,Math.min(WORLD_SIZE-50,this.y));
+    }
 
-        update(dt, input) {
-            if(this.chatFade > 0) this.chatFade -= dt * 0.3;
-            this.hoverY = Math.sin(gameTime*2 + this.x*0.01)*10;
+    say(text){
+        this.currentChat = text;
+        this.chatFade = 3.0;
+    }
 
-            if(this.isPlayer) {
-                if(isDialogueOpen) return;
+    attack(){
+        if(this.hunger<10){showToast("배가 너무 고파요!","😫");return;}
+        this.hunger -= 2;
+        entities.bullets.push(new Fireball(this.x,this.y,this.angle,this));
+        if(entities.bullets.length>100) entities.bullets.splice(0,entities.bullets.length-100);
+    }
 
-                let dx=0, dy=0;
-                if(input.keys['w']) dy=-1; if(input.keys['s']) dy=1;
-                if(input.keys['a']) dx=-1; if(input.keys['d']) dx=1;
-                let spd = 250 * (input.keys['shift']?1.5:1);
-
-                if(dx||dy) {
-                    this.angle = Math.atan2(dy, dx);
-                    this.x += Math.cos(this.angle)*spd*dt;
-                    this.y += Math.sin(this.angle)*spd*dt;
-                    this.wingFrame += 15*dt;
-                    this.hunger -= 0.5*dt;
-                } else {
-                    this.wingFrame += 5*dt;
-                    this.hunger -= 0.1*dt;
-                }
-
-                this.x = Math.max(50, Math.min(WORLD_SIZE-50, this.x));
-                this.y = Math.max(50, Math.min(WORLD_SIZE-50, this.y));
-
-                // Interaction Checks
-                let nearestNPC = entities.npcs.find(n => dist(this, n) < 180);
-                if(nearestNPC) {
-                    interactTip.style.display = 'block';
-                    interactTip.style.left = (window.innerWidth/2 + (nearestNPC.x - cam.x)) + 'px';
-                    interactTip.style.top = (window.innerHeight/2 + (nearestNPC.y - cam.y) - 60) + 'px';
-                } else interactTip.style.display = 'none';
-
-                if(input.keys[' '] && !input.prevKeys[' ']) this.attack();
-                if(input.keys['e'] && !input.prevKeys['e']) this.interact();
-                if(input.keys['t'] && !input.prevKeys['t']) { if(nearestNPC) startDialogue(nearestNPC, 'TALK'); }
-                if(input.keys['l'] && !input.prevKeys['l']) { if(nearestNPC) startDialogue(nearestNPC, 'FLIRT'); }
-
-                if(Math.random()<0.1) this.updateUI();
-            } else {
-                if(isDialogueOpen) return;
-                // NPC AI
-                this.chatTimer -= dt;
-                if(this.chatTimer <= 0) {
-                    const lines = DIALOGUES[this.config.personality]?.idle;
-                    if(lines && lines.length){
-                        this.say(lines[Math.floor(Math.random()*lines.length)]);
-                    }
-                    this.chatTimer = rand(10, 25);
-                }
-
-                let enemy = entities.enemies.find(e => dist(this, e) < 300) || entities.humans.find(h => dist(this, h) < 300);
-                if (enemy) {
-                    this.angle = Math.atan2(enemy.y - this.y, enemy.x - this.x);
-                    if(Math.random() < 0.02) entities.bullets.push(new Fireball(this.x, this.y, this.angle, this));
-                } else {
-                    this.timer -= dt;
-                    if(this.state === 'PARTNER_FOLLOW') {
-                        const d = dist(this, player);
-                        if(d > 120) {
-                            this.angle = Math.atan2(player.y-this.y, player.x-this.x);
-                            this.x += Math.cos(this.angle)*200*dt;
-                            this.y += Math.sin(this.angle)*200*dt;
-                            this.wingFrame += 12*dt;
-                        }
-                        let nest = entities.nests[0];
-                        if(nest && dist(this, nest) < 100 && !nest.hasEgg) {
-                            nest.hasEgg = true; this.hasEgg = true;
-                            this.state = 'WANDER';
-                            this.say("우리의 알이야! 잘 부탁해.");
-                            showToast(`${this.config.name}가 알을 낳았습니다!`, '🥚');
-                            for(let i=0;i<20;i++) entities.particles.push(new Particle(nest.x, nest.y, '#ffffff', 1.0));
-                        }
-                    } else if(this.state === 'WANDER') {
-                        if(this.timer <= 0) {
-                            this.timer = rand(3, 8);
-                            this.angle = rand(0, Math.PI*2);
-                        }
-                        if(dist(this, {x:this.homeX, y:this.homeY}) > 500) {
-                            this.angle = Math.atan2(this.homeY-this.y, this.homeX-this.x);
-                        }
-                        this.x += Math.cos(this.angle)*60*dt;
-                        this.y += Math.sin(this.angle)*60*dt;
-                        this.wingFrame += 5*dt;
-                    }
+    interact(){
+        let picked=false;
+        entities.items.forEach(i=>{
+            if(dist(this,i)<60){
+                if(i.type==='MEAT'){
+                    this.inventory.meat++; i.remove=true; picked=true;
+                    showToast("고기 획득!","🍖");
+                }else if(i.type==='EGG' && !this.carrying){
+                    this.carrying='EGG'; i.remove=true; picked=true;
+                    showToast("알을 들었습니다.","🥚");
                 }
             }
-            this.x = Math.max(50, Math.min(WORLD_SIZE-50, this.x));
-            this.y = Math.max(50, Math.min(WORLD_SIZE-50, this.y));
-        }
+        });
+        if(picked) return;
 
-        say(text) {
-            this.currentChat = text;
-            this.chatFade = 3.0;
-        }
-
-        attack() {
-            if(this.hunger < 10) { showToast("배가 너무 고파요!", "😫"); return; }
-            this.hunger -= 2;
-            entities.bullets.push(new Fireball(this.x, this.y, this.angle, this));
-        }
-
-        interact() {
-            let picked = false;
-            entities.items.forEach(i => {
-                if(dist(this, i) < 60) {
-                    if(i.type === 'MEAT') { this.inventory.meat++; i.remove=true; picked=true; showToast("고기 획득! (인벤토리)", "🍖"); }
-                    else if(i.type === 'EGG' && !this.carrying) { this.carrying='EGG'; i.remove=true; picked=true; showToast("알을 들었습니다.", "🥚"); }
-                }
-            });
-            if(picked) return;
-
-            // Eat (Self)
-            if(this.inventory.meat > 0 && this.hunger < 90) {
-                this.inventory.meat--; this.hunger = Math.min(100, this.hunger + 40); this.hp = Math.min(this.maxHp, this.hp + 30);
-                showToast("고기를 먹었습니다.", "😋");
+        // self eat
+        if(this.inventory.meat>0 && this.hunger<90){
+            this.inventory.meat--; this.hunger += 40; this.hp = Math.min(this.maxHp, this.hp+30);
+            showToast("고기를 먹었습니다.","😋");
+            return;
+        }else if(this.inventory.meat>0){
+            // feed baby
+            let baby = entities.babies.find(b=>dist(this,b)<80);
+            if(baby){
+                this.inventory.meat--;
+                baby.grow();
                 return;
-            } else if (this.inventory.meat > 0 && this.hunger >= 90) {
-                let baby = entities.babies.find(b => dist(this, b) < 80);
-                if(baby) {
-                    this.inventory.meat--; baby.grow(); return;
-                } else {
-                    showToast("배가 너무 불러요!", "✋");
-                }
+            }else{
+                showToast("배가 너무 불러요!","✋");
             }
+        }
 
-            // Nest (Manual)
-            let nest = entities.nests.find(n => dist(this, n) < 80);
-            if(nest && this.carrying === 'EGG' && !nest.hasEgg) {
-                this.carrying = null; nest.hasEgg = true;
-                showToast("알을 둥지에 안착시켰습니다.", "🏠");
+        // nest drop egg
+        let nest = entities.nests.find(n=>dist(this,n)<80);
+        if(nest && this.carrying==='EGG' && !nest.hasEgg){
+            if(kidsRegistry.length>=MAX_KIDS){
+                showToast("둥지가 꽉 찼습니다! 더 이상 알을 둘 수 없어요.","😅");
                 return;
             }
+            this.carrying=null;
+            nest.hasEgg=true;
+            showToast("알을 둥지에 안착시켰습니다.","🏠");
+            return;
         }
+    }
 
-        updateUI() {
-            const b = BIOMES[getBiome(this.x, this.y)];
-            document.getElementById('biome-text').innerText = b.name;
-            document.getElementById('ui-meat').innerText = this.inventory.meat;
-            document.getElementById('ui-lvl').innerText = this.level;
-            document.getElementById('bar-hp').style.width = `${(this.hp/this.maxHp)*100}%`;
-            document.getElementById('bar-hunger').style.width = `${this.hunger}%`;
-            document.getElementById('bar-xp').style.width = `${(this.xp/this.maxXp)*100}%`;
-            document.getElementById('ui-hp-text').innerText = Math.round(this.hp);
-            document.getElementById('ui-xp-text').innerText = `${Math.round((this.xp/this.maxXp)*100)}%`;
-        }
+    updateUI(){
+        const b = BIOMES[getBiome(this.x,this.y)];
+        document.getElementById('biome-text').innerText = b.name;
+        document.getElementById('ui-meat').innerText = this.inventory.meat;
+        document.getElementById('ui-lvl').innerText = this.level;
+        document.getElementById('ui-hp-text').innerText = this.hp.toFixed(0);
+        document.getElementById('ui-xp-text').innerText = Math.floor((this.xp/this.maxXp)*100)+'%';
 
-        draw(ctx) {
-            if(!isOnScreen(this)) return;
-            ctx.save();
-            ctx.translate(this.x, this.y + this.hoverY);
-            const scale = this.isPlayer ? 1.0 : 0.9;
-            ctx.scale(scale, scale);
+        document.getElementById('bar-hp').style.width = `${(this.hp/this.maxHp)*100}%`;
+        document.getElementById('bar-hunger').style.width = `${Math.max(0,Math.min(100,this.hunger))}%`;
+        document.getElementById('bar-xp').style.width = `${(this.xp/this.maxXp)*100}%`;
 
-            // Shadow
-            this.drawShadow(ctx, 32);
+        document.getElementById('ui-name').innerText = this.config.name || 'Player';
+        document.getElementById('ui-partner').innerText = playerPartner ? playerPartner.config.name : '없음';
+    }
 
-            // Face direction
-            ctx.rotate(this.angle);
+    draw(ctx){
+        if(!isOnScreen(this)) return;
+        ctx.save();
+        ctx.translate(this.x, this.y + this.hoverY);
+        let scale = this.isPlayer ? 1.05 : 0.9;
+        ctx.scale(scale,scale);
+        this.drawShadow(ctx,35);
+        ctx.rotate(this.angle);
 
-            const type = this.config.bodyType || 'STANDARD';
-            const c = this.colors;
-            const flap = Math.sin(this.wingFrame) * 0.5;
+        const s = this.species;
+        const c = this.colors;
+        const f = Math.sin(this.wingFrame)*0.6;
 
-            // 프로포션 설정
-            let bodyLen = 80, bodyRad = 22, neckLen = 25, tailLen = 45, wingSpan = 70;
-            if(type === 'WYVERN') { bodyLen = 70; wingSpan = 90; tailLen = 55; }
-            if(type === 'SERPENT') { bodyLen = 110; bodyRad = 18; neckLen = 35; tailLen = 70; wingSpan = 20; }
-            if(type === 'BEHEMOTH') { bodyLen = 70; bodyRad = 28; neckLen = 20; tailLen = 35; wingSpan = 60; }
-
-            // 꼬리
-            ctx.save();
-            ctx.translate(-bodyLen/2, 0);
-            ctx.strokeStyle = c.bodyDark;
-            ctx.lineWidth = 10;
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.quadraticCurveTo(-tailLen*0.6, 10*Math.sin(this.wingFrame*0.5), -tailLen, 0);
-            ctx.stroke();
+        if(s==='EASTERN'){
+            // 긴 몸 (동양 용)
+            ctx.fillStyle = c.body;
+            let segCount = 7;
+            for(let i=0;i<segCount;i++){
+                const t = i/segCount;
+                const sway = Math.sin(this.wingFrame*0.5 + i)*15;
+                ctx.beginPath();
+                ctx.ellipse(-25 - i*22, sway, 18 - i*1.3, 14, 0, 0, Math.PI*2);
+                ctx.fill();
+            }
+            // 머리
             ctx.fillStyle = c.bodyDark;
-            ctx.beginPath();
-            ctx.moveTo(-tailLen, 0);
-            ctx.lineTo(-tailLen+10, -6);
-            ctx.lineTo(-tailLen+10, 6);
-            ctx.fill();
+            ctx.beginPath(); ctx.ellipse(15,0,22,16,0,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle='#fff';
+            ctx.beginPath(); ctx.arc(20,-5,4,0,Math.PI*2); ctx.arc(20,5,4,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle='#000';
+            ctx.beginPath(); ctx.arc(22,-5,2,0,Math.PI*2); ctx.arc(22,5,2,0,Math.PI*2); ctx.fill();
+            // 수염
+            ctx.strokeStyle='#f1c40f'; ctx.lineWidth=2;
+            ctx.beginPath(); ctx.moveTo(25,-8); ctx.quadraticCurveTo(40,-15,45,-5); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(25,8); ctx.quadraticCurveTo(40,15,45,5); ctx.stroke();
+        }else if(s==='WYVERN'){
+            // 큼직한 날개
+            ctx.save();
+            ctx.fillStyle = c.wing;
+            ctx.globalAlpha = 0.9;
+            ctx.scale(1, 1+f*0.4);
+            ctx.beginPath(); ctx.moveTo(-5,0); ctx.quadraticCurveTo(-70,-70,10,-35); ctx.quadraticCurveTo(40,-10,-5,0); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(-5,0); ctx.quadraticCurveTo(-70,70,10,35); ctx.quadraticCurveTo(40,10,-5,0); ctx.fill();
             ctx.restore();
-
-            // 날개
-            if(wingSpan > 25) {
-                ctx.save();
-                // 위쪽 날개
-                ctx.fillStyle = c.wing;
-                ctx.beginPath();
-                ctx.moveTo(10, -5);
-                ctx.quadraticCurveTo(wingSpan*0.2, -25 - 20*flap, wingSpan*0.5, -10 - 15*flap);
-                ctx.quadraticCurveTo(wingSpan*0.15, -5, 10, -5);
-                ctx.fill();
-
-                // 아래쪽 날개
-                ctx.beginPath();
-                ctx.moveTo(10, 5);
-                ctx.quadraticCurveTo(wingSpan*0.2, 25 + 20*flap, wingSpan*0.5, 10 + 15*flap);
-                ctx.quadraticCurveTo(wingSpan*0.15, 5, 10, 5);
-                ctx.fill();
-                ctx.restore();
-            }
 
             // 몸통
+            ctx.fillStyle=c.body;
+            ctx.beginPath(); ctx.ellipse(0,0,26,16,0,0,Math.PI*2); ctx.fill();
+            // 꼬리
+            ctx.beginPath(); ctx.moveTo(-15,0); ctx.quadraticCurveTo(-55,10,-80,0); ctx.lineTo(-72,-4); ctx.lineTo(-55,-2); ctx.fill();
+            // 머리
+            ctx.fillStyle=c.bodyDark;
+            ctx.beginPath(); ctx.ellipse(30,0,16,12,0,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle='#fff';
+            ctx.beginPath(); ctx.arc(34,-4,4,0,Math.PI*2); ctx.arc(34,4,4,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle='#000';
+            ctx.beginPath(); ctx.arc(36,-4,2,0,Math.PI*2); ctx.arc(36,4,2,0,Math.PI*2); ctx.fill();
+        }else if(s==='BEHEMOTH'){
+            // 거대한 몸
+            ctx.fillStyle=c.wingDark;
+            // 짧은 날개
             ctx.save();
-            ctx.translate(0, 0);
-            ctx.fillStyle = c.body;
-            ctx.beginPath();
-            ctx.ellipse(0, 0, bodyLen/2, bodyRad, 0, 0, Math.PI*2);
-            ctx.fill();
-
-            // 배
-            ctx.fillStyle = c.belly;
-            ctx.beginPath();
-            ctx.ellipse(0, 0, bodyLen/2.4, bodyRad*0.7, 0, 0, Math.PI*2);
-            ctx.fill();
+            ctx.scale(1, 1+f*0.3);
+            ctx.beginPath(); ctx.ellipse(-15,-25,20,14,0,0,Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(-15,25,20,14,0,0,Math.PI*2); ctx.fill();
             ctx.restore();
 
-            // 목 + 머리
+            ctx.fillStyle=c.body;
+            ctx.beginPath(); ctx.ellipse(0,0,32,22,0,0,Math.PI*2); ctx.fill();
+            // 머리
+            ctx.beginPath(); ctx.ellipse(32,0,18,14,0,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle=c.belly;
+            ctx.beginPath(); ctx.ellipse(-4,0,18,12,0,0,Math.PI*2); ctx.fill();
+            // 뿔
+            ctx.fillStyle='#ecf0f1';
+            ctx.beginPath(); ctx.moveTo(30,-10); ctx.lineTo(40,-24); ctx.lineTo(34,-4); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(30,10); ctx.lineTo(40,24); ctx.lineTo(34,4); ctx.fill();
+            // 눈
+            ctx.fillStyle='#fff';
+            ctx.beginPath(); ctx.arc(34,-4,4,0,Math.PI*2); ctx.arc(34,4,4,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle='#000';
+            ctx.beginPath(); ctx.arc(36,-4,2,0,Math.PI*2); ctx.arc(36,4,2,0,Math.PI*2); ctx.fill();
+        }else{
+            // WESTERN 기본 드래곤
             ctx.save();
-            ctx.translate(bodyLen/2 - 10, 0);
-            ctx.fillStyle = c.body;
-            // 목
-            ctx.beginPath();
-            ctx.moveTo(0, -8);
-            ctx.quadraticCurveTo(neckLen*0.4, -12, neckLen, -3);
-            ctx.lineTo(neckLen, 3);
-            ctx.quadraticCurveTo(neckLen*0.4, 12, 0, 8);
-            ctx.closePath();
-            ctx.fill();
+            ctx.fillStyle=c.wing;
+            ctx.globalAlpha = 0.95;
+            ctx.scale(1.1,1+f*0.4);
+            ctx.beginPath(); ctx.moveTo(-8,0); ctx.quadraticCurveTo(-65,-75,15,-30); ctx.quadraticCurveTo(50,-5,-8,0); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(-8,0); ctx.quadraticCurveTo(-65,75,15,30); ctx.quadraticCurveTo(50,5,-8,0); ctx.fill();
+            ctx.restore();
+
+            ctx.fillStyle=c.body;
+            ctx.beginPath(); ctx.ellipse(0,0,24,16,0,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle=c.belly;
+            ctx.beginPath(); ctx.ellipse(0,0,14,10,0,0,Math.PI*2); ctx.fill();
+
+            // 꼬리
+            ctx.fillStyle=c.bodyDark;
+            ctx.beginPath(); ctx.moveTo(-10,0); ctx.quadraticCurveTo(-55,-5,-85,0); ctx.lineTo(-70,8); ctx.lineTo(-50,5); ctx.fill();
 
             // 머리
-            ctx.translate(neckLen, 0);
-            ctx.beginPath();
-            ctx.ellipse(0, 0, 16, 12, 0, 0, Math.PI*2);
-            ctx.fill();
-
-            // 눈
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath(); ctx.arc(4, -4, 3, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(4, 4, 3, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#000000';
-            ctx.beginPath(); ctx.arc(5, -4, 1.5, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(5, 4, 1.5, 0, Math.PI*2); ctx.fill();
-
-            // 뿔
-            ctx.fillStyle = '#f5f5f5';
-            ctx.beginPath();
-            ctx.moveTo(-4, -8);
-            ctx.lineTo(-10, -18);
-            ctx.lineTo(0, -10);
-            ctx.closePath();
-            ctx.fill();
-            ctx.beginPath();
-            ctx.moveTo(-4, 8);
-            ctx.lineTo(-10, 18);
-            ctx.lineTo(0, 10);
-            ctx.closePath();
-            ctx.fill();
-
-            // 입
-            ctx.strokeStyle = '#2c3e50';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(6, -2);
-            ctx.lineTo(10, 0);
-            ctx.lineTo(6, 2);
-            ctx.stroke();
-
-            ctx.restore();
-
-            // 알 들고 있을 때
-            if(this.carrying === 'EGG') {
-                ctx.fillStyle='#ffffff';
-                ctx.beginPath(); ctx.ellipse(0, -20, 10, 12, 0, 0, Math.PI*2); ctx.fill();
-            }
-
-            ctx.restore();
-
-            // Name & Chat Bubble (NPC 전용)
-            if(!this.isPlayer) {
-                ctx.save(); ctx.translate(this.x, this.y - 60);
-
-                ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                ctx.fillRect(-40, -15, 80, 20);
-                ctx.fillStyle = '#fff';
-                ctx.font = '10px Fredoka';
-                ctx.textAlign='center';
-                ctx.fillText(this.config.name, 0, 0);
-                if(this.relation>0) {
-                    ctx.fillStyle = '#e74c3c';
-                    ctx.fillText('♥'.repeat(Math.ceil(this.relation/25)), 0, -20);
-                }
-
-                if(this.chatFade > 0 && this.currentChat) {
-                    ctx.globalAlpha = Math.min(1, this.chatFade);
-                    ctx.translate(0, -30);
-                    ctx.fillStyle = 'white';
-                    const text = this.currentChat;
-                    ctx.font = '12px "Noto Sans KR"';
-                    const w = ctx.measureText(text).width + 20;
-
-                    ctx.beginPath();
-                    roundedRectPath(ctx, -w/2, -20, w, 30, 10);
-                    ctx.fill();
-
-                    ctx.beginPath();
-                    ctx.moveTo(0, 10);
-                    ctx.lineTo(-5, 15);
-                    ctx.lineTo(5, 15);
-                    ctx.fill();
-
-                    ctx.fillStyle = '#333';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(text, 0, 0);
-                }
-                ctx.restore();
-            }
-        }
-    }
-
-    class Prop extends Entity {
-        constructor(x, y, type) {
-            super(x, y);
-            this.type=type;
-            this.seed=Math.random();
-        }
-        draw(ctx) {
-            if(!isOnScreen(this, 150)) return;
-            ctx.save(); ctx.translate(this.x, this.y);
-            ctx.fillStyle='rgba(0,0,0,0.4)';
-            ctx.beginPath(); ctx.ellipse(0,0, this.type==='FOUNTAIN'||this.type==='HOUSE'?50:20, this.type==='FOUNTAIN'||this.type==='HOUSE'?20:8, 0,0,6.28); ctx.fill();
-
-            if(this.type==='TREE') {
-                ctx.fillStyle='#3e2723'; ctx.fillRect(-5,-15,10,20);
-                const c1=this.seed>0.5?'#16a085':'#1abc9c';
-                ctx.translate(0,-15); ctx.fillStyle=c1; ctx.beginPath(); ctx.arc(0,0,25,0,6.28); ctx.fill();
-            } else if(this.type==='HOUSE') {
-                ctx.fillStyle='#2c3e50'; ctx.fillRect(-30,-30,60,35);
-                ctx.fillStyle='#e74c3c'; ctx.beginPath(); ctx.moveTo(-35,-30); ctx.lineTo(0,-60); ctx.lineTo(35,-30); ctx.fill();
-                ctx.fillStyle='#f1c40f'; ctx.fillRect(-5,-15,10,15);
-            } else if(this.type==='FOUNTAIN') {
-                ctx.fillStyle='#bdc3c7'; ctx.beginPath(); ctx.ellipse(0,0, 40, 20, 0,0,6.28); ctx.fill();
-                ctx.fillStyle='#3498db'; ctx.beginPath(); ctx.ellipse(0,0, 35, 15, 0,0,6.28); ctx.fill();
-                ctx.fillStyle='#7f8c8d'; ctx.fillRect(-10,-30, 20, 30);
-                ctx.fillStyle='#85c1e9';
-                for(let i=0; i<3; i++) {
-                    let y = -30 - Math.abs(Math.sin(gameTime*2+i)*10);
-                    ctx.beginPath(); ctx.arc(Math.sin(gameTime*3+i)*5, y, 3, 0, 6.28); ctx.fill();
-                }
-            } else if(this.type==='TOTEM') {
-                ctx.fillStyle='#7f8c8d'; ctx.fillRect(-15,-60, 30, 60);
-                ctx.fillStyle='#f1c40f';
-                ctx.beginPath(); ctx.arc(0, -50, 5, 0, 6.28); ctx.fill();
-                ctx.fillRect(-10, -40, 20, 2);
-                ctx.fillRect(-10, -30, 20, 2);
-            } else if(this.type==='CAMPFIRE') {
-                ctx.strokeStyle='#5d4037'; ctx.lineWidth=4;
-                ctx.beginPath(); ctx.moveTo(-10,-5); ctx.lineTo(10,5); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(10,-5); ctx.lineTo(-10,5); ctx.stroke();
-                ctx.fillStyle=`rgba(231, 76, 60, ${0.7+Math.sin(gameTime*10)*0.3})`;
-                ctx.beginPath(); ctx.moveTo(-5,0); ctx.lineTo(0,-20+Math.sin(gameTime*15)*5); ctx.lineTo(5,0); ctx.fill();
-            }
-            ctx.restore();
-        }
-    }
-
-    class Human extends Entity {
-        constructor(x, y) {
-            super(x, y);
-            this.hp=80; this.speed=90; this.angle=0; this.hitFlash=0;
-            this.target=null; this.type=Math.random()<0.3?'ARCHER':'KNIGHT';
-            this.cooldown=0;
-        }
-        update(dt) {
-            if(this.hitFlash>0) this.hitFlash-=dt*10;
-            this.cooldown-=dt;
-
-            let nest = entities.nests[0];
-            if(nest && dist(this, nest) < 300) this.target = nest;
-            else this.target = player;
-
-            const d = dist(this, this.target);
-            this.angle = Math.atan2(this.target.y - this.y, this.target.x - this.x);
-            let range = this.type==='ARCHER'?250:40;
-
-            if(d > range) {
-                this.x += Math.cos(this.angle)*this.speed*dt;
-                this.y += Math.sin(this.angle)*this.speed*dt;
-            } else if(this.cooldown <= 0) {
-                if(this.type==='ARCHER') entities.bullets.push(new Fireball(this.x, this.y, this.angle, this));
-                else if(this.target===player) player.takeDamage(10);
-                this.cooldown = 2.0;
-            }
-        }
-        takeDamage(dmg) {
-            this.hp-=dmg; this.hitFlash=1;
-            if(this.hp<=0) {
-                this.remove=true; player.gainXp(100);
-                entities.items.push(new Item(this.x, this.y, 'MEAT'));
-            }
-        }
-        draw(ctx) {
-            if(!isOnScreen(this)) return;
-            ctx.save(); ctx.translate(this.x, this.y); this.drawShadow(ctx, 20);
-            if(Math.cos(this.angle) < 0) ctx.scale(-1, 1);
-            ctx.fillStyle = this.hitFlash>0?'#fff':'#bdc3c7';
-            ctx.beginPath(); ctx.arc(0,-20, 8, 0, Math.PI*2); ctx.fill();
-            ctx.fillRect(-8, -12, 16, 20);
-            ctx.fillStyle = '#f39c12';
-            if(this.type==='ARCHER') {
-                ctx.strokeStyle='#8e44ad'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(10,0,15,-1,1); ctx.stroke();
-            } else ctx.fillRect(10,-10,5,25);
-            ctx.restore();
-        }
-    }
-
-    class Enemy extends Entity {
-        constructor(x, y, type) {
-            super(x, y);
-            this.type=type; this.hp=type==='SLIME'?30:60; this.speed=type==='SLIME'?50:110;
-            this.color=type==='SLIME'?'#2ecc71':'#e74c3c'; this.damage=5;
-            this.hitFlash=0; this.angle=0;
-        }
-        update(dt) {
-            if(this.hitFlash>0) this.hitFlash-=dt*10;
-            const d = dist(this, player);
-            if(d < 400 && d > 30) {
-                this.angle = Math.atan2(player.y-this.y, player.x-this.x);
-                this.x += Math.cos(this.angle)*this.speed*dt;
-                this.y += Math.sin(this.angle)*this.speed*dt;
-            }
-            if(d < 40) player.takeDamage(this.damage*dt);
-        }
-        takeDamage(dmg) {
-            this.hp-=dmg; this.hitFlash=1;
-            if(this.hp<=0) {
-                this.remove=true; player.gainXp(30);
-                for(let i=0;i<8;i++) entities.particles.push(new Particle(this.x, this.y, this.color, 0.8));
-                if(Math.random()<0.3) entities.items.push(new Item(this.x, this.y, 'MEAT'));
-            }
-        }
-        draw(ctx) {
-            if(!isOnScreen(this)) return;
-            ctx.save(); ctx.translate(this.x, this.y); this.drawShadow(ctx, 20);
-            if(this.type==='SLIME') {
-                const b = Math.abs(Math.sin(gameTime*5))*10; ctx.translate(0, -b);
-                ctx.fillStyle = this.hitFlash>0?'#fff':this.color;
-                ctx.beginPath(); ctx.arc(0,0,15,Math.PI,0); ctx.lineTo(15,10); ctx.lineTo(-15,10); ctx.fill();
-            } else {
-                if(Math.cos(this.angle)<0) ctx.scale(-1, 1);
-                ctx.translate(0, Math.sin(gameTime*10)*5);
-                ctx.fillStyle = this.hitFlash>0?'#fff':this.color; ctx.beginPath(); ctx.arc(0,-15,10,0,Math.PI*2); ctx.fill();
-                ctx.fillRect(-10,-5,20,20);
-            }
-            ctx.restore();
-        }
-    }
-
-    class Nest extends Entity {
-        constructor(x,y){super(x,y);this.hasEgg=false;this.p=0;}
-        update(dt){
-            if(this.hasEgg){
-                const d = dist(this, player);
-                this.p += (d < 100 ? dt*15 : dt*2);
-                if(this.p>100){
-                    this.hasEgg=false;this.p=0;
-                    entities.babies.push(new BabyDragon(this.x,this.y));
-                    showToast("아기 용이 태어났습니다!", "🐲");
-                    for(let i=0;i<30;i++) entities.particles.push(new Particle(this.x,this.y, `hsl(${Math.random()*360},100%,50%)`, 1.0));
-                }
-            }
-        }
-        draw(ctx){
-            if(!isOnScreen(this))return;
-            ctx.save(); ctx.translate(this.x,this.y);
-            ctx.fillStyle='#5d4037'; ctx.beginPath(); ctx.arc(0,0,40,0,6.28); ctx.fill();
-            ctx.fillStyle='#8d6e63'; ctx.beginPath(); ctx.arc(0,0,32,0,6.28); ctx.fill();
-            ctx.fillStyle='#f1c40f'; ctx.beginPath(); ctx.arc(35, 0, 5, 0, 6.28); ctx.fill();
-            ctx.fillStyle='#ecf0f1'; ctx.beginPath(); ctx.ellipse(-10, -10, 10, 5, 0.5, 0, 6.28); ctx.fill();
-
-            if(this.hasEgg){
-                ctx.shadowBlur = 15; ctx.shadowColor = '#fff';
-                ctx.fillStyle='#fff'; ctx.beginPath(); ctx.ellipse(0,0,12,16,0,0,6.28); ctx.fill();
-                ctx.shadowBlur = 0;
-                ctx.strokeStyle = '#2ecc71'; ctx.lineWidth = 3;
-                ctx.beginPath(); ctx.arc(0,0,45, -1.57, -1.57 + (6.28 * this.p/100)); ctx.stroke();
-            }
-            ctx.restore();
-        }
-    }
-
-    class Fireball extends Entity {
-        constructor(x,y,a,o){
-            super(x,y);
-            this.vx=Math.cos(a)*600;this.vy=Math.sin(a)*600;this.l=1.5;this.o=o;
-        }
-        update(dt){
-            this.x+=this.vx*dt;this.y+=this.vy*dt;this.l-=dt;
-            if(this.l<0)this.remove=true;
-            if(Math.random()<0.12 && entities.particles.length < 500){
-                entities.particles.push(new Particle(this.x,this.y,'#ffb74d',0.6));
-            }
-        }
-        draw(ctx){
-            ctx.save(); ctx.translate(this.x,this.y);
-            const g = ctx.createRadialGradient(0,0,0,0,0,10);
-            g.addColorStop(0,'#fff8e1');
-            g.addColorStop(0.5,'#ffb74d');
-            g.addColorStop(1,'rgba(255,87,34,0)');
-            ctx.fillStyle=g;
-            ctx.beginPath(); ctx.arc(0,0,10,0,6.28); ctx.fill();
-            ctx.restore();
-        }
-    }
-
-    class BabyDragon extends Entity {
-        constructor(x,y){
-            super(x,y);this.t=player;this.wing=0;
-            this.growth=0; this.stage='BABY'; this.atkTimer=0;
-        }
-        grow(){
-            this.growth+=34;
-            showToast("아기가 고기를 먹었습니다!", "🍖");
-            for(let i=0;i<10;i++)entities.particles.push(new Particle(this.x,this.y,'#2ecc71',0.8));
-            if(this.growth>=100 && this.stage==='BABY') {
-                this.stage='TEEN'; showToast("아기 용이 성장했습니다! (전투 가능)", "🔥");
-            }
-        }
-        update(dt){
-            let target = this.t;
-            if(this.stage==='TEEN') {
-                let enemy = entities.enemies.find(e => dist(this, e) < 300) || entities.humans.find(h => dist(this, h) < 300);
-                if(enemy) {
-                    target = enemy;
-                    this.atkTimer -= dt;
-                    if(this.atkTimer <= 0) {
-                        entities.bullets.push(new Fireball(this.x, this.y, Math.atan2(enemy.y-this.y, enemy.x-this.x), player));
-                        this.atkTimer = 1.5;
-                    }
-                }
-            }
-
-            let a=Math.atan2(target.y-this.y, target.x-this.x);
-            const d = dist(this, target);
-            const followDist = (this.stage==='TEEN' && target!==player) ? 150 : 70;
-            if(d > followDist){
-                this.x+=Math.cos(a)*180*dt;this.y+=Math.sin(a)*180*dt; this.wing+=20*dt;
-            } else this.wing+=5*dt;
-        }
-        draw(ctx){
-            if(!isOnScreen(this))return;
-            ctx.save(); ctx.translate(this.x,this.y);
-            let s = this.stage==='TEEN'?0.8:0.5;
-            ctx.scale(s,s); ctx.rotate(Math.atan2(this.t.y-this.y, this.t.x-this.x));
-            let f=Math.sin(this.wing);
-            ctx.fillStyle= this.stage==='TEEN'?'#e67e22':'#f1c40f';
-            ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-20,-30*f); ctx.lineTo(10,0); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-20,30*f); ctx.lineTo(10,0); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(0,0,15,10,0,0,6.28); ctx.fill();
-            ctx.beginPath(); ctx.arc(15,0,8,0,6.28); ctx.fill();
-            ctx.fillStyle='black'; ctx.beginPath(); ctx.arc(18,-3,2,0,6.28); ctx.arc(18,3,2,0,6.28); ctx.fill();
-            ctx.restore();
-        }
-    }
-
-    class Particle extends Entity {
-        constructor(x,y,c,l=0.8){super(x,y);this.c=c;this.l=l;this.vx=(Math.random()-0.5)*80;this.vy=(Math.random()-0.5)*80;}
-        update(dt){this.x+=this.vx*dt;this.y+=this.vy*dt;this.l-=dt;if(this.l<0)this.remove=true;}
-        draw(ctx){ctx.globalAlpha=Math.max(0,this.l);ctx.fillStyle=this.c;ctx.beginPath();ctx.arc(this.x,this.y,2,0,6.28);ctx.fill();ctx.globalAlpha=1;}
-    }
-
-    class Item extends Entity {
-        constructor(x,y,t){super(x,y);this.type=t;this.tm=0;}
-        update(dt){this.tm+=dt*3;}
-        draw(ctx){
-            if(!isOnScreen(this))return;
-            let y=this.y+Math.sin(this.tm)*5;
-            ctx.font='28px sans';
-            ctx.fillText(this.type=='MEAT'?'🍖':'🥚',this.x-10,y);
-        }
-    }
-
-    // --- GLOBALS ---
-    let player;
-    let entities = { bullets:[], items:[], particles:[], nests:[], babies:[], props:[], npcs:[], enemies:[], humans:[] };
-    let inputs = { keys:{}, prevKeys:{} };
-
-    // --- DIALOGUE FUNCTIONS ---
-    let currentNpc = null;
-
-    function startDialogue(npc, type) {
-        currentNpc = npc;
-        isDialogueOpen = true;
-        dOverlay.style.display = 'flex';
-        dName.innerText = npc.config.name;
-
-        let scriptKey = 'intro';
-        let scriptGroup = NPC_SCRIPTS[npc.config.personality];
-
-        if (npc.config.personality === 'TUTORIAL') {
-            scriptGroup = NPC_SCRIPTS['TUTORIAL'];
-        }
-        else if (type === 'FLIRT') {
-            scriptGroup = NPC_SCRIPTS['FLIRT'];
-            if(npc.relation < 30) scriptKey = 'low';
-            else if(npc.relation < 60) scriptKey = 'mid';
-            else scriptKey = 'high';
+            ctx.fillStyle=c.bodyDark;
+            ctx.beginPath(); ctx.ellipse(30,0,18,12,0,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle='#fff';
+            ctx.beginPath(); ctx.arc(34,-4,4,0,Math.PI*2); ctx.arc(34,4,4,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle='#000';
+            ctx.beginPath(); ctx.arc(36,-4,2,0,Math.PI*2); ctx.arc(36,4,2,0,Math.PI*2); ctx.fill();
         }
 
-        showDialogueNode(scriptGroup, scriptKey);
-    }
-
-    function showDialogueNode(group, key) {
-        const node = group[key];
-        dText.innerText = node.text;
-        dOptions.innerHTML = '';
-
-        node.options.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = 'd-btn';
-            btn.innerText = opt.t;
-            btn.onclick = () => {
-                if(opt.eff !== 0 && currentNpc) {
-                    currentNpc.relation += opt.eff;
-                    showToast(opt.eff>0?"Liked it!":"Disliked...", opt.eff>0?"💖":"💔");
-                }
-
-                if (opt.next === 'end') closeDialogue();
-                else if (opt.next === 'meat') {
-                    player.inventory.meat += 3;
-                    showToast("Received 3 Meat!", "🍖");
-                    showDialogueNode(group, opt.next);
-                }
-                else if (opt.next === 'partner' && currentNpc) {
-                    currentNpc.state = 'PARTNER_FOLLOW';
-                    closeDialogue();
-                    showToast("Partner joined!", "💕");
-                }
-                else showDialogueNode(group, opt.next);
-            };
-            dOptions.appendChild(btn);
-        });
-
-        if(node.options.length === 0) {
-            const btn = document.createElement('button');
-            btn.className = 'd-btn'; btn.innerText = "Close";
-            btn.onclick = closeDialogue;
-            dOptions.appendChild(btn);
-        }
-    }
-
-    function closeDialogue() {
-        isDialogueOpen = false;
-        dOverlay.style.display = 'none';
-        currentNpc = null;
-    }
-
-    // --- MAIN ---
-    function init(config) {
-        player = new Dragon(1200, 1250, config, true);
-
-        // Props
-        entities = { bullets:[], items:[], particles:[], nests:[], babies:[], props:[], npcs:[], enemies:[], humans:[] };
-
-        for(let i=0;i<300;i++){
-            let x=rand(0,WORLD_SIZE),y=rand(0,WORLD_SIZE);
-            if(dist({x,y},{x:1200,y:1200})>800)
-                entities.props.push(new Prop(x,y,'TREE'));
-        }
-
-        entities.props.push(new Prop(1150, 1100, 'HOUSE'));
-        entities.props.push(new Prop(1200, 1200, 'FOUNTAIN'));
-        entities.props.push(new Prop(1300, 1150, 'TOTEM'));
-        entities.props.push(new Prop(1250, 1300, 'CAMPFIRE'));
-
-        entities.nests.push(new Nest(1250, 1250));
-
-        const elder = new Dragon(1200, 1200, {
-            name:'Elder', personality:'TUTORIAL',
-            bodyType:'SERPENT',
-            colors:{body:'#8e44ad', belly:'#9b59b6', wing:'#8e44ad'}
-        });
-
-        entities.npcs = [elder];
-
-        const npcConfigs = [
-            {name:'Tiamat', personality:'BRAVE', bodyType:'WYVERN', colors:{body:'#2980b9', belly:'#3498db', wing:'#34495e'}},
-            {name:'Poco', personality:'PLAYFUL', bodyType:'STANDARD', colors:{body:'#e67e22', belly:'#f1c40f', wing:'#e67e22'}}
-        ];
-
-        npcConfigs.forEach(cfg => {
-            let x,y;
-            do {
-                x = rand(0, WORLD_SIZE);
-                y = rand(0, WORLD_SIZE);
-            } while(getBiome(x,y) === 'VILLAGE'); // 마을 밖에서만
-            const npc = new Dragon(x, y, cfg, false);
-            entities.npcs.push(npc);
-        });
-
-        for(let i=0;i<10;i++) spawnEnemy();
-
-        gameActive = true;
-        customizer.style.display='none';
-        uiLayer.style.display='block';
-        lastTime = performance.now();
-
-        document.getElementById('ui-name').innerText = config.name || 'Player';
-        player.updateUI();
-
-        setTimeout(() => {
-            startDialogue(elder, 'TALK');
-        }, 500);
-
-        requestAnimationFrame(loop);
-    }
-
-    function spawnEnemy(){
-        let x,y;
-        do{
-            x=rand(0,WORLD_SIZE);y=rand(0,WORLD_SIZE);
-        }while(dist({x,y},{x:1200,y:1200})<800);
-        entities.enemies.push(new Enemy(x,y,Math.random()<0.5?'SLIME':'GOBLIN'));
-    }
-
-    function triggerRaid() {
-        raidWarning.style.display = 'block';
-        setTimeout(() => raidWarning.style.display = 'none', 4000);
-        showToast("RAID STARTED!", "⚔️");
-        for(let i=0; i<5; i++)
-            entities.humans.push(new Human(800+rand(-50,50), 1200+rand(-200,200)));
-    }
-
-    function loop(now) {
-        if(!gameActive) return;
-        const dt = Math.max(0, Math.min((now - lastTime)/1000, 0.1));
-        lastTime = now;
-
-        if(!isDialogueOpen) {
-            gameTime += dt;
-            raidTimer -= dt;
-            if(raidTimer <= 0) { triggerRaid(); raidTimer = 180; }
-        }
-
-        cam.w = canvas.width; cam.h = canvas.height;
-        cam.x += (player.x - cam.w/2 - cam.x)*0.1;
-        cam.y += (player.y - cam.h/2 - cam.y)*0.1;
-
-        ctx.fillStyle = '#0b2e13'; ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.save(); ctx.translate(-cam.x, -cam.y);
-
-        ctx.fillStyle = gCtx.createPattern(grassCanvas, 'repeat');
-        ctx.fillRect(cam.x, cam.y, cam.w, cam.h);
-        ctx.fillStyle = '#5d4037'; ctx.fillRect(800,800,800,800);
-
-        player.update(dt, inputs); player.draw(ctx);
-
-        [...entities.props, ...entities.nests, ...entities.babies, ...entities.items, ...entities.npcs, ...entities.enemies, ...entities.humans].forEach(e => {
-            if(e.update && !isDialogueOpen) e.update(dt);
-            e.draw(ctx);
-        });
-
-        entities.bullets.forEach(b => { if(!isDialogueOpen)b.update(dt); b.draw(ctx); });
-        entities.particles.forEach(p => { if(!isDialogueOpen)p.update(dt); p.draw(ctx); });
-
-        if(!isDialogueOpen) {
-            entities.bullets.forEach(b => {
-                if(b.remove) return;
-                entities.enemies.forEach(e => { if(dist(b,e)<30){b.remove=true; e.takeDamage(10);} });
-                entities.humans.forEach(h => { if(dist(b,h)<30){b.remove=true; h.takeDamage(10);} });
-            });
-            entities.bullets = entities.bullets.filter(e=>!e.remove);
-            entities.enemies = entities.enemies.filter(e=>!e.remove);
-            entities.humans = entities.humans.filter(e=>!e.remove);
-            entities.items = entities.items.filter(e=>!e.remove);
-            entities.particles = entities.particles.filter(e=>!e.remove);
-            if(entities.particles.length > 500){
-                entities.particles.splice(0, entities.particles.length - 500);
-            }
-            if(entities.enemies.length<10 && Math.random()<0.01) spawnEnemy();
+        if(this.carrying==='EGG'){
+            ctx.fillStyle='#fff';
+            ctx.beginPath(); ctx.ellipse(0,-20,10,13,0,0,Math.PI*2); ctx.fill();
         }
 
         ctx.restore();
-        inputs.prevKeys = {...inputs.keys};
-        requestAnimationFrame(loop);
+
+        // 이름 & 말풍선
+        if(!this.isPlayer){
+            ctx.save();
+            ctx.translate(this.x, this.y-55);
+            ctx.fillStyle='rgba(0,0,0,0.5)';
+            ctx.fillRect(-45,-15,90,20);
+            ctx.fillStyle='#fff';
+            ctx.font='10px Fredoka';
+            ctx.textAlign='center';
+            ctx.fillText(this.config.name || 'Dragon',0,0);
+            if(this.relation>0){
+                ctx.fillStyle='#e74c3c';
+                const hearts = Math.max(1,Math.ceil(this.relation/30));
+                ctx.fillText('♥'.repeat(Math.min(3,hearts)),0,-18);
+            }
+            if(this.chatFade>0 && this.currentChat){
+                ctx.globalAlpha = Math.min(1,this.chatFade);
+                ctx.translate(0,-30);
+                ctx.fillStyle='#fff';
+                ctx.font='11px "Noto Sans KR"';
+                const w = ctx.measureText(this.currentChat).width+24;
+                const h = 26;
+                roundRect(ctx,-w/2,-h/2,w,h,10);
+                ctx.fillStyle='#333';
+                ctx.fillText(this.currentChat,0,4);
+            }
+            ctx.restore();
+        }
+    }
+}
+
+function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.lineTo(x+w-r,y);
+    ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r);
+    ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h);
+    ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r);
+    ctx.quadraticCurveTo(x,y,x+r,y);
+    ctx.closePath();
+    ctx.fill();
+}
+
+// PROPS
+class Prop extends Entity{
+    constructor(x,y,type){super(x,y);this.type=type;this.seed=Math.random();}
+    draw(ctx){
+        if(!isOnScreen(this,150))return;
+        ctx.save(); ctx.translate(this.x,this.y);
+        ctx.fillStyle='rgba(0,0,0,0.4)';
+        ctx.beginPath();ctx.ellipse(0,0,this.type==='HOUSE'?50:20,this.type==='HOUSE'?20:8,0,0,6.28);ctx.fill();
+
+        if(this.type==='TREE'){
+            ctx.fillStyle='#3e2723'; ctx.fillRect(-5,-15,10,20);
+            ctx.translate(0,-18);
+            ctx.fillStyle=this.seed>0.5?'#16a085':'#1abc9c';
+            ctx.beginPath();ctx.arc(0,0,25,0,6.28);ctx.fill();
+        }else if(this.type==='HOUSE'){
+            ctx.fillStyle='#2c3e50'; ctx.fillRect(-30,-30,60,35);
+            ctx.fillStyle='#e74c3c';
+            ctx.beginPath();ctx.moveTo(-35,-30);ctx.lineTo(0,-60);ctx.lineTo(35,-30);ctx.fill();
+            ctx.fillStyle='#f1c40f'; ctx.fillRect(-6,-15,12,16);
+        }else if(this.type==='FOUNTAIN'){
+            ctx.fillStyle='#bdc3c7'; ctx.beginPath();ctx.ellipse(0,0,40,20,0,0,6.28);ctx.fill();
+            ctx.fillStyle='#3498db'; ctx.beginPath();ctx.ellipse(0,0,34,14,0,0,6.28);ctx.fill();
+        }else if(this.type==='CAMPFIRE'){
+            ctx.strokeStyle='#5d4037'; ctx.lineWidth=4;
+            ctx.beginPath();ctx.moveTo(-10,-5);ctx.lineTo(10,5);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(10,-5);ctx.lineTo(-10,5);ctx.stroke();
+            ctx.fillStyle=`rgba(231,76,60,${0.7+Math.sin(gameTime*10)*0.3})`;
+            ctx.beginPath();ctx.moveTo(0,-20);ctx.lineTo(-6,0);ctx.lineTo(6,0);ctx.fill();
+        }
+        ctx.restore();
+    }
+}
+
+// HUMAN & ENEMY
+class Human extends Entity{
+    constructor(x,y){
+        super(x,y);
+        this.hp=80; this.speed=90; this.angle=0; this.hitFlash=0;
+        this.target=null; this.type=Math.random()<0.3?'ARCHER':'KNIGHT';
+        this.cooldown=0;
+    }
+    update(dt){
+        if(this.hitFlash>0)this.hitFlash-=dt*10;
+        this.cooldown-=dt;
+        let nest = entities.nests[0];
+        if(nest && dist(this,nest)<300) this.target=nest;
+        else this.target=player;
+        const d = dist(this,this.target);
+        this.angle = Math.atan2(this.target.y-this.y,this.target.x-this.x);
+        const range = this.type==='ARCHER'?250:40;
+        if(d>range){
+            this.x+=Math.cos(this.angle)*this.speed*dt;
+            this.y+=Math.sin(this.angle)*this.speed*dt;
+        }else if(this.cooldown<=0){
+            if(this.type==='ARCHER') entities.bullets.push(new Fireball(this.x,this.y,this.angle,this));
+            else if(this.target===player) player.takeDamage(10);
+            this.cooldown=2.0;
+        }
+    }
+    takeDamage(dmg){
+        this.hp-=dmg;this.hitFlash=1;
+        if(this.hp<=0){
+            this.remove=true;
+            player.gainXp(100);
+            entities.items.push(new Item(this.x,this.y,'MEAT'));
+        }
+    }
+    draw(ctx){
+        if(!isOnScreen(this))return;
+        ctx.save();ctx.translate(this.x,this.y);
+        this.drawShadow(ctx,20);
+        if(Math.cos(this.angle)<0)ctx.scale(-1,1);
+        ctx.fillStyle=this.hitFlash>0?'#fff':'#bdc3c7';
+        ctx.beginPath();ctx.arc(0,-20,8,0,6.28);ctx.fill();
+        ctx.fillRect(-8,-12,16,20);
+        if(this.type==='ARCHER'){
+            ctx.strokeStyle='#8e44ad';ctx.lineWidth=3;
+            ctx.beginPath();ctx.arc(10,0,15,-1,1);ctx.stroke();
+        }else{
+            ctx.fillStyle='#f1c40f';
+            ctx.fillRect(10,-10,5,25);
+        }
+        ctx.restore();
+    }
+}
+class Enemy extends Entity{
+    constructor(x,y,type){
+        super(x,y);
+        this.type=type;
+        this.hp = type==='SLIME'?30:60;
+        this.speed = type==='SLIME'?50:110;
+        this.color = type==='SLIME'?'#2ecc71':'#e74c3c';
+        this.damage=5; this.hitFlash=0; this.angle=0;
+    }
+    update(dt){
+        if(this.hitFlash>0)this.hitFlash-=dt*10;
+        const d = dist(this,player);
+        if(d<400 && d>30){
+            this.angle = Math.atan2(player.y-this.y,player.x-this.x);
+            this.x+=Math.cos(this.angle)*this.speed*dt;
+            this.y+=Math.sin(this.angle)*this.speed*dt;
+        }
+        if(d<40) player.takeDamage(this.damage*dt);
+    }
+    takeDamage(dmg){
+        this.hp-=dmg;this.hitFlash=1;
+        if(this.hp<=0){
+            this.remove=true;
+            player.gainXp(30);
+            for(let i=0;i<8;i++)entities.particles.push(new Particle(this.x,this.y,this.color,0.8));
+            if(Math.random()<0.3) entities.items.push(new Item(this.x,this.y,'MEAT'));
+            limitParticles();
+        }
+    }
+    draw(ctx){
+        if(!isOnScreen(this))return;
+        ctx.save();ctx.translate(this.x,this.y);
+        this.drawShadow(ctx,20);
+        if(this.type==='SLIME'){
+            const b=Math.abs(Math.sin(gameTime*5))*10;
+            ctx.translate(0,-b);
+            ctx.fillStyle=this.hitFlash>0?'#fff':this.color;
+            ctx.beginPath();ctx.arc(0,0,15,Math.PI,0);ctx.lineTo(15,10);ctx.lineTo(-15,10);ctx.fill();
+        }else{
+            if(Math.cos(this.angle)<0)ctx.scale(-1,1);
+            ctx.translate(0,Math.sin(gameTime*10)*5);
+            ctx.fillStyle=this.hitFlash>0?'#fff':this.color;
+            ctx.beginPath();ctx.arc(0,-15,10,0,6.28);ctx.fill();
+            ctx.fillRect(-10,-5,20,20);
+        }
+        ctx.restore();
+    }
+}
+
+// NEST & BABY
+class Nest extends Entity{
+    constructor(x,y){super(x,y);this.hasEgg=false;this.p=0;}
+    update(dt){
+        if(this.hasEgg){
+            const d = dist(this,player);
+            this.p += (d<120?dt*18:dt*3);
+            if(this.p>100){
+                this.hasEgg=false;this.p=0;
+                const baby = new BabyDragon(this.x+rand(-20,20),this.y+rand(-20,20));
+                entities.babies.push(baby);
+                const kidId = kidsRegistry.length+1;
+                const kidName = `Kid ${kidId}`;
+                kidsRegistry.push({
+                    id:kidId,
+                    name:kidName,
+                    stage:'BABY',
+                    affection:0,
+                    entityRef:baby
+                });
+                showToast("아기 용이 태어났습니다!","🐣");
+                for(let i=0;i<25;i++)entities.particles.push(new Particle(this.x,this.y,`hsl(${Math.random()*360},100%,60%)`,1));
+                limitParticles();
+                refreshKidsPanel();
+            }
+        }
+    }
+    draw(ctx){
+        if(!isOnScreen(this))return;
+        ctx.save();ctx.translate(this.x,this.y);
+        ctx.fillStyle='#5d4037';ctx.beginPath();ctx.arc(0,0,42,0,6.28);ctx.fill();
+        ctx.fillStyle='#8d6e63';ctx.beginPath();ctx.arc(0,0,32,0,6.28);ctx.fill();
+        if(this.hasEgg){
+            ctx.shadowBlur=15;ctx.shadowColor='#fff';
+            ctx.fillStyle='#ecf0f1';
+            ctx.beginPath();ctx.ellipse(0,-4,12,16,0,0,6.28);ctx.fill();
+            ctx.shadowBlur=0;
+            ctx.strokeStyle='#2ecc71';ctx.lineWidth=3;
+            ctx.beginPath();ctx.arc(0,0,45,-1.57,-1.57+(6.28*this.p/100));ctx.stroke();
+        }
+        ctx.restore();
+    }
+}
+
+class BabyDragon extends Entity{
+    constructor(x,y){
+        super(x,y);
+        this.target=player;
+        this.wing=0;
+        this.growth=0; // 0~200
+        this.stage='BABY'; // BABY, TEEN, ADULT
+        this.atkTimer=0;
+    }
+    grow(){
+        this.growth += 34;
+        showToast("아기에게 고기를 먹였습니다!","🍖");
+        for(let i=0;i<10;i++)entities.particles.push(new Particle(this.x,this.y,'#2ecc71',0.8));
+        limitParticles();
+
+        if(this.growth>=70 && this.stage==='BABY'){
+            this.stage='TEEN';
+            showToast("아기 용이 청소년이 되었습니다! (전투 가능)","🔥");
+            const kid = kidsRegistry.find(k=>k.entityRef===this);
+            if(kid) kid.stage='TEEN';
+            refreshKidsPanel();
+        }else if(this.growth>=140 && this.stage==='TEEN'){
+            this.stage='ADULT';
+            showToast("자식이 성체가 되었습니다! 더 이상 따라다니지 않습니다.","🐉");
+            const kid = kidsRegistry.find(k=>k.entityRef===this);
+            if(kid) kid.stage='ADULT';
+            refreshKidsPanel();
+        }
+    }
+    update(dt){
+        let target = this.target;
+        if(this.stage==='ADULT'){
+            // 성체는 둥지 근처에서만 둥둥
+            this.wing+=4*dt;
+            return;
+        }
+
+        if(this.stage==='TEEN'){
+            let enemy = entities.enemies.find(e=>dist(this,e)<280) || entities.humans.find(h=>dist(this,h)<280);
+            if(enemy){
+                target = enemy;
+                this.atkTimer -= dt;
+                if(this.atkTimer<=0){
+                    entities.bullets.push(new Fireball(this.x,this.y,Math.atan2(enemy.y-this.y,enemy.x-this.x),player));
+                    if(entities.bullets.length>100)entities.bullets.splice(0,entities.bullets.length-100);
+                    this.atkTimer=1.6;
+                }
+            }else target = player;
+        }
+
+        let a = Math.atan2(target.y - this.y, target.x - this.x);
+        const d = dist(this,target);
+        const desiredDist = (this.stage==='TEEN' && target!==player)?150:70;
+        if(d>desiredDist){
+            this.x+=Math.cos(a)*190*dt;
+            this.y+=Math.sin(a)*190*dt;
+            this.wing+=20*dt;
+        }else this.wing+=7*dt;
+    }
+    draw(ctx){
+        if(!isOnScreen(this))return;
+        ctx.save();ctx.translate(this.x,this.y);
+        let s = this.stage==='TEEN'?0.8:(this.stage==='ADULT'?1.0:0.6);
+        ctx.scale(s,s);
+        const t = this.stage==='ADULT'?player:this.target;
+        ctx.rotate(Math.atan2(t.y-this.y,t.x-this.x));
+        this.drawShadow(ctx,20*s);
+        let f=Math.sin(this.wing)*0.7;
+        ctx.fillStyle=this.stage==='TEEN'?'#e67e22':(this.stage==='ADULT'?'#9b59b6':'#f1c40f');
+        // 날개
+        ctx.beginPath();ctx.moveTo(-5,0);ctx.quadraticCurveTo(-30,-20*(1+f),10,-8);ctx.fill();
+        ctx.beginPath();ctx.moveTo(-5,0);ctx.quadraticCurveTo(-30,20*(1+f),10,8);ctx.fill();
+        // 몸
+        ctx.beginPath();ctx.ellipse(0,0,16,10,0,0,6.28);ctx.fill();
+        // 머리
+        ctx.beginPath();ctx.arc(18,0,8,0,6.28);ctx.fill();
+        ctx.fillStyle='#000';
+        ctx.beginPath();ctx.arc(20,-2,2,0,6.28);ctx.arc(20,2,2,0,6.28);ctx.fill();
+        ctx.restore();
+    }
+}
+
+// FIREBALL / PARTICLE / ITEM
+class Fireball extends Entity{
+    constructor(x,y,a,o){
+        super(x,y);
+        this.vx=Math.cos(a)*580;this.vy=Math.sin(a)*580;
+        this.l=1.2;this.o=o;
+    }
+    update(dt){
+        this.x+=this.vx*dt;this.y+=this.vy*dt;
+        this.l-=dt;
+        if(this.l<0)this.remove=true;
+        if(Math.random()<0.25)entities.particles.push(new Particle(this.x,this.y,'#e67e22',0.4));
+        limitParticles();
+    }
+    draw(ctx){
+        if(!isOnScreen(this,50))return;
+        ctx.save();ctx.translate(this.x,this.y);
+        ctx.fillStyle='#f1c40f';ctx.shadowBlur=18;ctx.shadowColor='orange';
+        ctx.beginPath();ctx.arc(0,0,7,0,6.28);ctx.fill();
+        ctx.shadowBlur=0;ctx.restore();
+    }
+}
+class Particle extends Entity{
+    constructor(x,y,c,l=1){super(x,y);this.c=c;this.l=l;this.vx=(Math.random()-0.5)*90;this.vy=(Math.random()-0.5)*90;}
+    update(dt){this.x+=this.vx*dt;this.y+=this.vy*dt;this.l-=dt;if(this.l<0)this.remove=true;}
+    draw(ctx){
+        if(this.l<=0)return;
+        ctx.globalAlpha=this.l;
+        ctx.fillStyle=this.c;
+        ctx.beginPath();ctx.arc(this.x,this.y,3,0,6.28);ctx.fill();
+        ctx.globalAlpha=1;
+    }
+}
+class Item extends Entity{
+    constructor(x,y,t){super(x,y);this.type=t;this.tm=0;}
+    update(dt){this.tm+=dt*3;}
+    draw(ctx){
+        if(!isOnScreen(this))return;
+        let yy=this.y+Math.sin(this.tm)*5;
+        ctx.font='26px sans-serif';
+        ctx.textAlign='center';
+        ctx.fillText(this.type==='MEAT'?'🍖':'🥚',this.x,yy);
+    }
+}
+
+let player;
+let entities = {
+    bullets:[], items:[], particles:[], nests:[], babies:[],
+    props:[], npcs:[], enemies:[], humans:[]
+};
+let inputs = {keys:{},prevKeys:{}};
+let currentNpc=null;
+
+// DIALOGUE FUCTIONS
+function startDialogue(npc,type){
+    currentNpc = npc;
+    isDialogueOpen = true;
+    dOverlay.style.display='flex';
+    dName.innerText = npc.config.name || '???';
+
+    let scriptGroup;
+    let scriptKey='intro';
+
+    if(npc.config.role==='ELDER'){
+        if(!elderTutorialDone && type==='TALK'){
+            scriptGroup = NPC_SCRIPTS.TUTORIAL;
+        }else{
+            scriptGroup = NPC_SCRIPTS.WISE;
+        }
+    }else if(type==='FLIRT' && npc.config.canPartner){
+        scriptGroup = NPC_SCRIPTS.FLIRT;
+        if(npc.relation<30)scriptKey='low';
+        else if(npc.relation<60)scriptKey='mid';
+        else scriptKey='high';
+    }else{
+        scriptGroup = NPC_SCRIPTS[npc.config.personality] || NPC_SCRIPTS.WISE;
+    }
+    showDialogueNode(scriptGroup,scriptKey,npc);
+}
+
+function showDialogueNode(group,key,npc){
+    const node = group[key];
+    if(!node){ closeDialogue(); return; }
+    dText.innerText = node.text;
+    dOptions.innerHTML='';
+
+    node.options.forEach(opt=>{
+        const btn=document.createElement('button');
+        btn.className='d-btn';
+        btn.innerText=opt.t;
+        btn.onclick=()=>{
+            if(opt.eff !== 0 && currentNpc){
+                currentNpc.relation = (currentNpc.relation||0)+opt.eff;
+                showToast(opt.eff>0?"좋아했다!":"싫어했다...",opt.eff>0?"💖":"💔");
+            }
+            if(opt.next==='end'){
+                if(group===NPC_SCRIPTS.TUTORIAL){
+                    elderTutorialDone=true;
+                    if(player){
+                        player.inventory.meat+=3;
+                        showToast("튜토리얼 보상: 고기 3개 획득!","🍖");
+                        player.updateUI();
+                    }
+                }
+                closeDialogue();
+            }else if(opt.next==='meat'){
+                if(player){
+                    player.inventory.meat+=3;
+                    showToast("고기 3개를 받았습니다!","🍖");
+                    player.updateUI();
+                }
+                showDialogueNode(group,opt.next,npc);
+            }else if(opt.next==='partner'){
+                if(currentNpc){
+                    currentNpc.state='PARTNER_FOLLOW';
+                    playerPartner = currentNpc;
+                    showToast(`${currentNpc.config.name}가 파트너가 되었습니다!`,"💕");
+                    if(player)player.updateUI();
+                }
+                closeDialogue();
+            }else{
+                showDialogueNode(group,opt.next,npc);
+            }
+        };
+        dOptions.appendChild(btn);
+    });
+
+    if(node.options.length===0){
+        const btn=document.createElement('button');
+        btn.className='d-btn';
+        btn.innerText='닫기';
+        btn.onclick=closeDialogue;
+        dOptions.appendChild(btn);
+    }
+}
+function closeDialogue(){
+    isDialogueOpen=false;
+    dOverlay.style.display='none';
+    currentNpc=null;
+}
+
+// INIT
+function spawnEnemy(){
+    let x,y;
+    do{
+        x=rand(0,WORLD_SIZE);y=rand(0,WORLD_SIZE);
+    }while(dist({x,y},{x:1200,y:1200})<700);
+    const type = Math.random()<0.5?'SLIME':'GOBLIN';
+    entities.enemies.push(new Enemy(x,y,type));
+}
+function spawnWanderingNPC(){
+    const personalities=['WISE','BRAVE','PLAYFUL','GRUMPY'];
+    const speciesList=['WESTERN','WYVERN','EASTERN'];
+    let x,y;
+    do{
+        x=rand(0,WORLD_SIZE);y=rand(0,WORLD_SIZE);
+    }while(getBiome(x,y)==='VILLAGE');
+    const pers = personalities[Math.floor(Math.random()*personalities.length)];
+    const spec = speciesList[Math.floor(Math.random()*speciesList.length)];
+    const colors = randomDragonColors(spec);
+    const namePool = ['Nara','Kirin','Raze','Mira','Dusk','Iro','Sora','Flint'];
+    const name = namePool[Math.floor(Math.random()*namePool.length)];
+    const npc = new Dragon(x,y,{
+        name, personality:pers, species:spec, colors,
+        canPartner:false
+    },false);
+    entities.npcs.push(npc);
+}
+function randomDragonColors(spec){
+    if(spec==='EASTERN'){
+        return {body:'#2ecc71',belly:'#27ae60',wing:'#16a085'};
+    }else if(spec==='WYVERN'){
+        return {body:'#2980b9',belly:'#3498db',wing:'#34495e'};
+    }else if(spec==='BEHEMOTH'){
+        return {body:'#8e44ad',belly:'#9b59b6',wing:'#8e44ad'};
+    }else{
+        return {body:'#e67e22',belly:'#f1c40f',wing:'#e74c3c'};
+    }
+}
+
+function init(config){
+    entities = {bullets:[],items:[],particles:[],nests:[],babies:[],props:[],npcs:[],enemies:[],humans:[]};
+    kidsRegistry = []; elderTutorialDone=false; playerPartner=null;
+
+    player = new Dragon(1200,1200,{
+        name: config.name || 'Player',
+        species: config.bodyType || config.species || 'WESTERN',
+        colors: config.colors
+    },true);
+    player.species = config.bodyType || config.species || 'WESTERN';
+    player.x=1200;player.y=1250;
+
+    // TREES
+    for(let i=0;i<280;i++){
+        let x=rand(0,WORLD_SIZE),y=rand(0,WORLD_SIZE);
+        if(dist({x,y},{x:1200,y:1200})>750) entities.props.push(new Prop(x,y,'TREE'));
+    }
+    // village deco
+    entities.props.push(new Prop(1150,1100,'HOUSE'));
+    entities.props.push(new Prop(1200,1200,'FOUNTAIN'));
+    entities.props.push(new Prop(1250,1300,'CAMPFIRE'));
+
+    const nest = new Nest(1250,1250);
+    entities.nests.push(nest);
+
+    // ELDER
+    const elder = new Dragon(1200,1200,{
+        name:'Elder',
+        personality:'WISE',
+        role:'ELDER',
+        canPartner:false,
+        species:'EASTERN',
+        colors:{body:'#9b59b6',belly:'#af7ac5',wing:'#8e44ad'}
+    },false);
+    elder.homeX=1200;elder.homeY=1200;
+
+    // NPC fixed
+    const tiamat = new Dragon(1300,1250,{
+        name:'Tiamat',
+        personality:'BRAVE',
+        canPartner:true,
+        species:'WYVERN',
+        colors:{body:'#2980b9',belly:'#3498db',wing:'#34495e'}
+    },false);
+    tiamat.homeX=1300;tiamat.homeY=1250;
+
+    const poco = new Dragon(1200,1300,{
+        name:'Poco',
+        personality:'PLAYFUL',
+        canPartner:true,
+        species:'WESTERN',
+        colors:{body:'#e67e22',belly:'#f1c40f',wing:'#e67e22'}
+    },false);
+    poco.homeX=1200;poco.homeY=1300;
+
+    const gron = new Dragon(1100,1220,{
+        name:'Gron',
+        personality:'GRUMPY',
+        canPartner:false,
+        species:'BEHEMOTH',
+        colors:{body:'#7f8c8d',belly:'#95a5a6',wing:'#7f8c8d'}
+    },false);
+    gron.homeX=1100;gron.homeY=1220;
+
+    entities.npcs.push(elder,tiamat,poco,gron);
+
+    // wandering NPCs
+    for(let i=0;i<3;i++)spawnWanderingNPC();
+
+    for(let i=0;i<8;i++)spawnEnemy();
+
+    gameActive=true;
+    customizer.style.display='none';
+    uiLayer.style.display='block';
+    lastTime = performance.now();
+    kidsMaxSpan.innerText = MAX_KIDS.toString();
+    refreshKidsPanel();
+
+    setTimeout(()=>{ startDialogue(elder,'TALK'); },500);
+    requestAnimationFrame(loop);
+}
+
+// RAID
+function triggerRaid(){
+    raidWarning.style.display='block';
+    setTimeout(()=>raidWarning.style.display='none',3500);
+    showToast("사냥꾼 습격이 시작되었습니다!","⚔️");
+    for(let i=0;i<4;i++){
+        entities.humans.push(new Human(800+rand(-80,80),1200+rand(-220,220)));
+    }
+}
+
+// MAIN LOOP
+function loop(now){
+    if(!gameActive)return;
+    const dt = Math.max(0,Math.min((now-lastTime)/1000,0.1));
+    lastTime = now;
+
+    if(!isDialogueOpen){
+        gameTime += dt;
+        raidTimer -= dt;
+        if(raidTimer<=0){
+            triggerRaid();
+            raidTimer=180;
+        }
     }
 
-    window.addEventListener('resize', () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; });
-    window.addEventListener('keydown', e => { if(e.code==='Space')e.preventDefault(); inputs.keys[e.key.toLowerCase()]=true; });
-    window.addEventListener('keyup', e => inputs.keys[e.key.toLowerCase()]=false);
+    cam.w=canvas.width;cam.h=canvas.height;
+    cam.x += (player.x - cam.w/2 - cam.x)*0.1;
+    cam.y += (player.y - cam.h/2 - cam.y)*0.1;
+    cam.x = Math.max(-100,Math.min(WORLD_SIZE-cam.w+100,cam.x));
+    cam.y = Math.max(-100,Math.min(WORLD_SIZE-cam.h+100,cam.y));
 
-    document.getElementById('start-btn').addEventListener('click', () => {
-        init({
-            name: document.getElementById('c-name').value,
-            bodyType: document.getElementById('c-type').value,
-            colors: {
-                body: document.getElementById('c-body').value,
-                belly: document.getElementById('c-belly').value,
-                wing: document.getElementById('c-wing').value
-            }
+    ctx.fillStyle='#050505'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.save();
+    ctx.translate(-cam.x,-cam.y);
+    ctx.fillStyle = gCtx.createPattern(grassCanvas,'repeat');
+    ctx.fillRect(cam.x,cam.y,cam.w,cam.h);
+
+    // village tile (살짝 더 큰)
+    ctx.fillStyle='#5d4037';
+    ctx.fillRect(800,800,800,800);
+
+    player.update(dt,inputs);
+    player.draw(ctx);
+
+    [...entities.props, ...entities.nests, ...entities.babies, ...entities.items, ...entities.npcs, ...entities.enemies, ...entities.humans].forEach(e=>{
+        if(e.update && !isDialogueOpen) e.update(dt);
+        e.draw(ctx);
+    });
+
+    entities.bullets.forEach(b=>{ if(!isDialogueOpen)b.update(dt); b.draw(ctx); });
+    entities.particles.forEach(p=>{ if(!isDialogueOpen)p.update(dt); p.draw(ctx); });
+
+    if(!isDialogueOpen){
+        entities.bullets.forEach(b=>{
+            if(b.remove)return;
+            entities.enemies.forEach(e=>{ if(!e.remove && dist(b,e)<30){b.remove=true; e.takeDamage(10);} });
+            entities.humans.forEach(h=>{ if(!h.remove && dist(b,h)<30){b.remove=true; h.takeDamage(10);} });
         });
-    });
 
-    // HUD 전체 토글
-    const hudToggleMain = document.getElementById('hud-toggle-main');
-    const hudPanel = document.getElementById('hud-panel');
-    let hudVisible = true;
-    hudToggleMain.addEventListener('click', () => {
-        hudVisible = !hudVisible;
-        hudPanel.style.display = hudVisible ? 'block' : 'none';
-        hudToggleMain.textContent = hudVisible ? '⏴ HUD' : '⏵ HUD';
+        entities.bullets = entities.bullets.filter(e=>!e.remove);
+        entities.enemies = entities.enemies.filter(e=>!e.remove);
+        entities.humans = entities.humans.filter(e=>!e.remove);
+        entities.items = entities.items.filter(e=>!e.remove);
+        entities.particles = entities.particles.filter(e=>!e.remove);
+        entities.babies = entities.babies.filter(e=>!e.remove);
+
+        if(entities.enemies.length<10 && Math.random()<0.02) spawnEnemy();
+        if(entities.particles.length>350)entities.particles.splice(0,entities.particles.length-350);
+    }
+
+    ctx.restore();
+    inputs.prevKeys = {...inputs.keys};
+    requestAnimationFrame(loop);
+}
+
+function limitParticles(){
+    if(entities.particles.length>350)entities.particles.splice(0,entities.particles.length-350);
+}
+
+// KIDS PANEL
+function refreshKidsPanel(){
+    kidsCountSpan.innerText = kidsRegistry.length.toString();
+    kidsList.innerHTML='';
+    kidsRegistry.forEach(k=>{
+        const row=document.createElement('div');
+        row.className='kid-row';
+        const left=document.createElement('div');
+        left.innerHTML=`<strong>${k.name}</strong><div class="kid-stage">${k.stage}</div>`;
+        const right=document.createElement('div');
+        const hearts = Math.max(0,Math.round((k.affection||0)/20));
+        right.innerHTML = `<span class="kid-heart">${'♥'.repeat(Math.min(3,hearts))}</span>`;
+        row.appendChild(left);row.appendChild(right);
+        kidsList.appendChild(row);
     });
+}
+function toggleKidsPanel(){
+    if(kidsPanel.style.display==='flex'){
+        kidsPanel.style.display='none';
+    }else{
+        refreshKidsPanel();
+        kidsPanel.style.display='flex';
+    }
+}
+
+// EVENTS
+window.addEventListener('resize',()=>{
+    canvas.width=window.innerWidth;
+    canvas.height=window.innerHeight;
+});
+window.addEventListener('keydown',e=>{
+    if(e.code==='Space')e.preventDefault();
+    inputs.keys[e.key.toLowerCase()]=true;
+});
+window.addEventListener('keyup',e=>{
+    inputs.keys[e.key.toLowerCase()]=false;
+});
+
+document.getElementById('start-btn').addEventListener('click',()=>{
+    init({
+        name: document.getElementById('c-name').value,
+        bodyType: document.getElementById('c-type').value,
+        colors: {
+            body: document.getElementById('c-body').value,
+            belly: document.getElementById('c-belly').value,
+            wing: document.getElementById('c-wing').value
+        }
+    });
+});
+
+kidsToggleBtn.addEventListener('click',()=>{
+    toggleKidsPanel();
+});
+kidsClose.addEventListener('click',()=>{
+    kidsPanel.style.display='none';
+});
+
+// HUD collapse
+hudCollapseBtn.addEventListener('click',()=>{
+    hudPanel.classList.add('hud-collapsed');
+    hudShowBtn.style.display='block';
+});
+hudShowBtn.addEventListener('click',()=>{
+    hudPanel.classList.remove('hud-collapsed');
+    hudShowBtn.style.display='none';
+});
 </script>
 </body>
 </html>
