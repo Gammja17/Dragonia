@@ -21,21 +21,39 @@
             pointer-events: none;
         }
 
-        /* HUD Improvements */
-        .hud-panel {
+        /* HUD 전체 ON/OFF 버튼 */
+        #hud-toggle-main {
             position: absolute; top: 20px; left: 20px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            font-size: 0.85rem;
+            cursor: pointer;
+            pointer-events: auto;
+            z-index: 40;
+        }
+        #hud-toggle-main:hover {
+            background: rgba(255,255,255,0.18);
+        }
+
+        /* HUD 패널 */
+        .hud-panel {
+            position: absolute; top: 60px; left: 20px;
             background: rgba(20, 20, 30, 0.6);
             backdrop-filter: blur(12px);
             padding: 20px; border-radius: 20px;
             color: white; border: 1px solid rgba(255,255,255,0.1);
             width: 280px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: transform 0.2s;
+            transition: transform 0.2s, opacity 0.2s;
+            pointer-events: auto;
         }
         .hud-panel:hover { transform: scale(1.02); background: rgba(20, 20, 30, 0.8); }
 
         .stat-group { margin-bottom: 15px; }
         .stat-header { display: flex; justify-content: space-between; font-size: 0.9rem; color: #aab; margin-bottom: 6px; font-weight: 600; letter-spacing: 1px;}
-        
+
         .progress-track {
             width: 100%; height: 8px;
             background: rgba(0,0,0,0.5);
@@ -43,7 +61,7 @@
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
         }
         .progress-fill { height: 100%; border-radius: 10px; transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        
+
         .xp-bar { background: linear-gradient(90deg, #a55eea, #fed330); box-shadow: 0 0 10px #a55eea; }
         .hp-bar { background: linear-gradient(90deg, #ff5252, #ff793f); box-shadow: 0 0 10px #ff5252; }
         .hunger-bar { background: linear-gradient(90deg, #fa8231, #f7b731); box-shadow: 0 0 10px #fa8231; }
@@ -87,7 +105,7 @@
             -webkit-background-clip: text; font-weight: 900; letter-spacing: -2px;
             text-shadow: 0 10px 30px rgba(0, 114, 255, 0.4);
         }
-        
+
         button.start-btn {
             padding: 15px; font-size: 1.2rem; background: linear-gradient(45deg, #11998e, #38ef7d);
             color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold;
@@ -103,7 +121,7 @@
             font-size: 24px; box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
             z-index: 5; transition: all 0.2s;
         }
-        
+
         /* Guide */
         .controls-hint {
             position: absolute; bottom: 30px; left: 30px;
@@ -131,7 +149,7 @@
         #d-portrait { width: 60px; height: 60px; background: #333; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 30px; }
         #d-name { color: #f1c40f; font-size: 1.8rem; font-weight: bold; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
         #d-text { color: #ecf0f1; font-size: 1.3rem; line-height: 1.6; margin-bottom: 25px; min-height: 60px; text-shadow: 1px 1px 2px black; font-family: 'Noto Sans KR', sans-serif; }
-        
+
         #d-options { display: flex; gap: 15px; flex-wrap: wrap; }
         .d-btn {
             background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255,255,255,0.3);
@@ -139,15 +157,8 @@
             transition: all 0.2s; font-family: 'Noto Sans KR', sans-serif;
         }
         .d-btn:hover { background: rgba(255, 215, 0, 0.2); border-color: #ffd700; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        
-        .interaction-prompt { position: absolute; background: rgba(0,0,0,0.7); color: #ffd700; padding: 5px 10px; border-radius: 10px; font-size: 12px; pointer-events: none; transform: translate(-50%, -100%); white-space: nowrap; border: 1px solid #ffd700; display: none; z-index: 150; }
-        .hud-details {
-        transition: 0.2s ease;
-        }
 
-        .hud-toggle:hover {
-            background: rgba(255,255,255,0.18);
-        }
+        .interaction-prompt { position: absolute; background: rgba(0,0,0,0.7); color: #ffd700; padding: 5px 10px; border-radius: 10px; font-size: 12px; pointer-events: none; transform: translate(-50%, -100%); white-space: nowrap; border: 1px solid #ffd700; display: none; z-index: 150; }
     </style>
 </head>
 <body>
@@ -155,10 +166,10 @@
     <div id="customizer">
         <h1 class="title-logo">DRAGONIA</h1>
         <p style="color:#aab; margin-bottom:40px; font-size:1.1rem;">THE ORIGIN UPDATE</p>
-        
+
         <div class="card">
             <input type="text" id="c-name" value="Bahamut" style="padding:15px; border-radius:10px; border:none; background:rgba(0,0,0,0.3); color:white; font-size:1.2rem; text-align:center;">
-            
+
             <div style="display:flex; justify-content:space-between; color:#ddd; font-weight:bold; align-items:center;">
                 <span>Type</span>
                 <select id="c-type" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:5px;">
@@ -178,24 +189,28 @@
             <div style="display:flex; justify-content:space-between; color:#ddd; align-items:center;">
                 <span>Wing Color</span> <input type="color" id="c-wing" value="#8e44ad" style="background:none; border:none; width:40px; height:30px; cursor:pointer;">
             </div>
-            
+
             <button class="start-btn" id="start-btn">AWAKEN</button>
         </div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
-    
+
     <div id="raid-warning">⚔️ RAID INBOUND ⚔️</div>
     <div id="quest-pointer" class="quest-arrow" style="display:none;">🥚</div>
     <div id="nest-pointer" class="quest-arrow" style="display:none; background:#d35400; color:white;">🏠</div>
     <div id="interact-tip" class="interaction-prompt">💬 Talk (T)</div>
 
     <div id="ui-layer" style="display:none;">
-        <div class="biome-badge" style="position: absolute; top: 30px; right: 30px; background: rgba(0,0,0,0.8); color: #ecf0f1; padding: 10px 20px; border-radius: 4px; font-weight: 600; letter-spacing: 1px; font-size: 0.9rem; border-left: 3px solid #2ecc71;">
+
+        <!-- HUD 전체 ON/OFF 버튼 -->
+        <button id="hud-toggle-main">⏴ HUD</button>
+
+        <div class="biome-badge" style="position: absolute; top: 30px; right: 30px; background: rgba(0,0,0,0.8); color: #ecf0f1; padding: 10px 20px; border-radius: 4px; font-weight: 600; letter-spacing: 1px; font-size: 0.9rem; border-left: 3px solid #2ecc71; pointer-events:auto;">
             <span id="biome-text">Wild Forest</span>
         </div>
-        
-        <div class="hud-panel">
+
+        <div class="hud-panel" id="hud-panel">
 
             <!-- 플레이어 이름/레벨 -->
             <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">
@@ -228,33 +243,7 @@
             <div class="inv-slot">
                 <span>🍖 Meat:</span> <span id="ui-meat" style="color:#e67e22;">0</span>
             </div>
-
-
-            <!-- ▼ 상세보기 버튼 -->
-            <button id="toggleHUD" class="hud-toggle" style="
-                pointer-events:auto; 
-                margin-top:12px; width:100%;
-                background:rgba(255,255,255,0.12);
-                border:1px solid rgba(255,255,255,0.25);
-                color:white; padding:8px 0;
-                border-radius:10px; cursor:pointer;
-                font-size:0.9rem;
-            ">▼ 상세보기</button>
-
-            <!-- 접히는 상세 HUD 영역 (처음엔 비어 있음, 필요시 내용 넣으면 됨) -->
-            <div id="hudDetails" class="hud-details" style="
-                display:none;
-                margin-top:15px;
-                color:#ccc;
-                font-size:0.85rem;
-                line-height:1.4;
-            ">
-                <!-- 감자가 추가 HUD 넣고 싶을 때 여기에 넣으면 됨 -->
-                <div style="opacity:0.6"></div>
-            </div>
-
         </div>
-
     </div>
 
     <!-- Visual Novel Dialogue UI -->
@@ -264,18 +253,16 @@
             <div id="d-name">NPC Name</div>
         </div>
         <div id="d-text">Hello adventurer!</div>
-        <div id="d-options">
-            <!-- Buttons generated here -->
-        </div>
+        <div id="d-options"></div>
     </div>
 
 <script>
     const canvas = document.getElementById('gameCanvas');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-const ctx = canvas.getContext('2d');
-    
-    // --- UI REFERENCES (Moved Top) ---
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+
+    // --- UI REFERENCES ---
     const dOverlay = document.getElementById('dialogue-overlay');
     const dName = document.getElementById('d-name');
     const dText = document.getElementById('d-text');
@@ -290,18 +277,19 @@ const ctx = canvas.getContext('2d');
     // Config
     const WORLD_SIZE = 2400;
     const TILE_SIZE = 200;
-    
+
     // Globals
     let gameActive = false;
     let isDialogueOpen = false;
     let lastTime = 0;
     let gameTime = 0;
     let raidTimer = 120; // 1 min first raid
-    
+
     // Utils
     const rand = (min, max) => Math.random() * (max - min) + min;
     const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
     const lerp = (a, b, t) => a + (b - a) * t;
+
     function showToast(msg, icon='✨') {
         const n = document.createElement('div');
         n.style.cssText = "position:fixed; bottom:20%; left:50%; transform:translate(-50%); background:rgba(0,0,0,0.8); color:#ffd700; padding:10px 20px; border-radius:50px; font-weight:bold; animation:fade 3s forwards; pointer-events:none; white-space:nowrap; z-index:300;";
@@ -316,6 +304,20 @@ const ctx = canvas.getContext('2d');
     function shadeColor(color, percent) {
         var f=parseInt(color.slice(1),16),t=percent<0?0:255,p=percent<0?percent*-1:percent,R=f>>16,G=f>>8&0x00FF,B=f&0x0000FF;
         return "#"+(0x1000000+(Math.round((t-R)*p)+R)*0x10000+(Math.round((t-G)*p)+G)*0x100+(Math.round((t-B)*p)+B)).toString(16).slice(1);
+    }
+
+    // Canvas rounded rect helper (roundRect 대체)
+    function roundedRectPath(ctx, x, y, w, h, r) {
+        const rr = Math.min(r, w/2, h/2);
+        ctx.moveTo(x + rr, y);
+        ctx.lineTo(x + w - rr, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+        ctx.lineTo(x + w, y + h - rr);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+        ctx.lineTo(x + rr, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+        ctx.lineTo(x, y + rr);
+        ctx.quadraticCurveTo(x, y, x + rr, y);
     }
 
     // --- BIOMES ---
@@ -352,7 +354,6 @@ const ctx = canvas.getContext('2d');
     };
 
     const NPC_SCRIPTS = {
-        // --- TUTORIAL SCRIPT ---
         TUTORIAL: {
             intro: { text: "일어났느냐, 낯선 용이여. 하늘에서 떨어져 이곳 마을 중앙에 쓰러져 있더구나.", options: [{t:"여기는 어디죠?", next:'where', eff:0}] },
             where: { text: "이곳은 드래곤들의 마지막 안식처, '드래곤 빌리지'란다. 나는 촌장 엘더라고 한다.", options: [{t:"머리가 아파요...", next:'pain', eff:0}] },
@@ -361,12 +362,11 @@ const ctx = canvas.getContext('2d');
             warn: { text: "하지만 조심해라. 숲 밖에는 [인간 사냥꾼]들이 우리 알을 노리고 있다. 우리와 함께 마을을 지켜다오.", options: [{t:"제가 지키겠습니다!", next:'end', eff:10}] },
             end: { text: "든든하군. 마을을 자유롭게 둘러보거라. 둥지와 편의시설을 마련해 두었다.", options: [] }
         },
-        // --- NORMAL SCRIPTS ---
         WISE: {
             intro: { text: "흐음... 자네의 날개에서 범상치 않은 기운이 느껴지는군. 무슨 일로 왔는가?", options: [{t:"지혜를 구하러 왔습니다.", next:'wisdom', eff:5}, {t:"그냥 지나가던 길입니다.", next:'end', eff:0}] },
             wisdom: { text: "허허, 배우려는 자세가 좋군. 이 숲은 위험하지만, 그만큼 보물도 많다네. 특히 인간들을 조심하게.", options: [{t:"명심하겠습니다.", next:'end', eff:10}, {t:"제가 다 이길 수 있습니다.", next:'arrogant', eff:-5}] },
             arrogant: { text: "자만은 금물이야! 아직 어린 용이군. 쯧쯧.", options: [{t:"(자리를 뜬다)", next:'end', eff:0}] },
-            end: { text: "조심해서 가시게.", options: [] } 
+            end: { text: "조심해서 가시게.", options: [] }
         },
         BRAVE: {
             intro: { text: "거기 너! 눈빛이 살아있는데? 나랑 한 판 붙어볼 텐가?", options: [{t:"좋습니다! (전투 연습)", next:'fight', eff:10}, {t:"아니요, 사양합니다.", next:'coward', eff:-5}] },
@@ -393,7 +393,7 @@ const ctx = canvas.getContext('2d');
         }
     };
 
-    // --- GRAPHICS ---
+    // --- GRAPHICS --- (grass)
     const grassCanvas = document.createElement('canvas');
     grassCanvas.width = TILE_SIZE; grassCanvas.height = TILE_SIZE;
     const gCtx = grassCanvas.getContext('2d');
@@ -405,13 +405,6 @@ const ctx = canvas.getContext('2d');
 
     // --- CAMERA ---
     let cam = { x:0, y:0, w:0, h:0 };
-    function updateCam(t) {
-        cam.w = canvas.width; cam.h = canvas.height;
-        cam.x = lerp(cam.x, t.x - cam.w/2, 0.08);
-        cam.y = lerp(cam.y, t.y - cam.h/2, 0.08);
-        cam.x = Math.max(-100, Math.min(cam.x, WORLD_SIZE-cam.w+100));
-        cam.y = Math.max(-100, Math.min(cam.y, WORLD_SIZE-cam.h+100));
-    }
     function isOnScreen(e, m=200) {
         return (e.x+m > cam.x && e.x-m < cam.x+cam.w && e.y+m > cam.y && e.y-m < cam.y+cam.h);
     }
@@ -438,7 +431,7 @@ const ctx = canvas.getContext('2d');
             this.level=1; this.hp=100; this.maxHp=100; this.xp=0; this.maxXp=100; this.hunger=100;
             this.angle=0; this.wingFrame=rand(0, 10); this.hoverY=0;
             this.inventory={meat:0}; this.carrying=null;
-            
+
             // Social
             this.homeX=x; this.homeY=y; this.state='WANDER'; this.timer=0;
             this.chatTimer = rand(5, 15);
@@ -453,14 +446,14 @@ const ctx = canvas.getContext('2d');
                 this.maxHp += 20; this.hp = this.maxHp;
                 if(this.isPlayer) {
                     showToast(`LEVEL UP! LV.${this.level}`, '🔥');
-                    for(let i=0; i<20; i++) entities.particles.push(new Particle(this.x, this.y, '#f1c40f', 2));
+                    for(let i=0; i<20; i++) entities.particles.push(new Particle(this.x, this.y, '#f1c40f', 1.0));
                 }
             }
         }
 
         takeDamage(dmg) {
             this.hp -= dmg;
-            for(let i=0; i<5; i++) entities.particles.push(new Particle(this.x, this.y, '#e74c3c'));
+            for(let i=0; i<5; i++) entities.particles.push(new Particle(this.x, this.y, '#e74c3c', 0.8));
             if(this.hp <= 0 && this.isPlayer) {
                 showToast("쓰러졌습니다... 마을에서 부활합니다.", "💀");
                 this.hp = this.maxHp; this.x = 1200; this.y = 1200;
@@ -470,7 +463,7 @@ const ctx = canvas.getContext('2d');
         update(dt, input) {
             if(this.chatFade > 0) this.chatFade -= dt * 0.3;
             this.hoverY = Math.sin(gameTime*2 + this.x*0.01)*10;
-            
+
             if(this.isPlayer) {
                 if(isDialogueOpen) return;
 
@@ -478,7 +471,7 @@ const ctx = canvas.getContext('2d');
                 if(input.keys['w']) dy=-1; if(input.keys['s']) dy=1;
                 if(input.keys['a']) dx=-1; if(input.keys['d']) dx=1;
                 let spd = 250 * (input.keys['shift']?1.5:1);
-                
+
                 if(dx||dy) {
                     this.angle = Math.atan2(dy, dx);
                     this.x += Math.cos(this.angle)*spd*dt;
@@ -486,10 +479,10 @@ const ctx = canvas.getContext('2d');
                     this.wingFrame += 15*dt;
                     this.hunger -= 0.5*dt;
                 } else {
-                    this.wingFrame += 3*dt;
+                    this.wingFrame += 5*dt;
                     this.hunger -= 0.1*dt;
                 }
-                
+
                 this.x = Math.max(50, Math.min(WORLD_SIZE-50, this.x));
                 this.y = Math.max(50, Math.min(WORLD_SIZE-50, this.y));
 
@@ -502,18 +495,20 @@ const ctx = canvas.getContext('2d');
                 } else interactTip.style.display = 'none';
 
                 if(input.keys[' '] && !input.prevKeys[' ']) this.attack();
-                if(input.keys['e'] && !input.prevKeys['e']) this.interact(); 
+                if(input.keys['e'] && !input.prevKeys['e']) this.interact();
                 if(input.keys['t'] && !input.prevKeys['t']) { if(nearestNPC) startDialogue(nearestNPC, 'TALK'); }
                 if(input.keys['l'] && !input.prevKeys['l']) { if(nearestNPC) startDialogue(nearestNPC, 'FLIRT'); }
 
                 if(Math.random()<0.1) this.updateUI();
             } else {
-                if(isDialogueOpen) return; 
+                if(isDialogueOpen) return;
                 // NPC AI
                 this.chatTimer -= dt;
                 if(this.chatTimer <= 0) {
-                    const lines = DIALOGUES[this.config.personality].idle;
-                    this.say(lines[Math.floor(Math.random()*lines.length)]);
+                    const lines = DIALOGUES[this.config.personality]?.idle;
+                    if(lines && lines.length){
+                        this.say(lines[Math.floor(Math.random()*lines.length)]);
+                    }
                     this.chatTimer = rand(10, 25);
                 }
 
@@ -525,7 +520,7 @@ const ctx = canvas.getContext('2d');
                     this.timer -= dt;
                     if(this.state === 'PARTNER_FOLLOW') {
                         const d = dist(this, player);
-                        if(d > 100) {
+                        if(d > 120) {
                             this.angle = Math.atan2(player.y-this.y, player.x-this.x);
                             this.x += Math.cos(this.angle)*200*dt;
                             this.y += Math.sin(this.angle)*200*dt;
@@ -537,7 +532,7 @@ const ctx = canvas.getContext('2d');
                             this.state = 'WANDER';
                             this.say("우리의 알이야! 잘 부탁해.");
                             showToast(`${this.config.name}가 알을 낳았습니다!`, '🥚');
-                            for(let i=0;i<20;i++) entities.particles.push(new Particle(nest.x, nest.y, '#fff'));
+                            for(let i=0;i<20;i++) entities.particles.push(new Particle(nest.x, nest.y, '#ffffff', 1.0));
                         }
                     } else if(this.state === 'WANDER') {
                         if(this.timer <= 0) {
@@ -559,7 +554,7 @@ const ctx = canvas.getContext('2d');
 
         say(text) {
             this.currentChat = text;
-            this.chatFade = 3.0; 
+            this.chatFade = 3.0;
         }
 
         attack() {
@@ -580,23 +575,22 @@ const ctx = canvas.getContext('2d');
 
             // Eat (Self)
             if(this.inventory.meat > 0 && this.hunger < 90) {
-                this.inventory.meat--; this.hunger += 40; this.hp += 30; 
+                this.inventory.meat--; this.hunger = Math.min(100, this.hunger + 40); this.hp = Math.min(this.maxHp, this.hp + 30);
                 showToast("고기를 먹었습니다.", "😋");
                 return;
             } else if (this.inventory.meat > 0 && this.hunger >= 90) {
-                 // Try to feed baby or just warn
-                 let baby = entities.babies.find(b => dist(this, b) < 80);
-                 if(baby) {
+                let baby = entities.babies.find(b => dist(this, b) < 80);
+                if(baby) {
                     this.inventory.meat--; baby.grow(); return;
-                 } else {
+                } else {
                     showToast("배가 너무 불러요!", "✋");
-                 }
+                }
             }
-            
+
             // Nest (Manual)
             let nest = entities.nests.find(n => dist(this, n) < 80);
             if(nest && this.carrying === 'EGG' && !nest.hasEgg) {
-                this.carrying = null; nest.hasEgg = true; 
+                this.carrying = null; nest.hasEgg = true;
                 showToast("알을 둥지에 안착시켰습니다.", "🏠");
                 return;
             }
@@ -610,142 +604,227 @@ const ctx = canvas.getContext('2d');
             document.getElementById('bar-hp').style.width = `${(this.hp/this.maxHp)*100}%`;
             document.getElementById('bar-hunger').style.width = `${this.hunger}%`;
             document.getElementById('bar-xp').style.width = `${(this.xp/this.maxXp)*100}%`;
+            document.getElementById('ui-hp-text').innerText = Math.round(this.hp);
+            document.getElementById('ui-xp-text').innerText = `${Math.round((this.xp/this.maxXp)*100)}%`;
         }
 
         draw(ctx) {
             if(!isOnScreen(this)) return;
             ctx.save();
             ctx.translate(this.x, this.y + this.hoverY);
-            ctx.scale(this.isPlayer?1:0.9, this.isPlayer?1:0.9);
-            this.drawShadow(ctx, 30);
+            const scale = this.isPlayer ? 1.0 : 0.9;
+            ctx.scale(scale, scale);
+
+            // Shadow
+            this.drawShadow(ctx, 32);
+
+            // Face direction
             ctx.rotate(this.angle);
 
             const type = this.config.bodyType || 'STANDARD';
             const c = this.colors;
-            const f = Math.sin(this.wingFrame);
+            const flap = Math.sin(this.wingFrame) * 0.5;
 
-            if(type === 'SERPENT') {
-                ctx.fillStyle = c.body;
-                for(let i=0; i<6; i++) {
-                    const sway = Math.sin(this.wingFrame * 0.5 + i)*10;
-                    ctx.beginPath(); ctx.arc(-15 - i*18, sway, 15 - i*1.5, 0, Math.PI*2); ctx.fill();
-                }
-                ctx.beginPath(); ctx.ellipse(10, 0, 20, 15, 0, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = '#fff'; ctx.lineWidth=2;
-                ctx.beginPath(); ctx.moveTo(25, -5); ctx.quadraticCurveTo(40, -20, 50, -5); ctx.stroke();
-            } else if (type === 'WYVERN') {
-                ctx.fillStyle = c.wing;
-                ctx.save(); ctx.scale(1, f*0.4+0.8);
-                ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-20, -70); ctx.lineTo(60, -30); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-20, 70); ctx.lineTo(60, 30); ctx.fill();
-                ctx.restore();
-                ctx.fillStyle = c.body;
-                ctx.beginPath(); ctx.moveTo(20,0); ctx.lineTo(-30, -10); ctx.lineTo(-30, 10); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(20, -10); ctx.lineTo(45, 0); ctx.lineTo(20, 10); ctx.fill();
-            } else if (type === 'BEHEMOTH') {
-                ctx.fillStyle = c.wing;
-                ctx.save(); ctx.scale(1, f*0.2+0.9);
-                ctx.beginPath(); ctx.arc(-10, -30, 20, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(-10, 30, 20, 0, Math.PI*2); ctx.fill();
-                ctx.restore();
-                ctx.fillStyle = c.body;
-                ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = c.body; 
-                ctx.beginPath(); ctx.moveTo(20, -15); ctx.lineTo(45, -5); ctx.lineTo(45, 5); ctx.lineTo(20, 15); ctx.fill();
-                ctx.fillStyle = '#aaa'; ctx.beginPath(); ctx.moveTo(30, -10); ctx.lineTo(50, -25); ctx.lineTo(35, -5); ctx.fill();
-            } else {
-                ctx.save(); ctx.scale(1, f*0.3+0.7); 
-                ctx.fillStyle = c.wing;
-                ctx.beginPath(); ctx.moveTo(5,0); ctx.lineTo(-15,-50); ctx.lineTo(50,-20); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(5,0); ctx.lineTo(-15,50); ctx.lineTo(50,20); ctx.fill();
-                ctx.restore();
-                ctx.fillStyle = c.body;
-                ctx.beginPath(); ctx.moveTo(-10,0); ctx.lineTo(-60,0); ctx.lineWidth=10; ctx.strokeStyle=c.body; ctx.stroke();
-                ctx.beginPath(); ctx.ellipse(0,0, 20, 12, 0, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = c.belly; ctx.beginPath(); ctx.ellipse(0,0, 12, 8, 0, 0, Math.PI*2); ctx.fill();
-                ctx.save(); ctx.translate(25, 0); ctx.fillStyle = c.body; ctx.beginPath(); ctx.moveTo(0,-10); ctx.lineTo(20,-5); ctx.lineTo(20,5); ctx.lineTo(0,10); ctx.fill(); ctx.restore();
-            }
+            // 프로포션 설정
+            let bodyLen = 80, bodyRad = 22, neckLen = 25, tailLen = 45, wingSpan = 70;
+            if(type === 'WYVERN') { bodyLen = 70; wingSpan = 90; tailLen = 55; }
+            if(type === 'SERPENT') { bodyLen = 110; bodyRad = 18; neckLen = 35; tailLen = 70; wingSpan = 20; }
+            if(type === 'BEHEMOTH') { bodyLen = 70; bodyRad = 28; neckLen = 20; tailLen = 35; wingSpan = 60; }
 
-            // Eyes
+            // 꼬리
             ctx.save();
-            let hx = type==='SERPENT'?15 : (type==='WYVERN'?30 : (type==='BEHEMOTH'?35:35));
-            ctx.translate(hx, 0);
-            ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(0, -5, 4, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(0, 5, 4, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(2, -5, 2, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(2, 5, 2, 0, Math.PI*2); ctx.fill();
+            ctx.translate(-bodyLen/2, 0);
+            ctx.strokeStyle = c.bodyDark;
+            ctx.lineWidth = 10;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(-tailLen*0.6, 10*Math.sin(this.wingFrame*0.5), -tailLen, 0);
+            ctx.stroke();
+            ctx.fillStyle = c.bodyDark;
+            ctx.beginPath();
+            ctx.moveTo(-tailLen, 0);
+            ctx.lineTo(-tailLen+10, -6);
+            ctx.lineTo(-tailLen+10, 6);
+            ctx.fill();
             ctx.restore();
 
+            // 날개
+            if(wingSpan > 25) {
+                ctx.save();
+                // 위쪽 날개
+                ctx.fillStyle = c.wing;
+                ctx.beginPath();
+                ctx.moveTo(10, -5);
+                ctx.quadraticCurveTo(wingSpan*0.2, -25 - 20*flap, wingSpan*0.5, -10 - 15*flap);
+                ctx.quadraticCurveTo(wingSpan*0.15, -5, 10, -5);
+                ctx.fill();
+
+                // 아래쪽 날개
+                ctx.beginPath();
+                ctx.moveTo(10, 5);
+                ctx.quadraticCurveTo(wingSpan*0.2, 25 + 20*flap, wingSpan*0.5, 10 + 15*flap);
+                ctx.quadraticCurveTo(wingSpan*0.15, 5, 10, 5);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // 몸통
+            ctx.save();
+            ctx.translate(0, 0);
+            ctx.fillStyle = c.body;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, bodyLen/2, bodyRad, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            // 배
+            ctx.fillStyle = c.belly;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, bodyLen/2.4, bodyRad*0.7, 0, 0, Math.PI*2);
+            ctx.fill();
+            ctx.restore();
+
+            // 목 + 머리
+            ctx.save();
+            ctx.translate(bodyLen/2 - 10, 0);
+            ctx.fillStyle = c.body;
+            // 목
+            ctx.beginPath();
+            ctx.moveTo(0, -8);
+            ctx.quadraticCurveTo(neckLen*0.4, -12, neckLen, -3);
+            ctx.lineTo(neckLen, 3);
+            ctx.quadraticCurveTo(neckLen*0.4, 12, 0, 8);
+            ctx.closePath();
+            ctx.fill();
+
+            // 머리
+            ctx.translate(neckLen, 0);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 16, 12, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            // 눈
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(4, -4, 3, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(4, 4, 3, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#000000';
+            ctx.beginPath(); ctx.arc(5, -4, 1.5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(5, 4, 1.5, 0, Math.PI*2); ctx.fill();
+
+            // 뿔
+            ctx.fillStyle = '#f5f5f5';
+            ctx.beginPath();
+            ctx.moveTo(-4, -8);
+            ctx.lineTo(-10, -18);
+            ctx.lineTo(0, -10);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(-4, 8);
+            ctx.lineTo(-10, 18);
+            ctx.lineTo(0, 10);
+            ctx.closePath();
+            ctx.fill();
+
+            // 입
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(6, -2);
+            ctx.lineTo(10, 0);
+            ctx.lineTo(6, 2);
+            ctx.stroke();
+
+            ctx.restore();
+
+            // 알 들고 있을 때
             if(this.carrying === 'EGG') {
-                ctx.fillStyle='#fff'; ctx.beginPath(); ctx.ellipse(0, -20, 10, 12, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle='#ffffff';
+                ctx.beginPath(); ctx.ellipse(0, -20, 10, 12, 0, 0, Math.PI*2); ctx.fill();
             }
 
             ctx.restore();
 
-            // Name & Chat Bubble
+            // Name & Chat Bubble (NPC 전용)
             if(!this.isPlayer) {
                 ctx.save(); ctx.translate(this.x, this.y - 60);
-                
-                ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-40, -15, 80, 20);
-                ctx.fillStyle = '#fff'; ctx.font = '10px Fredoka'; ctx.textAlign='center'; ctx.fillText(this.config.name, 0, 0);
-                if(this.relation>0) { ctx.fillStyle = '#e74c3c'; ctx.fillText('♥'.repeat(Math.ceil(this.relation/25)), 0, -20); }
+
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(-40, -15, 80, 20);
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px Fredoka';
+                ctx.textAlign='center';
+                ctx.fillText(this.config.name, 0, 0);
+                if(this.relation>0) {
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.fillText('♥'.repeat(Math.ceil(this.relation/25)), 0, -20);
+                }
 
                 if(this.chatFade > 0 && this.currentChat) {
                     ctx.globalAlpha = Math.min(1, this.chatFade);
                     ctx.translate(0, -30);
                     ctx.fillStyle = 'white';
-                    const w = ctx.measureText(this.currentChat).width + 20;
-                    ctx.beginPath(); ctx.roundRect(-w/2, -20, w, 30, 10); ctx.fill();
-                    ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(-5, 15); ctx.lineTo(5, 15); ctx.fill();
-                    ctx.fillStyle = '#333'; ctx.font = '12px Malgun Gothic'; ctx.fillText(this.currentChat, 0, 0);
+                    const text = this.currentChat;
+                    ctx.font = '12px "Noto Sans KR"';
+                    const w = ctx.measureText(text).width + 20;
+
+                    ctx.beginPath();
+                    roundedRectPath(ctx, -w/2, -20, w, 30, 10);
+                    ctx.fill();
+
+                    ctx.beginPath();
+                    ctx.moveTo(0, 10);
+                    ctx.lineTo(-5, 15);
+                    ctx.lineTo(5, 15);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#333';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(text, 0, 0);
                 }
                 ctx.restore();
             }
         }
     }
 
-    // --- OTHER CLASSES ---
     class Prop extends Entity {
-        constructor(x, y, type) { 
-            super(x, y); 
-            this.type=type; 
-            this.seed=Math.random(); 
+        constructor(x, y, type) {
+            super(x, y);
+            this.type=type;
+            this.seed=Math.random();
         }
         draw(ctx) {
             if(!isOnScreen(this, 150)) return;
             ctx.save(); ctx.translate(this.x, this.y);
-            // Common Shadow
-            ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(0,0, this.type==='FOUNTAIN'||this.type==='HOUSE'?50:20, this.type==='FOUNTAIN'||this.type==='HOUSE'?20:8, 0,0,6.28); ctx.fill();
-            
+            ctx.fillStyle='rgba(0,0,0,0.4)';
+            ctx.beginPath(); ctx.ellipse(0,0, this.type==='FOUNTAIN'||this.type==='HOUSE'?50:20, this.type==='FOUNTAIN'||this.type==='HOUSE'?20:8, 0,0,6.28); ctx.fill();
+
             if(this.type==='TREE') {
                 ctx.fillStyle='#3e2723'; ctx.fillRect(-5,-15,10,20);
-                const c1=this.seed>0.5?'#16a085':'#1abc9c'; ctx.translate(0,-15); ctx.fillStyle=c1; ctx.beginPath(); ctx.arc(0,0,25,0,6.28); ctx.fill();
+                const c1=this.seed>0.5?'#16a085':'#1abc9c';
+                ctx.translate(0,-15); ctx.fillStyle=c1; ctx.beginPath(); ctx.arc(0,0,25,0,6.28); ctx.fill();
             } else if(this.type==='HOUSE') {
                 ctx.fillStyle='#2c3e50'; ctx.fillRect(-30,-30,60,35);
                 ctx.fillStyle='#e74c3c'; ctx.beginPath(); ctx.moveTo(-35,-30); ctx.lineTo(0,-60); ctx.lineTo(35,-30); ctx.fill();
                 ctx.fillStyle='#f1c40f'; ctx.fillRect(-5,-15,10,15);
             } else if(this.type==='FOUNTAIN') {
-                ctx.fillStyle='#bdc3c7'; ctx.beginPath(); ctx.ellipse(0,0, 40, 20, 0,0,6.28); ctx.fill(); // Basin
-                ctx.fillStyle='#3498db'; ctx.beginPath(); ctx.ellipse(0,0, 35, 15, 0,0,6.28); ctx.fill(); // Water
-                // Spout
+                ctx.fillStyle='#bdc3c7'; ctx.beginPath(); ctx.ellipse(0,0, 40, 20, 0,0,6.28); ctx.fill();
+                ctx.fillStyle='#3498db'; ctx.beginPath(); ctx.ellipse(0,0, 35, 15, 0,0,6.28); ctx.fill();
                 ctx.fillStyle='#7f8c8d'; ctx.fillRect(-10,-30, 20, 30);
-                // Water particles (Simple anim)
-                ctx.fillStyle='#85c1e9'; 
+                ctx.fillStyle='#85c1e9';
                 for(let i=0; i<3; i++) {
                     let y = -30 - Math.abs(Math.sin(gameTime*2+i)*10);
                     ctx.beginPath(); ctx.arc(Math.sin(gameTime*3+i)*5, y, 3, 0, 6.28); ctx.fill();
                 }
             } else if(this.type==='TOTEM') {
                 ctx.fillStyle='#7f8c8d'; ctx.fillRect(-15,-60, 30, 60);
-                // Carvings
-                ctx.fillStyle='#f1c40f'; 
+                ctx.fillStyle='#f1c40f';
                 ctx.beginPath(); ctx.arc(0, -50, 5, 0, 6.28); ctx.fill();
                 ctx.fillRect(-10, -40, 20, 2);
                 ctx.fillRect(-10, -30, 20, 2);
             } else if(this.type==='CAMPFIRE') {
-                // Logs
                 ctx.strokeStyle='#5d4037'; ctx.lineWidth=4;
                 ctx.beginPath(); ctx.moveTo(-10,-5); ctx.lineTo(10,5); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(10,-5); ctx.lineTo(-10,5); ctx.stroke();
-                // Fire
                 ctx.fillStyle=`rgba(231, 76, 60, ${0.7+Math.sin(gameTime*10)*0.3})`;
                 ctx.beginPath(); ctx.moveTo(-5,0); ctx.lineTo(0,-20+Math.sin(gameTime*15)*5); ctx.lineTo(5,0); ctx.fill();
             }
@@ -757,13 +836,13 @@ const ctx = canvas.getContext('2d');
         constructor(x, y) {
             super(x, y);
             this.hp=80; this.speed=90; this.angle=0; this.hitFlash=0;
-            this.target=player; this.type=Math.random()<0.3?'ARCHER':'KNIGHT';
+            this.target=null; this.type=Math.random()<0.3?'ARCHER':'KNIGHT';
             this.cooldown=0;
         }
         update(dt) {
             if(this.hitFlash>0) this.hitFlash-=dt*10;
             this.cooldown-=dt;
-            // Target Nest or Player
+
             let nest = entities.nests[0];
             if(nest && dist(this, nest) < 300) this.target = nest;
             else this.target = player;
@@ -783,18 +862,22 @@ const ctx = canvas.getContext('2d');
         }
         takeDamage(dmg) {
             this.hp-=dmg; this.hitFlash=1;
-            if(this.hp<=0) { this.remove=true; player.gainXp(100); entities.items.push(new Item(this.x, this.y, 'MEAT')); }
+            if(this.hp<=0) {
+                this.remove=true; player.gainXp(100);
+                entities.items.push(new Item(this.x, this.y, 'MEAT'));
+            }
         }
         draw(ctx) {
             if(!isOnScreen(this)) return;
             ctx.save(); ctx.translate(this.x, this.y); this.drawShadow(ctx, 20);
             if(Math.cos(this.angle) < 0) ctx.scale(-1, 1);
-            ctx.fillStyle = this.hitFlash>0?'#fff':'#bdc3c7'; // Armor
+            ctx.fillStyle = this.hitFlash>0?'#fff':'#bdc3c7';
             ctx.beginPath(); ctx.arc(0,-20, 8, 0, Math.PI*2); ctx.fill();
             ctx.fillRect(-8, -12, 16, 20);
             ctx.fillStyle = '#f39c12';
-            if(this.type==='ARCHER') { ctx.strokeStyle='#8e44ad'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(10,0,15,-1,1); ctx.stroke(); }
-            else ctx.fillRect(10,-10,5,25); // Sword
+            if(this.type==='ARCHER') {
+                ctx.strokeStyle='#8e44ad'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(10,0,15,-1,1); ctx.stroke();
+            } else ctx.fillRect(10,-10,5,25);
             ctx.restore();
         }
     }
@@ -820,7 +903,7 @@ const ctx = canvas.getContext('2d');
             this.hp-=dmg; this.hitFlash=1;
             if(this.hp<=0) {
                 this.remove=true; player.gainXp(30);
-                for(let i=0;i<8;i++) entities.particles.push(new Particle(this.x, this.y, this.color));
+                for(let i=0;i<8;i++) entities.particles.push(new Particle(this.x, this.y, this.color, 0.8));
                 if(Math.random()<0.3) entities.items.push(new Item(this.x, this.y, 'MEAT'));
             }
         }
@@ -851,17 +934,17 @@ const ctx = canvas.getContext('2d');
                     this.hasEgg=false;this.p=0;
                     entities.babies.push(new BabyDragon(this.x,this.y));
                     showToast("아기 용이 태어났습니다!", "🐲");
-                    for(let i=0;i<30;i++) entities.particles.push(new Particle(this.x,this.y, `hsl(${Math.random()*360},100%,50%)`, 2));
+                    for(let i=0;i<30;i++) entities.particles.push(new Particle(this.x,this.y, `hsl(${Math.random()*360},100%,50%)`, 1.0));
                 }
             }
         }
         draw(ctx){
             if(!isOnScreen(this))return;
             ctx.save(); ctx.translate(this.x,this.y);
-            ctx.fillStyle='#5d4037'; ctx.beginPath(); ctx.arc(0,0,40,0,6.28); ctx.fill(); // Base
-            ctx.fillStyle='#8d6e63'; ctx.beginPath(); ctx.arc(0,0,32,0,6.28); ctx.fill(); // Inner
-            ctx.fillStyle='#f1c40f'; ctx.beginPath(); ctx.arc(35, 0, 5, 0, 6.28); ctx.fill(); // Decoration
-            ctx.fillStyle='#ecf0f1'; ctx.beginPath(); ctx.ellipse(-10, -10, 10, 5, 0.5, 0, 6.28); ctx.fill(); // Pillow
+            ctx.fillStyle='#5d4037'; ctx.beginPath(); ctx.arc(0,0,40,0,6.28); ctx.fill();
+            ctx.fillStyle='#8d6e63'; ctx.beginPath(); ctx.arc(0,0,32,0,6.28); ctx.fill();
+            ctx.fillStyle='#f1c40f'; ctx.beginPath(); ctx.arc(35, 0, 5, 0, 6.28); ctx.fill();
+            ctx.fillStyle='#ecf0f1'; ctx.beginPath(); ctx.ellipse(-10, -10, 10, 5, 0.5, 0, 6.28); ctx.fill();
 
             if(this.hasEgg){
                 ctx.shadowBlur = 15; ctx.shadowColor = '#fff';
@@ -875,12 +958,25 @@ const ctx = canvas.getContext('2d');
     }
 
     class Fireball extends Entity {
-        constructor(x,y,a,o){super(x,y);this.vx=Math.cos(a)*600;this.vy=Math.sin(a)*600;this.l=1.5;this.o=o;}
-        update(dt){this.x+=this.vx*dt;this.y+=this.vy*dt;this.l-=dt;if(this.l<0)this.remove=true; if(Math.random()<0.3)entities.particles.push(new Particle(this.x,this.y,'#e67e22',0.5));}
+        constructor(x,y,a,o){
+            super(x,y);
+            this.vx=Math.cos(a)*600;this.vy=Math.sin(a)*600;this.l=1.5;this.o=o;
+        }
+        update(dt){
+            this.x+=this.vx*dt;this.y+=this.vy*dt;this.l-=dt;
+            if(this.l<0)this.remove=true;
+            if(Math.random()<0.12 && entities.particles.length < 500){
+                entities.particles.push(new Particle(this.x,this.y,'#ffb74d',0.6));
+            }
+        }
         draw(ctx){
             ctx.save(); ctx.translate(this.x,this.y);
-            ctx.fillStyle='#f1c40f'; ctx.shadowBlur=20; ctx.shadowColor='orange';
-            ctx.beginPath(); ctx.arc(0,0,8,0,6.28); ctx.fill();
+            const g = ctx.createRadialGradient(0,0,0,0,0,10);
+            g.addColorStop(0,'#fff8e1');
+            g.addColorStop(0.5,'#ffb74d');
+            g.addColorStop(1,'rgba(255,87,34,0)');
+            ctx.fillStyle=g;
+            ctx.beginPath(); ctx.arc(0,0,10,0,6.28); ctx.fill();
             ctx.restore();
         }
     }
@@ -891,9 +987,9 @@ const ctx = canvas.getContext('2d');
             this.growth=0; this.stage='BABY'; this.atkTimer=0;
         }
         grow(){
-            this.growth+=34; 
+            this.growth+=34;
             showToast("아기가 고기를 먹었습니다!", "🍖");
-            for(let i=0;i<10;i++)entities.particles.push(new Particle(this.x,this.y,'#2ecc71'));
+            for(let i=0;i<10;i++)entities.particles.push(new Particle(this.x,this.y,'#2ecc71',0.8));
             if(this.growth>=100 && this.stage==='BABY') {
                 this.stage='TEEN'; showToast("아기 용이 성장했습니다! (전투 가능)", "🔥");
             }
@@ -914,7 +1010,8 @@ const ctx = canvas.getContext('2d');
 
             let a=Math.atan2(target.y-this.y, target.x-this.x);
             const d = dist(this, target);
-            if(d > (this.stage==='TEEN' && target!==player ? 150 : 70)){
+            const followDist = (this.stage==='TEEN' && target!==player) ? 150 : 70;
+            if(d > followDist){
                 this.x+=Math.cos(a)*180*dt;this.y+=Math.sin(a)*180*dt; this.wing+=20*dt;
             } else this.wing+=5*dt;
         }
@@ -935,12 +1032,21 @@ const ctx = canvas.getContext('2d');
     }
 
     class Particle extends Entity {
-        constructor(x,y,c,l=1){super(x,y);this.c=c;this.l=l;this.vx=(Math.random()-0.5)*100;this.vy=(Math.random()-0.5)*100;}
+        constructor(x,y,c,l=0.8){super(x,y);this.c=c;this.l=l;this.vx=(Math.random()-0.5)*80;this.vy=(Math.random()-0.5)*80;}
         update(dt){this.x+=this.vx*dt;this.y+=this.vy*dt;this.l-=dt;if(this.l<0)this.remove=true;}
-        draw(ctx){ctx.globalAlpha=this.l;ctx.fillStyle=this.c;ctx.beginPath();ctx.arc(this.x,this.y,3,0,6.28);ctx.fill();ctx.globalAlpha=1;}
+        draw(ctx){ctx.globalAlpha=Math.max(0,this.l);ctx.fillStyle=this.c;ctx.beginPath();ctx.arc(this.x,this.y,2,0,6.28);ctx.fill();ctx.globalAlpha=1;}
     }
 
-    class Item extends Entity { constructor(x,y,t){super(x,y);this.type=t;this.tm=0;} update(dt){this.tm+=dt*3;} draw(ctx){ if(!isOnScreen(this))return; let y=this.y+Math.sin(this.tm)*5; ctx.font='28px sans'; ctx.fillText(this.type=='MEAT'?'🍖':'🥚',this.x-10,y);}}
+    class Item extends Entity {
+        constructor(x,y,t){super(x,y);this.type=t;this.tm=0;}
+        update(dt){this.tm+=dt*3;}
+        draw(ctx){
+            if(!isOnScreen(this))return;
+            let y=this.y+Math.sin(this.tm)*5;
+            ctx.font='28px sans';
+            ctx.fillText(this.type=='MEAT'?'🍖':'🥚',this.x-10,y);
+        }
+    }
 
     // --- GLOBALS ---
     let player;
@@ -955,11 +1061,10 @@ const ctx = canvas.getContext('2d');
         isDialogueOpen = true;
         dOverlay.style.display = 'flex';
         dName.innerText = npc.config.name;
-        
+
         let scriptKey = 'intro';
         let scriptGroup = NPC_SCRIPTS[npc.config.personality];
 
-        // Specific Handling for Tutorial Elder
         if (npc.config.personality === 'TUTORIAL') {
             scriptGroup = NPC_SCRIPTS['TUTORIAL'];
         }
@@ -987,9 +1092,9 @@ const ctx = canvas.getContext('2d');
                     currentNpc.relation += opt.eff;
                     showToast(opt.eff>0?"Liked it!":"Disliked...", opt.eff>0?"💖":"💔");
                 }
-                
+
                 if (opt.next === 'end') closeDialogue();
-                else if (opt.next === 'meat') { // Give Meat
+                else if (opt.next === 'meat') {
                     player.inventory.meat += 3;
                     showToast("Received 3 Meat!", "🍖");
                     showDialogueNode(group, opt.next);
@@ -1003,8 +1108,7 @@ const ctx = canvas.getContext('2d');
             };
             dOptions.appendChild(btn);
         });
-        
-        // Add Close Option if empty
+
         if(node.options.length === 0) {
             const btn = document.createElement('button');
             btn.className = 'd-btn'; btn.innerText = "Close";
@@ -1021,13 +1125,17 @@ const ctx = canvas.getContext('2d');
 
     // --- MAIN ---
     function init(config) {
-        player = new Dragon(1200, 1200, config, true);
-        player.x = 1200; player.y = 1250; // Start near Elder
-        
+        player = new Dragon(1200, 1250, config, true);
+
         // Props
-        entities.props=[];
-        for(let i=0;i<300;i++){ let x=rand(0,WORLD_SIZE),y=rand(0,WORLD_SIZE); if(dist({x,y},{x:1200,y:1200})>800) entities.props.push(new Prop(x,y,'TREE')); }
-        // Village Decor
+        entities = { bullets:[], items:[], particles:[], nests:[], babies:[], props:[], npcs:[], enemies:[], humans:[] };
+
+        for(let i=0;i<300;i++){
+            let x=rand(0,WORLD_SIZE),y=rand(0,WORLD_SIZE);
+            if(dist({x,y},{x:1200,y:1200})>800)
+                entities.props.push(new Prop(x,y,'TREE'));
+        }
+
         entities.props.push(new Prop(1150, 1100, 'HOUSE'));
         entities.props.push(new Prop(1200, 1200, 'FOUNTAIN'));
         entities.props.push(new Prop(1300, 1150, 'TOTEM'));
@@ -1035,77 +1143,94 @@ const ctx = canvas.getContext('2d');
 
         entities.nests.push(new Nest(1250, 1250));
 
-        // Create Elder NPC for Tutorial
-        const elder = new Dragon(1200, 1200, {name:'Elder', personality:'TUTORIAL', bodyType:'SERPENT', colors:{body:'#8e44ad', belly:'#9b59b6', wing:'#8e44ad'}});
+        const elder = new Dragon(1200, 1200, {
+            name:'Elder', personality:'TUTORIAL',
+            bodyType:'SERPENT',
+            colors:{body:'#8e44ad', belly:'#9b59b6', wing:'#8e44ad'}
+        });
 
-        entities.npcs = [
-            elder,
-            new Dragon(1300, 1250, {name:'Tiamat', personality:'BRAVE', bodyType:'WYVERN', colors:{body:'#2980b9', belly:'#3498db', wing:'#34495e'}}),
-            new Dragon(1200, 1300, {name:'Poco', personality:'PLAYFUL', bodyType:'STANDARD', colors:{body:'#e67e22', belly:'#f1c40f', wing:'#e67e22'}})
+        entities.npcs = [elder];
+
+        const npcConfigs = [
+            {name:'Tiamat', personality:'BRAVE', bodyType:'WYVERN', colors:{body:'#2980b9', belly:'#3498db', wing:'#34495e'}},
+            {name:'Poco', personality:'PLAYFUL', bodyType:'STANDARD', colors:{body:'#e67e22', belly:'#f1c40f', wing:'#e67e22'}}
         ];
+
+        npcConfigs.forEach(cfg => {
+            let x,y;
+            do {
+                x = rand(0, WORLD_SIZE);
+                y = rand(0, WORLD_SIZE);
+            } while(getBiome(x,y) === 'VILLAGE'); // 마을 밖에서만
+            const npc = new Dragon(x, y, cfg, false);
+            entities.npcs.push(npc);
+        });
 
         for(let i=0;i<10;i++) spawnEnemy();
 
-        gameActive = true; 
-        document.getElementById('customizer').style.display='none'; 
-        document.getElementById('ui-layer').style.display='block';
+        gameActive = true;
+        customizer.style.display='none';
+        uiLayer.style.display='block';
         lastTime = performance.now();
-        requestAnimationFrame(loop);
 
-        // TRIGGER INTRO
+        document.getElementById('ui-name').innerText = config.name || 'Player';
+        player.updateUI();
+
         setTimeout(() => {
             startDialogue(elder, 'TALK');
         }, 500);
+
+        requestAnimationFrame(loop);
     }
 
     function spawnEnemy(){
-        let x,y; do{x=rand(0,WORLD_SIZE);y=rand(0,WORLD_SIZE);}while(dist({x,y},{x:1200,y:1200})<800);
+        let x,y;
+        do{
+            x=rand(0,WORLD_SIZE);y=rand(0,WORLD_SIZE);
+        }while(dist({x,y},{x:1200,y:1200})<800);
         entities.enemies.push(new Enemy(x,y,Math.random()<0.5?'SLIME':'GOBLIN'));
     }
 
     function triggerRaid() {
-        document.getElementById('raid-warning').style.display = 'block';
-        setTimeout(() => document.getElementById('raid-warning').style.display = 'none', 4000);
+        raidWarning.style.display = 'block';
+        setTimeout(() => raidWarning.style.display = 'none', 4000);
         showToast("RAID STARTED!", "⚔️");
-        for(let i=0; i<5; i++) entities.humans.push(new Human(800+rand(-50,50), 1200+rand(-200,200)));
+        for(let i=0; i<5; i++)
+            entities.humans.push(new Human(800+rand(-50,50), 1200+rand(-200,200)));
     }
 
     function loop(now) {
         if(!gameActive) return;
         const dt = Math.max(0, Math.min((now - lastTime)/1000, 0.1));
-        lastTime = now; 
-        
+        lastTime = now;
+
         if(!isDialogueOpen) {
             gameTime += dt;
             raidTimer -= dt;
             if(raidTimer <= 0) { triggerRaid(); raidTimer = 180; }
         }
 
-        // Camera
         cam.w = canvas.width; cam.h = canvas.height;
         cam.x += (player.x - cam.w/2 - cam.x)*0.1;
         cam.y += (player.y - cam.h/2 - cam.y)*0.1;
 
-        // Render
         ctx.fillStyle = '#0b2e13'; ctx.fillRect(0,0,canvas.width,canvas.height);
         ctx.save(); ctx.translate(-cam.x, -cam.y);
-        
-        // Ground
-        ctx.fillStyle = gCtx.createPattern(grassCanvas, 'repeat'); ctx.fillRect(cam.x, cam.y, cam.w, cam.h); // Simple bg
-        ctx.fillStyle = '#5d4037'; ctx.fillRect(800,800,800,800); // Village
 
-        // Entities
+        ctx.fillStyle = gCtx.createPattern(grassCanvas, 'repeat');
+        ctx.fillRect(cam.x, cam.y, cam.w, cam.h);
+        ctx.fillStyle = '#5d4037'; ctx.fillRect(800,800,800,800);
+
         player.update(dt, inputs); player.draw(ctx);
-        
+
         [...entities.props, ...entities.nests, ...entities.babies, ...entities.items, ...entities.npcs, ...entities.enemies, ...entities.humans].forEach(e => {
             if(e.update && !isDialogueOpen) e.update(dt);
             e.draw(ctx);
         });
-        
+
         entities.bullets.forEach(b => { if(!isDialogueOpen)b.update(dt); b.draw(ctx); });
         entities.particles.forEach(p => { if(!isDialogueOpen)p.update(dt); p.draw(ctx); });
 
-        // Collisions
         if(!isDialogueOpen) {
             entities.bullets.forEach(b => {
                 if(b.remove) return;
@@ -1116,6 +1241,10 @@ const ctx = canvas.getContext('2d');
             entities.enemies = entities.enemies.filter(e=>!e.remove);
             entities.humans = entities.humans.filter(e=>!e.remove);
             entities.items = entities.items.filter(e=>!e.remove);
+            entities.particles = entities.particles.filter(e=>!e.remove);
+            if(entities.particles.length > 500){
+                entities.particles.splice(0, entities.particles.length - 500);
+            }
             if(entities.enemies.length<10 && Math.random()<0.01) spawnEnemy();
         }
 
@@ -1127,7 +1256,7 @@ const ctx = canvas.getContext('2d');
     window.addEventListener('resize', () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; });
     window.addEventListener('keydown', e => { if(e.code==='Space')e.preventDefault(); inputs.keys[e.key.toLowerCase()]=true; });
     window.addEventListener('keyup', e => inputs.keys[e.key.toLowerCase()]=false);
-    
+
     document.getElementById('start-btn').addEventListener('click', () => {
         init({
             name: document.getElementById('c-name').value,
@@ -1140,22 +1269,15 @@ const ctx = canvas.getContext('2d');
         });
     });
 
-    const hudToggle = document.getElementById('toggleHUD');
-    const hudDetails = document.getElementById('hudDetails');
-
-    hudToggle.addEventListener('click', () => {
-        const open = hudDetails.style.display === 'block';
-
-        if (open) {
-            hudDetails.style.display = 'none';
-            hudToggle.textContent = '▼ 상세보기';
-        } else {
-            hudDetails.style.display = 'block';
-            hudToggle.textContent = '▲ 닫기';
-        }
+    // HUD 전체 토글
+    const hudToggleMain = document.getElementById('hud-toggle-main');
+    const hudPanel = document.getElementById('hud-panel');
+    let hudVisible = true;
+    hudToggleMain.addEventListener('click', () => {
+        hudVisible = !hudVisible;
+        hudPanel.style.display = hudVisible ? 'block' : 'none';
+        hudToggleMain.textContent = hudVisible ? '⏴ HUD' : '⏵ HUD';
     });
-
-
 </script>
 </body>
 </html>
