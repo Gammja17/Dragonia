@@ -1,5 +1,5 @@
 import { state } from '../core/state.js';
-import { WORLD_SIZE, VILLAGE_CENTER, PLAYER_SPAWN, MAX_ENEMIES } from '../core/config.js';
+import { WORLD_SIZE, VILLAGE_CENTER, PLAYER_SPAWN, NEST_POS, MAX_ENEMIES } from '../core/config.js';
 import { rand, dist, pick } from '../core/utils.js';
 import { getBiome } from './biomes.js';
 import { groundAt } from './terrain.js';
@@ -59,10 +59,14 @@ export function buildWorld(config) {
         const x = rand(0, WORLD_SIZE), y = rand(0, WORLD_SIZE);
         if (groundAt(x, y) === 'GRASS') E.props.push(new Prop(x, y, pick(['BUSH', 'BUSH', 'FERN', 'FERN', 'ROCK', 'STUMP'])));
     }
-    E.props.push(new Prop(1150, 1100, 'HOUSE'));
-    E.props.push(new Prop(1200, 1200, 'FOUNTAIN'));
-    E.props.push(new Prop(1250, 1300, 'CAMPFIRE'));
-    E.nests.push(new Nest(1250, 1250));
+    // 마을
+    for (const [x, y, type] of [
+        [980, 1040, 'HOUSE'], [1430, 1030, 'HOUSE'], [1460, 1540, 'HOUSE'],
+        [1200, 1130, 'FOUNTAIN'], [1060, 1400, 'CAMPFIRE'],
+        [1110, 1050, 'BARREL'], [1140, 1062, 'CRATE'], [1560, 1045, 'CRATE'], [1335, 1550, 'BARREL'],
+        [1540, 1400, 'SIGN'], [900, 900, 'SIGN'],
+    ]) E.props.push(new Prop(x, y, type));
+    E.nests.push(new Nest(NEST_POS.x, NEST_POS.y));
 
     for (const def of FIXED_NPCS) E.npcs.push(new Dragon(def.x, def.y, { ...def }));
     for (let i = 0; i < 3; i++) spawnWanderingNPC();

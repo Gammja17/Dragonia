@@ -7,7 +7,12 @@ export const TILE_IMAGES = {
     ground: 'assets/tiles/forest.png',
     trees: 'assets/tiles/forest_trees.png',
     props: 'assets/tiles/forest_props.png',
+    village: 'assets/tiles/village.png',   // Zelda-like tilesets (CC0)
+    dungeon: 'assets/tiles/dungeon.png',   // Kenney Tiny Dungeon (CC0): 적, 사냥꾼, 화살
 };
+
+// 둥지: 풀밭 위 돌무더기 고리 (2x2 타일). 지형에 직접 구워 넣는다
+export const NEST_RING = [[4, 3], [5, 3], [4, 4], [5, 4]];
 
 export const GRASS = [[1, 5], [2, 5], [1, 6], [2, 6]];
 // 풀밭에 가끔 섞이는 장식 타일 (꽃, 잔돌)
@@ -32,6 +37,7 @@ export const WATER = {
 };
 
 // y 정렬로 그려지는 소품. sheet: TILE_IMAGES 키, 픽셀 단위 원본 영역, anchor: 밑동 위치(0~1)
+// frames 가 있으면 [sx, sy] 목록을 fps 속도로 돌려 가며 그린다
 export const PROP_SPRITES = {
     TREE:  [
         { sheet: 'trees', sx: 0,  sy: 0, sw: 80, sh: 96, ax: 0.5, ay: 0.94 },
@@ -41,4 +47,9 @@ export const PROP_SPRITES = {
     ROCK:  [{ sheet: 'props', sx: 32, sy: 0, sw: 32, sh: 32, ax: 0.5, ay: 0.85 }],
     BUSH:  [{ sheet: 'props', sx: 64, sy: 0, sw: 32, sh: 32, ax: 0.5, ay: 0.85 }],
     FERN:  [{ sheet: 'props', sx: 96, sy: 0, sw: 32, sh: 32, ax: 0.5, ay: 0.9 }],
+    HOUSE: [{ sheet: 'village', sx: 96, sy: 0, sw: 80, sh: 80, ax: 0.5, ay: 0.92 }],
+    FOUNTAIN: [{ sheet: 'village', sx: 352, sy: 144, sw: 48, sh: 48, ax: 0.5, ay: 0.7, frames: [[352, 144], [400, 144], [448, 144]], fps: 7 }],
+    CRATE:  [{ sheet: 'village', sx: 480, sy: 2, sw: 16, sh: 24, ax: 0.5, ay: 0.9 }],
+    BARREL: [{ sheet: 'village', sx: 528, sy: 4, sw: 16, sh: 24, ax: 0.5, ay: 0.9 }],
+    SIGN:   [{ sheet: 'village', sx: 544, sy: 32, sw: 16, sh: 16, ax: 0.5, ay: 0.95 }],
 };

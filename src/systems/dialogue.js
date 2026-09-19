@@ -36,6 +36,7 @@ function renderNode(group, key, npc) {
         text: node.text,
         options: node.options.map(opt => ({ label: opt.t, onSelect: () => choose(group, opt, npc) })),
         onClose: closeDialogue,
+        sheet: npc.sheet,
     });
 }
 

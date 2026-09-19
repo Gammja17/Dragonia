@@ -1,6 +1,6 @@
-import { WORLD_SIZE } from '../core/config.js';
+import { WORLD_SIZE, NEST_POS } from '../core/config.js';
 import { loadImages } from '../render/assets.js';
-import { TILE_SRC, TILE_SCALE, TILE, TILE_IMAGES, GRASS, GRASS_DECOR, DIRT, WATER } from '../data/tiles.js';
+import { TILE_SRC, TILE_SCALE, TILE, TILE_IMAGES, GRASS, GRASS_DECOR, DIRT, WATER, NEST_RING } from '../data/tiles.js';
 import { VILLAGE_RECT, LAKE } from './biomes.js';
 
 // 지형은 "큰 칸"(2x2 타일 = 96px) 단위로 만든다. 그러면 흙/물 영역의 폭이 항상 2타일 이상이라
@@ -76,6 +76,7 @@ function generate() {
             const edgeY = y - v.y < 96 || v.y + v.h - y < 96;
             if (edgeX && edgeY) continue;                    // 네 귀퉁이는 항상 뺀다
             if ((edgeX || edgeY) && rng() < 0.3) continue;
+            if (cx === toCoarse(NEST_POS.x) && cy === toCoarse(NEST_POS.y)) continue; // 둥지 자리는 풀밭으로 남긴다
             fillCoarse(cx, cy, DIRT_ID);
         }
     }
@@ -117,6 +118,11 @@ function bake() {
         else t = GRASS[(ty % 2) * 2 + (tx % 2)];
         g.drawImage(images.ground, t[0] * TILE_SRC, t[1] * TILE_SRC, TILE_SRC, TILE_SRC, tx * TILE_SRC, ty * TILE_SRC, TILE_SRC, TILE_SRC);
     }
+    // 둥지 돌무더기 (2x2 타일)
+    const nx = toCoarse(NEST_POS.x) * 2, ny = toCoarse(NEST_POS.y) * 2;
+    NEST_RING.forEach(([sx, sy], i) => {
+        g.drawImage(images.ground, sx * TILE_SRC, sy * TILE_SRC, TILE_SRC, TILE_SRC, (nx + i % 2) * TILE_SRC, (ny + (i >> 1)) * TILE_SRC, TILE_SRC, TILE_SRC);
+    });
 }
 
 /** 게임 시작 전에 한 번 호출. 타일 이미지를 받고 지형을 만들어 둔다 */

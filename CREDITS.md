@@ -18,6 +18,25 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 | 파일 | 원작 | 출처 |
 |---|---|---|
 | `forest.png`, `forest_trees.png`, `forest_props.png` | "Gentle Forest" ($0 palettes, v01 "rabite forest") by Seliel the Shaper | https://seliel-the-shaper.itch.io/ |
+| `village.png` (집, 분수, 상자, 통, 표지판) | "Zelda-like tilesets and sprites" by ArMM1998 (CC0) | OpenGameArt |
+| `dungeon.png` (적, 사냥꾼, 화살) | "Tiny Dungeon" by Kenney (CC0) | https://kenney.nl/assets/tiny-dungeon |
+
+## 효과 (`assets/vfx/`)
+
+| 파일 | 원작 | 출처 |
+|---|---|---|
+| `firebolt.png` | "Fire Spell Effect 01" by pimen | https://pimen.itch.io/ |
+| `smoke.png` | "Smoke n Dust 01" by pimen | https://pimen.itch.io/ |
+| `campfire.png` | "Animated Fire" by BenHickling (CC0) | OpenGameArt |
+| `star.png`, `ring.png` | "Particle Pack" by Kenney (CC0) | https://kenney.nl/assets/particle-pack |
+
+## UI (`assets/ui/`)
+
+| 파일 | 원작 | 출처 |
+|---|---|---|
+| `frame.png` (금색으로 재채색) | "Fantasy UI Borders" by Kenney (CC0) | https://kenney.nl/assets/fantasy-ui-borders |
+
+고기·알·장작 아이콘은 코드로 직접 찍은 픽셀이다(`src/render/pixel.js`).
 
 ## 라이선스 전문
 - CC BY 3.0: https://creativecommons.org/licenses/by/3.0/

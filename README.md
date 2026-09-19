@@ -20,7 +20,8 @@ src/
   world/            biomes, terrain(타일맵 생성/그리기), spawn(월드 생성/적 스폰)
   data/             dialogues(대사 트리), npcs(고정 NPC 정의), sprites(드래곤 시트), tiles(타일 좌표)
   entities/         Dragon, BabyDragon, Enemy, Human, Nest, Fireball, Particle, Item, Prop
-  render/           assets(이미지 로더), spritesheet(애니메이션), tint(색상 교체), dragonSprites
+  render/           assets(이미지 로더), spritesheet(애니메이션), tint(색상 교체), dragonSprites,
+                    pixel(픽셀 스프라이트/빛 번짐/아이콘), vfx(일회성 효과), lighting(낮밤 조명)
   systems/          combat(충돌), raid(습격), kids(자식 명부), dialogue(대화 진행)
   ui/               hud, dialogueUI, kidsPanel, customizer, toast
 ```

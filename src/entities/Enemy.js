@@ -4,8 +4,15 @@ import { burst } from './Particle.js';
 import { state } from '../core/state.js';
 import { isOnScreen } from '../core/camera.js';
 import { dist } from '../core/utils.js';
+import { getTileImage } from '../world/terrain.js';
+import { drawPixelSprite, whiteCopy } from '../render/pixel.js';
+import { spawnEffect } from '../render/vfx.js';
 
-const TAU = Math.PI * 2;
+// Tiny Dungeon 시트에서의 위치
+const SPRITES = {
+    SLIME:  { sx: 0,  sy: 144, sw: 16, sh: 16 },
+    GOBLIN: { sx: 16, sy: 144, sw: 16, sh: 16 },
+};
 
 export class Enemy extends Entity {
     constructor(x, y, type) {
@@ -37,6 +44,7 @@ export class Enemy extends Entity {
             this.remove = true;
             state.player.gainXp(30);
             burst(this.x, this.y, this.color, 0.8, 8);
+            spawnEffect('SMOKE', this.x, this.y - 16);
             if (Math.random() < 0.3) state.entities.items.push(new Item(this.x, this.y, 'MEAT'));
         }
     }
@@ -45,16 +53,10 @@ export class Enemy extends Entity {
         ctx.save();
         ctx.translate(this.x, this.y);
         this.drawShadow(ctx, 20);
-        ctx.fillStyle = this.hitFlash > 0 ? '#fff' : this.color;
-        if (this.type === 'SLIME') {
-            ctx.translate(0, -Math.abs(Math.sin(state.gameTime * 5)) * 10);
-            ctx.beginPath(); ctx.arc(0, 0, 15, Math.PI, 0); ctx.lineTo(15, 10); ctx.lineTo(-15, 10); ctx.fill();
-        } else {
-            if (Math.cos(this.angle) < 0) ctx.scale(-1, 1);
-            ctx.translate(0, Math.sin(state.gameTime * 10) * 5);
-            ctx.beginPath(); ctx.arc(0, -15, 10, 0, TAU); ctx.fill();
-            ctx.fillRect(-10, -5, 20, 20);
-        }
         ctx.restore();
+        const sheet = getTileImage('dungeon');
+        if (!sheet) return;
+        const hop = this.type === 'SLIME' ? Math.abs(Math.sin(state.gameTime * 5)) * 10 : Math.abs(Math.sin(state.gameTime * 10)) * 4;
+        drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, SPRITES[this.type], this.x, this.y + 4 - hop, { flip: Math.cos(this.angle) < 0 });
     }
 }

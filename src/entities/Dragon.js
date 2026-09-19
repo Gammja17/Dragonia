@@ -9,6 +9,8 @@ import { rand, dist, clamp, pick, roundRect } from '../core/utils.js';
 import { IDLE_LINES } from '../data/dialogues.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
 import { Animator, drawFrame } from '../render/spritesheet.js';
+import { drawIcon } from '../render/pixel.js';
+import { spawnEffect } from '../render/vfx.js';
 import { showToast } from '../ui/toast.js';
 import { setInteractTarget } from '../ui/hud.js';
 import { toggleKidsPanel } from '../ui/kidsPanel.js';
@@ -69,6 +71,7 @@ export class Dragon extends Entity {
         if (this.isPlayer) {
             showToast(`LEVEL UP! LV.${this.level}`, '🔥');
             burst(this.x, this.y, '#f1c40f', 1.2, 25);
+            spawnEffect('STAR', this.x, this.y - 50, { size: 1.6 });
         }
     }
 
@@ -81,6 +84,11 @@ export class Dragon extends Entity {
             this.hp = this.maxHp;
             this.x = PLAYER_SPAWN.x; this.y = PLAYER_SPAWN.y;
         }
+    }
+
+    /** 밤에 주변을 밝히는 빛 (render/lighting.js) */
+    get light() {
+        return this.isPlayer ? { r: 300, color: '#ffe2b0', dy: -40 } : { r: 170, color: '#ffe2b0', intensity: 0.55, dy: -40 };
     }
 
     say(text) {
@@ -256,8 +264,7 @@ export class Dragon extends Entity {
         }
 
         if (this.carrying === 'EGG') {
-            ctx.fillStyle = '#fff';
-            ctx.beginPath(); ctx.ellipse(this.x, this.y - 95 + this.hoverY, 10, 13, 0, 0, Math.PI * 2); ctx.fill();
+            drawIcon(ctx, 'EGG', this.x, this.y - 100 + this.hoverY, 2.5);
         }
 
         if (!this.isPlayer) this.drawNameplate(ctx);

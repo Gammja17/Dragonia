@@ -4,8 +4,15 @@ import { Fireball, addBullet } from './Fireball.js';
 import { state } from '../core/state.js';
 import { isOnScreen } from '../core/camera.js';
 import { dist } from '../core/utils.js';
+import { getTileImage } from '../world/terrain.js';
+import { drawPixelSprite, whiteCopy } from '../render/pixel.js';
+import { spawnEffect } from '../render/vfx.js';
 
-const TAU = Math.PI * 2;
+// Tiny Dungeon 시트에서의 위치
+const SPRITES = {
+    KNIGHT: { sx: 0,  sy: 128, sw: 16, sh: 16 },
+    ARCHER: { sx: 64, sy: 128, sw: 16, sh: 16 },
+};
 
 export class Human extends Entity {
     constructor(x, y) {
@@ -43,6 +50,7 @@ export class Human extends Entity {
         if (this.hp <= 0) {
             this.remove = true;
             state.player.gainXp(100);
+            spawnEffect('SMOKE', this.x, this.y - 16);
             state.entities.items.push(new Item(this.x, this.y, 'MEAT'));
         }
     }
@@ -51,17 +59,10 @@ export class Human extends Entity {
         ctx.save();
         ctx.translate(this.x, this.y);
         this.drawShadow(ctx, 20);
-        if (Math.cos(this.angle) < 0) ctx.scale(-1, 1);
-        ctx.fillStyle = this.hitFlash > 0 ? '#fff' : '#bdc3c7';
-        ctx.beginPath(); ctx.arc(0, -20, 8, 0, TAU); ctx.fill();
-        ctx.fillRect(-8, -12, 16, 20);
-        if (this.type === 'ARCHER') {
-            ctx.strokeStyle = '#8e44ad'; ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.arc(10, 0, 15, -1, 1); ctx.stroke();
-        } else {
-            ctx.fillStyle = '#f1c40f';
-            ctx.fillRect(10, -10, 5, 25);
-        }
         ctx.restore();
+        const sheet = getTileImage('dungeon');
+        if (!sheet) return;
+        const bob = Math.abs(Math.sin(state.gameTime * 9 + this.x)) * 3;
+        drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, SPRITES[this.type], this.x, this.y + 4 - bob, { flip: Math.cos(this.angle) < 0 });
     }
 }

@@ -77,6 +77,16 @@ export class Animator {
     }
 }
 
+/** 정면 대기 프레임을 캔버스에 꽉 차게 그린다 (HUD/대화창 초상화) */
+export function drawPortrait(canvas, sheet) {
+    const g = canvas.getContext('2d');
+    g.clearRect(0, 0, canvas.width, canvas.height);
+    if (!sheet) return;
+    const f = sheet.frames.idle.down[0];
+    const k = Math.min(canvas.width / f.sw, canvas.height / f.sh) * 1.15;
+    g.drawImage(f.img, f.sx, f.sy, f.sw, f.sh, (canvas.width - f.sw * k) / 2, (canvas.height - f.sh * k) / 2, f.sw * k, f.sh * k);
+}
+
 /** anchor 기준점(발 위치)이 (x,y)에 오도록 그린다 */
 export function drawFrame(ctx, sheet, f, x, y, scale = 1) {
     const s = sheet.scale * scale;

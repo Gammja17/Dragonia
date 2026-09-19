@@ -1,9 +1,12 @@
 // 대화창 DOM만 담당. 어떤 대사를 보여줄지는 systems/dialogue.js 가 결정.
+import { drawPortrait } from '../render/spritesheet.js';
+
 const $ = (id) => document.getElementById(id);
 
 export const dialogueUI = {
     /** options: [{ label, onSelect }]. 비어 있으면 '닫기' 버튼만 표시 */
-    show({ name, text, options, onClose }) {
+    show({ name, text, options, onClose, sheet }) {
+        drawPortrait($('d-portrait'), sheet);
         $('dialogue-overlay').style.display = 'flex';
         $('d-name').textContent = name;
         $('d-text').textContent = text;

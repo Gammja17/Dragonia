@@ -3,6 +3,11 @@ import { burst } from './Particle.js';
 import { state } from '../core/state.js';
 import { MAX_BULLETS } from '../core/config.js';
 import { isOnScreen } from '../core/camera.js';
+import { getTileImage } from '../world/terrain.js';
+import { drawPixelSprite } from '../render/pixel.js';
+import { getVfxImage, spawnEffect } from '../render/vfx.js';
+
+const ARROW = { sx: 176, sy: 160, sw: 16, sh: 16 }; // Tiny Dungeon 시트의 화살(위쪽을 향함)
 
 const SPEED = 580;
 
@@ -18,25 +23,38 @@ export class Fireball extends Entity {
         this.life = 1.2;
         this.owner = owner;
         this.faction = faction;
+        this.angle = angle;
+        this.t = 0;
+    }
+    get light() {
+        return this.faction === 'ALLY' ? { r: 170, color: '#ff9a3c', emissive: true } : null;
+    }
+    /** 무언가에 맞았을 때 (systems/combat.js) */
+    explode() {
+        this.remove = true;
+        if (this.faction === 'ALLY') spawnEffect('FIRE_HIT', this.x, this.y, { angle: this.angle });
     }
     update(dt) {
         this.x += this.vx * dt;
         this.y += this.vy * dt;
         this.life -= dt;
+        this.t += dt;
         if (this.life < 0) this.remove = true;
         if (Math.random() < 0.25) burst(this.x, this.y, this.faction === 'ALLY' ? '#e67e22' : '#bdc3c7', 0.4);
     }
     draw(ctx) {
         if (!isOnScreen(this, 50)) return;
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        if (this.faction === 'ALLY') { ctx.fillStyle = '#f1c40f'; ctx.shadowColor = 'orange'; }
-        else { ctx.fillStyle = '#ecf0f1'; ctx.shadowColor = '#95a5a6'; }
-        ctx.shadowBlur = 18;
-        ctx.beginPath();
-        ctx.arc(0, 0, 7, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+        if (this.faction === 'ALLY') {
+            const img = getVfxImage('firebolt');
+            if (!img) return;
+            const frame = Math.floor(this.t * 14) % 4;
+            ctx.globalCompositeOperation = 'lighter';
+            drawPixelSprite(ctx, img, { sx: frame * 48, sy: 0, sw: 48, sh: 48 }, this.x, this.y, { ax: 0.8, ay: 0.6, angle: this.angle });
+            ctx.globalCompositeOperation = 'source-over';
+        } else {
+            const img = getTileImage('dungeon');
+            if (img) drawPixelSprite(ctx, img, ARROW, this.x, this.y, { scale: 2.5, ay: 0.5, angle: this.angle + Math.PI / 2 });
+        }
     }
 }
 

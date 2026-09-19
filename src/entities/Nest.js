@@ -6,6 +6,8 @@ import { isOnScreen } from '../core/camera.js';
 import { dist, rand } from '../core/utils.js';
 import { registerKid } from '../systems/kids.js';
 import { showToast } from '../ui/toast.js';
+import { drawIcon, drawGlow } from '../render/pixel.js';
+import { spawnEffect } from '../render/vfx.js';
 
 const TAU = Math.PI * 2;
 
@@ -14,6 +16,9 @@ export class Nest extends Entity {
         super(x, y);
         this.hasEgg = false;
         this.progress = 0; // 0~100, 플레이어가 근처에 있으면 빨리 찬다
+    }
+    get light() {
+        return this.hasEgg ? { r: 150, color: '#fff2c8', intensity: 0.8 } : null;
     }
     update(dt) {
         if (!this.hasEgg) return;
@@ -28,22 +33,20 @@ export class Nest extends Entity {
         state.entities.babies.push(baby);
         registerKid(baby);
         showToast("아기 용이 태어났습니다!", "🐣");
-        burst(this.x, this.y, () => `hsl(${Math.random() * 360},100%,60%)`, 1, 25);
+        burst(this.x, this.y, () => `hsl(${Math.floor(Math.random() * 12) * 30},100%,60%)`, 1, 25); // 색 12가지(빛 스프라이트 캐시)
+        spawnEffect('RING', this.x, this.y);
     }
     draw(ctx) {
         if (!isOnScreen(this)) return;
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.fillStyle = '#5d4037'; ctx.beginPath(); ctx.arc(0, 0, 42, 0, TAU); ctx.fill();
-        ctx.fillStyle = '#8d6e63'; ctx.beginPath(); ctx.arc(0, 0, 32, 0, TAU); ctx.fill();
-        if (this.hasEgg) {
-            ctx.shadowBlur = 15; ctx.shadowColor = '#fff';
-            ctx.fillStyle = '#ecf0f1';
-            ctx.beginPath(); ctx.ellipse(0, -4, 12, 16, 0, 0, TAU); ctx.fill();
-            ctx.shadowBlur = 0;
-            ctx.strokeStyle = '#2ecc71'; ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.arc(0, 0, 45, -Math.PI / 2, -Math.PI / 2 + TAU * this.progress / 100); ctx.stroke();
-        }
-        ctx.restore();
+        // 돌무더기 둥지 자체는 지형에 구워져 있다 (world/terrain.js). 여기선 알과 부화 진행도만
+        if (!this.hasEgg) return;
+        const wobble = this.progress > 80 ? Math.sin(state.gameTime * 25) * 2 : 0;
+        drawGlow(ctx, this.x, this.y - 4, 40, '#fff2c8', 0.35 + this.progress / 250);
+        drawIcon(ctx, 'EGG', this.x + wobble, this.y - 6);
+        ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.arc(this.x, this.y, 50, 0, TAU); ctx.stroke();
+        ctx.strokeStyle = '#ffd866'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.arc(this.x, this.y, 50, -Math.PI / 2, -Math.PI / 2 + TAU * this.progress / 100); ctx.stroke();
+        ctx.lineCap = 'butt';
     }
 }

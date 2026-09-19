@@ -2,6 +2,8 @@ import { state } from '../core/state.js';
 import { worldToScreen } from '../core/camera.js';
 import { BIOMES, getBiome } from '../world/biomes.js';
 import { toggleKidsPanel } from './kidsPanel.js';
+import { dayPhaseName } from '../render/lighting.js';
+import { drawPortrait } from '../render/spritesheet.js';
 
 const $ = (id) => document.getElementById(id);
 let el = {};
@@ -29,12 +31,13 @@ export function initHud() {
 export function showGameUI() {
     el.customizer.style.display = 'none';
     el.layer.style.display = 'block';
+    drawPortrait($('ui-portrait'), state.player.sheet);
 }
 
 export function updateHud() {
     const p = state.player;
     if (!p) return;
-    el.biome.textContent = BIOMES[getBiome(p.x, p.y)].name;
+    el.biome.textContent = `${BIOMES[getBiome(p.x, p.y)].name} · ${dayPhaseName()}`;
     el.name.textContent = p.config.name || 'Player';
     el.lvl.textContent = p.level;
     el.partner.textContent = state.partner ? state.partner.config.name : '없음';

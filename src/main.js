@@ -11,6 +11,8 @@ import { initHud, showGameUI, updateHud } from './ui/hud.js';
 import { initKidsPanel, refreshKidsPanel } from './ui/kidsPanel.js';
 import { initCustomizer } from './ui/customizer.js';
 import { preloadDragonSprites } from './render/dragonSprites.js';
+import { preloadVfx } from './render/vfx.js';
+import { updateLighting, drawLighting } from './render/lighting.js';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -30,7 +32,7 @@ initKidsPanel();
 initCustomizer(startGame);
 
 // 드래곤 시트와 타일셋은 페이지 로드 직후부터 받기 시작한다
-const assetsReady = Promise.all([preloadDragonSprites(), preloadTerrain()]).catch(err => { console.error(err); });
+const assetsReady = Promise.all([preloadDragonSprites(), preloadTerrain(), preloadVfx()]).catch(err => { console.error(err); });
 
 let lastTime = 0;
 let hudAccumulator = 0;
@@ -76,9 +78,10 @@ function update(dt) {
     const E = state.entities;
     state.gameTime += dt;
     updateRaid(dt);
+    updateLighting(dt);
 
     state.player.update(dt);
-    for (const group of [E.nests, E.babies, E.items, E.npcs, E.enemies, E.humans, E.bullets, E.particles]) {
+    for (const group of [E.nests, E.babies, E.items, E.npcs, E.enemies, E.humans, E.bullets, E.effects, E.particles]) {
         for (const e of group) e.update(dt);
     }
 
@@ -102,6 +105,10 @@ function render() {
     for (const e of drawables) e.draw(ctx);
 
     for (const b of E.bullets) b.draw(ctx);
+    for (const fx of E.effects) fx.draw(ctx);
+    ctx.globalCompositeOperation = 'lighter'; // 파티클은 빛 알갱이
     for (const p of E.particles) p.draw(ctx);
     ctx.restore();
+
+    drawLighting(ctx, cam);
 }

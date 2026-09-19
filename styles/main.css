@@ -33,7 +33,6 @@ body {
     display: flex; align-items: center; gap: 15px; margin-bottom: 20px;
     border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;
 }
-.hud-icon { font-size: 2rem; filter: drop-shadow(0 0 10px gold); }
 .hud-name { font-weight: bold; font-size: 1.3rem; color: #fff; }
 .hud-lvl { font-size: 0.9rem; color: #a55eea; }
 .hud-partner { font-size: 0.75rem; color: #95a5a6; margin-top: 2px; }
@@ -177,10 +176,6 @@ button.start-btn:hover { transform: scale(1.05); }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
 #d-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-#d-portrait {
-    width: 60px; height: 60px; background: #333; border-radius: 50%;
-    border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 30px;
-}
 #d-name { color: #f1c40f; font-size: 1.8rem; font-weight: bold; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
 #d-text {
     color: #ecf0f1; font-size: 1.2rem; line-height: 1.6; margin-bottom: 18px; min-height: 60px;
@@ -227,3 +222,22 @@ button.start-btn:hover { transform: scale(1.05); }
 }
 .kid-stage { font-size: 0.8rem; opacity: 0.7; }
 .kid-heart { color: #e74c3c; margin-left: 4px; }
+
+/* ---------- 픽셀 금테 (Kenney Fantasy UI Borders, CC0) ---------- */
+.hud-panel, #kids-panel, .card, #dialogue-overlay {
+    border: 18px solid transparent;
+    border-image: url('../assets/ui/frame.png') 32 / 18px stretch;
+    image-rendering: pixelated;
+    border-radius: 0;
+}
+.hud-panel { padding: 10px 12px; background-color: rgba(16, 18, 30, 0.78); }
+#kids-panel { padding: 6px 8px; }
+.card { padding: 26px; background-color: rgba(16, 18, 30, 0.6); }
+#dialogue-overlay { padding: 14px 9%; border-top-color: transparent; }
+.portrait {
+    width: 56px; height: 56px; flex: none;
+    background: radial-gradient(circle at 50% 40%, #3b4468, #161a2c);
+    border: 2px solid #d8b25a; border-radius: 6px;
+    image-rendering: auto;
+}
+#d-portrait.portrait { width: 64px; height: 64px; border-radius: 6px; }

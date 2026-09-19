@@ -13,9 +13,9 @@ export function resolveCombat() {
         if (b.faction === 'ALLY') {
             const hit = E.enemies.find(e => !e.remove && dist(b, e) < HIT_RADIUS)
                      || E.humans.find(h => !h.remove && dist(b, h) < HIT_RADIUS);
-            if (hit) { b.remove = true; hit.takeDamage(10); }
+            if (hit) { b.explode(); hit.takeDamage(10); }
         } else if (dist(b, player) < HIT_RADIUS) {
-            b.remove = true;
+            b.explode();
             player.takeDamage(8);
         }
     }
@@ -23,7 +23,7 @@ export function resolveCombat() {
 
 export function pruneEntities() {
     const E = state.entities;
-    for (const key of ['bullets', 'enemies', 'humans', 'items', 'particles', 'babies']) {
+    for (const key of ['bullets', 'effects', 'enemies', 'humans', 'items', 'particles', 'babies']) {
         E[key] = E[key].filter(e => !e.remove);
     }
 }
