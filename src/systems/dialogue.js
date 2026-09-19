@@ -4,6 +4,7 @@ import { NPC_SCRIPTS } from '../data/dialogues.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
 import { questDialogue } from './quests.js';
+import { openNpcHub } from './npcActions.js';
 import { burst } from '../entities/Particle.js';
 
 /** type: 'TALK' | 'FLIRT' */
@@ -21,6 +22,9 @@ export function startDialogue(npc, type, skipQuest = false) {
         });
         return;
     }
+
+    // 마을 고정 NPC는 고유 대화 화면으로
+    if (type === 'TALK' && !tutorialPending && openNpcHub(npc)) return;
 
     let group;
     let key = 'intro';

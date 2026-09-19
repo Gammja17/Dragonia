@@ -4,72 +4,106 @@ import { Projectile, addBullet } from './Projectile.js';
 import { state } from '../core/state.js';
 import { isOnScreen } from '../core/camera.js';
 import { dist } from '../core/utils.js';
+import { HUNTERS } from '../data/enemies.js';
 import { getTileImage } from '../world/terrain.js';
 import { drawPixelSprite, whiteCopy, drawGlow } from '../render/pixel.js';
-import { spawnEffect } from '../render/vfx.js';
+import { spawnEffect, spawnText } from '../render/vfx.js';
 import { updateStatus, statusTint } from '../systems/status.js';
+import { allies } from '../systems/combat.js';
 import { notify } from '../systems/quests.js';
+import { showToast } from '../ui/toast.js';
 
-// Tiny Dungeon 시트에서의 위치
-const SPRITES = {
-    KNIGHT: { sx: 0,  sy: 128, sw: 16, sh: 16 },
-    ARCHER: { sx: 64, sy: 128, sw: 16, sh: 16 },
-};
-
+/** 마을을 습격하는 사냥꾼. type: data/enemies.js 의 HUNTERS 키 */
 export class Human extends Entity {
-    constructor(x, y) {
+    constructor(x, y, type = 'KNIGHT') {
         super(x, y);
-        this.hp = 80;
-        this.speed = 90;
+        this.type = type;
+        this.def = HUNTERS[type];
+        this.hp = this.maxHp = this.def.hp;
         this.angle = 0;
         this.hitFlash = 0;
-        this.type = Math.random() < 0.3 ? 'ARCHER' : 'KNIGHT';
-        this.cooldown = 0;
+        this.cooldown = 1;
     }
+
+    /** 알이 있는 둥지가 가까우면 둥지, 아니면 가장 가까운 용(플레이어·마을 용·동료) */
+    pickTarget() {
+        const nest = state.entities.nests[0];
+        if (nest && nest.hasEgg && dist(this, nest) < 320) return nest;
+        let best = state.player, bestD = dist(this, state.player);
+        for (const a of allies()) {
+            const d = dist(this, a);
+            if (d < bestD) { best = a; bestD = d; }
+        }
+        return best;
+    }
+
     update(dt) {
         if (this.hitFlash > 0) this.hitFlash -= dt * 10;
         this.cooldown -= dt;
-        const speed = this.speed * updateStatus(this, dt);
+        const speed = this.def.speed * updateStatus(this, dt);
         if (this.remove || speed === 0) return;
 
-        const player = state.player;
-        const nest = state.entities.nests[0];
-        const target = (nest && dist(this, nest) < 300) ? nest : player;
+        const target = this.pickTarget();
         const d = dist(this, target);
         this.angle = Math.atan2(target.y - this.y, target.x - this.x);
 
-        const range = this.type === 'ARCHER' ? 250 : 40;
-        if (d > range) {
+        if (d > this.def.range) {
             this.x += Math.cos(this.angle) * speed * dt;
             this.y += Math.sin(this.angle) * speed * dt;
         } else if (this.cooldown <= 0) {
-            if (this.type === 'ARCHER') addBullet(new Projectile(this.x, this.y - 16, this.angle, { faction: 'ENEMY', kind: 'ARROW', damage: 8, speed: 520 }));
-            else if (target === player) player.takeDamage(10);
-            this.cooldown = 2.0;
+            this.attack(target);
+            this.cooldown = this.def.cooldown;
         }
     }
+
+    attack(target) {
+        const def = this.def;
+        const aim = Math.atan2(target.y - 30 - (this.y - 16), target.x - this.x);
+        if (def.attack === 'ARROW') {
+            addBullet(new Projectile(this.x, this.y - 16, aim, { faction: 'ENEMY', kind: 'ARROW', damage: def.damage, speed: 520 }));
+        } else if (def.attack === 'ORB') {
+            addBullet(new Projectile(this.x, this.y - 16, aim, { faction: 'ENEMY', element: 'FIRE', damage: def.damage, speed: 300, life: 2.4, scale: 0.7 }));
+        } else if (target === state.entities.nests[0]) {
+            target.attackEgg(30);
+        } else {
+            target.takeDamage(def.damage);
+        }
+    }
+
     takeDamage(dmg, silent = false) {
         this.hp -= dmg;
         if (!silent) this.hitFlash = 1;
-        if (this.hp <= 0 && !this.remove) {
-            this.remove = true;
-            state.player.gainXp(100);
-            notify('kill', 'HUNTER');
-            spawnEffect('SMOKE', this.x, this.y - 16);
-            state.entities.items.push(new Item(this.x, this.y, 'MEAT'));
+        if (this.hp <= 0 && !this.remove) this.die();
+    }
+
+    die() {
+        this.remove = true;
+        state.player.gainXp(this.def.xp);
+        notify('kill', 'HUNTER');
+        spawnEffect('SMOKE', this.x, this.y - 16, { size: this.def.scale ? 1.8 : 1 });
+        const items = state.entities.items;
+        items.push(new Item(this.x, this.y, 'GOLD', this.def.gold));
+        if (Math.random() < 0.6) items.push(new Item(this.x + 20, this.y, 'MEAT'));
+        if (this.type === 'CAPTAIN') {
+            showToast('사냥꾼 대장을 쓰러뜨렸습니다!', '🏆');
+            spawnText(this.x, this.y - 80, '대장 처치!', '#ffd84a', 22);
         }
     }
+
     draw(ctx) {
         if (!isOnScreen(this)) return;
+        const scale = this.def.scale || 3;
         ctx.save();
         ctx.translate(this.x, this.y);
-        this.drawShadow(ctx, 20);
+        this.drawShadow(ctx, 20 * scale / 3);
         ctx.restore();
         const sheet = getTileImage('dungeon');
         if (!sheet) return;
         const tint = statusTint(this);
-        if (tint) drawGlow(ctx, this.x, this.y - 18, 34, tint, 0.55);
+        if (tint) drawGlow(ctx, this.x, this.y - 18, 34 * scale / 3, tint, 0.55);
         const bob = Math.abs(Math.sin(state.gameTime * 9 + this.x)) * 3;
-        drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, SPRITES[this.type], this.x, this.y + 4 - bob, { flip: Math.cos(this.angle) < 0 });
+        const [tx, ty] = this.def.sprite;
+        drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, { sx: tx * 16, sy: ty * 16, sw: 16, sh: 16 }, this.x, this.y + 4 - bob, { scale, flip: Math.cos(this.angle) < 0 });
+        this.drawHpBar(ctx, this.hp / this.maxHp, 16 * scale + 8, scale > 3 ? 60 : 34);
     }
 }

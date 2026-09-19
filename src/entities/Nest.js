@@ -28,6 +28,17 @@ export class Nest extends Entity {
     get light() {
         return this.hasEgg ? { r: 150, color: '#fff2c8', intensity: 0.8 } : null;
     }
+    /** 사냥꾼이 알을 노린다. 부화 진행도가 깎이고, 바닥나면 알을 빼앗긴다 */
+    attackEgg(amount) {
+        if (!this.hasEgg) return;
+        this.progress -= amount;
+        burst(this.x, this.y, '#ff5a4d', 0.6, 6);
+        if (this.progress < 0) {
+            this.hasEgg = false;
+            this.progress = 0;
+            showToast("사냥꾼에게 알을 빼앗겼습니다…!", "💔");
+        }
+    }
     update(dt) {
         if (!this.hasEgg) return;
         const near = dist(this, state.player) < 120;

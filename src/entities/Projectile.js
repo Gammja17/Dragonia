@@ -7,9 +7,10 @@ import { dist } from '../core/utils.js';
 import { ELEMENTS } from '../data/elements.js';
 import { getTileImage } from '../world/terrain.js';
 import { drawPixelSprite } from '../render/pixel.js';
-import { getVfxImage, spawnEffect, spawnBolt } from '../render/vfx.js';
+import { getVfxImage, spawnEffect, spawnBolt, spawnText } from '../render/vfx.js';
 import { applyStatus } from '../systems/status.js';
 
+const CRIT_CHANCE = 0.12; // 치명타: 피해 2배
 const ARROW = { sx: 176, sy: 160, sw: 16, sh: 16 }; // Tiny Dungeon 시트의 화살(위쪽을 향함)
 
 /**
@@ -48,8 +49,12 @@ export class Projectile extends Entity {
         this.remove = true;
         const el = ELEMENTS[this.element];
         if (this.kind === 'BREATH') spawnEffect(el.hit, this.x, this.y, { angle: this.angle, size: this.scale });
-        target.takeDamage(this.damage);
-        if (this.faction !== 'ALLY' || this.kind !== 'BREATH') return;
+        if (this.faction !== 'ALLY') { target.takeDamage(this.damage); return; }
+        const crit = Math.random() < CRIT_CHANCE;
+        const dmg = this.damage * (crit ? 2 : 1);
+        target.takeDamage(dmg);
+        spawnText(target.x, target.y - 50, crit ? `${Math.round(dmg)}!` : `${Math.round(dmg)}`, crit ? '#ffd84a' : '#fff', crit ? 22 : 15);
+        if (this.kind !== 'BREATH') return;
         if (el.status) applyStatus(target, el.status.type, el.status.duration);
         if (el.chain) {
             let from = target;
@@ -59,6 +64,7 @@ export class Projectile extends Entity {
                 if (!next) break;
                 spawnBolt(from.x, from.y - 16, next.x, next.y - 16);
                 next.takeDamage(el.chain.damage);
+                spawnText(next.x, next.y - 50, `${el.chain.damage}`, '#ffe27a', 14);
                 used.add(next);
                 from = next;
             }

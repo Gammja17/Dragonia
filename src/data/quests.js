@@ -1,5 +1,6 @@
 // 퀘스트 정의. giver: 고정 NPC 이름(data/npcs.js). requires: 먼저 끝내야 하는 퀘스트 id.
-// goal.type: 'kill'(target = 적 종류 | 'HUNTER') | 'stage'(index 이상으로 성장) | 'boss'(id) | 'collect'(고기 count개를 건넨다) | 'hatch'
+// goal.type: 'kill'(target = 적 종류 | 'HUNTER') | 'stage'(index 이상으로 성장) | 'boss'(id) | 'collect'(고기 count개를 건넨다)
+//            | 'hatch' | 'raid'(습격 격퇴) | 'spar'(대련 승리) | 'tag'(술래잡기 승리) | 'upgrade'(상점 강화) | 'chest'(상자 열기)
 export const QUESTS = [
     // ---- 메인: 촌장 엘더 ----
     {
@@ -16,7 +17,7 @@ export const QUESTS = [
     },
     {
         id: 'm3', giver: 'Elder', requires: 'm2', title: '마을의 방패',
-        offer: "인간 [사냥꾼]들이 주기적으로 마을 서쪽에서 쳐들어온다. 넷만 쓰러뜨려 다오. 둥지의 알을 노리는 놈들이다.",
+        offer: "인간 [사냥꾼]들이 주기적으로 마을로 쳐들어온다. 어느 쪽에서 올지는 아무도 모르지. 넷만 쓰러뜨려 다오. 둥지의 알을 노리는 놈들이다.",
         done: "마을이 네 덕에 한숨 돌렸구나. …이제 네게 진짜 이야기를 해 줄 때가 됐다.",
         goal: { type: 'kill', target: 'HUNTER', count: 4 }, reward: { xp: 200, meat: 2 },
     },
@@ -62,5 +63,35 @@ export const QUESTS = [
         offer: "있잖아, 둥지에서 [알이 부화]하는 거 본 적 있어? 나 아기 용 너무 보고 싶어! 한 마리만 태어나게 해 줘!",
         done: "꺄아 너무 귀여워!! 내가 이모… 아니 삼촌? 아무튼 내가 많이 놀아줄게!",
         goal: { type: 'hatch', count: 1 }, reward: { xp: 200, relation: 10 },
+    },
+    {
+        id: 's5', giver: 'Tiamat', requires: 's3', title: '번개보다 빠르게',
+        offer: "말로만 강하다고 하는 용은 질색이야. 나와 [대련]해서 한 번이라도 이겨 봐. 말 걸어서 '대련을 신청한다'를 고르면 돼.",
+        done: "…졌어. 깨끗하게. 너라면 내 등을 맡겨도 되겠다.",
+        goal: { type: 'spar', count: 1 }, reward: { xp: 300, relation: 15 },
+    },
+    {
+        id: 's6', giver: 'Poco', requires: 's4', title: '마을 최고의 술래',
+        offer: "나 요즘 술래잡기에서 한 번도 안 잡혔다? 네가 [두 번] 잡으면 내 보물 줄게! 진짜야!",
+        done: "헉… 헉… 너 진짜 빠르다! 자, 약속한 보물! 반짝반짝하지?",
+        goal: { type: 'tag', count: 2 }, reward: { xp: 200, meat: 2, relation: 15 },
+    },
+    {
+        id: 's7', giver: 'Gron', requires: 's2', title: '단골의 자격',
+        offer: "구경만 하는 놈은 손님이 아니다. 내 가게에서 [강화를 두 번] 해라. 그럼 단골로 쳐주지.",
+        done: "흥. 이제 좀 용다워졌군. 이건 단골 선물이다. 어디 가서 말하지 마라.",
+        goal: { type: 'upgrade', count: 2 }, reward: { xp: 200, meat: 3, relation: 20 },
+    },
+    {
+        id: 's8', giver: 'Gron', requires: 's7', title: '숲의 보물',
+        offer: "숲 곳곳에 옛 용들이 숨겨 둔 [보물상자]가 있다. 다섯 개만 찾아 열어 봐라. 내용물은 네 거다.",
+        done: "다 찾았냐? 보는 눈이 있군. 상자는 아직 많이 남았을 거다.",
+        goal: { type: 'chest', count: 5 }, reward: { xp: 350, relation: 10 },
+    },
+    {
+        id: 's9', giver: 'Tiamat', requires: 's5', title: '끝나지 않는 습격',
+        offer: "사냥꾼 놈들, 갈수록 많이 몰려와. 마을 용들이랑 같이 [습격을 세 번] 막아내자. 대장이 나오면… 그건 네 몫이야.",
+        done: "세 번이나 막아냈네. 이제 마을 용들도 널 믿고 따를 거야. 나도 그렇고.",
+        goal: { type: 'raid', count: 3 }, reward: { xp: 500, meat: 4, relation: 15 },
     },
 ];

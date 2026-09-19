@@ -9,6 +9,7 @@ import { dayPhaseName } from '../render/lighting.js';
 import { drawPortrait } from '../render/spritesheet.js';
 import { weatherName } from '../systems/weather.js';
 import { questLines, setQuestListener } from '../systems/quests.js';
+import { raidStatusText } from '../systems/raid.js';
 
 const $ = (id) => document.getElementById(id);
 let el = {};
@@ -19,7 +20,7 @@ export function initHud() {
         layer: $('ui-layer'), customizer: $('customizer'),
         panel: $('hud-panel'), showBtn: $('hud-show-btn'),
         name: $('ui-name'), lvl: $('ui-lvl'), stage: $('ui-stage'), partner: $('ui-partner'),
-        xpText: $('ui-xp-text'), hpText: $('ui-hp-text'), meat: $('ui-meat'),
+        xpText: $('ui-xp-text'), hpText: $('ui-hp-text'), meat: $('ui-meat'), gold: $('ui-gold'), raidInfo: $('raid-info'),
         barXp: $('bar-xp'), barHp: $('bar-hp'), barHunger: $('bar-hunger'),
         biome: $('biome-text'), tip: $('interact-tip'), raid: $('raid-warning'),
         minimap: $('minimap'), tracker: $('quest-tracker'),
@@ -56,6 +57,9 @@ export function updateHud() {
     el.stage.textContent = p.stage.name;
     el.partner.textContent = state.partner ? state.partner.config.name : '없음';
     el.meat.textContent = p.inventory.meat;
+    el.gold.textContent = p.gold;
+    el.raidInfo.textContent = raidStatusText();
+    el.raidInfo.classList.toggle('active', state.raid.active);
     el.hpText.textContent = p.hp.toFixed(0);
     const xpPct = (p.xp / p.maxXp) * 100;
     el.xpText.textContent = Math.floor(xpPct) + '%';
@@ -85,6 +89,7 @@ function drawMinimap() {
     for (const b of state.entities.bosses) dot(b.x, b.y, 4, '#ff4d4d');
     for (const h of state.entities.humans) dot(h.x, h.y, 2, '#ff9a9a');
     if (state.partner) dot(state.partner.x, state.partner.y, 2.5, '#ff7aa8');
+    if (state.companion) dot(state.companion.x, state.companion.y, 2.5, '#7dd3ff');
     const p = state.player;
     g.strokeStyle = '#000'; g.lineWidth = 2;
     g.beginPath(); g.arc(p.x * k, p.y * k, 4, 0, Math.PI * 2); g.stroke();
@@ -121,7 +126,8 @@ export function setInteractTarget(npc) {
     el.tip.style.display = 'block';
 }
 
-export function showRaidWarning() {
+export function showRaidWarning(text) {
+    el.raid.textContent = text;
     el.raid.style.display = 'block';
     setTimeout(() => { el.raid.style.display = 'none'; }, 3500);
 }

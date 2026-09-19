@@ -113,3 +113,29 @@ class Bolt {
 export function spawnBolt(x1, y1, x2, y2) {
     state.entities.effects.push(new Bolt(x1, y1, x2, y2));
 }
+
+/** 떠오르며 사라지는 글자 (피해량, 획득 골드 등) */
+class FloatText {
+    constructor(x, y, text, color, size) {
+        this.x = x + (Math.random() - 0.5) * 24; this.y = y;
+        this.text = text; this.color = color; this.size = size;
+        this.t = 0; this.remove = false;
+    }
+    get light() { return null; }
+    update(dt) { this.t += dt; this.y -= (60 - this.t * 50) * dt; if (this.t > 0.9) this.remove = true; }
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, (0.9 - this.t) * 3);
+        ctx.font = `900 ${this.size}px Fredoka`;
+        ctx.textAlign = 'center';
+        ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,0.75)';
+        ctx.strokeText(this.text, this.x, this.y);
+        ctx.fillStyle = this.color;
+        ctx.fillText(this.text, this.x, this.y);
+        ctx.restore();
+    }
+}
+
+export function spawnText(x, y, text, color = '#fff', size = 16) {
+    state.entities.effects.push(new FloatText(x, y, text, color, size));
+}

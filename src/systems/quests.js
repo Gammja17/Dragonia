@@ -26,7 +26,7 @@ function presetProgress(q) {
     return 0;
 }
 
-/** 게임 곳곳에서 호출: notify('kill', 'SLIME') / ('stage', 1) / ('boss', 'MORGATH') / ('hatch') */
+/** 게임 곳곳에서 호출: notify('kill', 'SLIME') / ('stage', 1) / ('boss', 'MORGATH') / ('hatch' | 'raid' | 'spar' | 'tag' | 'upgrade' | 'chest') */
 export function notify(type, target) {
     for (const q of activeQuests()) {
         const g = q.goal;

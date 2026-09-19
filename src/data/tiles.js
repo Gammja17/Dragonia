@@ -48,9 +48,12 @@ export const PROP_SPRITES = {
     ROCK:  [{ sheet: 'props', sx: 32, sy: 0, sw: 32, sh: 32, ax: 0.5, ay: 0.85 }],
     BUSH:  [{ sheet: 'props', sx: 64, sy: 0, sw: 32, sh: 32, ax: 0.5, ay: 0.85 }],
     FERN:  [{ sheet: 'props', sx: 96, sy: 0, sw: 32, sh: 32, ax: 0.5, ay: 0.9 }],
+    BERRY: [{ sheet: 'props', sx: 64, sy: 0, sw: 32, sh: 32, ax: 0.5, ay: 0.85 }], // 덤불 + 코드로 찍은 열매
     HOUSE: [{ sheet: 'village', sx: 96, sy: 0, sw: 80, sh: 80, ax: 0.5, ay: 0.92 }],
     FOUNTAIN: [{ sheet: 'village', sx: 352, sy: 144, sw: 48, sh: 48, ax: 0.5, ay: 0.7, frames: [[352, 144], [400, 144], [448, 144]], fps: 7 }],
     CRATE:  [{ sheet: 'village', sx: 480, sy: 2, sw: 16, sh: 24, ax: 0.5, ay: 0.9 }],
     BARREL: [{ sheet: 'village', sx: 528, sy: 4, sw: 16, sh: 24, ax: 0.5, ay: 0.9 }],
     SIGN:   [{ sheet: 'village', sx: 544, sy: 32, sw: 16, sh: 16, ax: 0.5, ay: 0.95 }],
+    CHEST:  [{ sheet: 'dungeon', sx: 80, sy: 112, sw: 16, sh: 16, ax: 0.5, ay: 0.9 }],
+    CHEST_OPEN: [{ sheet: 'dungeon', sx: 112, sy: 112, sw: 16, sh: 16, ax: 0.5, ay: 0.9 }],
 };

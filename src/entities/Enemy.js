@@ -28,6 +28,14 @@ export class Enemy extends Entity {
         if (this.remove) return;
         const player = state.player;
         const d = dist(this, player);
+        if (this.def.move === 'flee') {          // 사냥감: 가까이 오면 달아나고, 아니면 어슬렁거린다
+            if (d < 300) this.angle = Math.atan2(this.y - player.y, this.x - player.x) + Math.sin(state.gameTime * 3 + this.phase) * 0.6;
+            else if (Math.random() < dt * 0.5) this.angle = Math.random() * 6.28;
+            const v = d < 300 ? speed : speed * 0.25;
+            this.x += Math.cos(this.angle) * v * dt;
+            this.y += Math.sin(this.angle) * v * dt;
+            return;
+        }
         if (d < 420 && d > 30) {
             this.angle = Math.atan2(player.y - this.y, player.x - this.x);
             // erratic: 곧장 오지 않고 좌우로 흔들리며 다가온다
@@ -48,7 +56,9 @@ export class Enemy extends Entity {
         state.player.gainXp(this.def.xp);
         burst(this.x, this.y, this.def.color, 0.8, 8);
         spawnEffect('SMOKE', this.x, this.y - 16);
-        if (Math.random() < 0.3) state.entities.items.push(new Item(this.x, this.y, 'MEAT'));
+        const meat = this.def.meat ?? (Math.random() < 0.45 ? 1 : 0);
+        for (let i = 0; i < meat; i++) state.entities.items.push(new Item(this.x + i * 22, this.y, 'MEAT'));
+        if (Math.random() < 0.7) state.entities.items.push(new Item(this.x - 16, this.y, 'GOLD', Math.max(2, Math.round(this.def.xp / 7))));
         notify('kill', this.type);
     }
     draw(ctx) {
@@ -65,5 +75,6 @@ export class Enemy extends Entity {
         const hop = this.def.hop ? Math.abs(Math.sin(state.gameTime * 5 + this.phase)) * 10 : Math.abs(Math.sin(state.gameTime * 10 + this.phase)) * 4;
         const [tx, ty] = this.def.sprite;
         drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, { sx: tx * 16, sy: ty * 16, sw: 16, sh: 16 }, this.x, this.y + 4 - hop - lift, { flip: Math.cos(this.angle) < 0 });
+        this.drawHpBar(ctx, this.hp / this.def.hp, 58 + lift);
     }
 }

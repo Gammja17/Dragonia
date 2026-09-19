@@ -11,12 +11,16 @@ import { ELEMENTS, STAGES, SKILLS } from '../data/elements.js';
 import { applyStatus } from '../systems/status.js';
 import { notify, questMarker } from '../systems/quests.js';
 import { weatherDamageMult } from '../systems/weather.js';
+import { updateActivityNpc } from '../systems/npcActions.js';
+import { NPC_TALK } from '../data/npcTalk.js';
+import { spawnText } from '../render/vfx.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
 import { Animator, drawFrame } from '../render/spritesheet.js';
 import { drawIcon } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
 import { showToast } from '../ui/toast.js';
 import { setInteractTarget } from '../ui/hud.js';
+import { groundAt } from '../world/terrain.js';
 import { toggleKidsPanel } from '../ui/kidsPanel.js';
 import { startDialogue } from '../systems/dialogue.js';
 
@@ -48,13 +52,17 @@ export class Dragon extends Entity {
         this.moving = false;
         this.hoverY = 0;
         this.inventory = { meat: 0 };
+        this.gold = 0;
         // 성장/브레스 (플레이어용)
         this.stageIndex = 0;
         this.elements = ['FIRE'];
         this.element = 'FIRE';
         this.cooldowns = { NOVA: 0, ROAR: 0 };
-        this.atkTimer = 0; // 짝이 되었을 때 지원 사격 간격
+        this.atkTimer = 0;  // NPC 전투: 다음 사격까지
+        this.downTimer = 0; // NPC 전투: 쓰러져 쉬는 시간
+        if (!isPlayer && config.maxHp) this.hp = this.maxHp = config.maxHp;
         this.carrying = null; // 'EGG'
+        this.fishing = null;  // { x, y, wait, bite } 낚시 중일 때
 
         this.sheet = getDragonSheet(this.species, this.colors);
         this.animator = this.sheet ? new Animator(this.sheet) : null;
@@ -71,6 +79,7 @@ export class Dragon extends Entity {
 
     // ---------- 공통 ----------
     gainXp(amount) {
+        if (this.isPlayer && state.blessingDay === state.day) amount *= 1.25; // 엘더의 축복
         this.xp += amount;
         if (this.xp < this.maxXp) return;
         while (this.xp >= this.maxXp) {   // 퀘스트 보상처럼 한 번에 여러 레벨이 오를 수 있다
@@ -112,9 +121,24 @@ export class Dragon extends Entity {
     }
 
     takeDamage(dmg) {
+        const a = state.activity;
+        if (a && a.type === 'SPAR' && a.npc === this) {   // 대련: 실제 체력 대신 기력이 깎인다
+            a.hp -= dmg;
+            if (this.animator) this.animator.play('hit');
+            return;
+        }
+        if (!this.isPlayer && this.downTimer > 0) return;
         this.hp -= dmg;
         burst(this.x, this.y - 40, '#e74c3c', 0.8, 5);
+        if (this.isPlayer && dmg >= 3) spawnText(this.x, this.y - 90 * this.stage.scale, `-${Math.round(dmg)}`, '#ff6b5e', 15);
         if (this.animator) this.animator.play('hit');
+        if (this.hp <= 0 && !this.isPlayer) {           // 마을 용은 죽지 않고 잠시 쓰러진다
+            this.hp = 0;
+            this.downTimer = 25;
+            const talk = NPC_TALK[this.config.name];
+            this.say(talk ? talk.down : '으윽…');
+            if (this.config.fixed) showToast(`${this.config.name}(이)가 쓰러졌습니다! 잠시 후 일어납니다.`, '💫');
+        }
         if (this.hp <= 0 && this.isPlayer) {
             showToast("쓰러졌습니다... 마을에서 부활합니다.", "💀");
             this.hp = this.maxHp;
@@ -169,8 +193,9 @@ export class Dragon extends Entity {
     // ---------- 플레이어 ----------
     updatePlayer(dt) {
         const { dx, dy } = input.axis();
+        if (this.fishing) this.updateFishing(dt, dx || dy);
         if (dx || dy) {
-            this.moveBy(dx, dy, WALK_SPEED * this.stage.speed * (input.down('sprint') ? SPRINT_MULT : 1), dt);
+            this.moveBy(dx, dy, WALK_SPEED * this.stage.speed * (1 + 0.04 * (state.upgrades.spd || 0)) * (input.down('sprint') ? SPRINT_MULT : 1), dt);
             this.hunger -= 0.5 * dt;
         } else {
             this.hunger -= 0.1 * dt;
@@ -206,7 +231,7 @@ export class Dragon extends Entity {
         const sc = this.stage.scale;
         const mx = this.x + Math.cos(angle) * MOUTH_OFFSET * sc;
         const my = this.y - 40 * sc + Math.sin(angle) * MOUTH_OFFSET * sc;
-        const damage = ELEMENTS[this.element].damage * this.stage.damage * weatherDamageMult(this.element) * damageMult;
+        const damage = ELEMENTS[this.element].damage * this.stage.damage * (1 + 0.08 * (state.upgrades.dmg || 0)) * weatherDamageMult(this.element) * damageMult;
         addBullet(new Projectile(mx, my, angle, { faction: 'ALLY', element: this.element, damage, scale: 0.7 + sc * 0.3 }));
     }
 
@@ -236,8 +261,45 @@ export class Dragon extends Entity {
         }
     }
 
+    /** 가까운 물 타일의 좌표 (없으면 null) */
+    nearWater() {
+        for (let i = 0; i < 12; i++) {
+            const a = this.angle + (i / 12) * Math.PI * 2;
+            const x = this.x + Math.cos(a) * 110, y = this.y + Math.sin(a) * 110;
+            if (groundAt(x, y) === 'WATER') return { x, y };
+        }
+        return null;
+    }
+
+    updateFishing(dt, moved) {
+        const f = this.fishing;
+        if (moved) { this.fishing = null; return; }   // 움직이면 낚시를 접는다
+        if (f.bite > 0) {
+            f.bite -= dt;
+            if (f.bite <= 0) { this.fishing = null; showToast('물고기가 달아났습니다…', '💨'); }
+        } else {
+            f.wait -= dt;
+            if (f.wait <= 0) { f.bite = 1.0; burst(f.x, f.y, '#bfe9ff', 0.5, 6); }
+        }
+    }
+
     interact() {
         const E = state.entities;
+
+        // 0) 낚시 중: 입질이 왔을 때 E 를 누르면 낚는다
+        if (this.fishing) {
+            if (this.fishing.bite > 0) {
+                const n = Math.random() < 0.25 ? 2 : 1;
+                this.inventory.meat += n;
+                spawnText(this.x, this.y - 100 * this.stage.scale, `물고기 +${n}`, '#9fe3ff', 16);
+                burst(this.fishing.x, this.fishing.y, '#bfe9ff', 0.7, 10);
+                this.gainXp(6);
+            } else {
+                showToast('너무 일찍 당겼습니다.', '🎣');
+            }
+            this.fishing = null;
+            return;
+        }
 
         // 1) 줍기
         let picked = false;
@@ -264,10 +326,17 @@ export class Dragon extends Entity {
             }
             const baby = E.babies.find(b => dist(this, b) < 80);
             if (baby) { this.inventory.meat--; baby.feed(); return; }
-            showToast("배가 너무 불러요!", "✋");
         }
 
-        // 3) 아기 쓰다듬기
+        // 3) 열매 따기
+        const berry = E.props.find(b => b.type === 'BERRY' && b.ripe && dist(this, b) < 80);
+        if (berry && this.hunger < 95) { berry.harvest(); return; }
+
+        // 3-0) 보물상자 열기
+        const chest = E.props.find(c => c.type === 'CHEST' && !c.opened && dist(this, c) < 80);
+        if (chest) { chest.open(); return; }
+
+        // 3-1) 아기 쓰다듬기
         const kid = E.babies.find(b => dist(this, b) < 80);
         if (kid && !this.carrying && kid.pet()) return;
 
@@ -278,6 +347,16 @@ export class Dragon extends Entity {
             this.carrying = null;
             nest.layEgg(this, state.partner);
             showToast("알을 둥지에 안착시켰습니다.", "🏠");
+            return;
+        }
+
+        // 5) 물가라면 낚시
+        const water = !this.carrying && this.nearWater();
+        if (water) {
+            this.fishing = { x: water.x, y: water.y, wait: rand(1.5, 4.5), bite: 0 };
+            showToast('낚싯줄을 드리웠습니다. 찌가 흔들릴 때 [E]!', '🎣');
+        } else if (this.inventory.meat > 0 && this.hunger >= 90) {
+            showToast("배가 너무 불러요!", "✋");
         }
     }
 
@@ -290,30 +369,61 @@ export class Dragon extends Entity {
             this.chatTimer = rand(10, 25);
         }
 
-        if (this.state === 'PARTNER_FOLLOW') this.updatePartner(dt);
-        else this.updateWander(dt);
+        if (state.activity && state.activity.npc === this) { updateActivityNpc(this, dt); return; }
+
+        if (this.downTimer > 0) {               // 쓰러져 쉬는 중
+            this.downTimer -= dt;
+            if (this.downTimer <= 0) { this.hp = this.maxHp; this.say('다시 싸울 수 있어!'); }
+            return;
+        }
+        if (this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + 4 * dt);
+
+        const following = this.state !== 'WANDER';
+        const busy = (this.config.fixed || following) && this.fight(dt, following);
+        if (following) this.updatePartner(dt, busy);
+        else if (!busy) this.updateWander(dt);
     }
 
-    updatePartner(dt) {
-        const player = state.player;
-        if (dist(this, player) > 110) {
-            this.moveBy(player.x - this.x, player.y - this.y, 240, dt);
+    /** 마을 용·짝·동료의 전투. 싸우는 중이면 true */
+    fight(dt, following) {
+        const E = state.entities;
+        let foe = null, best = 460;
+        for (const e of [...E.humans, ...E.enemies, ...E.bosses]) {
+            if (e.awake === false) continue;
+            const d = dist(this, e);
+            if (d < best) { best = d; foe = e; }
         }
-
-        // 짝은 곁에서 함께 싸운다
+        if (!foe) return false;
+        // 따라다니는 중이 아니면 적당한 거리를 유지하며 맞선다
+        if (!following) {
+            const a = Math.atan2(foe.y - this.y, foe.x - this.x);
+            const move = best > 280 ? a : best < 170 ? a + Math.PI : a + Math.PI / 2;
+            this.moveBy(Math.cos(move), Math.sin(move), 130, dt);
+        }
+        this.facing = facingFromVector(foe.x - this.x, foe.y - this.y, this.facing);
         this.atkTimer -= dt;
-        if (this.atkTimer <= 0) {
-            const E = state.entities;
-            const foe = [...E.enemies, ...E.humans, ...E.bosses].find(e => (e.awake ?? true) && dist(this, e) < 360);
-            if (foe) {
-                addBullet(new Projectile(this.x, this.y - 40, Math.atan2(foe.y - 20 - (this.y - 40), foe.x - this.x), { faction: 'ALLY', element: 'FIRE', damage: 8 }));
-                if (this.animator) this.animator.play('attack');
-                this.atkTimer = 1.3;
-            }
+        if (this.atkTimer <= 0 && best < 400) {
+            const element = this.config.element || 'FIRE';
+            const aim = Math.atan2(foe.y - 20 - (this.y - 40), foe.x - this.x);
+            addBullet(new Projectile(this.x, this.y - 40, aim, { faction: 'ALLY', element, damage: this.config.power || 8 }));
+            if (this.animator) this.animator.play('attack');
+            this.atkTimer = 1.25;
+            const talk = NPC_TALK[this.config.name];
+            if (talk && Math.random() < 0.18) this.say(pick(talk.battle));
+        }
+        return true;
+    }
+
+    /** 짝·동료: 플레이어를 따라다닌다. fighting 중엔 조금 더 떨어져도 봐준다 */
+    updatePartner(dt, fighting = false) {
+        const player = state.player;
+        if (dist(this, player) > (fighting ? 260 : 110)) {
+            this.moveBy(player.x - this.x, player.y - this.y, 240, dt);
         }
 
         // 둥지에 도착하면 알을 낳는다
         const nest = state.entities.nests[0];
+        if (this !== state.partner) return; // 동료는 알을 낳지 않는다
         this.eggTimer = (this.eggTimer ?? 0) - dt;
         if (nest && !nest.hasEgg && this.eggTimer <= 0 && dist(this, nest) < 100 && state.kids.length < MAX_KIDS) {
             nest.layEgg(state.player, this);
@@ -350,18 +460,35 @@ export class Dragon extends Entity {
 
         if (this.animator) {
             const f = this.animator.frame(this.facing);
-            drawFrame(ctx, this.sheet, f, this.x, this.y + this.hoverY, sc);
+            if (this.downTimer > 0) ctx.globalAlpha = 0.55;
+            drawFrame(ctx, this.sheet, f, this.x, this.y + (this.downTimer > 0 ? 18 : this.hoverY), sc);
+            ctx.globalAlpha = 1;
         } else {
             // 시트 로딩 전 임시 표시
             ctx.fillStyle = this.colors.body;
             ctx.beginPath(); ctx.ellipse(this.x, this.y - 30, 30, 20, 0, 0, Math.PI * 2); ctx.fill();
         }
 
+        if (this.fishing) {
+            const f = this.fishing, bob = f.bite > 0 ? Math.sin(state.gameTime * 40) * 5 : Math.sin(state.gameTime * 3) * 2;
+            ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(this.x, this.y - 50 * sc); ctx.quadraticCurveTo((this.x + f.x) / 2, Math.min(this.y, f.y) - 70, f.x, f.y + bob); ctx.stroke();
+            ctx.fillStyle = '#ff4d4d'; ctx.fillRect(f.x - 4, f.y - 5 + bob, 8, 5);
+            ctx.fillStyle = '#fff'; ctx.fillRect(f.x - 4, f.y + bob, 8, 5);
+            if (f.bite > 0) {
+                ctx.font = '900 30px Fredoka'; ctx.textAlign = 'center';
+                ctx.strokeStyle = 'rgba(0,0,0,0.75)'; ctx.lineWidth = 5; ctx.strokeText('!', f.x, f.y - 22);
+                ctx.fillStyle = '#ffd84a'; ctx.fillText('!', f.x, f.y - 22);
+            }
+        }
         if (this.carrying === 'EGG') {
             drawIcon(ctx, 'EGG', this.x, this.y - 100 * sc + this.hoverY, 2.5);
         }
 
-        if (!this.isPlayer) this.drawNameplate(ctx);
+        if (!this.isPlayer) {
+            this.drawNameplate(ctx);
+            this.drawHpBar(ctx, this.hp / this.maxHp, -12, 60);
+        }
     }
 
     drawNameplate(ctx) {

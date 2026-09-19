@@ -70,6 +70,21 @@ export function buildWorld(config) {
         const x = rng() * WORLD_SIZE, y = rng() * WORLD_SIZE, type = DECOR[Math.floor(rng() * DECOR.length)];
         if (groundAt(x, y) === 'GRASS') E.props.push(new Prop(x, y, type));
     }
+    // 열매 덤불: 마을 근처에도 몇 개
+    for (let n = 0, tries = 0; n < 70 && tries < 600; tries++) {
+        const x = 100 + rng() * (WORLD_SIZE - 200), y = 100 + rng() * (WORLD_SIZE - 200);
+        if (groundAt(x, y) !== 'GRASS') continue;
+        E.props.push(new Prop(x, y, 'BERRY'));
+        n++;
+    }
+    // 보물상자: 마을 밖 풀밭 곳곳에. 열린 상자는 applySave 가 다시 열어 둔다
+    for (let id = 0, tries = 0; id < 26 && tries < 400; tries++) {
+        const x = 150 + rng() * (WORLD_SIZE - 300), y = 150 + rng() * (WORLD_SIZE - 300);
+        if (groundAt(x, y) !== 'GRASS' || dist({ x, y }, VILLAGE_CENTER) < 800) continue;
+        const chest = new Prop(x, y, 'CHEST');
+        chest.chestId = id++;
+        E.props.push(chest);
+    }
     // 마을
     for (const [x, y, type] of [
         [980, 1040, 'HOUSE'], [1430, 1030, 'HOUSE'], [1460, 1540, 'HOUSE'],

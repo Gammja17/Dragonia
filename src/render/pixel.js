@@ -92,6 +92,19 @@ const ICONS = {
             '...oooo...',
         ],
     },
+    COIN: {
+        palette: { o: '#5a3a10', G: '#f2c230', g: '#c8921a', h: '#fff2a8' },
+        rows: [
+            '..oooo..',
+            '.oGGGGo.',
+            'oGhGGgGo',
+            'oGhGGgGo',
+            'oGhGGgGo',
+            'oGGGGgGo',
+            '.oGgggo.',
+            '..oooo..',
+        ],
+    },
     LOGS: {
         palette: { o: '#2a1a12', B: '#6b4226', b: '#8a5a34', e: '#c9a06a' },
         rows: [

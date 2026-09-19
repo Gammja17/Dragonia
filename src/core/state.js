@@ -10,6 +10,12 @@ export const state = {
     weather: { type: 'CLEAR', timer: 70, intensity: 0, flash: 0 },
     quests: { active: {}, done: [] },
     bossesDefeated: {},
+    raid: { count: 0, active: false },
+    upgrades: {},        // 그론 상점 강화 횟수 { hp, dmg, spd }
+    openedChests: {},
+    blessingDay: 0,
+    activity: null,      // 진행 중인 대련/술래잡기 (systems/npcActions.js)
+    companion: null,
     raidTimer: RAID_FIRST_DELAY,
     elderTutorialDone: false,
     player: null,
@@ -33,6 +39,12 @@ export function resetState() {
         weather: { type: 'CLEAR', timer: 70, intensity: 0, flash: 0 },
         quests: { active: {}, done: [] },
         bossesDefeated: {},
+        raid: { count: 0, active: false },
+        upgrades: {},        // 그론 상점 강화 횟수 { hp, dmg, spd }
+        openedChests: {},
+        blessingDay: 0,
+        activity: null,      // 진행 중인 대련/술래잡기 (systems/npcActions.js)
+        companion: null,
         raidTimer: RAID_FIRST_DELAY,
         elderTutorialDone: false,
         player: null,

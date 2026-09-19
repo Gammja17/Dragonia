@@ -300,3 +300,12 @@ button.start-btn:hover { transform: scale(1.05); }
     border-radius: 4px; font-size: 0.7rem; padding: 3px 7px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
 }
 .kid-btn:hover { background: rgba(255,215,0,0.2); }
+
+.inv-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.inv-row .inv-slot { flex: 1; margin: 0; }
+#ui-gold { color: #ffd84a; }
+#raid-info {
+    background: rgba(10, 12, 24, 0.78); color: #ffb3a8; font-size: 0.76rem; padding: 5px 10px;
+    border-radius: 2px; font-family: 'Noto Sans KR', sans-serif;
+}
+#raid-info.active { color: #fff; background: rgba(160, 30, 30, 0.85); font-weight: 700; }

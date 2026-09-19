@@ -5,7 +5,12 @@ import { PROP_SPRITES, TILE_SCALE } from '../data/tiles.js';
 import { getTileImage } from '../world/terrain.js';
 import { BIOMES, getBiome } from '../world/biomes.js';
 import { drawIcon } from '../render/pixel.js';
-import { getVfxImage } from '../render/vfx.js';
+import { getVfxImage, spawnEffect } from '../render/vfx.js';
+import { Item } from './Item.js';
+import { showToast } from '../ui/toast.js';
+import { notify } from '../systems/quests.js';
+
+const BERRY_REGROW = 100; // 초
 
 export class Prop extends Entity {
     constructor(x, y, type) {
@@ -24,8 +29,35 @@ export class Prop extends Entity {
             case 'CAMPFIRE': return { r: 340 + Math.sin(state.gameTime * 13 + this.seed * 9) * 22, color: '#ffab5c', dy: -30, emissive: true };
             case 'HOUSE': return { r: 210, color: '#ffd38a', intensity: 0.85, dy: -50 }; // 창문 불빛
             case 'FOUNTAIN': return { r: 170, color: '#9fd8ff', intensity: 0.5, dy: -20 };
+            case 'BERRY': return this.ripe ? { r: 70, color: '#ff7a9a', intensity: 0.4, dy: -20 } : null;
+            case 'CHEST': return this.opened ? null : { r: 110, color: '#ffd84a', intensity: 0.7, dy: -16 };
             default: return null;
         }
+    }
+    /** 열매 덤불(type 'BERRY')은 따고 나면 BERRY_REGROW 초 뒤에 다시 열린다 */
+    get ripe() { return state.gameTime >= (this.ripeAt || 0); }
+    harvest() {
+        this.ripeAt = state.gameTime + BERRY_REGROW;
+        const p = state.player;
+        p.hunger = Math.min(100, p.hunger + 30);
+        p.hp = Math.min(p.maxHp, p.hp + 15);
+        showToast('달콤한 열매를 먹었습니다. (허기 +30, 체력 +15)', '🍒');
+    }
+
+    /** 보물상자 열기 (type 'CHEST'). chestId 로 열린 상자를 기억한다 */
+    open() {
+        this.opened = true;
+        this.sprite = PROP_SPRITES.CHEST_OPEN[0];
+        state.openedChests[this.chestId] = true;
+        const far = Math.hypot(this.x - 1200, this.y - 1200) / 1000;   // 마을에서 멀수록 두둑하다
+        const gold = Math.round(20 + far * 25 + Math.random() * 20);
+        const items = state.entities.items;
+        items.push(new Item(this.x, this.y + 30, 'GOLD', gold));
+        if (Math.random() < 0.6) items.push(new Item(this.x - 30, this.y + 20, 'MEAT'));
+        if (Math.random() < 0.12) { items.push(new Item(this.x + 30, this.y + 20, 'EGG')); showToast('상자 안에 용의 알이 있습니다!', '🥚'); }
+        spawnEffect('STAR', this.x, this.y - 20);
+        showToast('보물상자를 열었습니다!', '🎁');
+        notify('chest');
     }
     draw(ctx) {
         if (!isOnScreen(this, 300)) return; // 큰 나무(높이 288px)가 화면 아래에서 툭 튀어나오지 않게
@@ -54,6 +86,13 @@ export class Prop extends Entity {
         if (sp.frames) [sx, sy] = sp.frames[Math.floor(state.gameTime * sp.fps) % sp.frames.length];
         ctx.drawImage(getTileImage(this.sheetKey), sx, sy, sp.sw, sp.sh, Math.round(left), Math.round(top), w, h);
         ctx.globalAlpha = 1;
+        if (this.type === 'BERRY' && this.ripe) {        // 익은 열매 알갱이
+            for (const [bx, by] of [[-18, -52], [6, -62], [20, -40], [-6, -34], [-26, -30]]) {
+                ctx.fillStyle = '#7a1230'; ctx.fillRect(Math.round(this.x + bx) - 1, Math.round(this.y + by) - 1, 8, 8);
+                ctx.fillStyle = '#ff4d78'; ctx.fillRect(Math.round(this.x + bx), Math.round(this.y + by), 6, 6);
+                ctx.fillStyle = '#ffc2d2'; ctx.fillRect(Math.round(this.x + bx) + 1, Math.round(this.y + by) + 1, 2, 2);
+            }
+        }
         ctx.imageSmoothingEnabled = true;
     }
 }

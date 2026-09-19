@@ -19,12 +19,14 @@ src/
   core/             config, state(런타임 상태), input, camera, utils
   world/            biomes, terrain(타일맵 생성/그리기), spawn(월드 생성/적 스폰)
   data/             dialogues(대사 트리), npcs(고정 NPC 정의), sprites(드래곤 시트), tiles(타일 좌표),
-                    elements(브레스 속성/성장 단계/스킬), enemies(적·보스), quests(퀘스트)
+                    elements(브레스 속성/성장 단계/스킬), enemies(적·사냥꾼·보스), quests(퀘스트),
+                    npcTalk(마을 NPC 고유 대화·상점 목록)
   entities/         Dragon, BabyDragon, Enemy, Human, Nest, Projectile(브레스/화살), Boss, Particle, Item, Prop
   render/           assets(이미지 로더), spritesheet(애니메이션), tint(색상 교체), dragonSprites,
                     pixel(픽셀 스프라이트/빛 번짐/아이콘), vfx(일회성 효과), lighting(낮밤 조명)
   systems/          combat(충돌), raid(습격), kids(자식 명부/유전), dialogue(대화 진행), status(상태 이상),
-                    quests(퀘스트 진행), weather(날씨), save(localStorage 세이브)
+                    quests(퀘스트 진행), weather(날씨), save(localStorage 세이브),
+                    npcActions(NPC별 상호작용: 대련·술래잡기·상점·축복·동료)
   ui/               hud, dialogueUI, kidsPanel, customizer, toast
 ```
 
