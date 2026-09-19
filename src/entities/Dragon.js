@@ -7,29 +7,35 @@ import { isOnScreen } from '../core/camera.js';
 import { WORLD_SIZE, MAX_KIDS, PLAYER_SPAWN } from '../core/config.js';
 import { rand, dist, clamp, pick, roundRect } from '../core/utils.js';
 import { IDLE_LINES } from '../data/dialogues.js';
-import { ELEMENTS, STAGES, SKILLS } from '../data/elements.js';
+import { ELEMENTS, STAGES, SKILL_STAGE, ROAR, FURY_TIME } from '../data/elements.js';
 import { applyStatus } from '../systems/status.js';
 import { notify, questMarker } from '../systems/quests.js';
 import { weatherDamageMult } from '../systems/weather.js';
 import { updateActivityNpc } from '../systems/npcActions.js';
 import { NPC_TALK } from '../data/npcTalk.js';
-import { spawnText } from '../render/vfx.js';
+import { spawnText, spawnBolt } from '../render/vfx.js';
+import { shake } from '../core/camera.js';
 import { hasRelic } from '../systems/relics.js';
 import { play, toggleMute } from '../systems/audio.js';
 import { toggleJournal } from '../ui/journal.js';
+import { openKidHub } from '../systems/kidActions.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
 import { Animator, drawFrame } from '../render/spritesheet.js';
-import { drawIcon } from '../render/pixel.js';
+import { drawIcon, drawGlow } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
 import { showToast } from '../ui/toast.js';
 import { setInteractTarget } from '../ui/hud.js';
 import { groundAt } from '../world/terrain.js';
+import { getBiome } from '../world/biomes.js';
 import { toggleKidsPanel } from '../ui/kidsPanel.js';
 import { startDialogue } from '../systems/dialogue.js';
 
 const WALK_SPEED = 260;
 const SPRINT_MULT = 1.5;
 const INTERACT_RANGE = 180;
+const AIM_RANGE = 560;       // 자동 조준: 이 거리 안, 바라보는 쪽 ±AIM_CONE 안의 가장 가까운 적을 겨눈다
+const AIM_CONE = 1.0;
+const DASH_TIME = 0.2, DASH_COOLDOWN = 1.0, DASH_MULT = 3.4;
 const MOUTH_OFFSET = 40; // 화염구가 생성되는 위치(발 기준점에서 바라보는 방향으로)
 
 /** 이동 벡터 → 4방향 */
@@ -48,7 +54,7 @@ export class Dragon extends Entity {
         this.species = config.species || 'WESTERN'; // WESTERN | WYVERN | HYDRA | BEHEMOTH | BONE
         this.colors = { ...config.colors };
 
-        this.level = 1; this.xp = 0; this.maxXp = 100;
+        this.level = 1; this.xp = 0; this.maxXp = 120;
         this.hp = 100; this.maxHp = 100; this.hunger = 100;
         this.angle = 0;         // 마지막 이동/조준 방향 (라디안)
         this.facing = 'down';   // 스프라이트 방향
@@ -60,7 +66,13 @@ export class Dragon extends Entity {
         this.stageIndex = 0;
         this.elements = ['FIRE'];
         this.element = 'FIRE';
-        this.cooldowns = { NOVA: 0, ROAR: 0 };
+        this.cooldowns = { Q: 0, F: 0 };
+        this.fireTimer = 0;   // 다음 브레스까지
+        this.dashTime = 0; this.dashCd = 0; this.dashDir = { x: 0, y: 0 };
+        this.invuln = 0;      // 대시 중 무적 시간
+        this.fury = 0;        // 포효 뒤 분노 시간
+        this.storm = null;    // 번개 폭풍 { time, tick }
+        this.meteors = [];    // 떨어지는 중인 운석 { x, y, t }
         this.atkTimer = 0;  // NPC 전투: 다음 사격까지
         this.downTimer = 0; // NPC 전투: 쓰러져 쉬는 시간
         if (!isPlayer && config.maxHp) this.hp = this.maxHp = config.maxHp;
@@ -88,7 +100,7 @@ export class Dragon extends Entity {
         while (this.xp >= this.maxXp) {   // 퀘스트 보상처럼 한 번에 여러 레벨이 오를 수 있다
             this.level++;
             this.xp -= this.maxXp;
-            this.maxXp = Math.floor(this.maxXp * 1.3);
+            this.maxXp = Math.floor(this.maxXp * 1.42);
             this.maxHp += 20;
         }
         this.hp = this.maxHp;
@@ -132,9 +144,10 @@ export class Dragon extends Entity {
             return;
         }
         if (!this.isPlayer && this.downTimer > 0) return;
+        if (this.isPlayer && this.invuln > 0) return;
         this.hp -= dmg;
         burst(this.x, this.y - 40, '#e74c3c', 0.8, 5);
-        if (this.isPlayer && dmg >= 3) play('hurt');
+        if (this.isPlayer && dmg >= 3) { play('hurt'); shake(Math.min(10, 2 + dmg * 0.3)); }
         if (this.isPlayer && dmg >= 3) spawnText(this.x, this.y - 90 * this.stage.scale, `-${Math.round(dmg)}`, '#ff6b5e', 15);
         if (this.animator) this.animator.play('hit');
         if (this.hp <= 0 && !this.isPlayer) {           // 마을 용은 죽지 않고 잠시 쓰러진다
@@ -199,8 +212,21 @@ export class Dragon extends Entity {
     updatePlayer(dt) {
         const { dx, dy } = input.axis();
         if (this.fishing) this.updateFishing(dt, dx || dy);
-        if (dx || dy) {
-            this.moveBy(dx, dy, WALK_SPEED * this.stage.speed * (1 + 0.04 * (state.upgrades.spd || 0)) * (hasRelic('WIND_FEATHER') ? 1.08 : 1) * (input.down('sprint') ? SPRINT_MULT : 1), dt);
+        const baseSpeed = WALK_SPEED * this.stage.speed * (1 + 0.04 * (state.upgrades.spd || 0)) * (hasRelic('WIND_FEATHER') ? 1.08 : 1);
+        this.dashCd -= dt; this.invuln -= dt; this.fury -= dt;
+        // Shift 를 탁 누르면 대시(잠깐 무적), 계속 누르고 있으면 달리기
+        if (input.pressed('sprint') && (dx || dy) && this.dashCd <= 0) {
+            const len = Math.hypot(dx, dy);
+            this.dashDir = { x: dx / len, y: dy / len };
+            this.dashTime = DASH_TIME; this.dashCd = DASH_COOLDOWN; this.invuln = DASH_TIME + 0.12;
+            play('dash');
+        }
+        if (this.dashTime > 0) {
+            this.dashTime -= dt;
+            this.moveBy(this.dashDir.x, this.dashDir.y, baseSpeed * DASH_MULT, dt);
+            burst(this.x, this.y - 30 * this.stage.scale, this.colors.body, 0.35);
+        } else if (dx || dy) {
+            this.moveBy(dx, dy, baseSpeed * (input.down('sprint') ? SPRINT_MULT : 1), dt);
             this.hunger -= 0.5 * dt * (hasRelic('IRON_STOMACH') ? 0.5 : 1);
         } else {
             this.hunger -= 0.1 * dt * (hasRelic('IRON_STOMACH') ? 0.5 : 1);
@@ -209,16 +235,20 @@ export class Dragon extends Entity {
         this.hunger = Math.max(0, this.hunger);
 
         const nearNpc = state.entities.npcs.find(n => dist(this, n) < INTERACT_RANGE) || null;
-        setInteractTarget(nearNpc);
+        const nearKid = nearNpc ? null : state.entities.babies.find(b => dist(this, b) < 120) || null;
+        setInteractTarget(nearNpc || nearKid);
+        if (input.pressed('talk') && nearKid) openKidHub(nearKid);
 
         for (const k in this.cooldowns) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt);
         ['FIRE', 'ICE', 'THUNDER'].forEach((el, i) => {
-            if (input.pressed('el' + (i + 1)) && this.elements.includes(el)) this.element = el;
+            if (input.pressed('num' + (i + 1)) && this.elements.includes(el)) this.element = el;
         });
 
-        if (input.pressed('attack')) this.attack();
-        if (input.pressed('nova')) this.useSkill('NOVA');
-        if (input.pressed('roar')) this.useSkill('ROAR');
+        this.fireTimer -= dt;
+        if (input.down('attack') && this.fireTimer <= 0) this.attack();   // 꾹 누르고 있으면 연사
+        if (input.pressed('nova')) this.useElementSkill();
+        if (input.pressed('roar')) this.useRoar();
+        this.updateSkills(dt);
         if (input.pressed('interact')) this.interact();
         if (input.pressed('talk') && nearNpc) startDialogue(nearNpc, 'TALK');
         if (input.pressed('flirt') && nearNpc) startDialogue(nearNpc, 'FLIRT');
@@ -227,11 +257,39 @@ export class Dragon extends Entity {
         if (input.pressed('mute')) showToast(toggleMute() ? '효과음 끔' : '효과음 켬', '🔊');
     }
 
+    /** 바라보는 방향 근처의 가장 가까운 적 쪽으로 살짝 겨눠 준다. 없으면 바라보는 방향 그대로 */
+    aimAngle() {
+        const E = state.entities;
+        const foes = [...E.enemies, ...E.humans, ...E.bosses];
+        if (state.activity && state.activity.type === 'SPAR') foes.push(state.activity.npc);
+        let best = null, bestD = AIM_RANGE;
+        for (const e of foes) {
+            if (e.awake === false) continue;
+            const d = dist(this, e);
+            if (d >= bestD) continue;
+            let da = Math.atan2(e.y - this.y, e.x - this.x) - this.angle;
+            da = Math.atan2(Math.sin(da), Math.cos(da));
+            if (Math.abs(da) < AIM_CONE || d < 120) { best = e; bestD = d; }
+        }
+        if (!best) return { angle: this.angle, target: null };
+        const sc = this.stage.scale;
+        return { angle: Math.atan2(best.y - 20 - (this.y - 40 * sc), best.x - this.x), target: best };
+    }
+
+    get damageMult() {
+        return this.stage.damage * (1 + 0.08 * (state.upgrades.dmg || 0)) * (hasRelic('OLD_FANG') ? 1.15 : 1) * (this.fury > 0 ? 1.3 : 1);
+    }
+
     attack() {
-        if (this.hunger < 10) { showToast("배가 너무 고파요!", "😫"); return; }
-        this.hunger -= 2;
+        if (this.hunger < 10) { if (input.pressed('attack')) showToast("배가 너무 고파요!", "😫"); return; }
+        const el = ELEMENTS[this.element];
+        this.fireTimer = el.rate * (this.fury > 0 ? 0.75 : 1);
+        this.hunger -= el.rate * 1.2;       // 어떤 속성이든 쏘는 동안 초당 1.2씩 허기가 준다
         if (this.animator) this.animator.play('attack');
-        this.breathe(this.angle);
+        const { angle } = this.aimAngle();
+        this.facing = facingFromVector(Math.cos(angle), Math.sin(angle), this.facing);
+        for (let i = 0; i < el.pellets; i++) this.breathe(angle + (i - (el.pellets - 1) / 2) * el.spread);
+        play(el.sound);
     }
 
     /** 현재 속성의 브레스 한 발 */
@@ -239,35 +297,99 @@ export class Dragon extends Entity {
         const sc = this.stage.scale;
         const mx = this.x + Math.cos(angle) * MOUTH_OFFSET * sc;
         const my = this.y - 40 * sc + Math.sin(angle) * MOUTH_OFFSET * sc;
-        const damage = ELEMENTS[this.element].damage * this.stage.damage * (1 + 0.08 * (state.upgrades.dmg || 0)) * (hasRelic('OLD_FANG') ? 1.15 : 1) * weatherDamageMult(this.element) * damageMult;
+        const damage = ELEMENTS[this.element].damage * this.damageMult * weatherDamageMult(this.element) * damageMult;
         addBullet(new Projectile(mx, my, angle, { faction: 'ALLY', element: this.element, damage, scale: 0.7 + sc * 0.3 }));
-        play(this.element === 'ICE' ? 'ice' : this.element === 'THUNDER' ? 'zap' : 'shoot');
     }
 
-    useSkill(id) {
-        const skill = SKILLS[id];
-        if (this.stageIndex < skill.stage) { showToast(`[${skill.name}]은(는) ${STAGES[skill.stage].name}부터 쓸 수 있어요.`, '🔒'); return; }
-        if (this.cooldowns[id] > 0) return;
-        if (this.hunger < skill.hunger + 5) { showToast("배가 너무 고파요!", "😫"); return; }
-        this.hunger -= skill.hunger;
-        this.cooldowns[id] = skill.cooldown;
+    skillReady(key, def) {
+        if (this.stageIndex < SKILL_STAGE[key]) { showToast(`[${def.name}]은(는) ${STAGES[SKILL_STAGE[key]].name}부터 쓸 수 있어요.`, '🔒'); return false; }
+        if (this.cooldowns[key] > 0) return false;
+        if (this.hunger < def.hunger + 5) { showToast("배가 너무 고파요!", "😫"); return false; }
+        this.hunger -= def.hunger;
+        this.cooldowns[key] = def.cooldown * (hasRelic('GLACIA_TEAR') ? 0.75 : 1);
         if (this.animator) this.animator.play('attack');
+        return true;
+    }
 
-        if (id === 'NOVA') {            // 사방으로 브레스
-            for (let i = 0; i < 14; i++) this.breathe((i / 14) * Math.PI * 2, 0.8);
-            spawnEffect('RING', this.x, this.y - 40, { size: 1.4 });
-        } else {                        // 포효: 주변 적을 밀치고 기절시킨다
-            const E = state.entities;
-            for (const e of [...E.enemies, ...E.humans, ...E.bosses]) {
-                const d = dist(this, e);
-                if (d > 340) continue;
-                e.takeDamage(15 * this.stage.damage);
-                applyStatus(e, 'STUN', 1.8);
-                if (!e.statusImmune) { e.x += ((e.x - this.x) / (d || 1)) * 90; e.y += ((e.y - this.y) / (d || 1)) * 90; }
-            }
-            spawnEffect('RING', this.x, this.y - 40, { size: 3 });
-            burst(this.x, this.y - 40, '#fff2a8', 0.9, 30);
+    /** Q: 속성마다 다른 스킬 */
+    useElementSkill() {
+        const skill = ELEMENTS[this.element].skill;
+        if (!this.skillReady('Q', skill)) return;
+        const E = state.entities;
+        if (skill.id === 'METEOR') {            // 화염: 겨눈 자리에 운석. 떨어지기까지 0.6초
+            const { angle, target } = this.aimAngle();
+            const x = target ? target.x : this.x + Math.cos(angle) * 300, y = target ? target.y : this.y + Math.sin(angle) * 300;
+            this.meteors.push({ x, y, t: 0 });
             play('roar');
+        } else if (skill.id === 'FROST_NOVA') { // 냉기: 주변을 통째로 얼린다
+            for (const e of [...E.enemies, ...E.humans, ...E.bosses]) {
+                if (dist(this, e) > 340 || e.awake === false) continue;
+                e.takeDamage(22 * this.damageMult);
+                applyStatus(e, 'STUN', 2.5);
+                applyStatus(e, 'SLOW', 5);
+                spawnEffect('ICE_HIT', e.x, e.y - 20, { size: 1.3 });
+            }
+            spawnEffect('RING', this.x, this.y - 40, { size: 3.2 });
+            burst(this.x, this.y - 40, '#aee6ff', 1, 40);
+            play('ice');
+        } else {                                // 번개: 3초 동안 주변 적에게 벼락이 쏟아진다
+            this.storm = { time: 3, tick: 0 };
+            play('zap');
+        }
+    }
+
+    /** F: 포효 — 주변 적을 밀치고 기절시키며, 잠시 분노 상태가 된다 */
+    useRoar() {
+        if (!this.skillReady('F', ROAR)) return;
+        const E = state.entities;
+        for (const e of [...E.enemies, ...E.humans, ...E.bosses]) {
+            const d = dist(this, e);
+            if (d > 340) continue;
+            e.takeDamage(15 * this.damageMult);
+            applyStatus(e, 'STUN', 1.8);
+            if (!e.statusImmune) { e.x += ((e.x - this.x) / (d || 1)) * 90; e.y += ((e.y - this.y) / (d || 1)) * 90; }
+        }
+        this.fury = FURY_TIME;
+        spawnEffect('RING', this.x, this.y - 40, { size: 3 });
+        burst(this.x, this.y - 40, '#fff2a8', 0.9, 30);
+        shake(8);
+        play('roar');
+    }
+
+    /** 진행 중인 스킬(운석, 번개 폭풍) */
+    updateSkills(dt) {
+        const E = state.entities;
+        for (const m of this.meteors) {
+            m.t += dt;
+            if (m.t < 0.6) continue;
+            for (const e of [...E.enemies, ...E.humans, ...E.bosses]) {
+                if (dist(m, e) > 180 || e.awake === false) continue;
+                e.takeDamage(48 * this.damageMult * weatherDamageMult('FIRE'));
+                applyStatus(e, 'BURN', 4);
+            }
+            spawnEffect('FIRE_HIT', m.x, m.y, { angle: -Math.PI / 2, size: 2.6 });
+            spawnEffect('RING', m.x, m.y, { size: 1.8 });
+            burst(m.x, m.y, '#ff9a3c', 1, 30);
+            shake(12);
+            play('crit');
+        }
+        this.meteors = this.meteors.filter(m => m.t < 0.6);
+
+        if (this.storm) {
+            const st = this.storm;
+            st.time -= dt; st.tick -= dt;
+            if (st.tick <= 0) {
+                st.tick = 0.18;
+                const foes = [...E.enemies, ...E.humans, ...E.bosses].filter(e => e.awake !== false && dist(this, e) < 480);
+                if (foes.length) {
+                    const e = pick(foes);
+                    spawnBolt(e.x + rand(-40, 40), e.y - 420, e.x, e.y - 16);
+                    spawnEffect('THUNDER_HIT', e.x, e.y - 16);
+                    e.takeDamage(12 * this.damageMult * weatherDamageMult('THUNDER'));
+                    play('zap');
+                }
+            }
+            if (st.time <= 0) this.storm = null;
         }
     }
 
@@ -276,7 +398,7 @@ export class Dragon extends Entity {
         for (let i = 0; i < 12; i++) {
             const a = this.angle + (i / 12) * Math.PI * 2;
             const x = this.x + Math.cos(a) * 110, y = this.y + Math.sin(a) * 110;
-            if (groundAt(x, y) === 'WATER') return { x, y };
+            if (groundAt(x, y) === 'WATER' && getBiome(x, y) !== 'VOLCANO') return { x, y }; // 용암에선 낚시 불가
         }
         return null;
     }
@@ -463,6 +585,17 @@ export class Dragon extends Entity {
     // ---------- 드로잉 ----------
     draw(ctx) {
         if (!isOnScreen(this)) return;
+        for (const m of this.meteors) {         // 운석 낙하 예고
+            ctx.save();
+            ctx.globalAlpha = 0.25 + m.t * 0.6;
+            ctx.strokeStyle = '#ff6a2a'; ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.ellipse(m.x, m.y, 180, 180 * 0.55, 0, 0, Math.PI * 2); ctx.stroke();
+            ctx.fillStyle = 'rgba(255,106,42,0.18)'; ctx.fill();
+            ctx.restore();
+            drawGlow(ctx, m.x + (0.6 - m.t) * 300, m.y - (0.6 - m.t) * 900, 50, '#ffb060', 1);
+        }
+        if (this.fury > 0) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 90, '#ff5a3c', 0.35 + Math.sin(state.gameTime * 12) * 0.1);
+        if (this.storm) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 110, '#ffe27a', 0.3);
         ctx.save();
         ctx.translate(this.x, this.y);
         const sc = this.isPlayer ? this.stage.scale : 0.92;

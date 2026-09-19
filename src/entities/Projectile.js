@@ -31,8 +31,11 @@ export class Projectile extends Entity {
         this.vx = Math.cos(angle) * speed;
         this.vy = Math.sin(angle) * speed;
         this.angle = angle;
-        this.life = opts.life ?? 1.2;
+        this.life = opts.life ?? el.life ?? 1.2;
         this.scale = opts.scale ?? 1;
+        this.radius = opts.radius ?? el.radius ?? 40;   // 맞는 범위
+        this.pierce = (opts.pierce ?? el.pierce) && this.faction === 'ALLY'; // 관통: 같은 적은 한 번만 맞는다
+        this.hitSet = new Set();
         this.t = 0;
     }
     get light() {
@@ -48,17 +51,23 @@ export class Projectile extends Entity {
     }
     /** 대상에 맞았을 때 (systems/combat.js). targets: 번개가 튈 수 있는 다른 대상들 */
     hit(target, targets = []) {
-        this.remove = true;
+        if (this.hitSet.has(target)) return;
+        this.hitSet.add(target);
+        if (!this.pierce) this.remove = true;
         const el = ELEMENTS[this.element];
         if (this.kind === 'BREATH') spawnEffect(el.hit, this.x, this.y, { angle: this.angle, size: this.scale });
         if (this.faction !== 'ALLY') { target.takeDamage(this.damage); return; }
         const crit = Math.random() < CRIT_CHANCE + (hasRelic('HUNTER_CHARM') ? 0.1 : 0);
         play(crit ? 'crit' : 'hit');
-        const dmg = this.damage * (crit ? 2 : 1);
+        const dmg = this.damage * (crit ? (hasRelic('BASIL_FANG') ? 3 : 2) : 1);
         target.takeDamage(dmg);
         spawnText(target.x, target.y - 50, crit ? `${Math.round(dmg)}!` : `${Math.round(dmg)}`, crit ? '#ffd84a' : '#fff', crit ? 22 : 15);
         if (this.kind !== 'BREATH') return;
-        if (el.status) applyStatus(target, el.status.type, el.status.duration);
+        if (el.status) {
+            // 이미 느려진 적에게 냉기를 또 맞히면 얼어붙는다
+            if (el.status.type === 'SLOW' && target.status && target.status.SLOW > 0) applyStatus(target, 'STUN', 1.2);
+            applyStatus(target, el.status.type, el.status.duration);
+        }
         if (el.chain) {
             let from = target;
             const used = new Set([target]);

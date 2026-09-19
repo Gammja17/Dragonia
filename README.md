@@ -23,11 +23,12 @@ src/
                     npcTalk(마을 NPC 고유 대화·상점 목록)
   entities/         Dragon, BabyDragon, Enemy, Human, Nest, Projectile(브레스/화살), Boss, Particle, Item, Prop
   render/           assets(이미지 로더), spritesheet(애니메이션), tint(색상 교체), dragonSprites,
-                    pixel(픽셀 스프라이트/빛 번짐/아이콘), vfx(일회성 효과), lighting(낮밤 조명)
+                    pixel(픽셀 스프라이트/빛 번짐/아이콘), vfx(일회성 효과), lighting(낮밤 조명),
+                    palette(숲 타일을 다시 칠해 설원·화산·단풍·사막 지형 생성)
   systems/          combat(충돌), raid(습격), kids(자식 명부/유전), dialogue(대화 진행), status(상태 이상),
                     quests(퀘스트 진행), weather(날씨), save(localStorage 세이브),
                     npcActions(NPC별 상호작용: 대련·술래잡기·상점·축복·동료), relics(유물),
-                    events(밤 이벤트: 붉은 달·유성우), audio(WebAudio 효과음)
+                    events(밤 이벤트: 붉은 달·유성우), audio(WebAudio 효과음), kidActions(자식과의 대화·놀이·훈련)
   ui/               hud, dialogueUI, kidsPanel, journal(모험 일지), customizer, toast
 ```
 

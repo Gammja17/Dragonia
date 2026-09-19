@@ -10,6 +10,8 @@ export const RELICS = {
     // 보스 전리품
     MORGATH_HORN:  { name: '모르가스의 뿔',   desc: '냉기의 둔화가 2배 오래간다',   boss: 'MORGATH' },  // systems/status.js
     ZALGORA_SCALE: { name: '잘고라의 비늘',   desc: '번개가 한 번 더 튄다',         boss: 'ZALGORA' },  // entities/Projectile.js
+    GLACIA_TEAR:   { name: '글라시아의 눈물', desc: '스킬 재사용 대기 -25%',       boss: 'GLACIA' },   // entities/Dragon.js
+    BASIL_FANG:    { name: '바실의 독니',     desc: '치명타 피해가 3배가 된다',     boss: 'BASIL' },    // entities/Projectile.js
     IGNAR_HEART:   { name: '이그나르의 심장', desc: '화상 피해가 2배가 된다',       boss: 'IGNAR' },    // systems/status.js
     // 상자·정예 몬스터에게서
     OLD_FANG:      { name: '고대의 송곳니',   desc: '브레스 피해 +15%' },           // entities/Dragon.js

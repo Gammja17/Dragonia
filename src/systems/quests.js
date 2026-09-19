@@ -74,29 +74,18 @@ function turnIn(q, npc) {
 }
 
 /**
- * 이 NPC와 퀘스트 대화가 있으면 { text, options:[{label, action}] } 를 돌려준다. action: () => 'close' | 'talk'
- * 없으면 null (평소 대화로 넘어간다)
+ * 이 NPC와 걸린 퀘스트가 있으면 { text, options:[{label, action}], note? } 를 돌려준다. 없으면 null.
+ * note: 진행 중 알림이라 인사말 뒤에 덧붙이기만 한다. 선택지는 NPC 대화 화면(npcActions.js)에 함께 나온다
  */
 export function questDialogue(npc) {
     const a = activeFor(npc);
     if (a && isComplete(a)) {
-        return { text: a.done, options: [{ label: '보상 받기', action: () => { turnIn(a, npc); return 'close'; } }] };
+        return { text: a.done, options: [{ label: `[퀘스트] 보상 받기 — ${a.title}`, action: () => turnIn(a, npc) }] };
     }
-    if (a) {
-        return {
-            text: `[${a.title}] 아직이냐? (${questProgress(a)}/${goalCount(a)})`,
-            options: [{ label: '금방 해올게요.', action: () => 'close' }, { label: '다른 얘기를 하자.', action: () => 'talk' }],
-        };
-    }
+    if (a) return { text: `(${a.title}: ${questProgress(a)} / ${goalCount(a)})`, note: true, options: [] };
     const q = offerFor(npc);
     if (!q) return null;
-    return {
-        text: q.offer,
-        options: [
-            { label: `수락한다 — ${q.title}`, action: () => { accept(q); return 'close'; } },
-            { label: '다른 얘기를 하자.', action: () => 'talk' },
-        ],
-    };
+    return { text: q.offer, options: [{ label: `[퀘스트] 수락한다 — ${q.title}`, action: () => accept(q) }] };
 }
 
 /** 추적창에 보여줄 줄들 */

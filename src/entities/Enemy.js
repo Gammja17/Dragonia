@@ -10,6 +10,7 @@ import { drawPixelSprite, whiteCopy, drawGlow } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
 import { updateStatus, statusTint } from '../systems/status.js';
 import { notify } from '../systems/quests.js';
+import { Projectile, addBullet } from './Projectile.js';
 import { xpMult } from '../systems/events.js';
 import { grantRelic, randomRelic } from '../systems/relics.js';
 
@@ -24,6 +25,7 @@ export class Enemy extends Entity {
         this.hitFlash = 0;
         this.angle = 0;
         this.phase = Math.random() * 6.28;
+        this.shotTimer = 1 + Math.random() * 2;
     }
     get light() {
         if (this.elite) return { r: 150, color: '#ffd84a', intensity: 0.7 };
@@ -41,6 +43,21 @@ export class Enemy extends Entity {
             const v = d < 300 ? speed : speed * 0.25;
             this.x += Math.cos(this.angle) * v * dt;
             this.y += Math.sin(this.angle) * v * dt;
+            return;
+        }
+        if (this.def.move === 'ranged') {        // 거리를 두고 구슬을 쏜다
+            this.angle = Math.atan2(player.y - this.y, player.x - this.x);
+            if (d < 520) {
+                const a = d > 330 ? this.angle : d < 230 ? this.angle + Math.PI : this.angle + Math.PI / 2;
+                this.x += Math.cos(a) * speed * dt;
+                this.y += Math.sin(a) * speed * dt;
+                this.shotTimer -= dt * (speed > 0 ? 1 : 0);
+                if (this.shotTimer <= 0) {
+                    this.shotTimer = 2.4;
+                    const aim = Math.atan2(player.y - 30 - (this.y - 16), player.x - this.x);
+                    addBullet(new Projectile(this.x, this.y - 16, aim, { faction: 'ENEMY', element: this.def.element, damage: this.def.damage * (this.elite ? 1.6 : 1), speed: 290, life: 2.6, scale: 0.7 }));
+                }
+            }
             return;
         }
         if (d < 420 && d > 30) {
@@ -85,7 +102,9 @@ export class Enemy extends Entity {
         if (this.elite) drawGlow(ctx, this.x, this.y - 26 - lift, 58, '#ffd84a', 0.4 + Math.sin(state.gameTime * 5) * 0.12);
         const hop = this.def.hop ? Math.abs(Math.sin(state.gameTime * 5 + this.phase)) * 10 : Math.abs(Math.sin(state.gameTime * 10 + this.phase)) * 4;
         const [tx, ty] = this.def.sprite;
+        if (this.def.filter && !(this.hitFlash > 0)) ctx.filter = this.def.filter;
         drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, { sx: tx * 16, sy: ty * 16, sw: 16, sh: 16 }, this.x, this.y + 4 - hop - lift, { flip: Math.cos(this.angle) < 0, scale: this.elite ? 4.5 : 3 });
+        ctx.filter = 'none';
         this.drawHpBar(ctx, this.hp / this.maxHp, (this.elite ? 82 : 58) + lift, this.elite ? 50 : 34);
     }
 }

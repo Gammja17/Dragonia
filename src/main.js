@@ -1,6 +1,6 @@
 import { state, resetState } from './core/state.js';
 import { input, initInput } from './core/input.js';
-import { cam, followCamera, isOnScreen } from './core/camera.js';
+import { cam, followCamera, isOnScreen, resizeCamera, cycleZoom } from './core/camera.js';
 import { clamp } from './core/utils.js';
 import { preloadTerrain, drawTerrain } from './world/terrain.js';
 import { buildWorld, updateSpawns } from './world/spawn.js';
@@ -18,6 +18,8 @@ import { updateLighting, drawLighting } from './render/lighting.js';
 import { updateEvents, drawEvents } from './systems/events.js';
 import { initAudio } from './systems/audio.js';
 import { initJournal } from './ui/journal.js';
+import { dialogueUI } from './ui/dialogueUI.js';
+import { showToast } from './ui/toast.js';
 
 const AUTOSAVE_INTERVAL = 20; // 초
 
@@ -27,8 +29,7 @@ const ctx = canvas.getContext('2d');
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    cam.w = canvas.width;
-    cam.h = canvas.height;
+    resizeCamera(canvas.width, canvas.height);
 }
 window.addEventListener('resize', resize);
 resize();
@@ -74,8 +75,10 @@ function loop(now) {
     const dt = clamp((now - lastTime) / 1000, 0, 0.1);
     lastTime = now;
 
+    if (input.pressed('zoom')) showToast(`시점: ${cycleZoom(canvas.width, canvas.height)}`, '🔍');
     if (state.isDialogueOpen) {
         if (input.pressed('cancel')) closeDialogue();
+        else dialogueUI.handleKeys(input);   // 숫자키 / 방향키 + Enter 로 선택
     } else {
         update(dt);
     }
@@ -117,12 +120,16 @@ function render() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.save();
-    ctx.translate(-Math.round(cam.x), -Math.round(cam.y)); // 정수 좌표: 픽셀아트가 떨리지 않게
+    ctx.scale(cam.zoom, cam.zoom);
+    ctx.save();
+    ctx.translate(-Math.round(cam.x + cam.shakeX), -Math.round(cam.y + cam.shakeY)); // 정수 좌표: 픽셀아트가 떨리지 않게
     drawTerrain(ctx, cam);
 
     // 화면 근처 것만 골라 y 좌표 순으로 그린다 (아래쪽 개체가 앞에 오도록)
     const drawables = [...E.props, ...E.nests, ...E.items, ...E.babies, ...E.npcs, ...E.enemies, ...E.humans, ...E.bosses, state.player]
         .filter(e => isOnScreen(e, 420));
+    // 나무 뒤에 가려지면 안 되는 것들 (entities/Prop.js 가 이 목록을 보고 나무를 투명하게 한다)
+    state.fadeTargets = drawables.filter(e => !e.sprite || (e.type === 'CHEST' && !e.opened) || (e.type === 'BERRY' && e.ripe));
     drawables.sort((a, b) => a.y - b.y);
     for (const e of drawables) e.draw(ctx);
 
@@ -133,6 +140,8 @@ function render() {
     for (const p of E.particles) p.draw(ctx);
     ctx.restore();
 
+    // 조명·날씨도 같은 배율 안에서 (cam.w/h 가 곧 화면 크기)
     drawLighting(ctx, cam);
     drawWeather(ctx, cam);
+    ctx.restore();
 }

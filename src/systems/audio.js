@@ -20,6 +20,7 @@ const SOUNDS = {
     roar:   [['sawtooth', 110, 45, 0.5, 0.09]],
     raid:   [['square', 196, 196, 0.18, 0.06], ['square', 196, 196, 0.18, 0.06], ['square', 147, 147, 0.35, 0.07]],
     splash: [['sine', 300, 120, 0.15, 0.05]],
+    dash:   [['sine', 500, 900, 0.1, 0.04]],
 };
 
 export function initAudio() {

@@ -4,6 +4,7 @@ import { loadImages } from '../render/assets.js';
 import { TILE_SRC, TILE_SCALE, TILE, TILE_IMAGES, GRASS, GRASS_DECOR, DIRT, WATER, NEST_RING } from '../data/tiles.js';
 import { VILLAGE_RECT, LAKE, BIOMES, getBiome } from './biomes.js';
 import { BOSSES } from '../data/enemies.js';
+import { recolor, RECOLOR_NAMES } from '../render/palette.js';
 
 // 지형은 "큰 칸"(2x2 타일 = 96px) 단위로 만든다. 그러면 흙/물 영역의 폭이 항상 2타일 이상이라
 // 변 4 + 바깥 모서리 4 + 안쪽 모서리 4 + 가운데, 13종 타일만으로 빈틈없이 이어진다.
@@ -52,7 +53,7 @@ function generate() {
     // 호수 + 숲 속 작은 연못들
     const arenas = Object.values(BOSSES);
     const ponds = [{ x: LAKE.x, y: LAKE.y, r: LAKE.r - 90 }];
-    while (ponds.length < 11) {
+    while (ponds.length < 26) {
         const p = { x: 200 + rng() * (WORLD_SIZE - 400), y: 200 + rng() * (WORLD_SIZE - 400), r: 120 + rng() * 70 };
         const nearVillage = Math.hypot(p.x - (v.x + v.w / 2), p.y - (v.y + v.h / 2)) < 850;
         const nearPond = ponds.some(o => Math.hypot(p.x - o.x, p.y - o.y) < o.r + p.r + 250);
@@ -116,7 +117,8 @@ function bake() {
         else t = GRASS[(ty % 2) * 2 + (tx % 2)];
         // 바이옴 경계는 위치를 흔들어 색상판이 점점이 섞이게 한다
         const wx = ORIGIN + (tx + 0.5) * TILE + (rng() - 0.5) * 300, wy = ORIGIN + (ty + 0.5) * TILE + (rng() - 0.5) * 300;
-        const sheet = [images.ground, images.ground2, images.ground3][BIOMES[getBiome(wx, wy)].palette];
+        const palette = BIOMES[getBiome(wx, wy)].palette;
+        const sheet = images['ground' + (palette ? palette + 1 : '')];
         g.drawImage(sheet, t[0] * TILE_SRC, t[1] * TILE_SRC, TILE_SRC, TILE_SRC, tx * TILE_SRC, ty * TILE_SRC, TILE_SRC, TILE_SRC);
     }
     // 둥지 돌무더기 (2x2 타일)
@@ -129,6 +131,10 @@ function bake() {
 /** 게임 시작 전에 한 번 호출. 타일 이미지를 받고 지형을 만들어 둔다 */
 export async function preloadTerrain() {
     images = await loadImages(TILE_IMAGES);
+    // 색상판 3~6: 초록 숲 시트를 다시 칠해 설원·화산·단풍·사막을 만든다 (키는 ground4, trees4 … 식)
+    RECOLOR_NAMES.forEach((name, i) => {
+        for (const base of ['ground', 'trees', 'props']) images[base + (4 + i)] = recolor(images[base], name, base === 'ground');
+    });
     generate();
     bake();
 }

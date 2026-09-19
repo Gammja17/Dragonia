@@ -3,26 +3,16 @@ import { clamp } from '../core/utils.js';
 import { NPC_SCRIPTS } from '../data/dialogues.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
-import { questDialogue } from './quests.js';
 import { openNpcHub } from './npcActions.js';
 import { burst } from '../entities/Particle.js';
 
 /** type: 'TALK' | 'FLIRT' */
-export function startDialogue(npc, type, skipQuest = false) {
+export function startDialogue(npc, type) {
     state.currentNpc = npc;
     state.isDialogueOpen = true;
 
-    // 퀘스트 제안/보고가 있으면 그것부터 (엘더는 튜토리얼이 끝난 뒤)
+    // 엘더는 튜토리얼이 끝난 뒤에야 평소 대화·퀘스트가 열린다
     const tutorialPending = npc.config.role === 'ELDER' && !state.elderTutorialDone;
-    const quest = type === 'TALK' && !tutorialPending && !skipQuest ? questDialogue(npc) : null;
-    if (quest) {
-        dialogueUI.show({
-            name: npc.config.name, text: quest.text, sheet: npc.sheet, onClose: closeDialogue,
-            options: quest.options.map(o => ({ label: o.label, onSelect: () => (o.action() === 'talk' ? startDialogue(npc, 'TALK', true) : closeDialogue()) })),
-        });
-        return;
-    }
-
     // 마을 고정 NPC는 고유 대화 화면으로
     if (type === 'TALK' && !tutorialPending && openNpcHub(npc)) return;
 

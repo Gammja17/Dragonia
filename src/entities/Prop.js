@@ -81,11 +81,10 @@ export class Prop extends Entity {
         const sp = this.sprite;
         const w = sp.sw * TILE_SCALE, h = sp.sh * TILE_SCALE;
         const left = this.x - w * sp.ax, top = this.y - h * sp.ay;
-        // 플레이어가 나무 뒤에 가려지면 반투명하게
-        const p = state.player;
-        const hides = this.type === 'TREE' && p && p.y < this.y && p.y > top && Math.abs(p.x - this.x) < w * 0.45;
+        // 플레이어·적·아이템·상자 등이 나무 뒤에 가려지면 반투명하게
+        const hides = this.type === 'TREE' && (state.fadeTargets || []).some(e => e.y < this.y + 10 && e.y > top - 20 && Math.abs(e.x - this.x) < w * 0.5);
         ctx.imageSmoothingEnabled = false;
-        if (hides) ctx.globalAlpha = 0.45;
+        if (hides) ctx.globalAlpha = 0.32;
         let { sx, sy } = sp;
         if (sp.frames) [sx, sy] = sp.frames[Math.floor(state.gameTime * sp.fps) % sp.frames.length];
         ctx.drawImage(getTileImage(this.sheetKey), sx, sy, sp.sw, sp.sh, Math.round(left), Math.round(top), w, h);

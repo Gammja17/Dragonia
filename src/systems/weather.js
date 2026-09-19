@@ -40,6 +40,22 @@ export function updateWeather(dt) {
 /** 조명 위에 그린다 (화면 좌표계) */
 export function drawWeather(ctx, cam) {
     const w = state.weather;
+    const biome = getBiome(state.player.x, state.player.y);
+    if (biome === 'SNOW' || biome === 'VOLCANO') {   // 설원엔 늘 눈, 화산엔 불티
+        const snow = biome === 'SNOW', t = state.gameTime;
+        ctx.save();
+        if (!snow) ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = snow ? 'rgba(255,255,255,0.85)' : 'rgba(255,140,60,0.8)';
+        for (let i = 0; i < 110; i++) {
+            const seed = i * 7919, speed = 50 + (seed % 70), dir = snow ? 1 : -1;
+            const x = (((seed * 3 % 2400) + Math.sin(t * 0.8 + i) * 40 - cam.x) % cam.w + cam.w) % cam.w;
+            const y = (((seed * 11 % 2400) + dir * t * speed - cam.y) % cam.h + cam.h) % cam.h;
+            const r = snow ? 2 + (seed % 3) : 1.5 + (seed % 2);
+            ctx.fillRect(x, y, r, r);
+        }
+        ctx.restore();
+        return;
+    }
     if (w.intensity > 0.02) {
         const n = Math.floor(160 * w.intensity);
         const t = state.gameTime;

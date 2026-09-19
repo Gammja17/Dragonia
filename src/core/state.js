@@ -16,6 +16,7 @@ export const state = {
     blessingDay: 0,
     activity: null,      // 진행 중인 대련/술래잡기 (systems/npcActions.js)
     companion: null,
+    fadeTargets: [],     // 이번 프레임에 나무 뒤로 숨으면 안 되는 것들
     relics: [],          // 가진 유물 id (systems/relics.js)
     event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
     stats: { kills: {} },

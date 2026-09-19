@@ -18,7 +18,8 @@ export function resolveCombat() {
         if (b.faction === 'ALLY') {
             const targets = [...E.enemies, ...E.humans, ...E.bosses];
             if (state.activity && state.activity.type === 'SPAR') targets.push(state.activity.npc); // 대련 상대
-            const hit = targets.find(e => !e.remove && dist(b, { x: e.x, y: e.y - (e.def && e.def.scale ? 50 : 0) }) < (e.def && e.def.scale ? 90 : HIT_RADIUS));
+            // 큰 상대(보스·대장)는 몸통이 넓다. 관통탄은 이미 맞힌 적을 건너뛴다
+            const hit = targets.find(e => !e.remove && !b.hitSet.has(e) && dist(b, { x: e.x, y: e.y - (e.def && e.def.scale ? 50 : 20) }) < (e.def && e.def.scale ? 60 : 0) + b.radius);
             if (hit) b.hit(hit, targets);
         } else if (dist(b, { x: player.x, y: player.y - 30 }) < HIT_RADIUS) {
             b.hit(player);

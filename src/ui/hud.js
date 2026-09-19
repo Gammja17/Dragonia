@@ -3,7 +3,7 @@ import { worldToScreen } from '../core/camera.js';
 import { WORLD_SIZE, NEST_POS } from '../core/config.js';
 import { BIOMES, getBiome } from '../world/biomes.js';
 import { getMinimapBase } from '../world/terrain.js';
-import { SKILLS } from '../data/elements.js';
+import { ELEMENTS, SKILL_STAGE, ROAR } from '../data/elements.js';
 import { toggleKidsPanel } from './kidsPanel.js';
 import { dayPhaseName } from '../render/lighting.js';
 import { drawPortrait } from '../render/spritesheet.js';
@@ -74,9 +74,11 @@ export function updateHud() {
         slot.classList.toggle('active', p.element === id);
     }
     for (const slot of el.skillSlots) {
-        const id = slot.dataset.skill;
-        slot.classList.toggle('locked', p.stageIndex < SKILLS[id].stage);
-        slot.lastElementChild.style.height = (p.cooldowns[id] / SKILLS[id].cooldown) * 100 + '%';
+        const key = slot.dataset.skill;   // 'Q' | 'F'
+        const def = key === 'Q' ? ELEMENTS[p.element].skill : ROAR;
+        slot.classList.toggle('locked', p.stageIndex < SKILL_STAGE[key]);
+        slot.querySelector('.slot-name').textContent = def.name;
+        slot.lastElementChild.style.height = Math.min(100, (p.cooldowns[key] / def.cooldown) * 100) + '%';
     }
     drawMinimap();
 }

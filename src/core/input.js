@@ -14,7 +14,9 @@ const KEYMAP = {
     KeyM: 'mute',
     KeyQ: 'nova',
     KeyF: 'roar',
-    Digit1: 'el1', Digit2: 'el2', Digit3: 'el3',
+    Digit1: 'num1', Digit2: 'num2', Digit3: 'num3', Digit4: 'num4', Digit5: 'num5', Digit6: 'num6', Digit7: 'num7', Digit8: 'num8', Digit9: 'num9',
+    Enter: 'confirm', NumpadEnter: 'confirm',
+    KeyV: 'zoom',
     Escape: 'cancel',
 };
 

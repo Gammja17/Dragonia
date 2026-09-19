@@ -1,4 +1,5 @@
 import { state } from '../core/state.js';
+import { CHEST_COUNT } from '../core/config.js';
 import { ENEMIES, BOSSES } from '../data/enemies.js';
 import { RELICS } from '../systems/relics.js';
 import { isMuted } from '../systems/audio.js';
@@ -40,7 +41,7 @@ export function toggleJournal() {
         ['지낸 날', `${state.day}일째`],
         ['쓰러뜨린 적', `${total}`],
         ['막아낸 습격', `${state.raid.count - (state.raid.active ? 1 : 0)}회`],
-        ['연 보물상자', `${chests} / 26`],
+        ['연 보물상자', `${chests} / ${CHEST_COUNT}`],
         ['끝낸 퀘스트', `${state.quests.done.length}`],
         ['효과음 (M 키)', isMuted() ? '꺼짐' : '켜짐'],
     ]));

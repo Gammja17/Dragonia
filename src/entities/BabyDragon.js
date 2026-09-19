@@ -3,9 +3,10 @@ import { Projectile, addBullet } from './Projectile.js';
 import { burst } from './Particle.js';
 import { state } from '../core/state.js';
 import { isOnScreen } from '../core/camera.js';
-import { dist, rand } from '../core/utils.js';
+import { dist, rand, pick, roundRect } from '../core/utils.js';
 import { setKidStage, addAffection, findKid } from '../systems/kids.js';
 import { showToast } from '../ui/toast.js';
+import { KID_TALK } from '../data/npcTalk.js';
 import { facingFromVector } from './Dragon.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
 import { Animator, drawFrame } from '../render/spritesheet.js';
@@ -21,6 +22,9 @@ export class BabyDragon extends Entity {
         this.sheet = getDragonSheet(this.genes.species, this.genes.colors);
         this.petTimer = 0;
         this.followGap = Math.random() * 60;
+        this.element = 'FIRE'; // 부모가 다른 숨결을 가르칠 수 있다 (systems/kidActions.js)
+        this.playTime = 0;     // 놀아 준 직후 신나서 도는 시간
+        this.chat = null; this.chatFade = 0;
         this.animator = new Animator(this.sheet);
         this.facing = 'down';
         this.growth = 0;      // 0~200
@@ -41,11 +45,18 @@ export class BabyDragon extends Entity {
         return true;
     }
 
+    say(text) { this.chat = text; this.chatFade = 2.5; }
+
     feed() {
-        this.growth += 34;
         addAffection(this, 20);
         showToast("아기에게 고기를 먹였습니다!", "🍖");
         burst(this.x, this.y, '#2ecc71', 0.8, 10);
+        this.grow(34);
+    }
+
+    /** 성장치를 올리고, 문턱을 넘으면 다음 단계로 자란다 */
+    grow(amount) {
+        this.growth += amount;
 
         if (this.growth >= 70 && this.stage === 'BABY') {
             this.stage = 'TEEN';
@@ -65,6 +76,12 @@ export class BabyDragon extends Entity {
     update(dt) {
         const px = this.x, py = this.y;
         if (this.petTimer > 0) this.petTimer -= dt;
+        if (this.chatFade > 0) this.chatFade -= dt;
+        if (this.playTime > 0) {            // 신나서 제자리를 빙글빙글
+            this.playTime -= dt;
+            const a = state.gameTime * 7;
+            this.x += Math.cos(a) * 160 * dt; this.y += Math.sin(a) * 160 * dt;
+        }
         const kid = findKid(this);
         if (this.stage !== 'BABY') this.fight(dt, kid);
         // 성체이거나 '둥지 지키기'를 시킨 아이는 둥지 주변에 머문다
@@ -77,7 +94,6 @@ export class BabyDragon extends Entity {
     }
 
     updateYoung(dt) {
-
         const target = state.player;
         this.angle = Math.atan2(target.y - this.y, target.x - this.x);
         const d = dist(this, target);
@@ -96,8 +112,9 @@ export class BabyDragon extends Entity {
         const foe = [...E.humans, ...E.enemies, ...E.bosses].find(e => (e.awake ?? true) && dist(this, e) < 300);
         if (!foe) return;
         const damage = (this.stage === 'ADULT' ? 12 : 8) * (1 + (kid ? kid.affection : 0) / 100);
-        addBullet(new Projectile(this.x, this.y - 20, Math.atan2(foe.y - 20 - (this.y - 20), foe.x - this.x), { faction: 'ALLY', element: 'FIRE', damage, scale: 0.7 }));
+        addBullet(new Projectile(this.x, this.y - 20, Math.atan2(foe.y - 20 - (this.y - 20), foe.x - this.x), { faction: 'ALLY', element: this.element, damage, scale: 0.7 }));
         this.animator.play('attack');
+        if (kid && Math.random() < 0.15) this.say(pick(KID_TALK[kid.personality].bark));
         this.atkTimer = this.stage === 'ADULT' ? 1.2 : 1.6;
     }
 
@@ -123,5 +140,24 @@ export class BabyDragon extends Entity {
         ctx.restore();
         const hover = this.sheet.flying ? Math.sin(state.gameTime * 3 + this.x) * 4 * s : 0;
         drawFrame(ctx, this.sheet, this.animator.frame(this.facing), this.x, this.y + hover, s);
+
+        // 이름표와 말풍선
+        const kid = findKid(this);
+        const top = this.y - this.sheet.fh * this.sheet.scale * s * this.sheet.anchor.y - 6;
+        ctx.textAlign = 'center';
+        if (kid) {
+            ctx.font = '600 11px "Noto Sans KR"';
+            ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.strokeText(kid.name, this.x, top);
+            ctx.fillStyle = '#ffe9a0'; ctx.fillText(kid.name, this.x, top);
+        }
+        if (this.chatFade > 0 && this.chat) {
+            ctx.globalAlpha = Math.min(1, this.chatFade);
+            ctx.font = '11px "Noto Sans KR"';
+            const w = ctx.measureText(this.chat).width + 20;
+            ctx.fillStyle = '#fff';
+            roundRect(ctx, this.x - w / 2, top - 38, w, 24, 9);
+            ctx.fillStyle = '#333'; ctx.fillText(this.chat, this.x, top - 22);
+            ctx.globalAlpha = 1;
+        }
     }
 }

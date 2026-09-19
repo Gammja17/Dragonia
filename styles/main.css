@@ -323,3 +323,8 @@ button.start-btn:hover { transform: scale(1.05); }
 .journal-row { display: flex; justify-content: space-between; gap: 12px; font-size: 0.8rem; padding: 2px 0; }
 .journal-row span:last-child { color: #aeb6c2; text-align: right; }
 .journal-row.dim { opacity: 0.4; }
+
+.d-btn.selected { background: rgba(255, 215, 0, 0.22); border-color: #ffd700; box-shadow: 0 0 10px rgba(255,215,0,0.35); }
+
+.slot { width: 62px; }
+.slot-name { font-size: 0.6rem; white-space: nowrap; }

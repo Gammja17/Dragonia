@@ -1,13 +1,13 @@
 import { state } from '../core/state.js';
 import { clamp, dist, pick, rand } from '../core/utils.js';
-import { NPC_TALK, SHOP, TIER_NAMES, relationTier } from '../data/npcTalk.js';
+import { NPC_TALK, SHOP, TIER_NAMES, SITUATION_LINES, relationTier } from '../data/npcTalk.js';
 import { Projectile, addBullet } from '../entities/Projectile.js';
 import { burst } from '../entities/Particle.js';
 import { spawnEffect } from '../render/vfx.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
 import { setBossBar } from '../ui/hud.js';
-import { notify } from './quests.js';
+import { notify, questDialogue } from './quests.js';
 
 // 마을 고정 NPC와의 고유 상호작용: 이야기, 선물, 동료, 대련(티아맷), 술래잡기(포코), 상점(그론), 축복(엘더).
 // 진행 중인 놀이는 state.activity = { type: 'SPAR' | 'TAG', npc, hp, max, time } 에 담는다.
@@ -36,7 +36,10 @@ export function openNpcHub(npc) {
     const tier = relationTier(npc.relation);
     const p = state.player;
     const name = npc.config.name;
-    const opts = [{ label: '이야기를 나눈다', onSelect: () => chat(npc) }];
+    // 퀘스트 제안·보고는 같은 화면 맨 위에. 진행 중이면 인사말 뒤에 진행도만 덧붙인다
+    const quest = questDialogue(npc);
+    const opts = quest ? quest.options.map(o => ({ label: o.label, onSelect: () => { o.action(); openNpcHub(npc); } })) : [];
+    opts.push({ label: '이야기를 나눈다', onSelect: () => chat(npc) });
 
     if (name === 'Tiamat') opts.push({ label: '대련을 신청한다', onSelect: () => startSpar(npc) });
     if (name === 'Poco') opts.push({ label: '술래잡기 하자!', onSelect: () => startTag(npc) });
@@ -50,8 +53,17 @@ export function openNpcHub(npc) {
         else if (tier >= 2) opts.push({ label: '같이 모험을 떠나자', onSelect: () => setCompanion(npc, true) });
     }
     opts.push({ label: '다음에 봐', onSelect: close });
-    show(npc, talk.greet[tier], opts);
+    let text = greeting(npc, talk, tier);
+    if (quest) text = quest.note ? `${text}  ${quest.text}` : quest.text;
+    show(npc, text, opts);
     return true;
+}
+
+/** 인사말: 가끔은 지금 상황(날씨, 밤, 습격, 가족…)에 맞는 한마디 */
+function greeting(npc, talk, tier) {
+    const fits = SITUATION_LINES.filter(s => s.lines[npc.config.name] && s.when(state, npc));
+    if (fits.length && Math.random() < 0.55) return pick(fits).lines[npc.config.name];
+    return talk.greet[tier];
 }
 
 function chat(npc) {

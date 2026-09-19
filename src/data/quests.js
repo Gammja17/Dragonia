@@ -11,7 +11,7 @@ export const QUESTS = [
     },
     {
         id: 'm2', giver: 'Elder', requires: 'm1', title: '자라나는 날개',
-        offer: "용은 싸우고 먹으며 자란다. [어린 용]으로 자라서 다시 오너라. 그때가 되면 [Q] 브레스 노바를 쓸 수 있을 게다.",
+        offer: "용은 싸우고 먹으며 자란다. [어린 용]으로 자라서 다시 오너라. 그때가 되면 [Q]로 숨결의 큰 기술을 쓸 수 있을 게다.",
         done: "날개가 제법 넓어졌구나! 이제 숲 깊은 곳도 다닐 만하겠어.",
         goal: { type: 'stage', index: 1 }, reward: { xp: 100, meat: 3 },
     },
@@ -34,8 +34,20 @@ export const QUESTS = [
         goal: { type: 'boss', id: 'ZALGORA' }, reward: { xp: 400, meat: 3 },
     },
     {
-        id: 'm6', giver: 'Elder', requires: 'm5', title: '하늘에서 떨어진 재앙',
-        offer: "이제 말해 주마. 네가 하늘에서 떨어지던 날, 너를 떨어뜨린 것은 고룡 [이그나르]다. 놈은 [남동쪽 끝]에서 다음 먹잇감을 기다리고 있다. 끝을 내고 오너라.",
+        id: 'm5a', giver: 'Elder', requires: 'm5', title: '얼어붙은 봉우리',
+        offer: "이그나르에게 가려면 아직 이르다. 먼저 [북동쪽 끝] 서리 봉우리의 여왕 [글라시아]를 넘어서거라. 놈의 얼음 탄막을 피하지 못하면 이그나르 앞에선 숨도 못 쉰다.",
+        done: "글라시아까지…! 네 비늘에 서리가 앉았구나. 그 눈물은 네 기술을 더 빨리 되돌려 줄 게다.",
+        goal: { type: 'boss', id: 'GLACIA' }, reward: { xp: 700, meat: 4 },
+    },
+    {
+        id: 'm5b', giver: 'Elder', requires: 'm5a', title: '죽은 사구의 폭군',
+        offer: "[남서쪽 끝] 사막에는 모래 폭군 [바실]이 산다. 그론의 무릎을 앗아간 놈이지. 돌진을 조심하거라. 붉은 선이 보이면 [Shift]로 몸을 날려라.",
+        done: "바실마저 쓰러뜨리다니. 이제 남은 것은 단 하나… 네 운명뿐이다.",
+        goal: { type: 'boss', id: 'BASIL' }, reward: { xp: 900, meat: 4 },
+    },
+    {
+        id: 'm6', giver: 'Elder', requires: 'm5b', title: '하늘에서 떨어진 재앙',
+        offer: "이제 말해 주마. 네가 하늘에서 떨어지던 날, 너를 떨어뜨린 것은 고룡 [이그나르]다. 놈은 [남동쪽 끝] 잿빛 화산 지대에서 다음 먹잇감을 기다리고 있다. 끝을 내고 오너라.",
         done: "해냈구나…! 이제 이 땅의 하늘은 네 것이다. 드래고니아의 새 수호룡이여, 마을은 언제나 네 둥지다.",
         goal: { type: 'boss', id: 'IGNAR' }, reward: { xp: 1000, meat: 5 },
     },

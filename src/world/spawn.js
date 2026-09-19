@@ -1,5 +1,5 @@
 import { state } from '../core/state.js';
-import { WORLD_SIZE, VILLAGE_CENTER, PLAYER_SPAWN, NEST_POS, MAX_ENEMIES } from '../core/config.js';
+import { WORLD_SIZE, VILLAGE_CENTER, PLAYER_SPAWN, NEST_POS, MAX_ENEMIES, CHEST_COUNT } from '../core/config.js';
 import { rand, dist, pick, mulberry32 } from '../core/utils.js';
 import { getBiome } from './biomes.js';
 import { groundAt } from './terrain.js';
@@ -34,7 +34,7 @@ export function spawnEnemy() {
 
 export function spawnWanderingNPC() {
     let x, y;
-    do { x = rand(300, 3000); y = rand(300, 3000); }
+    do { x = rand(300, 3200); y = rand(300, 3200); }
     while (getBiome(x, y) === 'VILLAGE');
     const species = pick(WANDER_SPECIES);
     state.entities.npcs.push(new Dragon(x, y, {
@@ -66,23 +66,23 @@ export function buildWorld(config) {
     // 숲 소품은 풀밭 위에만. 나무는 크니까 마을에서 더 멀리. 시드 고정이라 이어하기를 해도 숲이 그대로다
     const rng = mulberry32(777);
     const DECOR = ['BUSH', 'BUSH', 'FERN', 'FERN', 'ROCK', 'STUMP'];
-    for (let i = 0; i < 520; i++) {
+    for (let i = 0; i < 1250; i++) {
         const x = rng() * WORLD_SIZE, y = rng() * WORLD_SIZE;
         if (groundAt(x, y) === 'GRASS' && dist({ x, y }, VILLAGE_CENTER) > 650) E.props.push(new Prop(x, y, 'TREE'));
     }
-    for (let i = 0; i < 880; i++) {
+    for (let i = 0; i < 2100; i++) {
         const x = rng() * WORLD_SIZE, y = rng() * WORLD_SIZE, type = DECOR[Math.floor(rng() * DECOR.length)];
         if (groundAt(x, y) === 'GRASS') E.props.push(new Prop(x, y, type));
     }
     // 열매 덤불: 마을 근처에도 몇 개
-    for (let n = 0, tries = 0; n < 70 && tries < 600; tries++) {
+    for (let n = 0, tries = 0; n < 150 && tries < 1200; tries++) {
         const x = 100 + rng() * (WORLD_SIZE - 200), y = 100 + rng() * (WORLD_SIZE - 200);
         if (groundAt(x, y) !== 'GRASS') continue;
         E.props.push(new Prop(x, y, 'BERRY'));
         n++;
     }
     // 보물상자: 마을 밖 풀밭 곳곳에. 열린 상자는 applySave 가 다시 열어 둔다
-    for (let id = 0, tries = 0; id < 26 && tries < 400; tries++) {
+    for (let id = 0, tries = 0; id < CHEST_COUNT && tries < 800; tries++) {
         const x = 150 + rng() * (WORLD_SIZE - 300), y = 150 + rng() * (WORLD_SIZE - 300);
         if (groundAt(x, y) !== 'GRASS' || dist({ x, y }, VILLAGE_CENTER) < 800) continue;
         const chest = new Prop(x, y, 'CHEST');

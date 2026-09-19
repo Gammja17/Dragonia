@@ -1,7 +1,7 @@
 // 스프라이트 색상 교체. 원본의 특정 색상대(hue 범위)를 목표 색으로 옮기되 명암은 유지한다.
 // 예: 빨간 드래곤 시트의 빨강 계열 → 플레이어가 고른 몸 색, 노랑 계열 → 포인트 색.
 
-function rgbToHsl(r, g, b) {
+export function rgbToHsl(r, g, b) {
     r /= 255; g /= 255; b /= 255;
     const max = Math.max(r, g, b), min = Math.min(r, g, b);
     const l = (max + min) / 2;
@@ -15,7 +15,7 @@ function rgbToHsl(r, g, b) {
     return [h * 60, s, l];
 }
 
-function hslToRgb(h, s, l) {
+export function hslToRgb(h, s, l) {
     h = ((h % 360) + 360) % 360;
     const c = (1 - Math.abs(2 * l - 1)) * s;
     const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
