@@ -1,5 +1,5 @@
 import { state } from '../core/state.js';
-import { WORLD_SIZE, VILLAGE_CENTER, PLAYER_SPAWN, NEST_POS, MAX_ENEMIES, CHEST_COUNT } from '../core/config.js';
+import { WORLD_SIZE, VILLAGE_CENTER, PLAYER_SPAWN, NEST_POS, HOMES, TRAINING, MAX_ENEMIES, CHEST_COUNT } from '../core/config.js';
 import { rand, dist, pick, mulberry32 } from '../core/utils.js';
 import { getBiome } from './biomes.js';
 import { groundAt } from './terrain.js';
@@ -8,7 +8,7 @@ import { Enemy } from '../entities/Enemy.js';
 import { Boss } from '../entities/Boss.js';
 import { Prop } from '../entities/Prop.js';
 import { Nest } from '../entities/Nest.js';
-import { FIXED_NPCS, WANDER_NAMES, WANDER_PERSONALITIES, WANDER_SPECIES, WANDER_ACCESSORIES, SPECIES_COLORS } from '../data/npcs.js';
+import { FIXED_NPCS, WANDER_NAMES, WANDER_PERSONALITIES, WANDER_SPECIES, WANDER_LOOKS, WANDER_ACCESSORIES, SPECIES_COLORS } from '../data/npcs.js';
 import { BIOME_ENEMIES, BOSSES } from '../data/enemies.js';
 import { enemyCapMult } from '../systems/events.js';
 
@@ -25,7 +25,8 @@ export function spawnEnemy() {
         if (x < 60 || y < 60 || x > WORLD_SIZE - 60 || y > WORLD_SIZE - 60) continue;
         const types = BIOME_ENEMIES[getBiome(x, y)];
         if (!types || dist({ x, y }, VILLAGE_CENTER) < 700) continue;
-        if (Object.values(BOSSES).some(b => dist({ x, y }, b) < 420)) continue; // 결투장은 비워 둔다
+        if ([...Object.values(BOSSES), TRAINING].some(b => dist({ x, y }, b) < 480)) continue; // 결투장·수련장은 비워 둔다
+        if (dist({ x, y }, NEST_POS) < 420) continue;                                          // 아지트도
         const type = pick(types);
         state.entities.enemies.push(new Enemy(x, y, type, type !== 'PREY' && Math.random() < ELITE_CHANCE));
         return;
@@ -36,12 +37,14 @@ export function spawnWanderingNPC() {
     let x, y;
     do { x = rand(300, 3200); y = rand(300, 3200); }
     while (getBiome(x, y) === 'VILLAGE');
-    const species = pick(WANDER_SPECIES);
+    // 떠돌이는 대부분 한 장짜리 새 외형, 가끔 옛 종족
+    const species = Math.random() < 0.8 ? 'LOOK' : pick(WANDER_SPECIES);
     state.entities.npcs.push(new Dragon(x, y, {
         name: pick(WANDER_NAMES),
         personality: pick(WANDER_PERSONALITIES),
         species,
-        colors: SPECIES_COLORS[species],
+        colors: SPECIES_COLORS[species] || SPECIES_COLORS.WESTERN,
+        look: pick(WANDER_LOOKS),
         accessory: pick(WANDER_ACCESSORIES),
         scale: rand(0.8, 1.15),
         canPartner: false,
@@ -64,6 +67,7 @@ export function buildWorld(config) {
         species: config.species,
         colors: config.colors,
         accessory: config.accessory || null,
+        look: config.look || 0,
     }, true);
 
     // 숲 소품은 풀밭 위에만. 나무는 크니까 마을에서 더 멀리. 시드 고정이라 이어하기를 해도 숲이 그대로다
@@ -99,6 +103,13 @@ export function buildWorld(config) {
         [1110, 1050, 'BARREL'], [1140, 1062, 'CRATE'], [1560, 1045, 'CRATE'], [1335, 1550, 'BARREL'],
         [1540, 1400, 'SIGN'], [900, 900, 'SIGN'],
     ]) E.props.push(new Prop(x, y, type));
+    // 아지트: 오두막, 모닥불, 살림살이
+    const D = NEST_POS;
+    for (const [dx, dy, type] of [[-150, -70, 'HOUSE'], [120, 60, 'CAMPFIRE'], [-40, 110, 'BARREL'], [-10, 118, 'CRATE'], [170, -40, 'SIGN']]) E.props.push(new Prop(D.x + dx, D.y + dy, type));
+    // 마을 용들의 보금자리
+    for (const h of HOMES) for (const [dx, dy, type] of [[-130, -60, 'HOUSE'], [110, 70, 'CAMPFIRE'], [40, -90, 'BARREL']]) E.props.push(new Prop(h.x + dx, h.y + dy, type));
+    // 수련장: 스승의 오두막과 화톳불
+    for (const [dx, dy, type] of [[-150, -190, 'HOUSE'], [-260, 150, 'CAMPFIRE'], [260, 150, 'CAMPFIRE'], [200, -200, 'CRATE'], [232, -192, 'BARREL'], [-40, 290, 'SIGN']]) E.props.push(new Prop(TRAINING.x + dx, TRAINING.y + dy, type));
     // 보스 결투장 입구의 화톳불
     for (const b of Object.values(BOSSES)) {
         E.props.push(new Prop(b.x - 260, b.y + 200, 'CAMPFIRE'), new Prop(b.x + 260, b.y + 200, 'CAMPFIRE'));

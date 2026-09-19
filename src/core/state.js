@@ -16,8 +16,10 @@ export const state = {
     blessingDay: 0,
     activity: null,      // 진행 중인 대련/술래잡기 (systems/npcActions.js)
     companion: null,
+    den: { built: false, twigs: 0 },   // 아지트 둥지: 나뭇가지를 모아 지어야 알을 품을 수 있다
     rally: 0,             // 용의 함성: 남은 시간 동안 아군 공격력 +50%
     story: { scenes: [], lessons: [], lessonDay: 0 },   // systems/story.js
+    talkTarget: null,    // 지금 T·클릭으로 말을 걸 수 있는 상대
     fadeTargets: [],     // 이번 프레임에 나무 뒤로 숨으면 안 되는 것들
     relics: [],          // 가진 유물 id (systems/relics.js)
     event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
@@ -51,6 +53,7 @@ export function resetState() {
         blessingDay: 0,
         activity: null,      // 진행 중인 대련/술래잡기 (systems/npcActions.js)
         companion: null,
+        den: { built: false, twigs: 0 },
         rally: 0,             // 용의 함성: 남은 시간 동안 아군 공격력 +50%
         story: { scenes: [], lessons: [], lessonDay: 0 },   // systems/story.js
         relics: [],          // 가진 유물 id (systems/relics.js)

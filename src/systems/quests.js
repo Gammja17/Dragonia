@@ -31,7 +31,7 @@ export function notify(type, target) {
     for (const q of activeQuests()) {
         const g = q.goal;
         if (g.type !== type || isComplete(q)) continue;
-        if (type === 'kill' && g.target !== target) continue;
+        if ((type === 'kill' || type === 'visit') && g.target !== target) continue;
         if (type === 'boss' && g.id !== target) continue;
         if (type === 'stage' && target < g.index) continue;
         state.quests.active[q.id]++;
@@ -67,8 +67,9 @@ function turnIn(q, npc) {
     delete state.quests.active[q.id];
     state.quests.done.push(q.id);
     if (r.meat) p.inventory.meat += r.meat;
+    if (r.gold) p.gold += r.gold;
     if (r.relation) npc.relation = clamp((npc.relation || 0) + r.relation, 0, 100);
-    showToast(`퀘스트 완료: ${q.title}` + (r.meat ? ` (고기 +${r.meat})` : '') + (r.relation ? ' (호감 ↑)' : ''), '🎉');
+    showToast(`퀘스트 완료: ${q.title}` + (r.meat ? ` (고기 +${r.meat})` : '') + (r.gold ? ` (${r.gold}G)` : '') + (r.relation ? ' (호감 ↑)' : ''), '🎉');
     if (r.xp) p.gainXp(r.xp);
     onChange();
 }

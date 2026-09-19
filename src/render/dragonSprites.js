@@ -17,10 +17,10 @@ export async function preloadDragonSprites() {
 
 export function dragonSpritesReady() { return loaded; }
 
-/** 종족 + 색상 조합별로 틴트된 시트를 만들고 캐시 */
-export function getDragonSheet(species, colors) {
+/** 종족 + 색상(+ 한 장짜리 외형 번호) 조합별로 시트를 만들고 캐시 */
+export function getDragonSheet(species, colors, look = 0) {
     const desc = DRAGON_SHEETS[species] || DRAGON_SHEETS.WESTERN;
-    const key = `${species}|${colors.body}|${colors.wing}`;
+    const key = `${species}|${colors.body}|${colors.wing}|${look}`;
     if (sheetCache.has(key)) return sheetCache.get(key);
     if (!loaded) return null;
 
@@ -29,7 +29,7 @@ export function getDragonSheet(species, colors) {
     for (const [k, img] of Object.entries(raw)) {
         images[k] = desc.zones.length ? tintImage(img, desc.zones, colors) : img;
     }
-    const sheet = buildSheet(desc, images);
+    const sheet = buildSheet(desc, images, look);
     sheetCache.set(key, sheet);
     return sheet;
 }

@@ -1,5 +1,6 @@
 import { state } from '../core/state.js';
 import { dist, rand } from '../core/utils.js';
+import { TRAINING as DOJO } from '../core/config.js';
 import { LESSONS, TRIALS, SCENES } from '../data/story.js';
 import { STAGES } from '../data/elements.js';
 import { SKILLS } from '../data/skills.js';
@@ -17,7 +18,6 @@ import { play } from './audio.js';
 // state.story = { scenes: [본 장면 id], lessons: [끝낸 수련 id], lessonDay: 마지막으로 수련한 날 }
 // 수련 중에는 state.activity = { type: 'TARGETS' | 'DODGE' | 'DUEL', npc(스승), ... }
 
-const DOJO = { x: 1500, y: 1250 };   // 마을 동쪽 수련장 (스승이 서 있는 곳)
 
 function close() { state.isDialogueOpen = false; state.currentNpc = null; dialogueUI.hide(); }
 
@@ -26,7 +26,9 @@ export function nextLesson() { return LESSONS.find(l => !state.story.lessons.inc
 export function pendingTrial() {
     const p = state.player;
     const t = TRIALS.find(tr => tr.stage === p.stageIndex + 1);
-    return t && p.level >= STAGES[t.stage].minLevel ? t : null;
+    if (!t || p.level < STAGES[t.stage].minLevel) return null;
+    if (STAGES[t.stage].needsAllElements && p.elements.length < 3) return null;   // 숨겨진 단계는 세 숨결이 모두 있어야
+    return t;
 }
 
 export function masterOptions(npc) {
@@ -37,6 +39,8 @@ export function masterOptions(npc) {
     }
     const trial = pendingTrial();
     if (trial) opts.push({ label: `[승급 시험] ${STAGES[trial.stage].name}(으)로 자란다`, onSelect: () => startDrill(npc, { type: 'DUEL', hp: trial.hp }, { trial }) });
+    opts.push({ label: '연습 대련을 청한다 (보상 없음)', onSelect: () => startDrill(npc, { type: 'DUEL', hp: 220 + p.level * 12 }, { practice: true }) });
+    if (npc.lastMeditateDay !== state.day) opts.push({ label: '함께 명상한다 (하루 한 번)', onSelect: () => meditate(npc) });
     const lesson = nextLesson();
     if (lesson) {
         if (state.story.lessonDay === state.day) opts.push({ label: '[수련] 오늘 수련은 끝났다 (자고 나서 다시)', onSelect: () => say(npc, "수련은 하루에 하나다. 가서 푹 자거라. 용은 자면서 큰다.") });
@@ -44,6 +48,17 @@ export function masterOptions(npc) {
         else opts.push({ label: `[수련] ${lesson.title} → ${SKILLS[lesson.skill].name}`, onSelect: () => say(npc, lesson.intro, () => startDrill(npc, lesson.drill, { lesson })) });
     }
     return opts;
+}
+
+function meditate(npc) {
+    close();
+    npc.lastMeditateDay = state.day;
+    fadeScreen('……', () => {
+        const p = state.player;
+        p.hp = p.maxHp;
+        p.hunger = Math.min(100, p.hunger + 20);
+        for (const k in p.cooldowns) p.cooldowns[k] = 0;
+    }, () => { state.player.gainXp(30 + state.player.level * 12); npc.say('마음이 고요하면 숨결도 곧다.'); showToast('명상: 체력 회복, 스킬 대기 초기화, 경험치 획득', '🧘'); });
 }
 
 function say(npc, text, then) {
@@ -61,7 +76,7 @@ function startDrill(npc, drill, extra) {
         a.dummies = [];
         for (let i = 0; i < drill.count; i++) {
             const ang = (i / drill.count) * Math.PI * 2;
-            const d = new Enemy(DOJO.x + 120 + Math.cos(ang) * 230, DOJO.y + Math.sin(ang) * 170, 'DUMMY');
+            const d = new Enemy(DOJO.x + Math.cos(ang) * 240, DOJO.y + 60 + Math.sin(ang) * 170, 'DUMMY');
             d.maxHp = d.hp = drill.hp;
             a.dummies.push(d);
             state.entities.enemies.push(d);
@@ -87,6 +102,11 @@ function endDrill(win) {
     if (!win) {
         a.npc.say('아직 멀었다. 다시 오너라.');
         showToast('수련 실패… 다시 도전할 수 있습니다.', '💫');
+        return;
+    }
+    if (a.practice) {
+        a.npc.say('좋은 몸놀림이다.');
+        p.gainXp(20 + p.level * 4);
         return;
     }
     if (a.trial) {
@@ -159,8 +179,28 @@ export function openNestMenu() {
     const busy = state.raid.active || state.activity || state.entities.bosses.some(b => b.awake);
     dialogueUI.show({
         name: '둥지', text: busy ? '지금은 잠들 수 없다. 주변이 너무 소란스럽다.' : `${state.day}일째. 포근한 둥지다. 자고 일어나면 다음 날 아침이 된다.`, onClose: close,
-        options: busy ? [{ label: '나중에', onSelect: close }] : [{ label: '잠을 잔다 (다음 날 아침까지)', onSelect: sleep }, { label: '아직 안 졸려', onSelect: close }],
+        options: busy ? [{ label: '나중에', onSelect: close }] : [
+            { label: '잠을 잔다 (다음 날 아침까지)', onSelect: sleep },
+            ...(state.den.built ? [] : [{ label: `둥지를 짓는다 (나뭇가지 ${state.den.twigs}/8, 30G)`, onSelect: buildNest }]),
+            { label: '아직 안 졸려', onSelect: close },
+        ],
     });
+}
+
+function buildNest() {
+    const p = state.player, den = state.den;
+    if (den.twigs < 8 || p.gold < 30) {
+        state.isDialogueOpen = true;
+        dialogueUI.show({ name: '둥지', text: `재료가 모자란다. 나뭇가지 ${den.twigs}/8, 골드 ${p.gold}/30. 나뭇가지는 숲의 그루터기에서 [E]로 주울 수 있다.`, onClose: close, options: [{ label: '모아 오자', onSelect: close }] });
+        return;
+    }
+    close();
+    den.twigs -= 8; p.gold -= 30; den.built = true;
+    const nest = state.entities.nests[0];
+    spawnEffect('RING', nest.x, nest.y, { size: 1.6 });
+    showToast('포근한 둥지를 지었습니다! 이제 알을 품을 수 있습니다.', '🪹');
+    play('quest');
+    saveGame();
 }
 
 function sleep() {
@@ -176,6 +216,7 @@ function sleep() {
         p.hp = p.maxHp;
         p.hunger = Math.max(30, p.hunger - 25);              // 자는 동안 배가 꺼진다
         for (const n of state.entities.npcs) if (n.config.fixed) { n.x = n.homeX; n.y = n.homeY; n.hp = n.maxHp; n.downTimer = 0; }
+        for (const n of [state.partner, state.companion]) if (n) { n.x = p.x + 70; n.y = p.y + 20; }
         saveGame();
     }, playMorningScene);
 }

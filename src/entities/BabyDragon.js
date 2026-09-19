@@ -18,8 +18,8 @@ export class BabyDragon extends Entity {
     /** genes: { species, colors } — 부모에게서 물려받은 모습 */
     constructor(x, y, genes) {
         super(x, y);
-        this.genes = genes || { species: state.player.species, colors: { ...state.player.colors } };
-        this.sheet = getDragonSheet(this.genes.species, this.genes.colors);
+        this.genes = genes || { species: state.player.species, colors: { ...state.player.colors }, look: state.player.look };
+        this.sheet = getDragonSheet(this.genes.species, this.genes.colors, this.genes.look || 0);
         this.petTimer = 0;
         this.followGap = Math.random() * 60;
         this.element = 'FIRE'; // 부모가 다른 숨결을 가르칠 수 있다 (systems/kidActions.js)
@@ -109,7 +109,7 @@ export class BabyDragon extends Entity {
         this.atkTimer -= dt;
         if (this.atkTimer > 0) return;
         const E = state.entities;
-        const foe = [...E.humans, ...E.enemies, ...E.bosses].find(e => (e.awake ?? true) && dist(this, e) < 300);
+        const foe = [...E.humans, ...E.enemies, ...E.bosses].find(e => (e.awake ?? true) && e.type !== 'DUMMY' && dist(this, e) < 300);
         if (!foe) return;
         const damage = (this.stage === 'ADULT' ? 12 : 8) * (1 + (kid ? kid.affection : 0) / 100);
         addBullet(new Projectile(this.x, this.y - 20, Math.atan2(foe.y - 20 - (this.y - 20), foe.x - this.x), { faction: 'ALLY', element: this.element, damage, scale: 0.7 }));
@@ -137,9 +137,10 @@ export class BabyDragon extends Entity {
         ctx.save();
         ctx.translate(this.x, this.y);
         this.drawShadow(ctx, 34 * s);
+        if (state.talkTarget === this) { ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(0, 0, 40 * s + 10, 16 * s + 4, 0, 0, Math.PI * 2); ctx.stroke(); }
         ctx.restore();
         const hover = this.sheet.flying ? Math.sin(state.gameTime * 3 + this.x) * 4 * s : 0;
-        drawFrame(ctx, this.sheet, this.animator.frame(this.facing), this.x, this.y + hover, s);
+        drawFrame(ctx, this.sheet, this.animator.frame(this.facing), this.x, this.y + hover, s, { t: state.gameTime + this.followGap, moving: this.animator.name === 'move', attacking: this.animator.name === 'attack' && !this.animator.done });
         if (this.stage === 'BABY') drawAccessory(ctx, this.sheet, 'SHELL', this.facing, this.x, this.y + hover, s * 1.6);
 
         // 이름표와 말풍선

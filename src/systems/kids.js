@@ -31,7 +31,9 @@ export function addAffection(baby, amount) {
 
 /** 부모 둘의 종족·색을 섞어 아이의 유전 정보를 만든다. b 가 없으면(주워 온 알) a 를 닮는다 */
 export function mixGenes(a, b) {
-    if (!b) return { species: a.species, colors: { ...a.colors } };
+    if (!b) return { species: a.species, colors: { ...a.colors }, look: a.look };
+    // 한 장짜리 외형(LOOK)은 섞을 수 없으니 부모 한쪽을 그대로 닮는다
+    if (a.species === 'LOOK' || b.species === 'LOOK') { const p = Math.random() < 0.5 ? a : b; return { species: p.species, colors: { ...p.colors }, look: p.look }; }
     const t = rand(0.25, 0.75);
     return {
         species: Math.random() < 0.5 ? a.species : b.species,

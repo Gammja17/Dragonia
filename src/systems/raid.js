@@ -24,12 +24,13 @@ export function updateRaid(dt) {
 }
 
 function roster(count) {
-    const n = Math.min(3 + count, 10);
-    const pool = ['KNIGHT', 'KNIGHT', 'ARCHER'];
+    const n = Math.min(4 + Math.floor(count * 1.5), 16);
+    const pool = ['KNIGHT', 'KNIGHT', 'ARCHER', 'ARCHER'];
     if (count >= 2) pool.push('MAGE');
-    if (count >= 4) pool.push('HEAVY', 'MAGE');
+    if (count >= 3) pool.push('HEAVY', 'MAGE');
+    if (count >= 6) pool.push('HEAVY', 'HEAVY');
     const list = Array.from({ length: n }, () => pick(pool));
-    if (count > 0 && count % 3 === 0) list.push('CAPTAIN');
+    if (count % 3 === 0) list.push('CAPTAIN', 'HEAVY', 'HEAVY');   // 대장은 호위를 데리고 온다
     return list;
 }
 
@@ -46,7 +47,10 @@ export function triggerRaid() {
         const spread = rand(-260, 260);
         const x = VILLAGE_CENTER.x + side.dx * 640 + (side.dx ? rand(-60, 60) : spread);
         const y = VILLAGE_CENTER.y + side.dy * 640 + (side.dy ? rand(-60, 60) : spread);
-        state.entities.humans.push(new Human(x, y, type));
+        const h = new Human(x, y, type);
+        h.maxHp = h.hp = Math.round(h.hp * (1 + 0.12 * (raid.count - 1)));   // 회차가 오를수록 단단해진다
+        h.power = 1 + 0.08 * (raid.count - 1);
+        state.entities.humans.push(h);
     }
 }
 
@@ -54,7 +58,7 @@ function endRaid() {
     const raid = state.raid, p = state.player;
     raid.active = false;
     state.raidTimer = RAID_INTERVAL;
-    const gold = 20 + raid.count * 10;
+    const gold = 30 + raid.count * 15;
     p.gold += gold;
     for (const npc of state.entities.npcs) if (npc.config.fixed) npc.relation = Math.min(100, npc.relation + 2);
     showToast(`습격 ${raid.count}차 격퇴! (${gold}G, 마을 용들의 호감 ↑)`, '🛡️');

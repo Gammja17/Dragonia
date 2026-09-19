@@ -1,5 +1,6 @@
 // 퀘스트 정의. giver: 고정 NPC 이름(data/npcs.js). requires: 먼저 끝내야 하는 퀘스트 id.
 // goal.type: 'kill'(target = 적 종류 | 'HUNTER') | 'stage'(index 이상으로 성장) | 'boss'(id) | 'collect'(고기 count개를 건넨다)
+//            | 'killAny'(아무 적) | 'elite'(정예 처치) | 'visit'(target 바이옴에 가 보기)
 //            | 'hatch' | 'raid'(습격 격퇴) | 'spar'(대련 승리) | 'tag'(술래잡기 승리) | 'upgrade'(상점 강화) | 'chest'(상자 열기)
 export const QUESTS = [
     // ---- 메인: 촌장 엘더 ----
@@ -105,5 +106,30 @@ export const QUESTS = [
         offer: "사냥꾼 놈들, 갈수록 많이 몰려와. 마을 용들이랑 같이 [습격을 세 번] 막아내자. 대장이 나오면… 그건 네 몫이야.",
         done: "세 번이나 막아냈네. 이제 마을 용들도 널 믿고 따를 거야. 나도 그렇고.",
         goal: { type: 'raid', count: 3 }, reward: { xp: 500, meat: 4, relation: 15 },
+    },
+    // ---- 스승 카이론 ----
+    {
+        id: 'k1', giver: 'Kairon', title: '기초 체력',
+        offer: "수련장에서 허수아비만 패서는 실전 감각이 안 생긴다. 숲에서 [아무 적이나 열둘] 쓰러뜨리고 오너라.",
+        done: "땀 냄새가 나는군. 좋다. 그게 실전의 냄새다.",
+        goal: { type: 'killAny', count: 12 }, reward: { xp: 180, gold: 40 },
+    },
+    {
+        id: 'k2', giver: 'Kairon', requires: 'k1', title: '금빛 사냥감',
+        offer: "금빛으로 빛나는 [정예] 몬스터를 본 적 있느냐? 놈들은 무리의 우두머리다. 하나만 잡아 와라. 겁나면 도망쳐도 된다. 허허.",
+        done: "정예를 잡았다고? …제법이군. 놈들이 가끔 [유물]을 떨어뜨리니 눈여겨보거라.",
+        goal: { type: 'elite', count: 1 }, reward: { xp: 320, gold: 80 },
+    },
+    {
+        id: 'k3', giver: 'Kairon', requires: 'k2', title: '스승의 밥상',
+        offer: "…요즘 통 입맛이 없구나. 늙으면 그래. [고기 다섯 덩이]만 구해다 주겠느냐. 제자 덕 좀 보자.",
+        done: "오오, 이 냄새! …크흠. 맛이 없진 않군. 너도 한 점 하거라.",
+        goal: { type: 'collect', count: 5 }, reward: { xp: 250, relation: 25 },
+    },
+    {
+        id: 'k4', giver: 'Kairon', requires: 'k3', title: '형의 발자취',
+        offer: "남동쪽 끝 [잿빛 화산 지대]에 발을 들여 보고 오너라. 싸울 필요는 없다. 그 땅의 열기를 네 비늘로 느껴 보기만 하면 된다.",
+        done: "다녀왔느냐. 그 열기가… 내 형 이그나르의 숨결이다. 언젠가 네가 맞서야 할 불이지.",
+        goal: { type: 'visit', target: 'VOLCANO' }, reward: { xp: 500, gold: 100 },
     },
 ];

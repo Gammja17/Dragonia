@@ -91,6 +91,8 @@ export class Enemy extends Entity {
         for (let i = 0; i < meat; i++) state.entities.items.push(new Item(this.x + i * 22, this.y, 'MEAT'));
         if (Math.random() < 0.7) state.entities.items.push(new Item(this.x - 16, this.y, 'GOLD', Math.max(2, Math.round(this.def.xp / 7)) * bonus));
         notify('kill', this.type);
+        if (this.def.move !== 'flee') notify('killAny');
+        if (this.elite) notify('elite');
     }
     draw(ctx) {
         if (!isOnScreen(this)) return;

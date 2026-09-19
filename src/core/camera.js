@@ -8,7 +8,8 @@ export const cam = { x: 0, y: 0, w: 0, h: 0, zoom: 1, shakeX: 0, shakeY: 0 };
 const ZOOMS = [1, 4 / 3, 2 / 3];
 const ZOOM_NAMES = ['보통', '가까이', '멀리'];
 const ZOOM_KEY = 'dragonia-zoom';
-let zoomIndex = Number(localStorage.getItem(ZOOM_KEY)) || 0;
+// 저장된 값이 없으면: 작은 화면(휴대폰)은 '멀리'로 시작
+let zoomIndex = localStorage.getItem(ZOOM_KEY) !== null ? Number(localStorage.getItem(ZOOM_KEY)) : (Math.min(window.innerWidth, window.innerHeight) < 600 ? 2 : 0);
 let shakePower = 0;
 
 export function resizeCamera(screenW, screenH) {
@@ -43,6 +44,11 @@ export function followCamera(target, smooth = 0.1) {
 export function isOnScreen(e, margin = 200) {
     return e.x + margin > cam.x && e.x - margin < cam.x + cam.w &&
            e.y + margin > cam.y && e.y - margin < cam.y + cam.h;
+}
+
+/** 브라우저 화면 px → 월드 좌표 (마우스가 가리키는 곳) */
+export function screenToWorld(x, y) {
+    return { x: x / cam.zoom + cam.x, y: y / cam.zoom + cam.y };
 }
 
 /** 월드 좌표 → 브라우저 화면 px (DOM 요소 배치용) */

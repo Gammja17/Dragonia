@@ -59,7 +59,13 @@ export class Nest extends Entity {
     }
     draw(ctx) {
         if (!isOnScreen(this)) return;
-        // 돌무더기 둥지 자체는 지형에 구워져 있다 (world/terrain.js). 여기선 알과 부화 진행도만
+        // 돌무더기 터는 지형에 구워져 있다 (world/terrain.js). 둥지를 지으면 그 안에 짚을 깐다
+        if (state.den.built) {
+            ctx.fillStyle = '#6b4a22'; ctx.beginPath(); ctx.ellipse(this.x, this.y + 2, 30, 17, 0, 0, TAU); ctx.fill();
+            ctx.fillStyle = '#d8b25a'; ctx.beginPath(); ctx.ellipse(this.x, this.y, 25, 13, 0, 0, TAU); ctx.fill();
+            ctx.strokeStyle = '#a07a30'; ctx.lineWidth = 2;
+            for (let i = 0; i < 7; i++) { const a = i * 0.9; ctx.beginPath(); ctx.moveTo(this.x + Math.cos(a) * 8, this.y + Math.sin(a) * 4); ctx.lineTo(this.x + Math.cos(a) * 26, this.y + Math.sin(a) * 13); ctx.stroke(); }
+        }
         if (!this.hasEgg) return;
         const wobble = this.progress > 80 ? Math.sin(state.gameTime * 25) * 2 : 0;
         drawGlow(ctx, this.x, this.y - 4, 40, '#fff2c8', 0.35 + this.progress / 250);

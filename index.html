@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Dragonia: The Origin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
@@ -17,15 +18,8 @@
         <div class="card">
             <input type="text" id="c-name" value="Bahamut" class="name-input">
 
-            <div class="row">
-                <span>Type</span>
-                <select id="c-type">
-                    <option value="WESTERN">Western (Classic)</option>
-                    <option value="WYVERN">Wyvern (Speed)</option>
-                    <option value="HYDRA">Hydra (Twin-headed)</option>
-                    <option value="BEHEMOTH">Behemoth (Tank)</option>
-                </select>
-            </div>
+            <div class="look-title">나의 용 — <span id="c-look-name"></span></div>
+            <div id="c-gallery"></div>
 
             <div class="row">
                 <span>Accessory</span>
@@ -35,9 +29,12 @@
                 </select>
             </div>
 
+            <div id="c-colors">
             <div class="row"><span>Body Color</span> <input type="color" id="c-body" value="#c0392b"></div>
             
             <div class="row"><span>Accent Color (wings/belly)</span> <input type="color" id="c-wing" value="#e0a020"></div>
+
+            </div>
 
             <button class="start-btn" id="start-btn">AWAKEN</button>
             <button class="continue-btn" id="continue-btn" style="display:none;"></button>
@@ -69,6 +66,7 @@
             <div class="slot-gap"></div>
             <div class="slot skill" data-skill="Q"><span class="slot-key">Q</span><span class="slot-name">-</span><div class="slot-cd"></div></div>
             <div class="slot skill" data-skill="F"><span class="slot-key">F</span><span class="slot-name">-</span><div class="slot-cd"></div></div>
+            <div class="slot ult" id="ult-slot" style="display:none;"><span class="slot-key">X</span><span class="slot-name">융합 브레스</span><div class="slot-cd"></div></div>
             <div class="slot skill" data-skill="R"><span class="slot-key">R</span><span class="slot-name">-</span><div class="slot-cd"></div></div>
         </div>
 
@@ -101,6 +99,7 @@
             <div class="inv-row">
                 <div class="inv-slot"><span>고기</span> <span id="ui-meat">0</span></div>
                 <div class="inv-slot"><span>골드</span> <span id="ui-gold">0</span></div>
+                <div class="inv-slot" id="twig-slot"><span>가지</span> <span id="ui-twigs">0</span></div>
             </div>
 
             <div class="hud-buttons">
@@ -143,7 +142,7 @@
         <div><b>WASD</b> 이동 · <b style="min-width:0">Shift</b> 탁: 대시(무적) / 꾹: 달리기</div>
         <div><b>Space</b> 브레스 (꾹 누르면 연사)</div>
         <div><b>1 2 3</b> 숨결 속성 바꾸기</div>
-        <div><b>Q F R</b> 장착한 스킬 · <b style="min-width:0">B</b> 스킬 수첩</div>
+        <div><b>Q F R</b> 장착한 스킬 · <b style="min-width:0">B</b> 스킬 수첩 · <b style="min-width:0">X</b> 필살기(삼원룡)</div>
         <div><b>E</b> 줍기 · 먹기 · 상자 · 열매 · 낚시(물가)</div>
         <div><b>T</b> 대화 (NPC · 자식) · 둥지에서 잠자기</div>
         <div><b>L</b> 플러팅 · <b style="min-width:0">K</b> 가족 · <b style="min-width:0">J</b> 모험 일지</div>

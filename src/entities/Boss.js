@@ -126,7 +126,7 @@ export class Boss extends Entity {
         this.summon(['CULTIST', 'CULTIST', 'MAGMA_SLIME']);
     }
 
-    mouth() { return { x: this.x, y: this.y - 50 * this.def.scale }; }
+    mouth() { return { x: this.x, y: this.y - (this.def.species === 'SHADOW' ? 70 : 50) * this.def.scale }; }
 
     orb(angle, damage = 11, opts = {}) {
         const m = this.mouth();

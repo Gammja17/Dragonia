@@ -36,6 +36,7 @@ export class Projectile extends Entity {
         this.radius = opts.radius ?? el.radius ?? 40;   // 맞는 범위
         this.pierce = (opts.pierce ?? el.pierce) && this.faction === 'ALLY'; // 관통: 같은 적은 한 번만 맞는다
         this.hitSet = new Set();
+        this.fromPlayer = !!opts.fromPlayer;   // 플레이어가 쏜 탄만 필살기 게이지를 채운다
         this.homing = opts.homing || 0;   // 초당 꺾을 수 있는 각도(rad). 플레이어를 따라온다
         this.speed = speed;
         this.t = 0;
@@ -66,6 +67,7 @@ export class Projectile extends Entity {
         const el = ELEMENTS[this.element];
         if (this.kind === 'BREATH') spawnEffect(el.hit, this.x, this.y, { angle: this.angle, size: this.scale });
         if (this.faction !== 'ALLY') { target.takeDamage(this.damage); return; }
+        if (this.fromPlayer && state.player.stageIndex >= 4) state.player.ult = Math.min(100, state.player.ult + 1.5);
         const crit = Math.random() < CRIT_CHANCE + (hasRelic('HUNTER_CHARM') ? 0.1 : 0);
         play(crit ? 'crit' : 'hit');
         const dmg = this.damage * (crit ? (hasRelic('BASIL_FANG') ? 3 : 2) : 1);

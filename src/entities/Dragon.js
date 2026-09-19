@@ -2,9 +2,9 @@ import { Entity } from './Entity.js';
 import { Projectile, addBullet } from './Projectile.js';
 import { burst } from './Particle.js';
 import { state } from '../core/state.js';
-import { input } from '../core/input.js';
-import { isOnScreen } from '../core/camera.js';
-import { WORLD_SIZE, MAX_KIDS, PLAYER_SPAWN } from '../core/config.js';
+import { input, mouse } from '../core/input.js';
+import { isOnScreen, screenToWorld } from '../core/camera.js';
+import { WORLD_SIZE, MAX_KIDS, PLAYER_SPAWN, VILLAGE_CENTER } from '../core/config.js';
 import { rand, dist, clamp, pick, roundRect } from '../core/utils.js';
 import { IDLE_LINES } from '../data/dialogues.js';
 import { ELEMENTS, STAGES } from '../data/elements.js';
@@ -36,6 +36,7 @@ import { startDialogue } from '../systems/dialogue.js';
 const WALK_SPEED = 260;
 const SPRINT_MULT = 1.5;
 const INTERACT_RANGE = 180;
+const TALK_RANGE = 300;      // 마우스로 가리킨 상대에게는 조금 더 멀리서도 말을 걸 수 있다
 const AIM_RANGE = 560;       // 자동 조준: 이 거리 안, 바라보는 쪽 ±AIM_CONE 안의 가장 가까운 적을 겨눈다
 const AIM_CONE = 1.0;
 const DASH_TIME = 0.2, DASH_COOLDOWN = 1.0, DASH_MULT = 3.4;
@@ -44,6 +45,7 @@ const MOUTH_OFFSET = 40; // 화염구가 생성되는 위치(발 기준점에서
 /** 머리 위 장신구. accessory: render/pixel.js 의 아이콘 이름 */
 export function drawAccessory(ctx, sheet, accessory, facing, x, y, scale) {
     if (!accessory || !sheet.head) return;
+    if (sheet.procedural && (facing === 'up' || facing === 'down')) return;   // 좌우 그림만 있는 외형은 어느 쪽을 보는지 여기선 알 수 없다
     const s = sheet.scale * scale, [hx, hy] = sheet.head[facing];
     const left = x - sheet.fw * s * sheet.anchor.x, top = y - sheet.fh * s * sheet.anchor.y;
     drawIcon(ctx, accessory, left + sheet.fw * s * hx, top + sheet.fh * s * hy, Math.max(2, Math.round(3 * scale)));
@@ -82,6 +84,8 @@ export class Dragon extends Entity {
         this.cooldowns = {};                    // 스킬 id → 남은 대기 시간
         this.channels = [];                     // 진행 중인 스킬 (systems/skills.js)
         this.guard = 0;       // 강철 비늘 남은 시간
+        this.ult = 0;         // 필살기 게이지 0~100 (삼원룡만)
+        this.beam = null;     // 삼원 융합 브레스 { time, angle }
         this.slowTimer = 0;   // 빙판·얼음에 느려진 시간
         this.diveHeight = 0;  // 급강하 중 떠오른 높이
         this.fireTimer = 0;   // 다음 브레스까지
@@ -94,7 +98,8 @@ export class Dragon extends Entity {
         this.carrying = null; // 'EGG'
         this.fishing = null;  // { x, y, wait, bite } 낚시 중일 때
 
-        this.sheet = getDragonSheet(this.species, this.colors);
+        this.look = config.look || 0;                   // species 'LOOK' 일 때의 외형 번호
+        this.sheet = getDragonSheet(this.species, this.colors, this.look);
         this.animator = this.sheet ? new Animator(this.sheet) : null;
         this.animPhase = Math.random() * 5;
 
@@ -196,7 +201,7 @@ export class Dragon extends Entity {
     update(dt) {
         if (this.chatFade > 0) this.chatFade -= dt * 0.3;
         if (!this.sheet) {
-            this.sheet = getDragonSheet(this.species, this.colors);
+            this.sheet = getDragonSheet(this.species, this.colors, this.look);
             if (this.sheet) this.animator = new Animator(this.sheet);
         }
         const flying = this.sheet ? this.sheet.flying : true;
@@ -257,13 +262,23 @@ export class Dragon extends Entity {
         if (hasRelic('LIFE_STONE')) this.hp = Math.min(this.maxHp, this.hp + 1.5 * dt);
         this.hunger = Math.max(0, this.hunger);
 
-        const nearNpc = state.entities.npcs.find(n => dist(this, n) < INTERACT_RANGE) || null;
-        const nearKid = nearNpc ? null : state.entities.babies.find(b => dist(this, b) < 120) || null;
-        const nestNear = !nearNpc && !nearKid && state.entities.nests[0] && dist(this, state.entities.nests[0]) < 110 ? state.entities.nests[0] : null;
-        setInteractTarget(nearNpc || nearKid || nestNear, nestNear ? 'T 둥지에서 쉬기' : nearKid ? 'T 아이와 대화' : 'T 대화 · L 플러팅');
-        if (input.pressed('talk') && nearKid) openKidHub(nearKid);
-        const nest = state.entities.nests[0];
-        if (input.pressed('talk') && !nearNpc && !nearKid && nest && dist(this, nest) < 110) openNestMenu();
+        // 말 걸 상대: 마우스(또는 터치)로 가리킨 용이 우선, 없으면 가장 가까운 용. 둥지는 그 다음
+        const E0 = state.entities;
+        const near = (list, range) => list.filter(e => dist(this, e) < range).sort((p, q) => dist(this, p) - dist(this, q))[0] || null;
+        const cursor = screenToWorld(mouse.x, mouse.y);
+        const pointed = (mouse.inside || mouse.clicked) ? [...E0.npcs, ...E0.babies].filter(e => Math.hypot(e.x - cursor.x, e.y - 50 - cursor.y) < 90)
+            .sort((p, q) => Math.hypot(p.x - cursor.x, p.y - cursor.y) - Math.hypot(q.x - cursor.x, q.y - cursor.y))[0] || null : null;
+        const target = (pointed && dist(this, pointed) < TALK_RANGE ? pointed : null) || near(E0.npcs, INTERACT_RANGE) || near(E0.babies, 130);
+        const isKid = target && E0.babies.includes(target);
+        const nestNear = !target && E0.nests[0] && dist(this, E0.nests[0]) < 110 ? E0.nests[0] : null;
+        state.talkTarget = target;   // 그릴 때 발밑에 표시한다
+        setInteractTarget(target || nestNear, nestNear ? 'T 둥지에서 쉬기' : isKid ? 'T · 클릭: 아이와 대화' : 'T · 클릭: 대화 / L 플러팅');
+
+        const wantTalk = input.pressed('talk') || (mouse.clicked && pointed && pointed === target);
+        if (mouse.clicked && pointed && pointed !== target) showToast('너무 멀어요. 가까이 가서 말을 거세요.', '💬');
+        if (wantTalk && target) { if (isKid) openKidHub(target); else startDialogue(target, 'TALK'); }
+        else if (wantTalk && nestNear) openNestMenu();
+        if (input.pressed('flirt') && target && !isKid) startDialogue(target, 'FLIRT');
 
         for (const k in this.cooldowns) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt);
         updateChannels(this, dt);
@@ -275,9 +290,9 @@ export class Dragon extends Entity {
         if (input.down('attack') && this.fireTimer <= 0) this.attack();   // 꾹 누르고 있으면 연사
         for (const slot of SKILL_SLOTS) if (input.pressed('skill' + slot)) useSlot(this, slot);
         if (input.pressed('skillbook')) openSkillBook();
+        if (input.pressed('ultimate')) this.useUltimate();
+        if (this.beam) this.updateBeam(dt);
         if (input.pressed('interact')) this.interact();
-        if (input.pressed('talk') && nearNpc) startDialogue(nearNpc, 'TALK');
-        if (input.pressed('flirt') && nearNpc) startDialogue(nearNpc, 'FLIRT');
         if (input.pressed('kids')) toggleKidsPanel();
         if (input.pressed('help')) toggleHelp();
         if (input.pressed('journal')) toggleJournal();
@@ -310,12 +325,14 @@ export class Dragon extends Entity {
     attack() {
         if (this.hunger < 10) { if (input.pressed('attack')) showToast("배가 너무 고파요!", "😫"); return; }
         const el = ELEMENTS[this.element];
-        this.fireTimer = el.rate * (this.fury > 0 ? 0.75 : 1);
+        const st = this.stageIndex;
+        this.fireTimer = (el.rateByStage ? el.rateByStage[st] : el.rate) * (this.fury > 0 ? 0.75 : 1);
         this.hunger -= el.rate * 1.2;       // 어떤 속성이든 쏘는 동안 초당 1.2씩 허기가 준다
         if (this.animator) this.animator.play('attack');
         const { angle } = this.aimAngle();
         this.facing = facingFromVector(Math.cos(angle), Math.sin(angle), this.facing);
-        for (let i = 0; i < el.pellets; i++) this.breathe(angle + (i - (el.pellets - 1) / 2) * el.spread);
+        const pellets = el.pelletsByStage ? el.pelletsByStage[st] : el.pellets;
+        for (let i = 0; i < pellets; i++) this.breathe(angle + (i - (pellets - 1) / 2) * el.spread);
         const sc = this.stage.scale;
         spawnEffect('MUZZLE', this.x + Math.cos(angle) * 50 * sc, this.y - 40 * sc + Math.sin(angle) * 50 * sc, { angle: angle + Math.PI / 2, size: 0.5 + sc * 0.3, color: el.color });
         play(el.sound);
@@ -327,7 +344,41 @@ export class Dragon extends Entity {
         const mx = this.x + Math.cos(angle) * MOUTH_OFFSET * sc;
         const my = this.y - 40 * sc + Math.sin(angle) * MOUTH_OFFSET * sc;
         const damage = ELEMENTS[this.element].damage * this.damageMult * weatherDamageMult(this.element) * damageMult;
-        addBullet(new Projectile(mx, my, angle, { faction: 'ALLY', element: this.element, damage, scale: 0.7 + sc * 0.3 }));
+        const el = ELEMENTS[this.element];
+        addBullet(new Projectile(mx, my, angle, { faction: 'ALLY', element: this.element, damage, scale: 0.7 + sc * 0.3, pierce: !!el.pierce && this.stageIndex >= (el.pierceFromStage || 0), fromPlayer: true }));
+    }
+
+    /** 필살기: 삼원 융합 브레스. 세 숨결을 하나로 뭉쳐 2.6초 동안 앞을 쓸어버린다 (삼원룡 전용) */
+    useUltimate() {
+        if (this.stageIndex < 4) return;
+        if (this.ult < 100) { showToast(`필살기 게이지 ${Math.floor(this.ult)}% — 적을 맞혀 채우세요.`, '🌈'); return; }
+        this.ult = 0;
+        this.beam = { time: 2.6, angle: this.aimAngle().angle, tick: 0 };
+        this.invuln = Math.max(this.invuln, 0.6);
+        spawnEffect('SHOCKWAVE', this.x, this.y, { size: 3.5, color: '#ffffff' });
+        shake(14); play('evolve');
+    }
+
+    updateBeam(dt) {
+        const b = this.beam, E = state.entities;
+        b.time -= dt; b.tick -= dt;
+        // 빔은 바라보는 쪽으로 천천히 따라 돈다
+        let da = this.aimAngle().angle - b.angle; da = Math.atan2(Math.sin(da), Math.cos(da));
+        b.angle += Math.max(-1.4 * dt, Math.min(1.4 * dt, da));
+        if (b.tick <= 0) {
+            b.tick = 0.1;
+            const sc = this.stage.scale, ox = this.x, oy = this.y - 40 * sc;
+            for (const e of [...E.enemies, ...E.humans, ...E.bosses]) {
+                if (e.awake === false) continue;
+                const t = Math.max(0, Math.min(950, (e.x - ox) * Math.cos(b.angle) + (e.y - 20 - oy) * Math.sin(b.angle)));
+                if (Math.hypot(e.x - (ox + Math.cos(b.angle) * t), e.y - 20 - (oy + Math.sin(b.angle) * t)) > 75 + (e.def && e.def.scale ? 50 : 0)) continue;
+                e.takeDamage(9 * this.damageMult);
+                applyStatus(e, 'BURN', 3); applyStatus(e, 'SLOW', 2);
+                if (Math.random() < 0.3) spawnEffect(pick(['FIRE_HIT', 'ICE_HIT', 'THUNDER_HIT']), e.x, e.y - 20, { size: 0.9 });
+            }
+            shake(3); play(pick(['flame', 'freeze', 'zap']));
+        }
+        if (b.time <= 0) this.beam = null;
     }
 
     /** 가까운 물 타일의 좌표 (없으면 null) */
@@ -399,6 +450,10 @@ export class Dragon extends Entity {
             if (baby) { this.inventory.meat--; baby.feed(); return; }
         }
 
+        // 2-1) 그루터기에서 나뭇가지 줍기 (둥지 재료)
+        const stump = E.props.find(s => s.type === 'STUMP' && s.ripe && dist(this, s) < 80);
+        if (stump && !state.den.built) { stump.gather(); return; }
+
         // 3) 열매 따기
         const berry = E.props.find(b => b.type === 'BERRY' && b.ripe && dist(this, b) < 80);
         if (berry && this.hunger < 95) { berry.harvest(); return; }
@@ -414,6 +469,7 @@ export class Dragon extends Entity {
         // 4) 알을 둥지에 놓기
         const nest = E.nests.find(n => dist(this, n) < 80);
         if (nest && this.carrying === 'EGG' && !nest.hasEgg) {
+            if (!state.den.built) { showToast("아직 둥지가 없습니다. 아지트에서 [T]로 둥지를 지으세요. (나뭇가지 8, 30G)", "🪹"); return; }
             if (state.kids.length >= MAX_KIDS) { showToast("둥지가 꽉 찼습니다! 더 이상 알을 둘 수 없어요.", "😅"); return; }
             this.carrying = null;
             nest.layEgg(this, state.partner);
@@ -460,7 +516,7 @@ export class Dragon extends Entity {
         const E = state.entities;
         let foe = null, best = 460;
         for (const e of [...E.humans, ...E.enemies, ...E.bosses]) {
-            if (e.awake === false) continue;
+            if (e.awake === false || e.type === 'DUMMY') continue;   // 허수아비는 제자의 몫이다
             const d = dist(this, e);
             if (d < best) { best = d; foe = e; }
         }
@@ -491,18 +547,6 @@ export class Dragon extends Entity {
         if (dist(this, player) > (fighting ? 260 : 110)) {
             this.moveBy(player.x - this.x, player.y - this.y, 240, dt);
         }
-
-        // 둥지에 도착하면 알을 낳는다
-        const nest = state.entities.nests[0];
-        if (this !== state.partner) return; // 동료는 알을 낳지 않는다
-        this.eggTimer = (this.eggTimer ?? 0) - dt;
-        if (nest && !nest.hasEgg && this.eggTimer <= 0 && dist(this, nest) < 100 && state.kids.length < MAX_KIDS) {
-            nest.layEgg(state.player, this);
-            this.eggTimer = 150; // 다음 알까지 (초). 짝은 계속 곁에 남는다
-            this.say("우리 알을 부탁해.");
-            showToast(`${this.config.name}가 알을 낳았습니다!`, '🥚');
-            burst(nest.x, nest.y, '#fff', 1, 20);
-        }
     }
 
     updateWander(dt) {
@@ -511,6 +555,11 @@ export class Dragon extends Entity {
             this.wanderTimer = rand(3, 8);
             this.wanderAngle = rand(0, Math.PI * 2);
             this.resting = Math.random() < 0.35; // 가끔 멈춰 서 있기
+        }
+        // 습격 중엔 마을 용들이 광장으로 모여 함께 막는다 (스승은 수련장을 지킨다)
+        if (state.raid.active && this.config.fixed && this.config.role !== 'MASTER' && dist(this, VILLAGE_CENTER) > 300) {
+            this.moveBy(VILLAGE_CENTER.x - this.x, VILLAGE_CENTER.y - this.y, 210, dt);
+            return;
         }
         if (this.resting) return;
         let a = this.wanderAngle;
@@ -523,19 +572,36 @@ export class Dragon extends Entity {
     // ---------- 드로잉 ----------
     draw(ctx) {
         if (!isOnScreen(this)) return;
+        if (this.beam) {                       // 삼원 융합 브레스: 불·얼음·번개 세 가닥이 꼬인 빛줄기
+            const b = this.beam, sc0 = this.stage.scale, ox = this.x, oy = this.y - 40 * sc0, k = Math.min(1, b.time * 3);
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.lineCap = 'round';
+            [['#ff7a2a', -1], ['#7fd4ff', 0], ['#ffe27a', 1]].forEach(([color, off], i) => {
+                const wob = Math.sin(state.gameTime * 22 + i * 2) * 14;
+                const nx = -Math.sin(b.angle), ny = Math.cos(b.angle);
+                ctx.strokeStyle = color; ctx.lineWidth = 46 * k; ctx.globalAlpha = 0.5;
+                ctx.beginPath(); ctx.moveTo(ox, oy);
+                ctx.lineTo(ox + Math.cos(b.angle) * 950 + nx * (off * 30 + wob), oy + Math.sin(b.angle) * 950 + ny * (off * 30 + wob)); ctx.stroke();
+            });
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 18 * k; ctx.globalAlpha = 0.95;
+            ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + Math.cos(b.angle) * 950, oy + Math.sin(b.angle) * 950); ctx.stroke();
+            ctx.restore();
+        }
         if (this.fury > 0) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 90, '#ff5a3c', 0.35 + Math.sin(state.gameTime * 12) * 0.1);
         if (this.guard > 0) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 100, '#cfd8e6', 0.45);
         if (this.channels.some(c => c.id === 'STORM')) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 110, '#ffe27a', 0.3);
         ctx.save();
         ctx.translate(this.x, this.y);
         const sc = this.isPlayer ? this.stage.scale : 0.92 * (this.config.scale || 1);
+        if (state.talkTarget === this) { ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 3; ctx.globalAlpha = 0.6 + Math.sin(state.gameTime * 6) * 0.3; ctx.beginPath(); ctx.ellipse(0, 0, 46 * sc, 18 * sc, 0, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1; }
         this.drawShadow(ctx, (this.sheet && !this.sheet.flying ? 26 : 34) * sc);
         ctx.restore();
 
         if (this.animator) {
             const f = this.animator.frame(this.facing);
             if (this.downTimer > 0) ctx.globalAlpha = 0.55;
-            drawFrame(ctx, this.sheet, f, this.x, this.y + (this.downTimer > 0 ? 18 : this.hoverY) - this.diveHeight, sc);
+            drawFrame(ctx, this.sheet, f, this.x, this.y + (this.downTimer > 0 ? 18 : this.hoverY) - this.diveHeight, sc, { t: state.gameTime + this.animPhase, moving: this.moving, attacking: this.animator.name === 'attack' && !this.animator.done });
             ctx.globalAlpha = 1;
             drawAccessory(ctx, this.sheet, this.config.accessory, this.facing, this.x, this.y + this.hoverY - this.diveHeight, sc);
         } else {

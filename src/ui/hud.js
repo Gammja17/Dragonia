@@ -8,13 +8,14 @@ import { toggleKidsPanel } from './kidsPanel.js';
 import { dayPhaseName } from '../render/lighting.js';
 import { drawPortrait } from '../render/spritesheet.js';
 import { weatherName } from '../systems/weather.js';
-import { questLines, setQuestListener } from '../systems/quests.js';
+import { questLines, setQuestListener, notify } from '../systems/quests.js';
 import { raidStatusText } from '../systems/raid.js';
 import { eventName } from '../systems/events.js';
 
 const $ = (id) => document.getElementById(id);
 let el = {};
 let minimapBase = null;
+let lastBiome = null;
 
 export function initHud() {
     el = {
@@ -53,13 +54,21 @@ export function showGameUI() {
 export function updateHud() {
     const p = state.player;
     if (!p) return;
-    el.biome.textContent = `${BIOMES[getBiome(p.x, p.y)].name} · ${eventName() || dayPhaseName()} · ${weatherName()}`;
+    const biome = getBiome(p.x, p.y);
+    if (biome !== lastBiome) { lastBiome = biome; notify('visit', biome); }
+    el.biome.textContent = `${BIOMES[biome].name} · ${eventName() || dayPhaseName()} · ${weatherName()}`;
     el.name.textContent = p.config.name || 'Player';
     el.lvl.textContent = p.level;
     el.stage.textContent = p.stage.name;
     el.partner.textContent = state.partner ? state.partner.config.name : '없음';
     el.meat.textContent = p.inventory.meat;
     el.gold.textContent = p.gold;
+    $('twig-slot').style.display = state.den.built ? 'none' : '';
+    $('ui-twigs').textContent = `${state.den.twigs}/8`;
+    const ult = $('ult-slot');
+    ult.style.display = p.stageIndex >= 4 ? '' : 'none';
+    ult.classList.toggle('ready', p.ult >= 100);
+    ult.lastElementChild.style.height = (100 - p.ult) + '%';
     el.raidInfo.textContent = raidStatusText();
     el.raidInfo.classList.toggle('active', state.raid.active);
     el.hpText.textContent = p.hp.toFixed(0);

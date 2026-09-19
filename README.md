@@ -31,7 +31,7 @@ src/
                     npcActions(NPC별 상호작용: 대련·술래잡기·상점·축복·동료), relics(유물),
                     events(밤 이벤트: 붉은 달·유성우), audio(WebAudio 효과음), kidActions(자식과의 대화·놀이·훈련),
                     skills(스킬 실행·스킬 수첩), story(스승 수련·잠·아침 장면 진행)
-  ui/               hud, dialogueUI, kidsPanel, journal(모험 일지), customizer, toast
+  ui/               hud, dialogueUI, kidsPanel, journal(모험 일지), customizer(외형 갤러리), toast, touch(모바일 가상 스틱·버튼)
 ```
 
 에셋 출처와 라이선스는 [CREDITS.md](CREDITS.md) 참고. `assets/raw/`는 내려받은 원본 보관용이라 저장소에 올리지 않는다.

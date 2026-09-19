@@ -24,6 +24,7 @@ export class Human extends Entity {
         this.angle = 0;
         this.hitFlash = 0;
         this.cooldown = 1;
+        this.power = 1;   // 습격 회차에 따른 공격력 배율 (systems/raid.js)
     }
 
     /** 알이 있는 둥지가 가까우면 둥지, 아니면 가장 가까운 용(플레이어·마을 용·동료) */
@@ -61,13 +62,13 @@ export class Human extends Entity {
         const def = this.def;
         const aim = Math.atan2(target.y - 30 - (this.y - 16), target.x - this.x);
         if (def.attack === 'ARROW') {
-            addBullet(new Projectile(this.x, this.y - 16, aim, { faction: 'ENEMY', kind: 'ARROW', damage: def.damage, speed: 520 }));
+            addBullet(new Projectile(this.x, this.y - 16, aim, { faction: 'ENEMY', kind: 'ARROW', damage: def.damage * this.power, speed: 520 }));
         } else if (def.attack === 'ORB') {
-            addBullet(new Projectile(this.x, this.y - 16, aim, { faction: 'ENEMY', element: 'FIRE', damage: def.damage, speed: 300, life: 2.4, scale: 0.7 }));
+            addBullet(new Projectile(this.x, this.y - 16, aim, { faction: 'ENEMY', element: 'FIRE', damage: def.damage * this.power, speed: 300, life: 2.4, scale: 0.7 }));
         } else if (target === state.entities.nests[0]) {
             target.attackEgg(30);
         } else {
-            target.takeDamage(def.damage);
+            target.takeDamage(def.damage * this.power);
         }
     }
 
@@ -82,6 +83,7 @@ export class Human extends Entity {
         state.player.gainXp(this.def.xp * xpMult());
         state.stats.kills.HUNTER = (state.stats.kills.HUNTER || 0) + 1;
         notify('kill', 'HUNTER');
+        notify('killAny');
         spawnEffect('SMOKE', this.x, this.y - 16, { size: this.def.scale ? 1.8 : 1 });
         const items = state.entities.items;
         items.push(new Item(this.x, this.y, 'GOLD', this.def.gold));

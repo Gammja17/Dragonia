@@ -18,6 +18,7 @@ import { updateLighting, drawLighting } from './render/lighting.js';
 import { updateEvents, drawEvents } from './systems/events.js';
 import { initAudio } from './systems/audio.js';
 import { initJournal } from './ui/journal.js';
+import { initTouch } from './ui/touch.js';
 import { dialogueUI } from './ui/dialogueUI.js';
 import { showToast } from './ui/toast.js';
 
@@ -38,6 +39,7 @@ initInput();
 initHud();
 initKidsPanel();
 initJournal();
+initTouch();
 initCustomizer(startGame);
 window.addEventListener('beforeunload', saveGame);
 

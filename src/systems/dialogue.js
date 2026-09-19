@@ -69,15 +69,8 @@ function choose(group, opt, npc) {
             renderNode(group, 'meat', npc);
             break;
         case 'partner':
-            if (state.player.stageIndex < 2) {
-                showToast("아직 너무 어려요. [성체]가 되면 짝을 맺을 수 있습니다.", "🔒");
-                closeDialogue();
-                break;
-            }
-            if (state.partner) state.partner.state = 'WANDER';
-            npc.state = 'PARTNER_FOLLOW';
-            state.partner = npc;
-            showToast(`${npc.config.name}가 파트너가 되었습니다!`, "💕");
+            // 짝이 되려면 데이트 세 번 뒤 대화(T)에서 고백해야 한다 (systems/npcActions.js)
+            showToast("마음이 통한 것 같다. 데이트를 세 번 하고 나면, 대화에서 [마음을 고백한다]를 고를 수 있습니다.", "💗");
             closeDialogue();
             break;
         default:

@@ -146,7 +146,7 @@ export const NPC_SCRIPTS = {
         high: {
             text: "사실… 나도 너를 기다리고 있었어. 우리 둥지를 같이 지켜볼래?",
             options: [
-                { t: "좋아요. 파트너가 되죠.", next: 'partner', eff: 15 },
+                { t: "…나도 같은 마음이야.", next: 'partner', eff: 10 },
                 { t: "아직 마음의 준비가…", next: 'end', eff: -3 },
             ],
         },

@@ -1,4 +1,4 @@
-import { WORLD_SIZE, NEST_POS } from '../core/config.js';
+import { WORLD_SIZE, NEST_POS, HOMES, TRAINING } from '../core/config.js';
 import { mulberry32 } from '../core/utils.js';
 import { loadImages } from '../render/assets.js';
 import { TILE_SRC, TILE_SCALE, TILE, TILE_IMAGES, GRASS, GRASS_DECOR, DIRT, WATER, NEST_RING } from '../data/tiles.js';
@@ -37,7 +37,7 @@ const coarseKind = (cx, cy) => kinds[cy * 2 * SIZE + cx * 2];
 function carvePath(x0, y0, x1, y1) {
     let x = x0, y = y0, horizontal = true;
     while (x !== x1 || y !== y1) {
-        const isNest = x === toCoarse(NEST_POS.x) && y === toCoarse(NEST_POS.y);
+        const isNest = [NEST_POS, ...HOMES].some(n => x === toCoarse(n.x) && y === toCoarse(n.y));
         if (coarseKind(x, y) !== WATER_ID && !isNest) fillCoarse(x, y, DIRT_ID);
         if (horizontal && x !== x1) x += Math.sign(x1 - x);
         else if (y !== y1) y += Math.sign(y1 - y);
@@ -51,20 +51,23 @@ function generate() {
     const v = VILLAGE_RECT;
 
     // 호수 + 숲 속 작은 연못들
-    const arenas = Object.values(BOSSES);
+    const arenas = [...Object.values(BOSSES), TRAINING];   // 넓은 흙 공터: 보스 결투장 + 수련장
+    const nests = [NEST_POS, ...HOMES];                     // 둥지마다 작은 마당
     const ponds = [{ x: LAKE.x, y: LAKE.y, r: LAKE.r - 90 }];
     while (ponds.length < 26) {
         const p = { x: 200 + rng() * (WORLD_SIZE - 400), y: 200 + rng() * (WORLD_SIZE - 400), r: 120 + rng() * 70 };
         const nearVillage = Math.hypot(p.x - (v.x + v.w / 2), p.y - (v.y + v.h / 2)) < 850;
         const nearPond = ponds.some(o => Math.hypot(p.x - o.x, p.y - o.y) < o.r + p.r + 250);
-        const nearArena = arenas.some(a => Math.hypot(p.x - a.x, p.y - a.y) < 600);
+        const nearArena = [...arenas, ...nests].some(a => Math.hypot(p.x - a.x, p.y - a.y) < 600);
         if (!nearVillage && !nearPond && !nearArena) ponds.push(p);
     }
 
     for (let cy = 0; cy < COARSE; cy++) for (let cx = 0; cx < COARSE; cx++) {
         const x = coarseCenter(cx), y = coarseCenter(cy);
         if (ponds.some(p => Math.hypot(x - p.x, y - p.y) < p.r)) { fillCoarse(cx, cy, WATER_ID); continue; }
-        if (arenas.some(a => Math.hypot(x - a.x, y - a.y) < 340)) { fillCoarse(cx, cy, DIRT_ID); continue; } // 보스 결투장
+        if (nests.some(n => cx === toCoarse(n.x) && cy === toCoarse(n.y))) continue;                          // 둥지 칸은 풀밭으로
+        if (arenas.some(a => Math.hypot(x - a.x, y - a.y) < 340)) { fillCoarse(cx, cy, DIRT_ID); continue; } // 보스 결투장·수련장
+        if (nests.some(n => Math.hypot(x - n.x, y - n.y) < 210)) { fillCoarse(cx, cy, DIRT_ID); continue; }    // 둥지 마당
 
         // 마을 광장: 가장자리 칸은 가끔 빼서 네모 반듯하지 않게
         const inX = x > v.x && x < v.x + v.w, inY = y > v.y && y < v.y + v.h;
@@ -73,7 +76,6 @@ function generate() {
             const edgeY = y - v.y < 96 || v.y + v.h - y < 96;
             if (edgeX && edgeY) continue;                    // 네 귀퉁이는 항상 뺀다
             if ((edgeX || edgeY) && rng() < 0.3) continue;
-            if (cx === toCoarse(NEST_POS.x) && cy === toCoarse(NEST_POS.y)) continue; // 둥지 자리는 풀밭으로 남긴다
             fillCoarse(cx, cy, DIRT_ID);
         }
     }
@@ -82,7 +84,16 @@ function generate() {
     carvePath(toCoarse(v.x + v.w - 100), toCoarse(v.y + v.h - 100), toCoarse(LAKE.x), toCoarse(LAKE.y));
     carvePath(toCoarse(v.x + 100), toCoarse(v.y + 100), toCoarse(250), toCoarse(350));
     // 마을 → 각 보스 결투장
-    for (const a of arenas) carvePath(toCoarse(v.x + v.w / 2), toCoarse(v.y + v.h / 2), toCoarse(a.x), toCoarse(a.y));
+    for (const a of [...arenas, ...nests]) carvePath(toCoarse(v.x + v.w / 2), toCoarse(v.y + v.h / 2), toCoarse(a.x), toCoarse(a.y));
+}
+
+/** 격자점마다 고정된 난수를 부드럽게 이은 값 (-0.5 ~ 0.5) */
+function smoothNoise(x, y, salt) {
+    const at = (ix, iy) => { const n = Math.sin(ix * 127.1 + iy * 311.7 + salt * 74.7) * 43758.5453; return n - Math.floor(n) - 0.5; };
+    const x0 = Math.floor(x), y0 = Math.floor(y), fx = x - x0, fy = y - y0;
+    const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+    const top = at(x0, y0) + (at(x0 + 1, y0) - at(x0, y0)) * sx, bot = at(x0, y0 + 1) + (at(x0 + 1, y0 + 1) - at(x0, y0 + 1)) * sx;
+    return top + (bot - top) * sy;
 }
 
 function pickTile(set, tx, ty) {
@@ -115,17 +126,19 @@ function bake() {
         else if (id === WATER_ID) t = pickTile(WATER, tx, ty);
         else if (rng() < 0.06) t = GRASS_DECOR[Math.floor(rng() * GRASS_DECOR.length)];
         else t = GRASS[(ty % 2) * 2 + (tx % 2)];
-        // 바이옴 경계는 위치를 흔들어 색상판이 점점이 섞이게 한다
-        const wx = ORIGIN + (tx + 0.5) * TILE + (rng() - 0.5) * 300, wy = ORIGIN + (ty + 0.5) * TILE + (rng() - 0.5) * 300;
+        // 바이옴 경계는 완만한 노이즈로 구불구불하게 (타일마다 따로 흔들면 색종이처럼 깨져 보인다)
+        const wx = ORIGIN + (tx + 0.5) * TILE + smoothNoise(tx / 7, ty / 7, 11) * 420, wy = ORIGIN + (ty + 0.5) * TILE + smoothNoise(tx / 7, ty / 7, 47) * 420;
         const palette = BIOMES[getBiome(wx, wy)].palette;
         const sheet = images['ground' + (palette ? palette + 1 : '')];
         g.drawImage(sheet, t[0] * TILE_SRC, t[1] * TILE_SRC, TILE_SRC, TILE_SRC, tx * TILE_SRC, ty * TILE_SRC, TILE_SRC, TILE_SRC);
     }
     // 둥지 돌무더기 (2x2 타일)
-    const nx = toCoarse(NEST_POS.x) * 2, ny = toCoarse(NEST_POS.y) * 2;
-    NEST_RING.forEach(([sx, sy], i) => {
-        g.drawImage(images.ground, sx * TILE_SRC, sy * TILE_SRC, TILE_SRC, TILE_SRC, (nx + i % 2) * TILE_SRC, (ny + (i >> 1)) * TILE_SRC, TILE_SRC, TILE_SRC);
-    });
+    for (const n of [NEST_POS, ...HOMES]) {
+        const nx = toCoarse(n.x) * 2, ny = toCoarse(n.y) * 2;
+        NEST_RING.forEach(([sx, sy], i) => {
+            g.drawImage(images.ground, sx * TILE_SRC, sy * TILE_SRC, TILE_SRC, TILE_SRC, (nx + i % 2) * TILE_SRC, (ny + (i >> 1)) * TILE_SRC, TILE_SRC, TILE_SRC);
+        });
+    }
 }
 
 /** 게임 시작 전에 한 번 호출. 타일 이미지를 받고 지형을 만들어 둔다 */

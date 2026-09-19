@@ -36,6 +36,15 @@ export class Prop extends Entity {
             default: return null;
         }
     }
+    /** 그루터기(type 'STUMP')에서 나뭇가지를 줍는다. 열매처럼 시간이 지나면 다시 생긴다 */
+    gather() {
+        this.ripeAt = state.gameTime + BERRY_REGROW;
+        const n = Math.random() < 0.4 ? 2 : 1;
+        state.den.twigs += n;
+        play('pickup');
+        showToast(`나뭇가지 +${n} (${state.den.twigs} / 8)`, '🪵');
+    }
+
     /** 열매 덤불(type 'BERRY')은 따고 나면 BERRY_REGROW 초 뒤에 다시 열린다 */
     get ripe() { return state.gameTime >= (this.ripeAt || 0); }
     harvest() {

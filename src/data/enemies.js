@@ -56,7 +56,7 @@ export const BOSSES = {
         element: 'FIRE', unlock: null, chargeChain: true, patterns: ['BURROW', 'CHARGE', 'QUAKE', 'AIMED', 'BURROW'],
     },
     IGNAR: {
-        name: '고룡 이그나르', title: '하늘에서 떨어진 재앙', species: 'WESTERN', colors: { body: '#3a2a4a', wing: '#ff5a1f' },
+        name: '고룡 이그나르', title: '하늘에서 떨어진 재앙', species: 'SHADOW', colors: { body: '#3a2a4a', wing: '#ff5a1f' },
         x: 6700, y: 6700, scale: 2.0, hp: 4500, speed: 175, contact: 32, xp: 3000,
         element: 'FIRE', unlock: null, phase2: true, patterns: ['METEOR_RAIN', 'AIMED', 'FLAME_WALL', 'CHARGE', 'SPIRAL'],
     },

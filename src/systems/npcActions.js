@@ -1,6 +1,8 @@
 import { state } from '../core/state.js';
 import { clamp, dist, pick, rand } from '../core/utils.js';
-import { NPC_TALK, SHOP, TIER_NAMES, SITUATION_LINES, relationTier } from '../data/npcTalk.js';
+import { NPC_TALK, SHOP, TIER_NAMES, SITUATION_LINES, DATES, CONFESSION, FAMILY_TALK, relationTier } from '../data/npcTalk.js';
+import { NEST_POS, MAX_KIDS } from '../core/config.js';
+import { fadeScreen } from '../ui/hud.js';
 import { Projectile, addBullet } from '../entities/Projectile.js';
 import { burst } from '../entities/Particle.js';
 import { spawnEffect } from '../render/vfx.js';
@@ -49,6 +51,17 @@ export function openNpcHub(npc) {
     if (name === 'Elder') opts.push({ label: '축복을 청한다', onSelect: () => blessing(npc) });
     if (name === 'Kairon') opts.unshift(...masterOptions(npc));
 
+    // 연애 (짝이 될 수 있는 용만)
+    if (npc.config.canPartner) {
+        const dates = npc.dates || 0;
+        if (npc === state.partner) {
+            opts.push({ label: '우리… 아이를 가질까?', onSelect: () => familyTalk(npc) });
+        } else if (dates >= 3 && npc.relation >= 80) {
+            opts.push({ label: '♥ 마음을 고백한다', onSelect: () => confess(npc) });
+        } else if (npc.relation >= 40 && dates < 3 && npc.lastDateDay !== state.day) {
+            opts.push({ label: `♥ 데이트를 신청한다 (${dates}/3)`, onSelect: () => goOnDate(npc) });
+        }
+    }
     if (tier >= 2 && npc.lastPresentDay !== state.day) opts.push({ label: '(뭔가 주려는 눈치다)', onSelect: () => receivePresent(npc) });
     if (name !== 'Elder' && name !== 'Kairon' && p.inventory.meat > 0 && npc.lastGiftDay !== state.day) opts.push({ label: '고기를 선물한다 (고기 -1)', onSelect: () => giveGift(npc) });
     if (name !== 'Elder' && name !== 'Kairon' && npc !== state.partner) {
@@ -98,15 +111,73 @@ function receivePresent(npc) {
     show(npc, '자, 이거. 오다가 주웠어. …별건 아니고.', [{ label: '고마워!', onSelect: () => openNpcHub(npc) }]);
 }
 
+/** 여러 줄짜리 장면을 차례로 보여 주고 끝나면 then */
+function playLines(npc, lines, then) {
+    let i = 0;
+    const next = () => {
+        if (i >= lines.length) { close(); if (then) then(); return; }
+        show(npc, lines[i++], [{ label: i < lines.length ? '▶ 다음' : '▶', onSelect: next }]);
+    };
+    next();
+}
+
+function goOnDate(npc) {
+    close();
+    npc.lastDateDay = state.day;
+    const lines = DATES[npc.config.name][npc.dates || 0];
+    fadeScreen('♥', () => { state.dayTime = Math.min(0.78, state.dayTime + 0.12); }, () => playLines(npc, lines, () => {
+        npc.dates = (npc.dates || 0) + 1;
+        addRelation(npc, 12);
+        spawnEffect('HEART', npc.x, npc.y - 80, { color: '#ff7aa8', size: 1.4 });
+        showToast(`${npc.config.name}와(과) 데이트했습니다. (${npc.dates}/3, 호감 ↑)`, '💕');
+    }));
+}
+
+function confess(npc) {
+    if (state.player.stageIndex < 2) { show(npc, '(아직 너무 어리다. [성체]가 되면 마음을 전하자.)', [{ label: '…조금만 더 크자.', onSelect: () => openNpcHub(npc) }]); return; }
+    playLines(npc, CONFESSION[npc.config.name], () => {
+        if (state.partner) { state.partner.state = 'WANDER'; moveHome(state.partner, false); }
+        if (state.companion === npc) state.companion = null;
+        state.partner = npc;
+        npc.state = 'PARTNER_FOLLOW';
+        moveHome(npc, true);
+        for (let i = 0; i < 6; i++) spawnEffect('HEART', npc.x + rand(-60, 60), npc.y - 60 - rand(0, 60), { color: '#ff7aa8', size: 1.2 });
+        showToast(`${npc.config.name}(이)가 짝이 되었습니다! 이제 아지트에서 함께 삽니다.`, '💞');
+    });
+}
+
+/** 짝·단짝은 내 아지트로 이사 온다. 헤어지면 원래 보금자리로 */
+function moveHome(npc, toDen) {
+    npc.homeX = toDen ? NEST_POS.x + 90 : npc.config.x;
+    npc.homeY = toDen ? NEST_POS.y + 70 : npc.config.y;
+}
+
+function familyTalk(npc) {
+    const nest = state.entities.nests[0];
+    const back = [{ label: '그래.', onSelect: () => openNpcHub(npc) }];
+    if (!state.den.built) { show(npc, '아직 둥지가 없잖아. 아지트에 둥지부터 짓자. (둥지에서 [T] — 나뭇가지 8, 30G)', back); return; }
+    if (nest.hasEgg) { show(npc, '둥지에 이미 알이 있어. 저 아이부터 잘 품어 주자.', back); return; }
+    if (state.kids.length >= MAX_KIDS) { show(npc, '우리 집, 이미 북적북적해. 이 아이들부터 잘 키우자.', back); return; }
+    if (npc.lastEggDay && state.day - npc.lastEggDay < 3) { show(npc, '조금만 더 있다가. 몸을 추슬러야 해. (사흘에 한 번)', back); return; }
+    playLines(npc, FAMILY_TALK[npc.config.name], () => {
+        npc.lastEggDay = state.day;
+        nest.layEgg(state.player, npc);
+        spawnEffect('RING', nest.x, nest.y, { size: 1.4 });
+        showToast(`${npc.config.name}(이)가 둥지에 알을 낳았습니다! 곁에서 품어 주세요.`, '🥚');
+    });
+}
+
 function setCompanion(npc, join) {
     if (join) {
-        if (state.companion) state.companion.state = 'WANDER';
+        if (state.companion) { state.companion.state = 'WANDER'; moveHome(state.companion, false); }
         state.companion = npc;
         npc.state = 'COMPANION_FOLLOW';
+        moveHome(npc, true);   // 단짝도 아지트에서 같이 지낸다
         showToast(`${npc.config.name}(이)가 동료로 합류했습니다!`, '🤝');
     } else {
         state.companion = null;
         npc.state = 'WANDER';
+        moveHome(npc, false);
         showToast(`${npc.config.name}(이)가 마을로 돌아갑니다.`, '👋');
     }
     close();
