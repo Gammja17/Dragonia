@@ -16,6 +16,8 @@ export const state = {
     blessingDay: 0,
     activity: null,      // 진행 중인 대련/술래잡기 (systems/npcActions.js)
     companion: null,
+    rally: 0,             // 용의 함성: 남은 시간 동안 아군 공격력 +50%
+    story: { scenes: [], lessons: [], lessonDay: 0 },   // systems/story.js
     fadeTargets: [],     // 이번 프레임에 나무 뒤로 숨으면 안 되는 것들
     relics: [],          // 가진 유물 id (systems/relics.js)
     event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
@@ -30,7 +32,7 @@ export const state = {
 };
 
 export function emptyPools() {
-    return { bullets: [], effects: [], items: [], particles: [], nests: [], babies: [], props: [], npcs: [], enemies: [], humans: [], bosses: [] };
+    return { bullets: [], effects: [], items: [], particles: [], nests: [], babies: [], props: [], npcs: [], enemies: [], humans: [], bosses: [], hazards: [] };
 }
 
 export function resetState() {
@@ -49,6 +51,8 @@ export function resetState() {
         blessingDay: 0,
         activity: null,      // 진행 중인 대련/술래잡기 (systems/npcActions.js)
         companion: null,
+        rally: 0,             // 용의 함성: 남은 시간 동안 아군 공격력 +50%
+        story: { scenes: [], lessons: [], lessonDay: 0 },   // systems/story.js
         relics: [],          // 가진 유물 id (systems/relics.js)
         event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
         stats: { kills: {} },

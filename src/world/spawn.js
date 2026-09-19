@@ -8,7 +8,7 @@ import { Enemy } from '../entities/Enemy.js';
 import { Boss } from '../entities/Boss.js';
 import { Prop } from '../entities/Prop.js';
 import { Nest } from '../entities/Nest.js';
-import { FIXED_NPCS, WANDER_NAMES, WANDER_PERSONALITIES, WANDER_SPECIES, SPECIES_COLORS } from '../data/npcs.js';
+import { FIXED_NPCS, WANDER_NAMES, WANDER_PERSONALITIES, WANDER_SPECIES, WANDER_ACCESSORIES, SPECIES_COLORS } from '../data/npcs.js';
 import { BIOME_ENEMIES, BOSSES } from '../data/enemies.js';
 import { enemyCapMult } from '../systems/events.js';
 
@@ -42,6 +42,8 @@ export function spawnWanderingNPC() {
         personality: pick(WANDER_PERSONALITIES),
         species,
         colors: SPECIES_COLORS[species],
+        accessory: pick(WANDER_ACCESSORIES),
+        scale: rand(0.8, 1.15),
         canPartner: false,
     }));
 }
@@ -61,6 +63,7 @@ export function buildWorld(config) {
         name: config.name,
         species: config.species,
         colors: config.colors,
+        accessory: config.accessory || null,
     }, true);
 
     // 숲 소품은 풀밭 위에만. 나무는 크니까 마을에서 더 멀리. 시드 고정이라 이어하기를 해도 숲이 그대로다

@@ -8,6 +8,8 @@ import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
 import { setBossBar } from '../ui/hud.js';
 import { notify, questDialogue } from './quests.js';
+import { masterOptions, updateDrill, isDrill } from './story.js';
+import { learnSkill } from './skills.js';
 
 // 마을 고정 NPC와의 고유 상호작용: 이야기, 선물, 동료, 대련(티아맷), 술래잡기(포코), 상점(그론), 축복(엘더).
 // 진행 중인 놀이는 state.activity = { type: 'SPAR' | 'TAG', npc, hp, max, time } 에 담는다.
@@ -45,10 +47,11 @@ export function openNpcHub(npc) {
     if (name === 'Poco') opts.push({ label: '술래잡기 하자!', onSelect: () => startTag(npc) });
     if (name === 'Gron') opts.push({ label: `물건을 본다 (소지금 ${p.gold}G)`, onSelect: () => openShop(npc) });
     if (name === 'Elder') opts.push({ label: '축복을 청한다', onSelect: () => blessing(npc) });
+    if (name === 'Kairon') opts.unshift(...masterOptions(npc));
 
     if (tier >= 2 && npc.lastPresentDay !== state.day) opts.push({ label: '(뭔가 주려는 눈치다)', onSelect: () => receivePresent(npc) });
-    if (name !== 'Elder' && p.inventory.meat > 0 && npc.lastGiftDay !== state.day) opts.push({ label: '고기를 선물한다 (고기 -1)', onSelect: () => giveGift(npc) });
-    if (name !== 'Elder' && npc !== state.partner) {
+    if (name !== 'Elder' && name !== 'Kairon' && p.inventory.meat > 0 && npc.lastGiftDay !== state.day) opts.push({ label: '고기를 선물한다 (고기 -1)', onSelect: () => giveGift(npc) });
+    if (name !== 'Elder' && name !== 'Kairon' && npc !== state.partner) {
         if (state.companion === npc) opts.push({ label: '이제 마을로 돌아가도 돼', onSelect: () => setCompanion(npc, false) });
         else if (tier >= 2) opts.push({ label: '같이 모험을 떠나자', onSelect: () => setCompanion(npc, true) });
     }
@@ -179,6 +182,7 @@ function endActivity(win) {
             npc.say('…졌다. 인정할게.');
             showToast('대련 승리!' + (first ? ' (40G, 호감 ↑)' : ' (10G)'), '🏆');
             notify('spar');
+            learnSkill('BLINK');   // 첫 승리 때 티아맷의 기술을 배운다
         } else {
             p.hp = Math.max(p.hp, p.maxHp * 0.5);
             addRelation(npc, 1);
@@ -199,6 +203,7 @@ function endActivity(win) {
 
 /** 놀이 중인 NPC의 움직임. Dragon.updateNpc 가 호출한다 */
 export function updateActivityNpc(npc, dt) {
+    if (isDrill(state.activity)) { updateDrill(npc, dt); return; }
     const a = state.activity, p = state.player;
     const d = dist(npc, p);
     const toPlayer = Math.atan2(p.y - npc.y, p.x - npc.x);

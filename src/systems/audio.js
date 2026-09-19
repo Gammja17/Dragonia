@@ -21,7 +21,36 @@ const SOUNDS = {
     raid:   [['square', 196, 196, 0.18, 0.06], ['square', 196, 196, 0.18, 0.06], ['square', 147, 147, 0.35, 0.07]],
     splash: [['sine', 300, 120, 0.15, 0.05]],
     dash:   [['sine', 500, 900, 0.1, 0.04]],
+    flame:  [['noise', 900, 300, 0.18, 0.06]],
+    boom:   [['noise', 400, 60, 0.45, 0.12], ['sine', 90, 35, 0.4, 0.12]],
+    freeze: [['triangle', 2200, 900, 0.18, 0.05], ['triangle', 1500, 2400, 0.12, 0.04]],
+    thunder: [['noise', 3000, 200, 0.22, 0.09], ['square', 140, 50, 0.2, 0.05]],
+    slash:  [['noise', 2500, 700, 0.1, 0.07]],
+    gust:   [['noise', 500, 1600, 0.35, 0.06]],
+    heal:   [['sine', 523, 784, 0.18, 0.05], ['sine', 784, 1047, 0.25, 0.05]],
+    guard:  [['square', 300, 300, 0.06, 0.05], ['triangle', 1200, 900, 0.2, 0.05]],
+    die:    [['square', 300, 60, 0.16, 0.05]],
+    dieBig: [['noise', 600, 80, 0.5, 0.1], ['sawtooth', 200, 40, 0.5, 0.08]],
+    chest:  [['triangle', 392, 392, 0.08, 0.05], ['triangle', 523, 523, 0.08, 0.05], ['triangle', 784, 784, 0.2, 0.06]],
+    quest:  [['triangle', 659, 659, 0.1, 0.05], ['triangle', 880, 880, 0.1, 0.05], ['triangle', 1319, 1319, 0.25, 0.06]],
+    talk:   [['square', 420, 380, 0.035, 0.025]],
+    eat:    [['square', 200, 140, 0.06, 0.05], ['square', 220, 150, 0.06, 0.05]],
+    evolve: [['sine', 262, 523, 0.5, 0.07], ['sine', 392, 784, 0.5, 0.07], ['triangle', 1047, 1568, 0.6, 0.07]],
+    sleep:  [['sine', 660, 330, 0.5, 0.05], ['sine', 440, 220, 0.7, 0.05]],
+    warn:   [['square', 880, 880, 0.08, 0.05], ['square', 880, 880, 0.08, 0.05]],
+    summon: [['sawtooth', 80, 240, 0.4, 0.06]],
+    beam:   [['sawtooth', 300, 320, 0.5, 0.04]],
+    step:   [['noise', 300, 150, 0.04, 0.02]],
 };
+
+let noise = null;
+function noiseBuffer() {
+    if (noise) return noise;
+    noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+    const data = noise.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    return noise;
+}
 
 export function initAudio() {
     if (!ctx) {
@@ -45,14 +74,27 @@ export function play(name) {
     lastPlayed[name] = now;
     SOUNDS[name].forEach(([type, f0, f1, dur, vol], i) => {
         const t = now + i * 0.07;
-        const osc = ctx.createOscillator(), gain = ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(f0, t);
-        osc.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+        const gain = ctx.createGain();
         gain.gain.setValueAtTime(vol, t);
         gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-        osc.connect(gain).connect(ctx.destination);
-        osc.start(t);
-        osc.stop(t + dur + 0.02);
+        let src;
+        if (type === 'noise') {          // 잡음 + 움직이는 필터: 불, 폭발, 바람, 베기
+            src = ctx.createBufferSource();
+            src.buffer = noiseBuffer();
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(f0, t);
+            filter.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+            src.connect(filter).connect(gain);
+        } else {
+            src = ctx.createOscillator();
+            src.type = type;
+            src.frequency.setValueAtTime(f0, t);
+            src.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+            src.connect(gain);
+        }
+        gain.connect(ctx.destination);
+        src.start(t);
+        src.stop(t + dur + 0.02);
     });
 }

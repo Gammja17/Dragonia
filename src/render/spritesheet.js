@@ -40,7 +40,7 @@ export function buildSheet(desc, images) {
         anims[name] = { fps: a.fps || 8, loop: a.loop !== false, count };
     }
 
-    return { frames, anims, fw, fh, scale: desc.scale || 1, anchor: desc.anchor || { x: 0.5, y: 1 }, flying: !!desc.flying };
+    return { frames, anims, fw, fh, head: desc.head, scale: desc.scale || 1, anchor: desc.anchor || { x: 0.5, y: 1 }, flying: !!desc.flying };
 }
 
 /** 애니메이션 재생 상태. 엔티티마다 하나씩 */

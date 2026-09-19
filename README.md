@@ -20,15 +20,17 @@ src/
   world/            biomes, terrain(타일맵 생성/그리기), spawn(월드 생성/적 스폰)
   data/             dialogues(대사 트리), npcs(고정 NPC 정의), sprites(드래곤 시트), tiles(타일 좌표),
                     elements(브레스 속성/성장 단계/스킬), enemies(적·사냥꾼·보스), quests(퀘스트),
-                    npcTalk(마을 NPC 고유 대화·상점 목록)
-  entities/         Dragon, BabyDragon, Enemy, Human, Nest, Projectile(브레스/화살), Boss, Particle, Item, Prop
+                    npcTalk(마을 NPC·자식 대화, 상점 목록), skills(배우는 스킬 13종), story(수련·승급 시험·아침 장면)
+  entities/         Dragon, BabyDragon, Enemy, Human, Nest, Projectile(브레스/화살), Boss(보스별 기믹),
+                    Hazard(바닥 위험 지대: 보스 기믹·플레이어 스킬 공용), Particle, Item, Prop
   render/           assets(이미지 로더), spritesheet(애니메이션), tint(색상 교체), dragonSprites,
                     pixel(픽셀 스프라이트/빛 번짐/아이콘), vfx(일회성 효과), lighting(낮밤 조명),
                     palette(숲 타일을 다시 칠해 설원·화산·단풍·사막 지형 생성)
   systems/          combat(충돌), raid(습격), kids(자식 명부/유전), dialogue(대화 진행), status(상태 이상),
                     quests(퀘스트 진행), weather(날씨), save(localStorage 세이브),
                     npcActions(NPC별 상호작용: 대련·술래잡기·상점·축복·동료), relics(유물),
-                    events(밤 이벤트: 붉은 달·유성우), audio(WebAudio 효과음), kidActions(자식과의 대화·놀이·훈련)
+                    events(밤 이벤트: 붉은 달·유성우), audio(WebAudio 효과음), kidActions(자식과의 대화·놀이·훈련),
+                    skills(스킬 실행·스킬 수첩), story(스승 수련·잠·아침 장면 진행)
   ui/               hud, dialogueUI, kidsPanel, journal(모험 일지), customizer, toast
 ```
 

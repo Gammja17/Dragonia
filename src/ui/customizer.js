@@ -17,6 +17,7 @@ export function initCustomizer(onStart) {
         onStart({
             name: $('c-name').value.trim() || 'Player',
             species: $('c-type').value,
+            accessory: $('c-acc').value || null,
             colors: {
                 body: $('c-body').value,
                 wing: $('c-wing').value,

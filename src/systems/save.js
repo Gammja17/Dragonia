@@ -3,6 +3,7 @@ import { BabyDragon } from '../entities/BabyDragon.js';
 import { registerKid, setKidStage } from './kids.js';
 import { PROP_SPRITES } from '../data/tiles.js';
 import { bossRelic } from './relics.js';
+import { BOSS_SKILLS } from '../data/skills.js';
 
 // localStorage 세이브. 월드(지형·소품)는 시드 고정이라 저장하지 않는다. 떠돌이 NPC·적·아이템도 저장 안 함.
 const KEY = 'dragonia-save-v1';
@@ -26,10 +27,10 @@ export function saveGame() {
         v: 1,
         savedAt: Date.now(),
         player: {
-            config: { name: p.config.name, species: p.species, colors: p.colors },
+            config: { name: p.config.name, species: p.species, colors: p.colors, accessory: p.config.accessory || null },
             level: p.level, xp: p.xp, maxXp: p.maxXp, hp: p.hp, maxHp: p.maxHp, hunger: p.hunger,
             meat: p.inventory.meat, gold: p.gold, x: p.x, y: p.y,
-            stageIndex: p.stageIndex, elements: p.elements, element: p.element,
+            stageIndex: p.stageIndex, elements: p.elements, element: p.element, skills: p.skills, slots: p.slots,
         },
         gameTime: state.gameTime, dayTime: state.dayTime, day: state.day, raidTimer: state.raidTimer,
         elderTutorialDone: state.elderTutorialDone,
@@ -38,7 +39,7 @@ export function saveGame() {
         bossesDefeated: state.bossesDefeated,
         raidCount: state.raid.count, upgrades: state.upgrades, openedChests: state.openedChests, blessingDay: state.blessingDay,
         companion: state.companion ? state.companion.config.name : null,
-        relics: state.relics, stats: state.stats, event: state.event,
+        relics: state.relics, stats: state.stats, event: state.event, story: state.story,
         npcs: Object.fromEntries(state.entities.npcs.filter(n => n.config.fixed)
             .map(n => [n.config.name, { relation: n.relation, lastGiftDay: n.lastGiftDay ?? null, lastTalkDay: n.lastTalkDay ?? null, lastPresentDay: n.lastPresentDay ?? null, lastPlayDay: n.lastPlayDay ?? null }])),
         partner: state.partner ? state.partner.config.name : null,
@@ -60,6 +61,8 @@ export function applySave(data) {
         x: s.x, y: s.y, stageIndex: s.stageIndex, elements: s.elements, element: s.element,
     });
     p.inventory.meat = s.meat;
+    p.skills = s.skills || [];
+    p.slots = s.slots || { Q: null, F: null, R: null };
     p.gold = s.gold || 0;
 
     Object.assign(state, {
@@ -72,6 +75,7 @@ export function applySave(data) {
     state.openedChests = data.openedChests || {};
     state.blessingDay = data.blessingDay || 0;
     state.relics = data.relics || [];
+    state.story = data.story || { scenes: [], lessons: [], lessonDay: 0 };
     state.stats = data.stats || { kills: {} };
     state.event = data.event || null;
     // 유물이 생기기 전에 잡은 보스의 전리품도 챙겨 준다

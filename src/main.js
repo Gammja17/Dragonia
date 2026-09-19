@@ -103,9 +103,10 @@ function update(dt) {
     updateLighting(dt);
     updateEvents(dt, prevDayTime);
     updateWeather(dt);
+    if (state.rally > 0) state.rally -= dt;
 
     state.player.update(dt);
-    for (const group of [E.nests, E.babies, E.items, E.npcs, E.enemies, E.humans, E.bosses, E.bullets, E.effects, E.particles]) {
+    for (const group of [E.nests, E.babies, E.items, E.npcs, E.enemies, E.humans, E.bosses, E.hazards, E.bullets, E.effects, E.particles]) {
         for (const e of group) e.update(dt);
     }
 
@@ -124,6 +125,7 @@ function render() {
     ctx.save();
     ctx.translate(-Math.round(cam.x + cam.shakeX), -Math.round(cam.y + cam.shakeY)); // 정수 좌표: 픽셀아트가 떨리지 않게
     drawTerrain(ctx, cam);
+    for (const h of E.hazards) h.draw(ctx);   // 바닥 장판은 개체들 밑에
 
     // 화면 근처 것만 골라 y 좌표 순으로 그린다 (아래쪽 개체가 앞에 오도록)
     const drawables = [...E.props, ...E.nests, ...E.items, ...E.babies, ...E.npcs, ...E.enemies, ...E.humans, ...E.bosses, state.player]

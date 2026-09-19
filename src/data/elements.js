@@ -10,7 +10,6 @@ export const ELEMENTS = {
         hit: 'FIRE_HIT', trail: '#e67e22', sound: 'shoot',
         status: { type: 'BURN', duration: 3 },      // 초당 3 피해
         desc: '짧은 사거리의 세 갈래 불길. 맞은 적을 불태운다',
-        skill: { id: 'METEOR', name: '운석 낙하', cooldown: 7, hunger: 8 },
     },
     ICE: {
         name: '냉기', key: '2', color: '#7fd4ff', damage: 15, speed: 500, rate: 0.62, life: 1.5, pellets: 1, spread: 0, radius: 50, pierce: true,
@@ -18,7 +17,6 @@ export const ELEMENTS = {
         hit: 'ICE_HIT', trail: '#aee6ff', sound: 'ice',
         status: { type: 'SLOW', duration: 2.5 },     // 이동 속도 절반. 이미 느린 적에게 맞히면 1.2초 빙결
         desc: '적을 꿰뚫는 얼음창. 느리게 하고, 느려진 적은 얼린다',
-        skill: { id: 'FROST_NOVA', name: '빙결 파동', cooldown: 9, hunger: 8 },
     },
     THUNDER: {
         name: '번개', key: '3', color: '#ffe27a', damage: 4.5, speed: 900, rate: 0.15, life: 0.75, pellets: 1, spread: 0, radius: 40,
@@ -26,19 +24,13 @@ export const ELEMENTS = {
         hit: 'THUNDER_HIT', trail: '#fff2a8', sound: 'zap',
         chain: { count: 2, range: 230, damage: 3 }, // 근처 적에게 튄다
         desc: '쉴 새 없이 쏟아지는 번개. 근처 적에게 연쇄로 튄다',
-        skill: { id: 'STORM', name: '번개 폭풍', cooldown: 10, hunger: 10 },
     },
 };
 
 // 성장 단계. 레벨이 minLevel 에 닿으면 진화한다.
 export const STAGES = [
     { id: 'HATCHLING', name: '해츨링', minLevel: 1,  scale: 0.55, damage: 0.8, speed: 0.95 },
-    { id: 'JUVENILE',  name: '어린 용', minLevel: 4,  scale: 0.78, damage: 1.0, speed: 1.0,  unlock: '[Q] 속성 스킬' },
-    { id: 'ADULT',     name: '성체',   minLevel: 8,  scale: 1.0,  damage: 1.3, speed: 1.05, unlock: '[F] 포효, 짝 맺기' },
+    { id: 'JUVENILE',  name: '어린 용', minLevel: 4,  scale: 0.78, damage: 1.0, speed: 1.0,  unlock: '더 센 숨결' },
+    { id: 'ADULT',     name: '성체',   minLevel: 8,  scale: 1.0,  damage: 1.3, speed: 1.05, unlock: '짝 맺기' },
     { id: 'ELDER',     name: '고룡',   minLevel: 13, scale: 1.2,  damage: 1.7, speed: 1.1 },
 ];
-
-// Q 는 지금 고른 속성의 스킬(위 ELEMENTS[].skill), F 는 포효
-export const SKILL_STAGE = { Q: 1, F: 2 };
-export const ROAR = { name: '포효', cooldown: 10, hunger: 5 };
-export const FURY_TIME = 6; // 포효 뒤 분노(피해 +30%, 연사 +25%) 지속 시간

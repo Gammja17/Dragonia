@@ -114,18 +114,20 @@ body {
     white-space: nowrap; border: 1px solid #ffd700; display: none; z-index: 150;
 }
 
+#toast-box {
+    position: fixed; bottom: 150px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; z-index: 310;
+}
 .toast {
-    position: fixed; bottom: 20%; left: 50%; transform: translate(-50%);
-    background: rgba(0,0,0,0.8); color: #ffd700;
-    padding: 10px 20px; border-radius: 50px; font-weight: bold;
-    animation: toast-fade 3s forwards; pointer-events: none;
-    white-space: nowrap; z-index: 300;
+    background: rgba(12, 14, 26, 0.9); color: #ffe9a0; border: 1px solid #d8b25a; border-radius: 4px;
+    padding: 8px 16px; font-weight: 600; font-size: 0.88rem; font-family: 'Noto Sans KR', sans-serif;
+    animation: toast-fade 3.4s forwards; max-width: 80vw; text-align: center;
 }
 @keyframes toast-fade {
-    0%   { opacity: 0; transform: translate(-50%, 20px); }
-    10%  { opacity: 1; transform: translate(-50%, 0); }
-    80%  { opacity: 1; transform: translate(-50%, -10px); }
-    100% { opacity: 0; transform: translate(-50%, -30px); }
+    0%   { opacity: 0; transform: translateY(12px); }
+    8%   { opacity: 1; transform: translateY(0); }
+    85%  { opacity: 1; }
+    100% { opacity: 0; }
 }
 
 /* ---------- Customizer ---------- */
@@ -178,16 +180,16 @@ button.start-btn:hover { transform: scale(1.05); }
 }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-#d-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-#d-name { color: #f1c40f; font-size: 1.8rem; font-weight: bold; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
+#d-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+#d-name { color: #f1c40f; font-size: 1.35rem; font-weight: bold; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
 #d-text {
-    color: #ecf0f1; font-size: 1.2rem; line-height: 1.6; margin-bottom: 18px; min-height: 60px;
+    color: #ecf0f1; font-size: 1.08rem; line-height: 1.55; margin-bottom: 10px; min-height: 54px;
     text-shadow: 1px 1px 2px black; font-family: 'Noto Sans KR', sans-serif;
 }
-#d-options { display: flex; gap: 10px; flex-wrap: wrap; }
+#d-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 6px 10px; max-height: 17vh; overflow-y: auto; }
 .d-btn {
     background: rgba(255, 255, 255, 0.08); color: white; border: 1px solid rgba(255,255,255,0.3);
-    padding: 10px 20px; cursor: pointer; border-radius: 30px; font-size: 0.95rem;
+    padding: 7px 14px; cursor: pointer; border-radius: 4px; font-size: 0.9rem; text-align: left;
     transition: all 0.15s; font-family: 'Noto Sans KR', sans-serif;
 }
 .d-btn:hover {
@@ -328,3 +330,33 @@ button.start-btn:hover { transform: scale(1.05); }
 
 .slot { width: 62px; }
 .slot-name { font-size: 0.6rem; white-space: nowrap; }
+
+#fade-screen {
+    position: absolute; inset: 0; background: #05060c; opacity: 0; pointer-events: none; z-index: 300;
+    display: flex; align-items: center; justify-content: center; transition: opacity 0.9s ease;
+}
+#fade-screen.on { opacity: 1; pointer-events: auto; }
+#fade-text { color: #ffe9c4; font-family: 'Noto Sans KR', sans-serif; font-size: 1.6rem; letter-spacing: 4px; }
+.controls-hint { font-size: 0.72rem; }
+
+/* ---------- UI 정리: 도움말, 버프, HUD 간격 ---------- */
+.controls-hint { display: none; }
+#help-chip {
+    position: absolute; bottom: 18px; left: 22px; color: rgba(255,255,255,0.75); font-size: 0.75rem;
+    background: rgba(12,14,26,0.7); border: 1px solid rgba(216,178,90,0.5); border-radius: 4px; padding: 4px 10px; font-family: 'Noto Sans KR', sans-serif;
+}
+#help-panel {
+    position: absolute; bottom: 52px; left: 22px; width: 330px; display: none; z-index: 80;
+    background: rgba(10,12,24,0.94); color: #dfe4ec; padding: 12px 16px; font-size: 0.8rem; line-height: 1.9;
+    border: 2px solid #d8b25a; border-radius: 4px; font-family: 'Noto Sans KR', sans-serif;
+}
+#help-panel b { color: #ffd84a; display: inline-block; min-width: 86px; font-family: 'Fredoka', sans-serif; }
+#buff-row { display: flex; flex-wrap: wrap; gap: 4px; min-height: 0; margin-bottom: 8px; }
+.buff { font-size: 0.68rem; padding: 2px 7px; border-radius: 3px; background: rgba(255,216,74,0.16); border: 1px solid rgba(255,216,74,0.5); color: #ffe9a0; font-family: 'Noto Sans KR', sans-serif; }
+.buff.bad { background: rgba(127,212,255,0.14); border-color: rgba(127,212,255,0.5); color: #bfe9ff; }
+.hud-panel { width: 250px; }
+.hud-head { margin-bottom: 10px; padding-bottom: 8px; gap: 10px; }
+.stat-group { margin-bottom: 8px; }
+.hud-name { font-size: 1.05rem; }
+.hud-buttons { display: flex; gap: 6px; }
+.hud-buttons button { flex: 1; margin: 0; padding: 6px 0; font-size: 0.74rem; }

@@ -105,6 +105,14 @@ const ICONS = {
             '..oooo..',
         ],
     },
+    // ---- 머리 장신구 (용마다 개성을 주는 작은 표식) ----
+    CROWN:  { palette: { o: '#5a3a10', G: '#f2c230', g: '#c8921a', r: '#e0453a' }, rows: ['o.o.o.o', 'GoGoGoG', 'GGrGrGG', 'gGGGGGg', '.ooooo.'] },
+    PLUME:  { palette: { o: '#5a1210', R: '#e0453a', r: '#ff8a70' }, rows: ['...oo.', '..oRro', '.oRRo.', 'oRRo..', 'oRo...', '.o....'] },
+    FLOWER: { palette: { o: '#7a2a4a', P: '#ff8ab5', Y: '#ffd84a' }, rows: ['.oPo.', 'oPPPo', 'PPYPP', 'oPPPo', '.oPo.'] },
+    HELM:   { palette: { o: '#2a2f3a', S: '#aeb6c2', s: '#7d8694', h: '#e8eef5' }, rows: ['..ooo..', '.oShSo.', 'oSSSSSo', 'osssSso', 'o.o.o.o'] },
+    HAT:    { palette: { o: '#4a3418', Y: '#d8b25a', y: '#b08a3a' }, rows: ['....oo....', '...oYYo...', '..oYYYYo..', '.oyYYYYyo.', 'oyyyyyyyyo', '.oooooooo.'] },
+    LEAF:   { palette: { o: '#1f4a1a', G: '#5ac24a', g: '#3a8a2f' }, rows: ['...oo', '.oGGo', 'oGgGo', 'oGGo.', '.oo..'] },
+    SHELL:  { palette: { o: '#4a3f35', W: '#f4efe1', s: '#cfc4a8' }, rows: ['.o.o.o.', 'oWoWoWo', 'oWWWWWo', 'osWWWso', '.ooooo.'] },
     LOGS: {
         palette: { o: '#2a1a12', B: '#6b4226', b: '#8a5a34', e: '#c9a06a' },
         rows: [

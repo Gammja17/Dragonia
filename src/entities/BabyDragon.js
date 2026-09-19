@@ -7,7 +7,7 @@ import { dist, rand, pick, roundRect } from '../core/utils.js';
 import { setKidStage, addAffection, findKid } from '../systems/kids.js';
 import { showToast } from '../ui/toast.js';
 import { KID_TALK } from '../data/npcTalk.js';
-import { facingFromVector } from './Dragon.js';
+import { facingFromVector, drawAccessory } from './Dragon.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
 import { Animator, drawFrame } from '../render/spritesheet.js';
 
@@ -140,6 +140,7 @@ export class BabyDragon extends Entity {
         ctx.restore();
         const hover = this.sheet.flying ? Math.sin(state.gameTime * 3 + this.x) * 4 * s : 0;
         drawFrame(ctx, this.sheet, this.animator.frame(this.facing), this.x, this.y + hover, s);
+        if (this.stage === 'BABY') drawAccessory(ctx, this.sheet, 'SHELL', this.facing, this.x, this.y + hover, s * 1.6);
 
         // 이름표와 말풍선
         const kid = findKid(this);

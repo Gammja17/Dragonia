@@ -1,4 +1,4 @@
-// 드래곤 스프라이트 시트 정의. 출처/라이선스는 CREDITS.md 참고.
+// 드래곤 스프라이트 시트 정의. head: 방향별 머리 위치(프레임 크기에 대한 비율) — 장신구를 얹는 자리. 출처/라이선스는 CREDITS.md 참고.
 const D = 'assets/sprites/dragons/';
 
 export const DRAGON_SHEETS = {
@@ -13,6 +13,7 @@ export const DRAGON_SHEETS = {
             hit:    { row: 2, count: 4, fps: 12, loop: false },
             attack: { row: 3, count: 4, fps: 10, loop: false },
         },
+        head: { down: [0.48, 0.30], left: [0.28, 0.36], right: [0.72, 0.36], up: [0.5, 0.12] },
         scale: 0.72, anchor: { x: 0.45, y: 0.8 }, flying: true,
         zones: [
             { hue: 0, range: 30, refL: 0.35, target: 'body' },
@@ -31,6 +32,7 @@ export const DRAGON_SHEETS = {
             attack: { cols: [0, 2, 0], fps: 10, loop: false },
             hit:    { cols: [2, 1], fps: 10, loop: false },
         },
+        head: { down: [0.5, 0.36], left: [0.22, 0.42], right: [0.78, 0.42], up: [0.5, 0.2] },
         scale: 0.85, anchor: { x: 0.5, y: 0.85 }, flying: true,
         zones: [
             { hue: 0, range: 30, refL: 0.35, target: 'body' },
@@ -49,6 +51,7 @@ export const DRAGON_SHEETS = {
             attack: { cols: [0, 2, 0], fps: 10, loop: false },
             hit:    { cols: [2, 1], fps: 10, loop: false },
         },
+        head: { down: [0.5, 0.36], left: [0.22, 0.42], right: [0.78, 0.42], up: [0.5, 0.2] },
         scale: 0.9, anchor: { x: 0.5, y: 0.85 }, flying: true,
         zones: [
             { hue: 215, range: 35, refL: 0.35, target: 'body' },
@@ -67,6 +70,7 @@ export const DRAGON_SHEETS = {
             attack: { cols: [0, 2, 1], fps: 9, loop: false },
             hit:    { cols: [2, 1], fps: 10, loop: false },
         },
+        head: { down: [0.5, 0.06], left: [0.33, 0.06], right: [0.62, 0.06], up: [0.5, 0.06] },
         scale: 0.95, anchor: { x: 0.5, y: 0.95 }, flying: false,
         zones: [
             { hue: 120, range: 40, refL: 0.35, target: 'body' },
@@ -85,6 +89,7 @@ export const DRAGON_SHEETS = {
             attack: { cols: [0, 2, 1], fps: 9, loop: false },
             hit:    { cols: [2, 1], fps: 10, loop: false },
         },
+        head: { down: [0.5, 0.06], left: [0.33, 0.06], right: [0.62, 0.06], up: [0.5, 0.06] },
         scale: 1.1, anchor: { x: 0.5, y: 0.95 }, flying: false,
         zones: [],
     },

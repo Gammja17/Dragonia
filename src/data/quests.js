@@ -11,7 +11,7 @@ export const QUESTS = [
     },
     {
         id: 'm2', giver: 'Elder', requires: 'm1', title: '자라나는 날개',
-        offer: "용은 싸우고 먹으며 자란다. [어린 용]으로 자라서 다시 오너라. 그때가 되면 [Q]로 숨결의 큰 기술을 쓸 수 있을 게다.",
+        offer: "용은 싸우고 먹고 자면서 자란다. 레벨 4가 되면 스승 카이론에게 [승급 시험]을 청해 [어린 용]으로 자라서 오너라.",
         done: "날개가 제법 넓어졌구나! 이제 숲 깊은 곳도 다닐 만하겠어.",
         goal: { type: 'stage', index: 1 }, reward: { xp: 100, meat: 3 },
     },

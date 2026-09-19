@@ -7,7 +7,10 @@ import { isOnScreen } from '../core/camera.js';
 import { WORLD_SIZE, MAX_KIDS, PLAYER_SPAWN } from '../core/config.js';
 import { rand, dist, clamp, pick, roundRect } from '../core/utils.js';
 import { IDLE_LINES } from '../data/dialogues.js';
-import { ELEMENTS, STAGES, SKILL_STAGE, ROAR, FURY_TIME } from '../data/elements.js';
+import { ELEMENTS, STAGES } from '../data/elements.js';
+import { SKILL_SLOTS } from '../data/skills.js';
+import { useSlot, updateChannels, openSkillBook } from '../systems/skills.js';
+import { openNestMenu, pendingTrial } from '../systems/story.js';
 import { applyStatus } from '../systems/status.js';
 import { notify, questMarker } from '../systems/quests.js';
 import { weatherDamageMult } from '../systems/weather.js';
@@ -24,7 +27,7 @@ import { Animator, drawFrame } from '../render/spritesheet.js';
 import { drawIcon, drawGlow } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
 import { showToast } from '../ui/toast.js';
-import { setInteractTarget } from '../ui/hud.js';
+import { setInteractTarget, toggleHelp } from '../ui/hud.js';
 import { groundAt } from '../world/terrain.js';
 import { getBiome } from '../world/biomes.js';
 import { toggleKidsPanel } from '../ui/kidsPanel.js';
@@ -37,6 +40,14 @@ const AIM_RANGE = 560;       // 자동 조준: 이 거리 안, 바라보는 쪽 
 const AIM_CONE = 1.0;
 const DASH_TIME = 0.2, DASH_COOLDOWN = 1.0, DASH_MULT = 3.4;
 const MOUTH_OFFSET = 40; // 화염구가 생성되는 위치(발 기준점에서 바라보는 방향으로)
+
+/** 머리 위 장신구. accessory: render/pixel.js 의 아이콘 이름 */
+export function drawAccessory(ctx, sheet, accessory, facing, x, y, scale) {
+    if (!accessory || !sheet.head) return;
+    const s = sheet.scale * scale, [hx, hy] = sheet.head[facing];
+    const left = x - sheet.fw * s * sheet.anchor.x, top = y - sheet.fh * s * sheet.anchor.y;
+    drawIcon(ctx, accessory, left + sheet.fw * s * hx, top + sheet.fh * s * hy, Math.max(2, Math.round(3 * scale)));
+}
 
 /** 이동 벡터 → 4방향 */
 export function facingFromVector(dx, dy, fallback = 'down') {
@@ -54,7 +65,7 @@ export class Dragon extends Entity {
         this.species = config.species || 'WESTERN'; // WESTERN | WYVERN | HYDRA | BEHEMOTH | BONE
         this.colors = { ...config.colors };
 
-        this.level = 1; this.xp = 0; this.maxXp = 120;
+        this.level = 1; this.xp = 0; this.maxXp = 150;
         this.hp = 100; this.maxHp = 100; this.hunger = 100;
         this.angle = 0;         // 마지막 이동/조준 방향 (라디안)
         this.facing = 'down';   // 스프라이트 방향
@@ -66,13 +77,17 @@ export class Dragon extends Entity {
         this.stageIndex = 0;
         this.elements = ['FIRE'];
         this.element = 'FIRE';
-        this.cooldowns = { Q: 0, F: 0 };
+        this.skills = [];                       // 배운 스킬 id (data/skills.js)
+        this.slots = { Q: null, F: null, R: null }; // 장착한 스킬
+        this.cooldowns = {};                    // 스킬 id → 남은 대기 시간
+        this.channels = [];                     // 진행 중인 스킬 (systems/skills.js)
+        this.guard = 0;       // 강철 비늘 남은 시간
+        this.slowTimer = 0;   // 빙판·얼음에 느려진 시간
+        this.diveHeight = 0;  // 급강하 중 떠오른 높이
         this.fireTimer = 0;   // 다음 브레스까지
         this.dashTime = 0; this.dashCd = 0; this.dashDir = { x: 0, y: 0 };
         this.invuln = 0;      // 대시 중 무적 시간
         this.fury = 0;        // 포효 뒤 분노 시간
-        this.storm = null;    // 번개 폭풍 { time, tick }
-        this.meteors = [];    // 떨어지는 중인 운석 { x, y, t }
         this.atkTimer = 0;  // NPC 전투: 다음 사격까지
         this.downTimer = 0; // NPC 전투: 쓰러져 쉬는 시간
         if (!isPlayer && config.maxHp) this.hp = this.maxHp = config.maxHp;
@@ -100,7 +115,7 @@ export class Dragon extends Entity {
         while (this.xp >= this.maxXp) {   // 퀘스트 보상처럼 한 번에 여러 레벨이 오를 수 있다
             this.level++;
             this.xp -= this.maxXp;
-            this.maxXp = Math.floor(this.maxXp * 1.42);
+            this.maxXp = Math.floor(this.maxXp * 1.45);
             this.maxHp += 20;
         }
         this.hp = this.maxHp;
@@ -114,18 +129,21 @@ export class Dragon extends Entity {
 
     get stage() { return STAGES[this.stageIndex]; }
 
-    /** 레벨이 다음 성장 단계에 닿았으면 진화 */
+    /** 레벨이 다음 단계에 닿으면 스승의 승급 시험을 받을 수 있다 (systems/story.js). 자동으로 자라지는 않는다 */
     checkEvolution() {
-        let idx = this.stageIndex;
-        while (idx + 1 < STAGES.length && this.level >= STAGES[idx + 1].minLevel) idx++;
-        if (idx === this.stageIndex) return;
+        if (pendingTrial()) showToast('몸이 근질거린다… 스승 카이론에게 [승급 시험]을 청할 수 있습니다!', '🐲');
+    }
+
+    /** 승급 시험을 통과했을 때 */
+    evolve(idx) {
         this.stageIndex = idx;
-        this.maxHp += 30;
+        this.maxHp += 40;
         this.hp = this.maxHp;
-        const st = this.stage;
-        showToast(`진화! [${st.name}](이)가 되었습니다` + (st.unlock ? ` — ${st.unlock}` : ''), '🐲');
-        spawnEffect('RING', this.x, this.y - 40, { size: 2.2 });
+        showToast(`진화! [${this.stage.name}](이)가 되었습니다` + (this.stage.unlock ? ` — ${this.stage.unlock}` : ''), '🐲');
+        spawnEffect('SHOCKWAVE', this.x, this.y, { size: 3, color: '#ffe9a0' });
+        spawnEffect('RING', this.x, this.y - 40, { size: 2.6 });
         burst(this.x, this.y - 30, () => `hsl(${40 + Math.floor(Math.random() * 3) * 10},100%,65%)`, 1.4, 40);
+        shake(10); play('evolve');
         notify('stage', idx);
     }
 
@@ -138,13 +156,14 @@ export class Dragon extends Entity {
 
     takeDamage(dmg) {
         const a = state.activity;
-        if (a && a.type === 'SPAR' && a.npc === this) {   // 대련: 실제 체력 대신 기력이 깎인다
+        if (a && (a.type === 'SPAR' || a.type === 'DUEL') && a.npc === this) {   // 대련: 실제 체력 대신 기력이 깎인다
             a.hp -= dmg;
             if (this.animator) this.animator.play('hit');
             return;
         }
         if (!this.isPlayer && this.downTimer > 0) return;
         if (this.isPlayer && this.invuln > 0) return;
+        if (this.isPlayer && this.guard > 0) dmg *= 0.3;   // 강철 비늘
         this.hp -= dmg;
         burst(this.x, this.y - 40, '#e74c3c', 0.8, 5);
         if (this.isPlayer && dmg >= 3) { play('hurt'); shake(Math.min(10, 2 + dmg * 0.3)); }
@@ -212,16 +231,20 @@ export class Dragon extends Entity {
     updatePlayer(dt) {
         const { dx, dy } = input.axis();
         if (this.fishing) this.updateFishing(dt, dx || dy);
-        const baseSpeed = WALK_SPEED * this.stage.speed * (1 + 0.04 * (state.upgrades.spd || 0)) * (hasRelic('WIND_FEATHER') ? 1.08 : 1);
-        this.dashCd -= dt; this.invuln -= dt; this.fury -= dt;
+        this.dashCd -= dt; this.invuln -= dt; this.fury -= dt; this.guard -= dt; this.slowTimer -= dt;
+        const baseSpeed = WALK_SPEED * this.stage.speed * (1 + 0.04 * (state.upgrades.spd || 0)) * (hasRelic('WIND_FEATHER') ? 1.08 : 1) * (this.slowTimer > 0 ? 0.55 : 1);
+        const locked = this.channels.some(c => c.lock);   // 급강하 중엔 조작 불가
         // Shift 를 탁 누르면 대시(잠깐 무적), 계속 누르고 있으면 달리기
-        if (input.pressed('sprint') && (dx || dy) && this.dashCd <= 0) {
+        if (locked) { /* 스킬이 몸을 움직이는 중 */ }
+        else if (input.pressed('sprint') && (dx || dy) && this.dashCd <= 0) {
             const len = Math.hypot(dx, dy);
             this.dashDir = { x: dx / len, y: dy / len };
             this.dashTime = DASH_TIME; this.dashCd = DASH_COOLDOWN; this.invuln = DASH_TIME + 0.12;
             play('dash');
+            spawnEffect('PUFF', this.x, this.y - 6);
         }
-        if (this.dashTime > 0) {
+        if (locked) { /* no-op */ }
+        else if (this.dashTime > 0) {
             this.dashTime -= dt;
             this.moveBy(this.dashDir.x, this.dashDir.y, baseSpeed * DASH_MULT, dt);
             burst(this.x, this.y - 30 * this.stage.scale, this.colors.body, 0.35);
@@ -236,23 +259,27 @@ export class Dragon extends Entity {
 
         const nearNpc = state.entities.npcs.find(n => dist(this, n) < INTERACT_RANGE) || null;
         const nearKid = nearNpc ? null : state.entities.babies.find(b => dist(this, b) < 120) || null;
-        setInteractTarget(nearNpc || nearKid);
+        const nestNear = !nearNpc && !nearKid && state.entities.nests[0] && dist(this, state.entities.nests[0]) < 110 ? state.entities.nests[0] : null;
+        setInteractTarget(nearNpc || nearKid || nestNear, nestNear ? 'T 둥지에서 쉬기' : nearKid ? 'T 아이와 대화' : 'T 대화 · L 플러팅');
         if (input.pressed('talk') && nearKid) openKidHub(nearKid);
+        const nest = state.entities.nests[0];
+        if (input.pressed('talk') && !nearNpc && !nearKid && nest && dist(this, nest) < 110) openNestMenu();
 
         for (const k in this.cooldowns) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt);
+        updateChannels(this, dt);
         ['FIRE', 'ICE', 'THUNDER'].forEach((el, i) => {
             if (input.pressed('num' + (i + 1)) && this.elements.includes(el)) this.element = el;
         });
 
         this.fireTimer -= dt;
         if (input.down('attack') && this.fireTimer <= 0) this.attack();   // 꾹 누르고 있으면 연사
-        if (input.pressed('nova')) this.useElementSkill();
-        if (input.pressed('roar')) this.useRoar();
-        this.updateSkills(dt);
+        for (const slot of SKILL_SLOTS) if (input.pressed('skill' + slot)) useSlot(this, slot);
+        if (input.pressed('skillbook')) openSkillBook();
         if (input.pressed('interact')) this.interact();
         if (input.pressed('talk') && nearNpc) startDialogue(nearNpc, 'TALK');
         if (input.pressed('flirt') && nearNpc) startDialogue(nearNpc, 'FLIRT');
         if (input.pressed('kids')) toggleKidsPanel();
+        if (input.pressed('help')) toggleHelp();
         if (input.pressed('journal')) toggleJournal();
         if (input.pressed('mute')) showToast(toggleMute() ? '효과음 끔' : '효과음 켬', '🔊');
     }
@@ -261,7 +288,7 @@ export class Dragon extends Entity {
     aimAngle() {
         const E = state.entities;
         const foes = [...E.enemies, ...E.humans, ...E.bosses];
-        if (state.activity && state.activity.type === 'SPAR') foes.push(state.activity.npc);
+        if (state.activity && (state.activity.type === 'SPAR' || state.activity.type === 'DUEL')) foes.push(state.activity.npc);
         let best = null, bestD = AIM_RANGE;
         for (const e of foes) {
             if (e.awake === false) continue;
@@ -289,6 +316,8 @@ export class Dragon extends Entity {
         const { angle } = this.aimAngle();
         this.facing = facingFromVector(Math.cos(angle), Math.sin(angle), this.facing);
         for (let i = 0; i < el.pellets; i++) this.breathe(angle + (i - (el.pellets - 1) / 2) * el.spread);
+        const sc = this.stage.scale;
+        spawnEffect('MUZZLE', this.x + Math.cos(angle) * 50 * sc, this.y - 40 * sc + Math.sin(angle) * 50 * sc, { angle: angle + Math.PI / 2, size: 0.5 + sc * 0.3, color: el.color });
         play(el.sound);
     }
 
@@ -299,98 +328,6 @@ export class Dragon extends Entity {
         const my = this.y - 40 * sc + Math.sin(angle) * MOUTH_OFFSET * sc;
         const damage = ELEMENTS[this.element].damage * this.damageMult * weatherDamageMult(this.element) * damageMult;
         addBullet(new Projectile(mx, my, angle, { faction: 'ALLY', element: this.element, damage, scale: 0.7 + sc * 0.3 }));
-    }
-
-    skillReady(key, def) {
-        if (this.stageIndex < SKILL_STAGE[key]) { showToast(`[${def.name}]은(는) ${STAGES[SKILL_STAGE[key]].name}부터 쓸 수 있어요.`, '🔒'); return false; }
-        if (this.cooldowns[key] > 0) return false;
-        if (this.hunger < def.hunger + 5) { showToast("배가 너무 고파요!", "😫"); return false; }
-        this.hunger -= def.hunger;
-        this.cooldowns[key] = def.cooldown * (hasRelic('GLACIA_TEAR') ? 0.75 : 1);
-        if (this.animator) this.animator.play('attack');
-        return true;
-    }
-
-    /** Q: 속성마다 다른 스킬 */
-    useElementSkill() {
-        const skill = ELEMENTS[this.element].skill;
-        if (!this.skillReady('Q', skill)) return;
-        const E = state.entities;
-        if (skill.id === 'METEOR') {            // 화염: 겨눈 자리에 운석. 떨어지기까지 0.6초
-            const { angle, target } = this.aimAngle();
-            const x = target ? target.x : this.x + Math.cos(angle) * 300, y = target ? target.y : this.y + Math.sin(angle) * 300;
-            this.meteors.push({ x, y, t: 0 });
-            play('roar');
-        } else if (skill.id === 'FROST_NOVA') { // 냉기: 주변을 통째로 얼린다
-            for (const e of [...E.enemies, ...E.humans, ...E.bosses]) {
-                if (dist(this, e) > 340 || e.awake === false) continue;
-                e.takeDamage(22 * this.damageMult);
-                applyStatus(e, 'STUN', 2.5);
-                applyStatus(e, 'SLOW', 5);
-                spawnEffect('ICE_HIT', e.x, e.y - 20, { size: 1.3 });
-            }
-            spawnEffect('RING', this.x, this.y - 40, { size: 3.2 });
-            burst(this.x, this.y - 40, '#aee6ff', 1, 40);
-            play('ice');
-        } else {                                // 번개: 3초 동안 주변 적에게 벼락이 쏟아진다
-            this.storm = { time: 3, tick: 0 };
-            play('zap');
-        }
-    }
-
-    /** F: 포효 — 주변 적을 밀치고 기절시키며, 잠시 분노 상태가 된다 */
-    useRoar() {
-        if (!this.skillReady('F', ROAR)) return;
-        const E = state.entities;
-        for (const e of [...E.enemies, ...E.humans, ...E.bosses]) {
-            const d = dist(this, e);
-            if (d > 340) continue;
-            e.takeDamage(15 * this.damageMult);
-            applyStatus(e, 'STUN', 1.8);
-            if (!e.statusImmune) { e.x += ((e.x - this.x) / (d || 1)) * 90; e.y += ((e.y - this.y) / (d || 1)) * 90; }
-        }
-        this.fury = FURY_TIME;
-        spawnEffect('RING', this.x, this.y - 40, { size: 3 });
-        burst(this.x, this.y - 40, '#fff2a8', 0.9, 30);
-        shake(8);
-        play('roar');
-    }
-
-    /** 진행 중인 스킬(운석, 번개 폭풍) */
-    updateSkills(dt) {
-        const E = state.entities;
-        for (const m of this.meteors) {
-            m.t += dt;
-            if (m.t < 0.6) continue;
-            for (const e of [...E.enemies, ...E.humans, ...E.bosses]) {
-                if (dist(m, e) > 180 || e.awake === false) continue;
-                e.takeDamage(48 * this.damageMult * weatherDamageMult('FIRE'));
-                applyStatus(e, 'BURN', 4);
-            }
-            spawnEffect('FIRE_HIT', m.x, m.y, { angle: -Math.PI / 2, size: 2.6 });
-            spawnEffect('RING', m.x, m.y, { size: 1.8 });
-            burst(m.x, m.y, '#ff9a3c', 1, 30);
-            shake(12);
-            play('crit');
-        }
-        this.meteors = this.meteors.filter(m => m.t < 0.6);
-
-        if (this.storm) {
-            const st = this.storm;
-            st.time -= dt; st.tick -= dt;
-            if (st.tick <= 0) {
-                st.tick = 0.18;
-                const foes = [...E.enemies, ...E.humans, ...E.bosses].filter(e => e.awake !== false && dist(this, e) < 480);
-                if (foes.length) {
-                    const e = pick(foes);
-                    spawnBolt(e.x + rand(-40, 40), e.y - 420, e.x, e.y - 16);
-                    spawnEffect('THUNDER_HIT', e.x, e.y - 16);
-                    e.takeDamage(12 * this.damageMult * weatherDamageMult('THUNDER'));
-                    play('zap');
-                }
-            }
-            if (st.time <= 0) this.storm = null;
-        }
     }
 
     /** 가까운 물 타일의 좌표 (없으면 null) */
@@ -455,6 +392,7 @@ export class Dragon extends Entity {
                 this.hunger += 40;
                 this.hp = Math.min(this.maxHp, this.hp + 30);
                 showToast("고기를 먹었습니다.", "😋");
+                play('eat');
                 return;
             }
             const baby = E.babies.find(b => dist(this, b) < 80);
@@ -538,7 +476,7 @@ export class Dragon extends Entity {
         if (this.atkTimer <= 0 && best < 400) {
             const element = this.config.element || 'FIRE';
             const aim = Math.atan2(foe.y - 20 - (this.y - 40), foe.x - this.x);
-            addBullet(new Projectile(this.x, this.y - 40, aim, { faction: 'ALLY', element, damage: this.config.power || 8 }));
+            addBullet(new Projectile(this.x, this.y - 40, aim, { faction: 'ALLY', element, damage: (this.config.power || 8) * (state.rally > 0 ? 1.5 : 1) }));
             if (this.animator) this.animator.play('attack');
             this.atkTimer = 1.25;
             const talk = NPC_TALK[this.config.name];
@@ -585,28 +523,21 @@ export class Dragon extends Entity {
     // ---------- 드로잉 ----------
     draw(ctx) {
         if (!isOnScreen(this)) return;
-        for (const m of this.meteors) {         // 운석 낙하 예고
-            ctx.save();
-            ctx.globalAlpha = 0.25 + m.t * 0.6;
-            ctx.strokeStyle = '#ff6a2a'; ctx.lineWidth = 4;
-            ctx.beginPath(); ctx.ellipse(m.x, m.y, 180, 180 * 0.55, 0, 0, Math.PI * 2); ctx.stroke();
-            ctx.fillStyle = 'rgba(255,106,42,0.18)'; ctx.fill();
-            ctx.restore();
-            drawGlow(ctx, m.x + (0.6 - m.t) * 300, m.y - (0.6 - m.t) * 900, 50, '#ffb060', 1);
-        }
         if (this.fury > 0) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 90, '#ff5a3c', 0.35 + Math.sin(state.gameTime * 12) * 0.1);
-        if (this.storm) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 110, '#ffe27a', 0.3);
+        if (this.guard > 0) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 100, '#cfd8e6', 0.45);
+        if (this.channels.some(c => c.id === 'STORM')) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 110, '#ffe27a', 0.3);
         ctx.save();
         ctx.translate(this.x, this.y);
-        const sc = this.isPlayer ? this.stage.scale : 0.92;
+        const sc = this.isPlayer ? this.stage.scale : 0.92 * (this.config.scale || 1);
         this.drawShadow(ctx, (this.sheet && !this.sheet.flying ? 26 : 34) * sc);
         ctx.restore();
 
         if (this.animator) {
             const f = this.animator.frame(this.facing);
             if (this.downTimer > 0) ctx.globalAlpha = 0.55;
-            drawFrame(ctx, this.sheet, f, this.x, this.y + (this.downTimer > 0 ? 18 : this.hoverY), sc);
+            drawFrame(ctx, this.sheet, f, this.x, this.y + (this.downTimer > 0 ? 18 : this.hoverY) - this.diveHeight, sc);
             ctx.globalAlpha = 1;
+            drawAccessory(ctx, this.sheet, this.config.accessory, this.facing, this.x, this.y + this.hoverY - this.diveHeight, sc);
         } else {
             // 시트 로딩 전 임시 표시
             ctx.fillStyle = this.colors.body;

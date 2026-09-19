@@ -51,7 +51,7 @@ export function toggleJournal() {
 
     const names = { ...ENEMIES, HUNTER: { name: '사냥꾼' } };
     body.appendChild(section('도감', [
-        ...Object.keys(names).map(id => kills[id] ? [names[id].name, `${kills[id]}마리`] : ['???', '아직 만나지 못함', true]),
+        ...Object.keys(names).filter(id => !names[id].noLoot).map(id => kills[id] ? [names[id].name, `${kills[id]}마리`] : ['???', '아직 만나지 못함', true]),
         ...Object.entries(BOSSES).map(([id, b]) => state.bossesDefeated[id] ? [b.name, '처치'] : ['???', b.title, true]),
     ]));
     panel.style.display = 'flex';

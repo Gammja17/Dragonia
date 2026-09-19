@@ -5,6 +5,21 @@ import { play } from '../systems/audio.js';
 const $ = (id) => document.getElementById(id);
 
 let selected = 0;
+let typer = null;
+
+/** 대사를 한 글자씩 찍는다. 다시 호출되면 이전 것은 멈춘다 */
+function typeText(text) {
+    clearInterval(typer);
+    const el = $('d-text');
+    let i = 0;
+    el.textContent = '';
+    typer = setInterval(() => {
+        i += 2;
+        el.textContent = text.slice(0, i);
+        if (i % 6 === 0) play('talk');
+        if (i >= text.length) clearInterval(typer);
+    }, 16);
+}
 
 function highlight() {
     [...$('d-options').children].forEach((b, i) => b.classList.toggle('selected', i === selected));
@@ -16,7 +31,7 @@ export const dialogueUI = {
         drawPortrait($('d-portrait'), sheet);
         $('dialogue-overlay').style.display = 'flex';
         $('d-name').textContent = name;
-        $('d-text').textContent = text;
+        typeText(text);
         const box = $('d-options');
         box.innerHTML = '';
         const list = options.length ? options : [{ label: '닫기', onSelect: onClose }];

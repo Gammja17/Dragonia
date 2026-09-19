@@ -3,7 +3,7 @@ import { worldToScreen } from '../core/camera.js';
 import { WORLD_SIZE, NEST_POS } from '../core/config.js';
 import { BIOMES, getBiome } from '../world/biomes.js';
 import { getMinimapBase } from '../world/terrain.js';
-import { ELEMENTS, SKILL_STAGE, ROAR } from '../data/elements.js';
+import { SKILLS } from '../data/skills.js';
 import { toggleKidsPanel } from './kidsPanel.js';
 import { dayPhaseName } from '../render/lighting.js';
 import { drawPortrait } from '../render/spritesheet.js';
@@ -44,6 +44,7 @@ export function initHud() {
 export function showGameUI() {
     el.customizer.style.display = 'none';
     el.layer.style.display = 'block';
+    $('help-chip').style.display = 'block';
     drawPortrait($('ui-portrait'), state.player.sheet);
     minimapBase = getMinimapBase(el.minimap.width);
     refreshQuestTracker();
@@ -74,13 +75,31 @@ export function updateHud() {
         slot.classList.toggle('active', p.element === id);
     }
     for (const slot of el.skillSlots) {
-        const key = slot.dataset.skill;   // 'Q' | 'F'
-        const def = key === 'Q' ? ELEMENTS[p.element].skill : ROAR;
-        slot.classList.toggle('locked', p.stageIndex < SKILL_STAGE[key]);
-        slot.querySelector('.slot-name').textContent = def.name;
-        slot.lastElementChild.style.height = Math.min(100, (p.cooldowns[key] / def.cooldown) * 100) + '%';
+        const id = p.slots[slot.dataset.skill];   // 그 칸에 장착한 스킬
+        slot.classList.toggle('locked', !id);
+        slot.querySelector('.slot-name').textContent = id ? SKILLS[id].name : '비어 있음';
+        slot.lastElementChild.style.height = id ? Math.min(100, ((p.cooldowns[id] || 0) / SKILLS[id].cooldown) * 100) + '%' : '0';
+    }
+    // 걸려 있는 효과들
+    const buffs = [];
+    if (p.fury > 0) buffs.push(['분노', false]);
+    if (p.guard > 0) buffs.push(['강철 비늘', false]);
+    if (state.rally > 0) buffs.push(['용의 함성', false]);
+    if (state.blessingDay === state.day) buffs.push(['엘더의 축복', false]);
+    if (p.slowTimer > 0) buffs.push(['둔화', true]);
+    if (p.hunger < 10) buffs.push(['굶주림', true]);
+    const row = $('buff-row'), key = buffs.map(b => b[0]).join();
+    if (row.dataset.key !== key) {
+        row.dataset.key = key;
+        row.innerHTML = '';
+        for (const [name, bad] of buffs) { const s = document.createElement('span'); s.className = 'buff' + (bad ? ' bad' : ''); s.textContent = name; row.appendChild(s); }
     }
     drawMinimap();
+}
+
+export function toggleHelp() {
+    const panel = $('help-panel');
+    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
 }
 
 function drawMinimap() {
@@ -121,8 +140,9 @@ export function setBossBar(name, ratio = 0) {
 }
 
 /** 근처 NPC 머리 위에 '말 걸기' 안내를 띄운다. 예전엔 화면 절반만큼 어긋난 위치에 떴다. */
-export function setInteractTarget(npc) {
+export function setInteractTarget(npc, text = 'T 대화') {
     if (!npc) { el.tip.style.display = 'none'; return; }
+    el.tip.textContent = text;
     const s = worldToScreen(npc.x, npc.y);
     el.tip.style.left = s.x + 'px';
     el.tip.style.top = (s.y - 60) + 'px';
@@ -133,4 +153,20 @@ export function showRaidWarning(text) {
     el.raid.textContent = text;
     el.raid.style.display = 'block';
     setTimeout(() => { el.raid.style.display = 'none'; }, 3500);
+}
+
+/** 화면을 어둡게 했다가(가운데 글자) 다시 밝힌다. mid: 완전히 어두워졌을 때, done: 다시 밝아진 뒤 */
+export function fadeScreen(text, mid, done) {
+    const el2 = $('fade-screen');
+    $('fade-text').textContent = text;
+    el2.classList.add('on');
+    state.isDialogueOpen = true;   // 자는 동안 게임을 멈춘다
+    setTimeout(() => {
+        mid();
+        setTimeout(() => {
+            el2.classList.remove('on');
+            state.isDialogueOpen = false;
+            setTimeout(done, 900);
+        }, 1300);
+    }, 1000);
 }

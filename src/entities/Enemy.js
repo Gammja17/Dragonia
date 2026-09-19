@@ -10,6 +10,7 @@ import { drawPixelSprite, whiteCopy, drawGlow } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
 import { updateStatus, statusTint } from '../systems/status.js';
 import { notify } from '../systems/quests.js';
+import { play } from '../systems/audio.js';
 import { Projectile, addBullet } from './Projectile.js';
 import { xpMult } from '../systems/events.js';
 import { grantRelic, randomRelic } from '../systems/relics.js';
@@ -37,6 +38,7 @@ export class Enemy extends Entity {
         if (this.remove) return;
         const player = state.player;
         const d = dist(this, player);
+        if (this.def.move === 'none') return;   // 수련용 허수아비
         if (this.def.move === 'flee') {          // 사냥감: 가까이 오면 달아나고, 아니면 어슬렁거린다
             if (d < 300) this.angle = Math.atan2(this.y - player.y, this.x - player.x) + Math.sin(state.gameTime * 3 + this.phase) * 0.6;
             else if (Math.random() < dt * 0.5) this.angle = Math.random() * 6.28;
@@ -77,12 +79,14 @@ export class Enemy extends Entity {
     }
     die() {
         this.remove = true;
+        if (this.def.noLoot) { spawnEffect('PUFF', this.x, this.y - 16); play('die'); return; }
         const bonus = this.elite ? 3 : 1;
         state.player.gainXp(this.def.xp * bonus * xpMult());
         state.stats.kills[this.type] = (state.stats.kills[this.type] || 0) + 1;
         if (this.elite && Math.random() < 0.3) { const id = randomRelic(); if (id) grantRelic(id, this.x, this.y); }
         burst(this.x, this.y, this.def.color, 0.8, 8);
-        spawnEffect('SMOKE', this.x, this.y - 16);
+        spawnEffect(this.def.flying ? 'PUFF' : 'SMOKE', this.x, this.y - 16, { size: this.elite ? 1.8 : 1 });
+        play(this.elite ? 'dieBig' : 'die');
         const meat = this.def.meat ?? (Math.random() < 0.45 ? 1 : 0);
         for (let i = 0; i < meat; i++) state.entities.items.push(new Item(this.x + i * 22, this.y, 'MEAT'));
         if (Math.random() < 0.7) state.entities.items.push(new Item(this.x - 16, this.y, 'GOLD', Math.max(2, Math.round(this.def.xp / 7)) * bonus));

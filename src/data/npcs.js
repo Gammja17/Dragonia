@@ -2,27 +2,33 @@
 export const FIXED_NPCS = [
     {
         name: 'Elder', personality: 'WISE', role: 'ELDER', canPartner: false,
-        species: 'HYDRA', colors: { body: '#7d4fb3', belly: '#af7ac5', wing: '#d4a017' }, element: 'ICE', maxHp: 420, power: 14,
+        species: 'HYDRA', accessory: 'CROWN', scale: 1.1, colors: { body: '#7d4fb3', belly: '#af7ac5', wing: '#d4a017' }, element: 'ICE', maxHp: 420, power: 14,
         x: 1200, y: 1200,
     },
     {
         name: 'Tiamat', personality: 'BRAVE', canPartner: true,
-        species: 'WYVERN', colors: { body: '#2f6fb5', belly: '#3498db', wing: '#c9c9c9' }, element: 'THUNDER', maxHp: 300, power: 12,
+        species: 'WYVERN', accessory: 'PLUME', colors: { body: '#2f6fb5', belly: '#3498db', wing: '#c9c9c9' }, element: 'THUNDER', maxHp: 300, power: 12,
         x: 1300, y: 1250,
     },
     {
         name: 'Poco', personality: 'PLAYFUL', canPartner: true,
-        species: 'WESTERN', colors: { body: '#e67e22', belly: '#f1c40f', wing: '#f7d354' }, element: 'FIRE', maxHp: 220, power: 8,
+        species: 'WESTERN', accessory: 'FLOWER', scale: 0.8, colors: { body: '#e67e22', belly: '#f1c40f', wing: '#f7d354' }, element: 'FIRE', maxHp: 220, power: 8,
         x: 1200, y: 1300,
     },
     {
         name: 'Gron', personality: 'GRUMPY', canPartner: false,
-        species: 'BEHEMOTH', colors: { body: '#6f7d7d', belly: '#95a5a6', wing: '#b08d57' }, element: 'FIRE', maxHp: 380, power: 10,
+        species: 'BEHEMOTH', accessory: 'HELM', colors: { body: '#6f7d7d', belly: '#95a5a6', wing: '#b08d57' }, element: 'FIRE', maxHp: 380, power: 10,
         x: 1100, y: 1220,
+    },
+    {
+        name: 'Kairon', personality: 'WISE', role: 'MASTER', canPartner: false,
+        species: 'BEHEMOTH', accessory: 'HAT', colors: { body: '#8a2f2a', belly: '#d8a24a', wing: '#3a2a2a' }, element: 'FIRE', maxHp: 600, power: 16, scale: 1.18,
+        x: 1500, y: 1250,
     },
 ];
 
 export const WANDER_NAMES = ['Nara', 'Kirin', 'Raze', 'Mira', 'Dusk', 'Iro', 'Sora', 'Flint'];
+export const WANDER_ACCESSORIES = [null, null, 'LEAF', 'FLOWER', 'PLUME'];
 export const WANDER_PERSONALITIES = ['WISE', 'BRAVE', 'PLAYFUL', 'GRUMPY'];
 export const WANDER_SPECIES = ['WESTERN', 'WYVERN', 'HYDRA', 'BEHEMOTH'];
 

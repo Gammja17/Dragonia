@@ -53,7 +53,7 @@ export function updateLighting(dt) {
 function collectLights() {
     const E = state.entities;
     const out = [];
-    for (const group of [E.props, E.nests, E.npcs, E.babies, E.enemies, E.bosses, E.bullets, E.effects, [state.player]]) {
+    for (const group of [E.props, E.nests, E.npcs, E.babies, E.enemies, E.bosses, E.hazards, E.bullets, E.effects, [state.player]]) {
         for (const e of group) {
             const l = e.light;
             if (l) out.push({ x: e.x, y: e.y + (l.dy || 0), r: l.r, color: l.color, intensity: l.intensity ?? 1, emissive: !!l.emissive });

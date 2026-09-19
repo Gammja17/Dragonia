@@ -30,7 +30,11 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 | `thunder.png`, `thunder_hit.png` | "Thunder Spell Effect 01" by pimen | https://pimen.itch.io/ |
 | `smoke.png` | "Smoke n Dust 01" by pimen | https://pimen.itch.io/ |
 | `campfire.png` | "Animated Fire" by BenHickling (CC0) | OpenGameArt |
-| `star.png`, `ring.png` | "Particle Pack" by Kenney (CC0) | https://kenney.nl/assets/particle-pack |
+| `flames.png` | "Fire Spell Effect 01" by pimen | https://pimen.itch.io/ |
+| `ice_spike.png` | "Ice Spell Effect 01" by pimen | https://pimen.itch.io/ |
+| `thunder_ball.png` | "Thunder Spell Effect 01" by pimen | https://pimen.itch.io/ |
+| `puff.png` | "Smoke n Dust 01" by pimen | https://pimen.itch.io/ |
+| `star.png`, `ring.png`, `slash.png`, `scorch.png`, `twirl.png`, `spark.png`, `muzzle.png`, `dirt.png`, `flare.png`, `circle_magic.png`, `shockwave.png`, `heart.png`, `aura.png` | "Particle Pack" by Kenney (CC0) | https://kenney.nl/assets/particle-pack |
 
 ## UI (`assets/ui/`)
 
@@ -38,7 +42,7 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 |---|---|---|
 | `frame.png` (금색으로 재채색) | "Fantasy UI Borders" by Kenney (CC0) | https://kenney.nl/assets/fantasy-ui-borders |
 
-고기·알·장작 아이콘은 코드로 직접 찍은 픽셀이다(`src/render/pixel.js`).
+고기·알·동전·장작·머리 장신구 아이콘은 코드로 직접 찍은 픽셀이다(`src/render/pixel.js`).
 
 ## 라이선스 전문
 - CC BY 3.0: https://creativecommons.org/licenses/by/3.0/

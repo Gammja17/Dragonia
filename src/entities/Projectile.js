@@ -36,12 +36,21 @@ export class Projectile extends Entity {
         this.radius = opts.radius ?? el.radius ?? 40;   // 맞는 범위
         this.pierce = (opts.pierce ?? el.pierce) && this.faction === 'ALLY'; // 관통: 같은 적은 한 번만 맞는다
         this.hitSet = new Set();
+        this.homing = opts.homing || 0;   // 초당 꺾을 수 있는 각도(rad). 플레이어를 따라온다
+        this.speed = speed;
         this.t = 0;
     }
     get light() {
         return this.kind === 'BREATH' ? { r: 170 * this.scale, color: ELEMENTS[this.element].color, emissive: true } : null;
     }
     update(dt) {
+        if (this.homing) {
+            const p = state.player;
+            let da = Math.atan2(p.y - 30 - this.y, p.x - this.x) - this.angle;
+            da = Math.atan2(Math.sin(da), Math.cos(da));
+            this.angle += Math.max(-this.homing * dt, Math.min(this.homing * dt, da));
+            this.vx = Math.cos(this.angle) * this.speed; this.vy = Math.sin(this.angle) * this.speed;
+        }
         this.x += this.vx * dt;
         this.y += this.vy * dt;
         this.life -= dt;
@@ -61,6 +70,7 @@ export class Projectile extends Entity {
         play(crit ? 'crit' : 'hit');
         const dmg = this.damage * (crit ? (hasRelic('BASIL_FANG') ? 3 : 2) : 1);
         target.takeDamage(dmg);
+        spawnEffect(crit ? 'CRIT_FLASH' : 'HIT_SPARK', target.x, target.y - 24, { size: crit ? 1 : 0.8, color: crit ? null : el.color });
         spawnText(target.x, target.y - 50, crit ? `${Math.round(dmg)}!` : `${Math.round(dmg)}`, crit ? '#ffd84a' : '#fff', crit ? 22 : 15);
         if (this.kind !== 'BREATH') return;
         if (el.status) {
