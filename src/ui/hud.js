@@ -1,21 +1,31 @@
 import { state } from '../core/state.js';
 import { worldToScreen } from '../core/camera.js';
+import { WORLD_SIZE, NEST_POS } from '../core/config.js';
 import { BIOMES, getBiome } from '../world/biomes.js';
+import { getMinimapBase } from '../world/terrain.js';
+import { SKILLS } from '../data/elements.js';
 import { toggleKidsPanel } from './kidsPanel.js';
 import { dayPhaseName } from '../render/lighting.js';
 import { drawPortrait } from '../render/spritesheet.js';
+import { weatherName } from '../systems/weather.js';
+import { questLines, setQuestListener } from '../systems/quests.js';
 
 const $ = (id) => document.getElementById(id);
 let el = {};
+let minimapBase = null;
 
 export function initHud() {
     el = {
         layer: $('ui-layer'), customizer: $('customizer'),
         panel: $('hud-panel'), showBtn: $('hud-show-btn'),
-        name: $('ui-name'), lvl: $('ui-lvl'), partner: $('ui-partner'),
+        name: $('ui-name'), lvl: $('ui-lvl'), stage: $('ui-stage'), partner: $('ui-partner'),
         xpText: $('ui-xp-text'), hpText: $('ui-hp-text'), meat: $('ui-meat'),
         barXp: $('bar-xp'), barHp: $('bar-hp'), barHunger: $('bar-hunger'),
         biome: $('biome-text'), tip: $('interact-tip'), raid: $('raid-warning'),
+        minimap: $('minimap'), tracker: $('quest-tracker'),
+        bossBar: $('boss-bar'), bossName: $('boss-name'), bossFill: $('boss-fill'),
+        elSlots: [...document.querySelectorAll('#skill-bar .slot.el')],
+        skillSlots: [...document.querySelectorAll('#skill-bar .slot.skill')],
     };
     $('hud-collapse-btn').addEventListener('click', () => {
         el.panel.classList.add('hud-collapsed');
@@ -26,20 +36,24 @@ export function initHud() {
         el.showBtn.style.display = 'none';
     });
     $('kids-toggle-btn').addEventListener('click', toggleKidsPanel);
+    setQuestListener(refreshQuestTracker);
 }
 
 export function showGameUI() {
     el.customizer.style.display = 'none';
     el.layer.style.display = 'block';
     drawPortrait($('ui-portrait'), state.player.sheet);
+    minimapBase = getMinimapBase(el.minimap.width);
+    refreshQuestTracker();
 }
 
 export function updateHud() {
     const p = state.player;
     if (!p) return;
-    el.biome.textContent = `${BIOMES[getBiome(p.x, p.y)].name} · ${dayPhaseName()}`;
+    el.biome.textContent = `${BIOMES[getBiome(p.x, p.y)].name} · ${dayPhaseName()} · ${weatherName()}`;
     el.name.textContent = p.config.name || 'Player';
     el.lvl.textContent = p.level;
+    el.stage.textContent = p.stage.name;
     el.partner.textContent = state.partner ? state.partner.config.name : '없음';
     el.meat.textContent = p.inventory.meat;
     el.hpText.textContent = p.hp.toFixed(0);
@@ -48,6 +62,54 @@ export function updateHud() {
     el.barXp.style.width = xpPct + '%';
     el.barHp.style.width = (p.hp / p.maxHp) * 100 + '%';
     el.barHunger.style.width = Math.max(0, Math.min(100, p.hunger)) + '%';
+
+    for (const slot of el.elSlots) {
+        const id = slot.dataset.el;
+        slot.classList.toggle('locked', !p.elements.includes(id));
+        slot.classList.toggle('active', p.element === id);
+    }
+    for (const slot of el.skillSlots) {
+        const id = slot.dataset.skill;
+        slot.classList.toggle('locked', p.stageIndex < SKILLS[id].stage);
+        slot.lastElementChild.style.height = (p.cooldowns[id] / SKILLS[id].cooldown) * 100 + '%';
+    }
+    drawMinimap();
+}
+
+function drawMinimap() {
+    if (!minimapBase) return;
+    const c = el.minimap, g = c.getContext('2d'), k = c.width / WORLD_SIZE;
+    g.drawImage(minimapBase, 0, 0);
+    const dot = (x, y, r, color) => { g.fillStyle = color; g.beginPath(); g.arc(x * k, y * k, r, 0, Math.PI * 2); g.fill(); };
+    dot(NEST_POS.x, NEST_POS.y, 3, '#ffd84a');
+    for (const b of state.entities.bosses) dot(b.x, b.y, 4, '#ff4d4d');
+    for (const h of state.entities.humans) dot(h.x, h.y, 2, '#ff9a9a');
+    if (state.partner) dot(state.partner.x, state.partner.y, 2.5, '#ff7aa8');
+    const p = state.player;
+    g.strokeStyle = '#000'; g.lineWidth = 2;
+    g.beginPath(); g.arc(p.x * k, p.y * k, 4, 0, Math.PI * 2); g.stroke();
+    dot(p.x, p.y, 3.5, '#fff');
+}
+
+function refreshQuestTracker() {
+    if (!state.player) return;
+    el.tracker.innerHTML = '';
+    for (const line of questLines()) {
+        const div = document.createElement('div');
+        div.className = 'quest-line' + (line.complete ? ' complete' : '');
+        const b = document.createElement('b');
+        b.textContent = line.title;
+        div.append(b, line.text);
+        el.tracker.appendChild(div);
+    }
+}
+
+/** 보스 체력 바. name 이 null 이면 숨긴다 */
+export function setBossBar(name, ratio = 0) {
+    if (!name) { el.bossBar.style.display = 'none'; return; }
+    el.bossBar.style.display = 'block';
+    el.bossName.textContent = name;
+    el.bossFill.style.width = Math.max(0, ratio) * 100 + '%';
 }
 
 /** 근처 NPC 머리 위에 '말 걸기' 안내를 띄운다. 예전엔 화면 절반만큼 어긋난 위치에 떴다. */

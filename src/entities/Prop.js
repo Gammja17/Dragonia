@@ -3,6 +3,7 @@ import { isOnScreen } from '../core/camera.js';
 import { state } from '../core/state.js';
 import { PROP_SPRITES, TILE_SCALE } from '../data/tiles.js';
 import { getTileImage } from '../world/terrain.js';
+import { BIOMES, getBiome } from '../world/biomes.js';
 import { drawIcon } from '../render/pixel.js';
 import { getVfxImage } from '../render/vfx.js';
 
@@ -10,9 +11,12 @@ export class Prop extends Entity {
     constructor(x, y, type) {
         super(x, y);
         this.type = type; // TREE | STUMP | ROCK | BUSH | FERN | HOUSE | FOUNTAIN | CRATE | BARREL | SIGN | CAMPFIRE
-        this.seed = Math.random();
+        this.seed = Math.abs(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1; // 위치로 정해지는 고정 난수
         const variants = PROP_SPRITES[type];
         this.sprite = variants ? variants[Math.floor(this.seed * variants.length)] : null;
+        // 숲 소품은 바이옴 색상판에 맞는 시트를 쓴다 (trees → trees2, trees3)
+        const palette = BIOMES[getBiome(x, y)].palette;
+        this.sheetKey = this.sprite && (this.sprite.sheet === 'trees' || this.sprite.sheet === 'props') && palette ? this.sprite.sheet + (palette + 1) : this.sprite && this.sprite.sheet;
     }
     /** 밤에 주변을 밝히는 빛 (render/lighting.js) */
     get light() {
@@ -48,7 +52,7 @@ export class Prop extends Entity {
         if (hides) ctx.globalAlpha = 0.45;
         let { sx, sy } = sp;
         if (sp.frames) [sx, sy] = sp.frames[Math.floor(state.gameTime * sp.fps) % sp.frames.length];
-        ctx.drawImage(getTileImage(sp.sheet), sx, sy, sp.sw, sp.sh, Math.round(left), Math.round(top), w, h);
+        ctx.drawImage(getTileImage(this.sheetKey), sx, sy, sp.sw, sp.sh, Math.round(left), Math.round(top), w, h);
         ctx.globalAlpha = 1;
         ctx.imageSmoothingEnabled = true;
     }

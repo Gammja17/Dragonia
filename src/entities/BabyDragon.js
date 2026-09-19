@@ -1,10 +1,10 @@
 import { Entity } from './Entity.js';
-import { Fireball, addBullet } from './Fireball.js';
+import { Projectile, addBullet } from './Projectile.js';
 import { burst } from './Particle.js';
 import { state } from '../core/state.js';
 import { isOnScreen } from '../core/camera.js';
 import { dist, rand } from '../core/utils.js';
-import { setKidStage, addAffection } from '../systems/kids.js';
+import { setKidStage, addAffection, findKid } from '../systems/kids.js';
 import { showToast } from '../ui/toast.js';
 import { facingFromVector } from './Dragon.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
@@ -14,11 +14,13 @@ const TAU = Math.PI * 2;
 const STAGE_SCALE = { BABY: 0.36, TEEN: 0.55, ADULT: 0.8 }; // 부모 스프라이트 대비 크기
 
 export class BabyDragon extends Entity {
-    constructor(x, y) {
+    /** genes: { species, colors } — 부모에게서 물려받은 모습 */
+    constructor(x, y, genes) {
         super(x, y);
-        // 부모(플레이어)와 같은 종족·색으로 태어난다
-        const parent = state.player;
-        this.sheet = getDragonSheet(parent.species, parent.colors);
+        this.genes = genes || { species: state.player.species, colors: { ...state.player.colors } };
+        this.sheet = getDragonSheet(this.genes.species, this.genes.colors);
+        this.petTimer = 0;
+        this.followGap = Math.random() * 60;
         this.animator = new Animator(this.sheet);
         this.facing = 'down';
         this.growth = 0;      // 0~200
@@ -27,6 +29,16 @@ export class BabyDragon extends Entity {
         this.angle = 0;
         this.home = null;     // 성체가 되면 둥지 주변을 배회
         this.wanderTimer = 0;
+    }
+
+    /** 쓰다듬기. 잠깐 쉬었다가 다시 할 수 있다 */
+    pet() {
+        if (this.petTimer > 0) return false;
+        this.petTimer = 12;
+        addAffection(this, 6);
+        burst(this.x, this.y - 30, '#ff7aa8', 0.9, 8);
+        showToast("아기를 쓰다듬었습니다. 기분이 좋아 보여요!", "💗");
+        return true;
     }
 
     feed() {
@@ -52,7 +64,11 @@ export class BabyDragon extends Entity {
 
     update(dt) {
         const px = this.x, py = this.y;
-        if (this.stage === 'ADULT') this.updateAdult(dt);
+        if (this.petTimer > 0) this.petTimer -= dt;
+        const kid = findKid(this);
+        if (this.stage !== 'BABY') this.fight(dt, kid);
+        // 성체이거나 '둥지 지키기'를 시킨 아이는 둥지 주변에 머문다
+        if (this.stage === 'ADULT' || (kid && kid.mode === 'STAY')) this.updateAdult(dt);
         else this.updateYoung(dt);
         const moved = Math.hypot(this.x - px, this.y - py) > 0.01;
         if (moved) this.facing = facingFromVector(this.x - px, this.y - py, this.facing);
@@ -62,29 +78,27 @@ export class BabyDragon extends Entity {
 
     updateYoung(dt) {
 
-        const player = state.player;
-        let target = player;
-
-        if (this.stage === 'TEEN') {
-            const E = state.entities;
-            const enemy = E.enemies.find(e => dist(this, e) < 280) || E.humans.find(h => dist(this, h) < 280);
-            if (enemy) {
-                target = enemy;
-                this.atkTimer -= dt;
-                if (this.atkTimer <= 0) {
-                    addBullet(new Fireball(this.x, this.y, Math.atan2(enemy.y - this.y, enemy.x - this.x), player, 'ALLY'));
-                    this.atkTimer = 1.6;
-                }
-            }
-        }
-
+        const target = state.player;
         this.angle = Math.atan2(target.y - this.y, target.x - this.x);
         const d = dist(this, target);
-        const keep = (this.stage === 'TEEN' && target !== player) ? 150 : 70;
+        const keep = 70 + this.followGap; // 아이마다 조금씩 다른 거리에서 따라온다
         if (d > keep) {
             this.x += Math.cos(this.angle) * 190 * dt;
             this.y += Math.sin(this.angle) * 190 * dt;
         }
+    }
+
+    /** 청소년·성체는 근처의 적에게 불을 쏜다. 애정이 높을수록 아프다 */
+    fight(dt, kid) {
+        this.atkTimer -= dt;
+        if (this.atkTimer > 0) return;
+        const E = state.entities;
+        const foe = [...E.humans, ...E.enemies, ...E.bosses].find(e => (e.awake ?? true) && dist(this, e) < 300);
+        if (!foe) return;
+        const damage = (this.stage === 'ADULT' ? 12 : 8) * (1 + (kid ? kid.affection : 0) / 100);
+        addBullet(new Projectile(this.x, this.y - 20, Math.atan2(foe.y - 20 - (this.y - 20), foe.x - this.x), { faction: 'ALLY', element: 'FIRE', damage, scale: 0.7 }));
+        this.animator.play('attack');
+        this.atkTimer = this.stage === 'ADULT' ? 1.2 : 1.6;
     }
 
     // 예전엔 성체가 된 순간 그 자리에 영원히 멈췄다. 이제 둥지 주변을 느긋하게 배회.
@@ -94,6 +108,7 @@ export class BabyDragon extends Entity {
             this.wanderTimer = rand(2, 5);
             this.angle = rand(0, TAU);
         }
+        if (!this.home) { const nest = state.entities.nests[0]; this.home = { x: nest.x, y: nest.y }; }
         if (dist(this, this.home) > 200) this.angle = Math.atan2(this.home.y - this.y, this.home.x - this.x);
         this.x += Math.cos(this.angle) * 40 * dt;
         this.y += Math.sin(this.angle) * 40 * dt;

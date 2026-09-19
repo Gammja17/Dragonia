@@ -28,3 +28,20 @@ export function roundRect(ctx, x, y, w, h, r) {
     ctx.closePath();
     ctx.fill();
 }
+
+/** 두 '#rrggbb' 색을 t(0~1) 비율로 섞는다 */
+export function lerpColor(a, b, t) {
+    const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+    const ch = (shift) => Math.round(((pa >> shift) & 255) + (((pb >> shift) & 255) - ((pa >> shift) & 255)) * t);
+    return '#' + ((1 << 24) + (ch(16) << 16) + (ch(8) << 8) + ch(0)).toString(16).slice(1);
+}
+
+/** 시드 고정 난수 생성기 (0~1). 같은 시드면 항상 같은 순서 */
+export function mulberry32(a) {
+    return () => {
+        a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}

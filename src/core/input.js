@@ -10,6 +10,9 @@ const KEYMAP = {
     KeyT: 'talk',
     KeyL: 'flirt',
     KeyK: 'kids',
+    KeyQ: 'nova',
+    KeyF: 'roar',
+    Digit1: 'el1', Digit2: 'el2', Digit3: 'el3',
     Escape: 'cancel',
 };
 

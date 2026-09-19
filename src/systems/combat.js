@@ -11,19 +11,18 @@ export function resolveCombat() {
     for (const b of E.bullets) {
         if (b.remove) continue;
         if (b.faction === 'ALLY') {
-            const hit = E.enemies.find(e => !e.remove && dist(b, e) < HIT_RADIUS)
-                     || E.humans.find(h => !h.remove && dist(b, h) < HIT_RADIUS);
-            if (hit) { b.explode(); hit.takeDamage(10); }
-        } else if (dist(b, player) < HIT_RADIUS) {
-            b.explode();
-            player.takeDamage(8);
+            const targets = [...E.enemies, ...E.humans, ...E.bosses];
+            const hit = targets.find(e => !e.remove && dist(b, { x: e.x, y: e.y - (e.def && e.def.scale ? 50 : 0) }) < (e.def && e.def.scale ? 90 : HIT_RADIUS));
+            if (hit) b.hit(hit, targets);
+        } else if (dist(b, { x: player.x, y: player.y - 30 }) < HIT_RADIUS) {
+            b.hit(player);
         }
     }
 }
 
 export function pruneEntities() {
     const E = state.entities;
-    for (const key of ['bullets', 'effects', 'enemies', 'humans', 'items', 'particles', 'babies']) {
+    for (const key of ['bullets', 'effects', 'bosses', 'enemies', 'humans', 'items', 'particles', 'babies']) {
         E[key] = E[key].filter(e => !e.remove);
     }
 }

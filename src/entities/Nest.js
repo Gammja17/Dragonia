@@ -4,7 +4,8 @@ import { burst } from './Particle.js';
 import { state } from '../core/state.js';
 import { isOnScreen } from '../core/camera.js';
 import { dist, rand } from '../core/utils.js';
-import { registerKid } from '../systems/kids.js';
+import { registerKid, mixGenes } from '../systems/kids.js';
+import { notify } from '../systems/quests.js';
 import { showToast } from '../ui/toast.js';
 import { drawIcon, drawGlow } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
@@ -16,6 +17,13 @@ export class Nest extends Entity {
         super(x, y);
         this.hasEgg = false;
         this.progress = 0; // 0~100, 플레이어가 근처에 있으면 빨리 찬다
+        this.genes = null; // 알 속 아이의 { species, colors }
+    }
+    /** a, b: 부모 드래곤. b 가 없으면 주워 온 알 */
+    layEgg(a, b) {
+        this.hasEgg = true;
+        this.progress = 0;
+        this.genes = mixGenes(a, b);
     }
     get light() {
         return this.hasEgg ? { r: 150, color: '#fff2c8', intensity: 0.8 } : null;
@@ -29,9 +37,10 @@ export class Nest extends Entity {
     hatch() {
         this.hasEgg = false;
         this.progress = 0;
-        const baby = new BabyDragon(this.x + rand(-20, 20), this.y + rand(-20, 20));
+        const baby = new BabyDragon(this.x + rand(-20, 20), this.y + rand(-20, 20), this.genes);
         state.entities.babies.push(baby);
         registerKid(baby);
+        notify('hatch');
         showToast("아기 용이 태어났습니다!", "🐣");
         burst(this.x, this.y, () => `hsl(${Math.floor(Math.random() * 12) * 30},100%,60%)`, 1, 25); // 색 12가지(빛 스프라이트 캐시)
         spawnEffect('RING', this.x, this.y);

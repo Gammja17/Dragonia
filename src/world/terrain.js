@@ -1,7 +1,9 @@
 import { WORLD_SIZE, NEST_POS } from '../core/config.js';
+import { mulberry32 } from '../core/utils.js';
 import { loadImages } from '../render/assets.js';
 import { TILE_SRC, TILE_SCALE, TILE, TILE_IMAGES, GRASS, GRASS_DECOR, DIRT, WATER, NEST_RING } from '../data/tiles.js';
-import { VILLAGE_RECT, LAKE } from './biomes.js';
+import { VILLAGE_RECT, LAKE, BIOMES, getBiome } from './biomes.js';
+import { BOSSES } from '../data/enemies.js';
 
 // 지형은 "큰 칸"(2x2 타일 = 96px) 단위로 만든다. 그러면 흙/물 영역의 폭이 항상 2타일 이상이라
 // 변 4 + 바깥 모서리 4 + 안쪽 모서리 4 + 가운데, 13종 타일만으로 빈틈없이 이어진다.
@@ -18,15 +20,6 @@ const kinds = new Uint8Array(SIZE * SIZE);
 let images = null;
 let mapCanvas = null;
 
-function mulberry32(a) {
-    return () => {
-        a = (a + 0x6D2B79F5) | 0;
-        let t = Math.imul(a ^ (a >>> 15), 1 | a);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-}
-
 /** 큰 칸 (cx,cy) 중심의 월드 좌표 */
 const coarseCenter = (c) => ORIGIN + (c + 0.5) * TILE * 2;
 const toCoarse = (world) => Math.floor((world - ORIGIN) / (TILE * 2));
@@ -39,12 +32,12 @@ function fillCoarse(cx, cy, id) {
 }
 const coarseKind = (cx, cy) => kinds[cy * 2 * SIZE + cx * 2];
 
-/** (x0,y0) → (x1,y1) 까지 가로/세로 번갈아 걷는 흙길. 물을 만나면 멈춘다 */
+/** (x0,y0) → (x1,y1) 까지 가로/세로 번갈아 걷는 흙길. 물 위는 건너뛴다 */
 function carvePath(x0, y0, x1, y1) {
     let x = x0, y = y0, horizontal = true;
     while (x !== x1 || y !== y1) {
-        if (coarseKind(x, y) === WATER_ID) return;
-        fillCoarse(x, y, DIRT_ID);
+        const isNest = x === toCoarse(NEST_POS.x) && y === toCoarse(NEST_POS.y);
+        if (coarseKind(x, y) !== WATER_ID && !isNest) fillCoarse(x, y, DIRT_ID);
         if (horizontal && x !== x1) x += Math.sign(x1 - x);
         else if (y !== y1) y += Math.sign(y1 - y);
         else x += Math.sign(x1 - x);
@@ -57,17 +50,20 @@ function generate() {
     const v = VILLAGE_RECT;
 
     // 호수 + 숲 속 작은 연못들
+    const arenas = Object.values(BOSSES);
     const ponds = [{ x: LAKE.x, y: LAKE.y, r: LAKE.r - 90 }];
-    while (ponds.length < 4) {
+    while (ponds.length < 11) {
         const p = { x: 200 + rng() * (WORLD_SIZE - 400), y: 200 + rng() * (WORLD_SIZE - 400), r: 120 + rng() * 70 };
         const nearVillage = Math.hypot(p.x - (v.x + v.w / 2), p.y - (v.y + v.h / 2)) < 850;
         const nearPond = ponds.some(o => Math.hypot(p.x - o.x, p.y - o.y) < o.r + p.r + 250);
-        if (!nearVillage && !nearPond) ponds.push(p);
+        const nearArena = arenas.some(a => Math.hypot(p.x - a.x, p.y - a.y) < 600);
+        if (!nearVillage && !nearPond && !nearArena) ponds.push(p);
     }
 
     for (let cy = 0; cy < COARSE; cy++) for (let cx = 0; cx < COARSE; cx++) {
         const x = coarseCenter(cx), y = coarseCenter(cy);
         if (ponds.some(p => Math.hypot(x - p.x, y - p.y) < p.r)) { fillCoarse(cx, cy, WATER_ID); continue; }
+        if (arenas.some(a => Math.hypot(x - a.x, y - a.y) < 340)) { fillCoarse(cx, cy, DIRT_ID); continue; } // 보스 결투장
 
         // 마을 광장: 가장자리 칸은 가끔 빼서 네모 반듯하지 않게
         const inX = x > v.x && x < v.x + v.w, inY = y > v.y && y < v.y + v.h;
@@ -84,6 +80,8 @@ function generate() {
     // 마을 → 호수, 마을 → 북서쪽 숲길
     carvePath(toCoarse(v.x + v.w - 100), toCoarse(v.y + v.h - 100), toCoarse(LAKE.x), toCoarse(LAKE.y));
     carvePath(toCoarse(v.x + 100), toCoarse(v.y + 100), toCoarse(250), toCoarse(350));
+    // 마을 → 각 보스 결투장
+    for (const a of arenas) carvePath(toCoarse(v.x + v.w / 2), toCoarse(v.y + v.h / 2), toCoarse(a.x), toCoarse(a.y));
 }
 
 function pickTile(set, tx, ty) {
@@ -116,7 +114,10 @@ function bake() {
         else if (id === WATER_ID) t = pickTile(WATER, tx, ty);
         else if (rng() < 0.06) t = GRASS_DECOR[Math.floor(rng() * GRASS_DECOR.length)];
         else t = GRASS[(ty % 2) * 2 + (tx % 2)];
-        g.drawImage(images.ground, t[0] * TILE_SRC, t[1] * TILE_SRC, TILE_SRC, TILE_SRC, tx * TILE_SRC, ty * TILE_SRC, TILE_SRC, TILE_SRC);
+        // 바이옴 경계는 위치를 흔들어 색상판이 점점이 섞이게 한다
+        const wx = ORIGIN + (tx + 0.5) * TILE + (rng() - 0.5) * 300, wy = ORIGIN + (ty + 0.5) * TILE + (rng() - 0.5) * 300;
+        const sheet = [images.ground, images.ground2, images.ground3][BIOMES[getBiome(wx, wy)].palette];
+        g.drawImage(sheet, t[0] * TILE_SRC, t[1] * TILE_SRC, TILE_SRC, TILE_SRC, tx * TILE_SRC, ty * TILE_SRC, TILE_SRC, TILE_SRC);
     }
     // 둥지 돌무더기 (2x2 타일)
     const nx = toCoarse(NEST_POS.x) * 2, ny = toCoarse(NEST_POS.y) * 2;
@@ -152,4 +153,13 @@ export function drawTerrain(ctx, cam) {
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(mapCanvas, sx, sy, sw, sh, ORIGIN + sx * TILE_SCALE, ORIGIN + sy * TILE_SCALE, sw * TILE_SCALE, sh * TILE_SCALE);
     ctx.imageSmoothingEnabled = true;
+}
+
+/** 월드 전체를 size×size 로 줄인 지도 (미니맵 바탕) */
+export function getMinimapBase(size) {
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const s = -ORIGIN / TILE_SCALE, span = WORLD_SIZE / TILE_SCALE;
+    c.getContext('2d').drawImage(mapCanvas, s, s, span, span, 0, 0, size, size);
+    return c;
 }

@@ -1,5 +1,5 @@
 import { state } from '../core/state.js';
-import { DAY_LENGTH } from '../core/config.js';
+import { DAY_LENGTH, WORLD_SIZE } from '../core/config.js';
 import { getGlow, drawGlow } from './pixel.js';
 
 // 조명: 절반 해상도의 "빛 지도"를 만들어 화면에 곱한다(multiply).
@@ -24,7 +24,8 @@ const lm = document.createElement('canvas');
 const lmCtx = lm.getContext('2d');
 let vignette = null;
 
-const clouds = Array.from({ length: 6 }, (_, i) => ({ x: i * 640 + (i % 2) * 300, y: (i * 977) % 2600, r: 380 + (i * 53) % 160 }));
+const CLOUD_SPAN = WORLD_SIZE + 1200;
+const clouds = Array.from({ length: 14 }, (_, i) => ({ x: i * (CLOUD_SPAN / 14) + (i % 2) * 300, y: (i * 977) % WORLD_SIZE, r: 380 + (i * 53) % 160 }));
 const fireflies = Array.from({ length: 40 }, () => ({ x: Math.random() * 4000, y: Math.random() * 4000, phase: Math.random() * 6.28, speed: 0.5 + Math.random() }));
 
 function ambient() {
@@ -45,13 +46,14 @@ export function dayPhaseName() {
 }
 
 export function updateLighting(dt) {
-    state.dayTime = (state.dayTime + dt / DAY_LENGTH) % 1;
+    state.dayTime += dt / DAY_LENGTH;
+    if (state.dayTime >= 1) { state.dayTime -= 1; state.day++; }
 }
 
 function collectLights() {
     const E = state.entities;
     const out = [];
-    for (const group of [E.props, E.nests, E.npcs, E.babies, E.bullets, E.effects, [state.player]]) {
+    for (const group of [E.props, E.nests, E.npcs, E.babies, E.enemies, E.bosses, E.bullets, E.effects, [state.player]]) {
         for (const e of group) {
             const l = e.light;
             if (l) out.push({ x: e.x, y: e.y + (l.dy || 0), r: l.r, color: l.color, intensity: l.intensity ?? 1, emissive: !!l.emissive });
@@ -79,7 +81,9 @@ export function drawLighting(ctx, cam) {
     if (lm.width !== lw || lm.height !== lh) { lm.width = lw; lm.height = lh; }
     if (!vignette || vignette.width !== w || vignette.height !== h) buildVignette(w, h);
 
-    const [r, g, b] = ambient();
+    // 비가 오면 푸르스름하게 어두워진다
+    const wet = state.weather.intensity;
+    const [r, g, b] = ambient().map((v, i) => Math.round(v * (1 - wet * [0.34, 0.28, 0.16][i])));
     const dark = 1 - (0.3 * r + 0.59 * g + 0.11 * b) / 255; // 0(낮) ~ 0.7(밤)
     const lights = collectLights().filter(l => l.x + l.r > cx && l.x - l.r < cx + w && l.y + l.r > cy && l.y - l.r < cy + h);
 
@@ -95,7 +99,7 @@ export function drawLighting(ctx, cam) {
         const shadow = getGlow('#141c3a');
         lmCtx.globalAlpha = cloudAlpha;
         for (const c of clouds) {
-            const x = ((c.x + state.gameTime * 14) % 3800) - 600, y = c.y + Math.sin(state.gameTime * 0.05 + c.r) * 80;
+            const x = ((c.x + state.gameTime * 14) % CLOUD_SPAN) - 600, y = c.y + Math.sin(state.gameTime * 0.05 + c.r) * 80;
             lmCtx.drawImage(shadow, (x - c.r - cx) * LM_SCALE, (y - c.r * 0.7 - cy) * LM_SCALE, c.r * 2 * LM_SCALE, c.r * 1.4 * LM_SCALE);
         }
     }

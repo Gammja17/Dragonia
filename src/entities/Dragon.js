@@ -1,5 +1,5 @@
 import { Entity } from './Entity.js';
-import { Fireball, addBullet } from './Fireball.js';
+import { Projectile, addBullet } from './Projectile.js';
 import { burst } from './Particle.js';
 import { state } from '../core/state.js';
 import { input } from '../core/input.js';
@@ -7,6 +7,10 @@ import { isOnScreen } from '../core/camera.js';
 import { WORLD_SIZE, MAX_KIDS, PLAYER_SPAWN } from '../core/config.js';
 import { rand, dist, clamp, pick, roundRect } from '../core/utils.js';
 import { IDLE_LINES } from '../data/dialogues.js';
+import { ELEMENTS, STAGES, SKILLS } from '../data/elements.js';
+import { applyStatus } from '../systems/status.js';
+import { notify, questMarker } from '../systems/quests.js';
+import { weatherDamageMult } from '../systems/weather.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
 import { Animator, drawFrame } from '../render/spritesheet.js';
 import { drawIcon } from '../render/pixel.js';
@@ -44,6 +48,12 @@ export class Dragon extends Entity {
         this.moving = false;
         this.hoverY = 0;
         this.inventory = { meat: 0 };
+        // 성장/브레스 (플레이어용)
+        this.stageIndex = 0;
+        this.elements = ['FIRE'];
+        this.element = 'FIRE';
+        this.cooldowns = { NOVA: 0, ROAR: 0 };
+        this.atkTimer = 0; // 짝이 되었을 때 지원 사격 간격
         this.carrying = null; // 'EGG'
 
         this.sheet = getDragonSheet(this.species, this.colors);
@@ -63,16 +73,42 @@ export class Dragon extends Entity {
     gainXp(amount) {
         this.xp += amount;
         if (this.xp < this.maxXp) return;
-        this.level++;
-        this.xp -= this.maxXp;
-        this.maxXp = Math.floor(this.maxXp * 1.3);
-        this.maxHp += 20;
-        this.hp = this.maxHp;
-        if (this.isPlayer) {
-            showToast(`LEVEL UP! LV.${this.level}`, '🔥');
-            burst(this.x, this.y, '#f1c40f', 1.2, 25);
-            spawnEffect('STAR', this.x, this.y - 50, { size: 1.6 });
+        while (this.xp >= this.maxXp) {   // 퀘스트 보상처럼 한 번에 여러 레벨이 오를 수 있다
+            this.level++;
+            this.xp -= this.maxXp;
+            this.maxXp = Math.floor(this.maxXp * 1.3);
+            this.maxHp += 20;
         }
+        this.hp = this.maxHp;
+        if (!this.isPlayer) return;
+        showToast(`LEVEL UP! LV.${this.level}`, '🔥');
+        burst(this.x, this.y, '#f1c40f', 1.2, 25);
+        spawnEffect('STAR', this.x, this.y - 50, { size: 1.6 });
+        this.checkEvolution();
+    }
+
+    get stage() { return STAGES[this.stageIndex]; }
+
+    /** 레벨이 다음 성장 단계에 닿았으면 진화 */
+    checkEvolution() {
+        let idx = this.stageIndex;
+        while (idx + 1 < STAGES.length && this.level >= STAGES[idx + 1].minLevel) idx++;
+        if (idx === this.stageIndex) return;
+        this.stageIndex = idx;
+        this.maxHp += 30;
+        this.hp = this.maxHp;
+        const st = this.stage;
+        showToast(`진화! [${st.name}](이)가 되었습니다` + (st.unlock ? ` — ${st.unlock}` : ''), '🐲');
+        spawnEffect('RING', this.x, this.y - 40, { size: 2.2 });
+        burst(this.x, this.y - 30, () => `hsl(${40 + Math.floor(Math.random() * 3) * 10},100%,65%)`, 1.4, 40);
+        notify('stage', idx);
+    }
+
+    unlockElement(id) {
+        if (this.elements.includes(id)) return;
+        this.elements.push(id);
+        this.element = id;
+        showToast(`새 숨결 [${ELEMENTS[id].name}] 획득! — ${ELEMENTS[id].desc} ([${ELEMENTS[id].key}]번 키)`, '✨');
     }
 
     takeDamage(dmg) {
@@ -134,7 +170,7 @@ export class Dragon extends Entity {
     updatePlayer(dt) {
         const { dx, dy } = input.axis();
         if (dx || dy) {
-            this.moveBy(dx, dy, WALK_SPEED * (input.down('sprint') ? SPRINT_MULT : 1), dt);
+            this.moveBy(dx, dy, WALK_SPEED * this.stage.speed * (input.down('sprint') ? SPRINT_MULT : 1), dt);
             this.hunger -= 0.5 * dt;
         } else {
             this.hunger -= 0.1 * dt;
@@ -144,7 +180,14 @@ export class Dragon extends Entity {
         const nearNpc = state.entities.npcs.find(n => dist(this, n) < INTERACT_RANGE) || null;
         setInteractTarget(nearNpc);
 
+        for (const k in this.cooldowns) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt);
+        ['FIRE', 'ICE', 'THUNDER'].forEach((el, i) => {
+            if (input.pressed('el' + (i + 1)) && this.elements.includes(el)) this.element = el;
+        });
+
         if (input.pressed('attack')) this.attack();
+        if (input.pressed('nova')) this.useSkill('NOVA');
+        if (input.pressed('roar')) this.useSkill('ROAR');
         if (input.pressed('interact')) this.interact();
         if (input.pressed('talk') && nearNpc) startDialogue(nearNpc, 'TALK');
         if (input.pressed('flirt') && nearNpc) startDialogue(nearNpc, 'FLIRT');
@@ -155,9 +198,42 @@ export class Dragon extends Entity {
         if (this.hunger < 10) { showToast("배가 너무 고파요!", "😫"); return; }
         this.hunger -= 2;
         if (this.animator) this.animator.play('attack');
-        const mx = this.x + Math.cos(this.angle) * MOUTH_OFFSET;
-        const my = this.y - 40 + Math.sin(this.angle) * MOUTH_OFFSET;
-        addBullet(new Fireball(mx, my, this.angle, this, 'ALLY'));
+        this.breathe(this.angle);
+    }
+
+    /** 현재 속성의 브레스 한 발 */
+    breathe(angle, damageMult = 1) {
+        const sc = this.stage.scale;
+        const mx = this.x + Math.cos(angle) * MOUTH_OFFSET * sc;
+        const my = this.y - 40 * sc + Math.sin(angle) * MOUTH_OFFSET * sc;
+        const damage = ELEMENTS[this.element].damage * this.stage.damage * weatherDamageMult(this.element) * damageMult;
+        addBullet(new Projectile(mx, my, angle, { faction: 'ALLY', element: this.element, damage, scale: 0.7 + sc * 0.3 }));
+    }
+
+    useSkill(id) {
+        const skill = SKILLS[id];
+        if (this.stageIndex < skill.stage) { showToast(`[${skill.name}]은(는) ${STAGES[skill.stage].name}부터 쓸 수 있어요.`, '🔒'); return; }
+        if (this.cooldowns[id] > 0) return;
+        if (this.hunger < skill.hunger + 5) { showToast("배가 너무 고파요!", "😫"); return; }
+        this.hunger -= skill.hunger;
+        this.cooldowns[id] = skill.cooldown;
+        if (this.animator) this.animator.play('attack');
+
+        if (id === 'NOVA') {            // 사방으로 브레스
+            for (let i = 0; i < 14; i++) this.breathe((i / 14) * Math.PI * 2, 0.8);
+            spawnEffect('RING', this.x, this.y - 40, { size: 1.4 });
+        } else {                        // 포효: 주변 적을 밀치고 기절시킨다
+            const E = state.entities;
+            for (const e of [...E.enemies, ...E.humans, ...E.bosses]) {
+                const d = dist(this, e);
+                if (d > 340) continue;
+                e.takeDamage(15 * this.stage.damage);
+                applyStatus(e, 'STUN', 1.8);
+                if (!e.statusImmune) { e.x += ((e.x - this.x) / (d || 1)) * 90; e.y += ((e.y - this.y) / (d || 1)) * 90; }
+            }
+            spawnEffect('RING', this.x, this.y - 40, { size: 3 });
+            burst(this.x, this.y - 40, '#fff2a8', 0.9, 30);
+        }
     }
 
     interact() {
@@ -191,12 +267,16 @@ export class Dragon extends Entity {
             showToast("배가 너무 불러요!", "✋");
         }
 
-        // 3) 알을 둥지에 놓기
+        // 3) 아기 쓰다듬기
+        const kid = E.babies.find(b => dist(this, b) < 80);
+        if (kid && !this.carrying && kid.pet()) return;
+
+        // 4) 알을 둥지에 놓기
         const nest = E.nests.find(n => dist(this, n) < 80);
         if (nest && this.carrying === 'EGG' && !nest.hasEgg) {
             if (state.kids.length >= MAX_KIDS) { showToast("둥지가 꽉 찼습니다! 더 이상 알을 둘 수 없어요.", "😅"); return; }
             this.carrying = null;
-            nest.hasEgg = true;
+            nest.layEgg(this, state.partner);
             showToast("알을 둥지에 안착시켰습니다.", "🏠");
         }
     }
@@ -217,14 +297,27 @@ export class Dragon extends Entity {
     updatePartner(dt) {
         const player = state.player;
         if (dist(this, player) > 110) {
-            this.moveBy(player.x - this.x, player.y - this.y, 220, dt);
+            this.moveBy(player.x - this.x, player.y - this.y, 240, dt);
+        }
+
+        // 짝은 곁에서 함께 싸운다
+        this.atkTimer -= dt;
+        if (this.atkTimer <= 0) {
+            const E = state.entities;
+            const foe = [...E.enemies, ...E.humans, ...E.bosses].find(e => (e.awake ?? true) && dist(this, e) < 360);
+            if (foe) {
+                addBullet(new Projectile(this.x, this.y - 40, Math.atan2(foe.y - 20 - (this.y - 40), foe.x - this.x), { faction: 'ALLY', element: 'FIRE', damage: 8 }));
+                if (this.animator) this.animator.play('attack');
+                this.atkTimer = 1.3;
+            }
         }
 
         // 둥지에 도착하면 알을 낳는다
         const nest = state.entities.nests[0];
-        if (nest && !nest.hasEgg && dist(this, nest) < 100 && state.kids.length < MAX_KIDS) {
-            nest.hasEgg = true;
-            this.state = 'WANDER';
+        this.eggTimer = (this.eggTimer ?? 0) - dt;
+        if (nest && !nest.hasEgg && this.eggTimer <= 0 && dist(this, nest) < 100 && state.kids.length < MAX_KIDS) {
+            nest.layEgg(state.player, this);
+            this.eggTimer = 150; // 다음 알까지 (초). 짝은 계속 곁에 남는다
             this.say("우리 알을 부탁해.");
             showToast(`${this.config.name}가 알을 낳았습니다!`, '🥚');
             burst(nest.x, nest.y, '#fff', 1, 20);
@@ -251,12 +344,13 @@ export class Dragon extends Entity {
         if (!isOnScreen(this)) return;
         ctx.save();
         ctx.translate(this.x, this.y);
-        this.drawShadow(ctx, this.sheet && !this.sheet.flying ? 26 : 34);
+        const sc = this.isPlayer ? this.stage.scale : 0.92;
+        this.drawShadow(ctx, (this.sheet && !this.sheet.flying ? 26 : 34) * sc);
         ctx.restore();
 
         if (this.animator) {
             const f = this.animator.frame(this.facing);
-            drawFrame(ctx, this.sheet, f, this.x, this.y + this.hoverY, this.isPlayer ? 1 : 0.92);
+            drawFrame(ctx, this.sheet, f, this.x, this.y + this.hoverY, sc);
         } else {
             // 시트 로딩 전 임시 표시
             ctx.fillStyle = this.colors.body;
@@ -264,7 +358,7 @@ export class Dragon extends Entity {
         }
 
         if (this.carrying === 'EGG') {
-            drawIcon(ctx, 'EGG', this.x, this.y - 100 + this.hoverY, 2.5);
+            drawIcon(ctx, 'EGG', this.x, this.y - 100 * sc + this.hoverY, 2.5);
         }
 
         if (!this.isPlayer) this.drawNameplate(ctx);
@@ -280,6 +374,15 @@ export class Dragon extends Entity {
         ctx.font = '10px Fredoka';
         ctx.textAlign = 'center';
         ctx.fillText(this.config.name || 'Dragon', 0, 0);
+        const mark = questMarker(this);
+        if (mark) {
+            ctx.font = '900 26px Fredoka';
+            ctx.fillStyle = mark === '?' ? '#7dff9a' : '#ffd84a';
+            ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.lineWidth = 4;
+            const my = -36 + Math.sin(state.gameTime * 4) * 3;
+            ctx.strokeText(mark, 0, my); ctx.fillText(mark, 0, my);
+            ctx.font = '10px Fredoka';
+        }
         if (this.relation > 0) {
             ctx.fillStyle = '#e74c3c';
             ctx.fillText('♥'.repeat(Math.min(3, Math.max(1, Math.ceil(this.relation / 30)))), 0, -18);

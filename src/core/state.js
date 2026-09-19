@@ -6,6 +6,10 @@ export const state = {
     isDialogueOpen: false,
     gameTime: 0,
     dayTime: 0.27,     // 0~1, 하루 중 시각 (조명용). 새벽에서 시작
+    day: 1,
+    weather: { type: 'CLEAR', timer: 70, intensity: 0, flash: 0 },
+    quests: { active: {}, done: [] },
+    bossesDefeated: {},
     raidTimer: RAID_FIRST_DELAY,
     elderTutorialDone: false,
     player: null,
@@ -16,7 +20,7 @@ export const state = {
 };
 
 export function emptyPools() {
-    return { bullets: [], effects: [], items: [], particles: [], nests: [], babies: [], props: [], npcs: [], enemies: [], humans: [] };
+    return { bullets: [], effects: [], items: [], particles: [], nests: [], babies: [], props: [], npcs: [], enemies: [], humans: [], bosses: [] };
 }
 
 export function resetState() {
@@ -25,6 +29,10 @@ export function resetState() {
         isDialogueOpen: false,
         gameTime: 0,
         dayTime: 0.27,
+        day: 1,
+        weather: { type: 'CLEAR', timer: 70, intensity: 0, flash: 0 },
+        quests: { active: {}, done: [] },
+        bossesDefeated: {},
         raidTimer: RAID_FIRST_DELAY,
         elderTutorialDone: false,
         player: null,

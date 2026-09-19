@@ -4,9 +4,10 @@ export const TILE_SCALE = 3;  // 화면 배율
 export const TILE = TILE_SRC * TILE_SCALE; // 월드에서의 타일 크기(48px)
 
 export const TILE_IMAGES = {
-    ground: 'assets/tiles/forest.png',
-    trees: 'assets/tiles/forest_trees.png',
-    props: 'assets/tiles/forest_props.png',
+    // 숲 시트는 색상판 3종(같은 배치). 뒤의 숫자가 BIOMES[].palette + 1
+    ground: 'assets/tiles/forest.png',   ground2: 'assets/tiles/forest2.png',   ground3: 'assets/tiles/forest3.png',
+    trees: 'assets/tiles/forest_trees.png', trees2: 'assets/tiles/forest_trees2.png', trees3: 'assets/tiles/forest_trees3.png',
+    props: 'assets/tiles/forest_props.png', props2: 'assets/tiles/forest_props2.png', props3: 'assets/tiles/forest_props3.png',
     village: 'assets/tiles/village.png',   // Zelda-like tilesets (CC0)
     dungeon: 'assets/tiles/dungeon.png',   // Kenney Tiny Dungeon (CC0): 적, 사냥꾼, 화살
 };

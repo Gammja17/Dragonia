@@ -17,7 +17,7 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 
 | 파일 | 원작 | 출처 |
 |---|---|---|
-| `forest.png`, `forest_trees.png`, `forest_props.png` | "Gentle Forest" ($0 palettes, v01 "rabite forest") by Seliel the Shaper | https://seliel-the-shaper.itch.io/ |
+| `forest*.png`, `forest_trees*.png`, `forest_props*.png` | "Gentle Forest" ($0 palettes: v01 rabite forest, v02 jungle of illusion, v03 moonlight forest) by Seliel the Shaper | https://seliel-the-shaper.itch.io/ |
 | `village.png` (집, 분수, 상자, 통, 표지판) | "Zelda-like tilesets and sprites" by ArMM1998 (CC0) | OpenGameArt |
 | `dungeon.png` (적, 사냥꾼, 화살) | "Tiny Dungeon" by Kenney (CC0) | https://kenney.nl/assets/tiny-dungeon |
 
@@ -26,6 +26,8 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 | 파일 | 원작 | 출처 |
 |---|---|---|
 | `firebolt.png` | "Fire Spell Effect 01" by pimen | https://pimen.itch.io/ |
+| `ice.png`, `ice_hit.png` | "Ice Spell Effect 01" by pimen | https://pimen.itch.io/ |
+| `thunder.png`, `thunder_hit.png` | "Thunder Spell Effect 01" by pimen | https://pimen.itch.io/ |
 | `smoke.png` | "Smoke n Dust 01" by pimen | https://pimen.itch.io/ |
 | `campfire.png` | "Animated Fire" by BenHickling (CC0) | OpenGameArt |
 | `star.png`, `ring.png` | "Particle Pack" by Kenney (CC0) | https://kenney.nl/assets/particle-pack |
