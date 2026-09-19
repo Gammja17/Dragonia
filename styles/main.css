@@ -227,7 +227,7 @@ button.start-btn:hover { transform: scale(1.05); }
 .kid-heart { color: #e74c3c; margin-left: 4px; }
 
 /* ---------- 픽셀 금테 (Kenney Fantasy UI Borders, CC0) ---------- */
-.hud-panel, #kids-panel, .card, #dialogue-overlay {
+.hud-panel, #kids-panel, #journal-panel, .card, #dialogue-overlay {
     border: 18px solid transparent;
     border-image: url('../assets/ui/frame.png') 32 / 18px stretch;
     image-rendering: pixelated;
@@ -309,3 +309,17 @@ button.start-btn:hover { transform: scale(1.05); }
     border-radius: 2px; font-family: 'Noto Sans KR', sans-serif;
 }
 #raid-info.active { color: #fff; background: rgba(160, 30, 30, 0.85); font-weight: 700; }
+
+/* ---------- 모험 일지 ---------- */
+#journal-panel {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: min(440px, 90vw); max-height: 76vh; padding: 8px 12px;
+    background-color: rgba(10, 12, 24, 0.94); color: #ecf0f1;
+    display: none; flex-direction: column; gap: 6px;
+    pointer-events: auto; z-index: 70; font-family: 'Noto Sans KR', sans-serif;
+}
+#journal-body { overflow-y: auto; padding-right: 6px; display: flex; flex-direction: column; gap: 12px; }
+.journal-title { color: #ffd84a; font-weight: 700; font-size: 0.9rem; border-bottom: 1px solid rgba(216,178,90,0.4); padding-bottom: 3px; margin-bottom: 4px; }
+.journal-row { display: flex; justify-content: space-between; gap: 12px; font-size: 0.8rem; padding: 2px 0; }
+.journal-row span:last-child { color: #aeb6c2; text-align: right; }
+.journal-row.dim { opacity: 0.4; }

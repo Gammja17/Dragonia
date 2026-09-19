@@ -1,5 +1,6 @@
 // 대화창 DOM만 담당. 어떤 대사를 보여줄지는 systems/dialogue.js 가 결정.
 import { drawPortrait } from '../render/spritesheet.js';
+import { play } from '../systems/audio.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -17,7 +18,7 @@ export const dialogueUI = {
             const btn = document.createElement('button');
             btn.className = 'd-btn';
             btn.textContent = opt.label;
-            btn.onclick = opt.onSelect;
+            btn.onclick = () => { play('ui'); opt.onSelect(); };
             box.appendChild(btn);
         }
     },

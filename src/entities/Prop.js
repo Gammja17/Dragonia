@@ -9,6 +9,8 @@ import { getVfxImage, spawnEffect } from '../render/vfx.js';
 import { Item } from './Item.js';
 import { showToast } from '../ui/toast.js';
 import { notify } from '../systems/quests.js';
+import { grantRelic, randomRelic } from '../systems/relics.js';
+import { play } from '../systems/audio.js';
 
 const BERRY_REGROW = 100; // 초
 
@@ -56,6 +58,8 @@ export class Prop extends Entity {
         if (Math.random() < 0.6) items.push(new Item(this.x - 30, this.y + 20, 'MEAT'));
         if (Math.random() < 0.12) { items.push(new Item(this.x + 30, this.y + 20, 'EGG')); showToast('상자 안에 용의 알이 있습니다!', '🥚'); }
         spawnEffect('STAR', this.x, this.y - 20);
+        play('pickup');
+        if (Math.random() < 0.22) { const id = randomRelic(); if (id) grantRelic(id, this.x, this.y); }
         showToast('보물상자를 열었습니다!', '🎁');
         notify('chest');
     }

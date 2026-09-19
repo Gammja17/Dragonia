@@ -14,6 +14,9 @@ import { weatherDamageMult } from '../systems/weather.js';
 import { updateActivityNpc } from '../systems/npcActions.js';
 import { NPC_TALK } from '../data/npcTalk.js';
 import { spawnText } from '../render/vfx.js';
+import { hasRelic } from '../systems/relics.js';
+import { play, toggleMute } from '../systems/audio.js';
+import { toggleJournal } from '../ui/journal.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
 import { Animator, drawFrame } from '../render/spritesheet.js';
 import { drawIcon } from '../render/pixel.js';
@@ -91,6 +94,7 @@ export class Dragon extends Entity {
         this.hp = this.maxHp;
         if (!this.isPlayer) return;
         showToast(`LEVEL UP! LV.${this.level}`, '🔥');
+        play('level');
         burst(this.x, this.y, '#f1c40f', 1.2, 25);
         spawnEffect('STAR', this.x, this.y - 50, { size: 1.6 });
         this.checkEvolution();
@@ -130,6 +134,7 @@ export class Dragon extends Entity {
         if (!this.isPlayer && this.downTimer > 0) return;
         this.hp -= dmg;
         burst(this.x, this.y - 40, '#e74c3c', 0.8, 5);
+        if (this.isPlayer && dmg >= 3) play('hurt');
         if (this.isPlayer && dmg >= 3) spawnText(this.x, this.y - 90 * this.stage.scale, `-${Math.round(dmg)}`, '#ff6b5e', 15);
         if (this.animator) this.animator.play('hit');
         if (this.hp <= 0 && !this.isPlayer) {           // 마을 용은 죽지 않고 잠시 쓰러진다
@@ -195,11 +200,12 @@ export class Dragon extends Entity {
         const { dx, dy } = input.axis();
         if (this.fishing) this.updateFishing(dt, dx || dy);
         if (dx || dy) {
-            this.moveBy(dx, dy, WALK_SPEED * this.stage.speed * (1 + 0.04 * (state.upgrades.spd || 0)) * (input.down('sprint') ? SPRINT_MULT : 1), dt);
-            this.hunger -= 0.5 * dt;
+            this.moveBy(dx, dy, WALK_SPEED * this.stage.speed * (1 + 0.04 * (state.upgrades.spd || 0)) * (hasRelic('WIND_FEATHER') ? 1.08 : 1) * (input.down('sprint') ? SPRINT_MULT : 1), dt);
+            this.hunger -= 0.5 * dt * (hasRelic('IRON_STOMACH') ? 0.5 : 1);
         } else {
-            this.hunger -= 0.1 * dt;
+            this.hunger -= 0.1 * dt * (hasRelic('IRON_STOMACH') ? 0.5 : 1);
         }
+        if (hasRelic('LIFE_STONE')) this.hp = Math.min(this.maxHp, this.hp + 1.5 * dt);
         this.hunger = Math.max(0, this.hunger);
 
         const nearNpc = state.entities.npcs.find(n => dist(this, n) < INTERACT_RANGE) || null;
@@ -217,6 +223,8 @@ export class Dragon extends Entity {
         if (input.pressed('talk') && nearNpc) startDialogue(nearNpc, 'TALK');
         if (input.pressed('flirt') && nearNpc) startDialogue(nearNpc, 'FLIRT');
         if (input.pressed('kids')) toggleKidsPanel();
+        if (input.pressed('journal')) toggleJournal();
+        if (input.pressed('mute')) showToast(toggleMute() ? '효과음 끔' : '효과음 켬', '🔊');
     }
 
     attack() {
@@ -231,8 +239,9 @@ export class Dragon extends Entity {
         const sc = this.stage.scale;
         const mx = this.x + Math.cos(angle) * MOUTH_OFFSET * sc;
         const my = this.y - 40 * sc + Math.sin(angle) * MOUTH_OFFSET * sc;
-        const damage = ELEMENTS[this.element].damage * this.stage.damage * (1 + 0.08 * (state.upgrades.dmg || 0)) * weatherDamageMult(this.element) * damageMult;
+        const damage = ELEMENTS[this.element].damage * this.stage.damage * (1 + 0.08 * (state.upgrades.dmg || 0)) * (hasRelic('OLD_FANG') ? 1.15 : 1) * weatherDamageMult(this.element) * damageMult;
         addBullet(new Projectile(mx, my, angle, { faction: 'ALLY', element: this.element, damage, scale: 0.7 + sc * 0.3 }));
+        play(this.element === 'ICE' ? 'ice' : this.element === 'THUNDER' ? 'zap' : 'shoot');
     }
 
     useSkill(id) {
@@ -258,6 +267,7 @@ export class Dragon extends Entity {
             }
             spawnEffect('RING', this.x, this.y - 40, { size: 3 });
             burst(this.x, this.y - 40, '#fff2a8', 0.9, 30);
+            play('roar');
         }
     }
 
@@ -279,7 +289,7 @@ export class Dragon extends Entity {
             if (f.bite <= 0) { this.fishing = null; showToast('물고기가 달아났습니다…', '💨'); }
         } else {
             f.wait -= dt;
-            if (f.wait <= 0) { f.bite = 1.0; burst(f.x, f.y, '#bfe9ff', 0.5, 6); }
+            if (f.wait <= 0) { f.bite = 1.0; burst(f.x, f.y, '#bfe9ff', 0.5, 6); play('splash'); }
         }
     }
 
@@ -307,6 +317,7 @@ export class Dragon extends Entity {
             if (item.remove || dist(this, item) >= 60) continue;
             if (item.type === 'MEAT') {
                 this.inventory.meat++; item.remove = true; picked = true;
+                play('pickup');
                 showToast("고기 획득!", "🍖");
             } else if (item.type === 'EGG' && !this.carrying) {
                 this.carrying = 'EGG'; item.remove = true; picked = true;

@@ -9,6 +9,8 @@ import { getTileImage } from '../world/terrain.js';
 import { drawPixelSprite } from '../render/pixel.js';
 import { getVfxImage, spawnEffect, spawnBolt, spawnText } from '../render/vfx.js';
 import { applyStatus } from '../systems/status.js';
+import { hasRelic } from '../systems/relics.js';
+import { play } from '../systems/audio.js';
 
 const CRIT_CHANCE = 0.12; // 치명타: 피해 2배
 const ARROW = { sx: 176, sy: 160, sw: 16, sh: 16 }; // Tiny Dungeon 시트의 화살(위쪽을 향함)
@@ -50,7 +52,8 @@ export class Projectile extends Entity {
         const el = ELEMENTS[this.element];
         if (this.kind === 'BREATH') spawnEffect(el.hit, this.x, this.y, { angle: this.angle, size: this.scale });
         if (this.faction !== 'ALLY') { target.takeDamage(this.damage); return; }
-        const crit = Math.random() < CRIT_CHANCE;
+        const crit = Math.random() < CRIT_CHANCE + (hasRelic('HUNTER_CHARM') ? 0.1 : 0);
+        play(crit ? 'crit' : 'hit');
         const dmg = this.damage * (crit ? 2 : 1);
         target.takeDamage(dmg);
         spawnText(target.x, target.y - 50, crit ? `${Math.round(dmg)}!` : `${Math.round(dmg)}`, crit ? '#ffd84a' : '#fff', crit ? 22 : 15);
@@ -59,7 +62,8 @@ export class Projectile extends Entity {
         if (el.chain) {
             let from = target;
             const used = new Set([target]);
-            for (let i = 0; i < el.chain.count; i++) {
+            const bounces = el.chain.count + (hasRelic('ZALGORA_SCALE') ? 1 : 0);
+            for (let i = 0; i < bounces; i++) {
                 const next = targets.find(t => !t.remove && !used.has(t) && dist(from, t) < el.chain.range);
                 if (!next) break;
                 spawnBolt(from.x, from.y - 16, next.x, next.y - 16);

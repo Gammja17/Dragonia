@@ -14,6 +14,7 @@ import { drawGlow } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
 import { updateStatus, statusTint } from '../systems/status.js';
 import { notify } from '../systems/quests.js';
+import { grantRelic, bossRelic } from '../systems/relics.js';
 import { showToast } from '../ui/toast.js';
 import { setBossBar } from '../ui/hud.js';
 
@@ -173,6 +174,7 @@ export class Boss extends Entity {
         showToast(`${this.def.name} 처치!`, '🏆');
         const player = state.player;
         if (this.def.unlock) player.unlockElement(this.def.unlock);
+        grantRelic(bossRelic(this.id), this.x, this.y);
         player.gainXp(this.def.xp);
         notify('boss', this.id);
     }

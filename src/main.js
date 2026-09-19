@@ -15,6 +15,9 @@ import { initCustomizer } from './ui/customizer.js';
 import { preloadDragonSprites } from './render/dragonSprites.js';
 import { preloadVfx } from './render/vfx.js';
 import { updateLighting, drawLighting } from './render/lighting.js';
+import { updateEvents, drawEvents } from './systems/events.js';
+import { initAudio } from './systems/audio.js';
+import { initJournal } from './ui/journal.js';
 
 const AUTOSAVE_INTERVAL = 20; // 초
 
@@ -33,6 +36,7 @@ resize();
 initInput();
 initHud();
 initKidsPanel();
+initJournal();
 initCustomizer(startGame);
 window.addEventListener('beforeunload', saveGame);
 
@@ -48,6 +52,7 @@ window.__dragonia = { state, step(dt) { update(dt); followCamera(state.player); 
 
 /** config: 새 게임 설정. loadSave 가 true 면 저장된 진행 상황을 이어서 한다 */
 async function startGame(config, loadSave = false) {
+    initAudio(); // 시작 버튼 클릭 = 첫 사용자 입력이라 여기서 소리를 켤 수 있다
     await assetsReady;
     const save = loadSave ? readSave() : null;
     resetState();
@@ -91,7 +96,9 @@ function update(dt) {
     const E = state.entities;
     state.gameTime += dt;
     updateRaid(dt);
+    const prevDayTime = state.dayTime;
     updateLighting(dt);
+    updateEvents(dt, prevDayTime);
     updateWeather(dt);
 
     state.player.update(dt);
@@ -121,6 +128,7 @@ function render() {
 
     for (const b of E.bullets) b.draw(ctx);
     for (const fx of E.effects) fx.draw(ctx);
+    drawEvents(ctx);
     ctx.globalCompositeOperation = 'lighter'; // 파티클은 빛 알갱이
     for (const p of E.particles) p.draw(ctx);
     ctx.restore();

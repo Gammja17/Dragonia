@@ -16,6 +16,9 @@ export const state = {
     blessingDay: 0,
     activity: null,      // 진행 중인 대련/술래잡기 (systems/npcActions.js)
     companion: null,
+    relics: [],          // 가진 유물 id (systems/relics.js)
+    event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
+    stats: { kills: {} },
     raidTimer: RAID_FIRST_DELAY,
     elderTutorialDone: false,
     player: null,
@@ -45,6 +48,9 @@ export function resetState() {
         blessingDay: 0,
         activity: null,      // 진행 중인 대련/술래잡기 (systems/npcActions.js)
         companion: null,
+        relics: [],          // 가진 유물 id (systems/relics.js)
+        event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
+        stats: { kills: {} },
         raidTimer: RAID_FIRST_DELAY,
         elderTutorialDone: false,
         player: null,

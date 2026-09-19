@@ -1,9 +1,12 @@
 // 상태 이상: BURN(지속 피해), SLOW(이동 절반), STUN(정지). 적/사냥꾼/보스 공용.
 // 대상은 hp, takeDamage(dmg, silent) 를 가진 엔티티.
+import { hasRelic } from './relics.js';
+
 const BURN_DPS = 3;
 
 export function applyStatus(e, type, duration) {
     if (e.statusImmune && type === 'STUN') duration *= 0.35; // 보스는 기절이 짧다
+    if (type === 'SLOW' && hasRelic('MORGATH_HORN')) duration *= 2;
     e.status = e.status || {};
     e.status[type] = Math.max(e.status[type] || 0, duration);
 }
@@ -13,7 +16,7 @@ export function updateStatus(e, dt) {
     const s = e.status;
     if (!s) return 1;
     let speed = 1;
-    if (s.BURN > 0) { s.BURN -= dt; e.takeDamage(BURN_DPS * dt, true); }
+    if (s.BURN > 0) { s.BURN -= dt; e.takeDamage(BURN_DPS * (hasRelic('IGNAR_HEART') ? 2 : 1) * dt, true); }
     if (s.SLOW > 0) { s.SLOW -= dt; speed *= 0.5; }
     if (s.STUN > 0) { s.STUN -= dt; speed = 0; }
     return speed;

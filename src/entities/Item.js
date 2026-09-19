@@ -3,6 +3,8 @@ import { isOnScreen } from '../core/camera.js';
 import { state } from '../core/state.js';
 import { dist } from '../core/utils.js';
 import { spawnText } from '../render/vfx.js';
+import { hasRelic } from '../systems/relics.js';
+import { play } from '../systems/audio.js';
 import { drawIcon, drawGlow } from '../render/pixel.js';
 
 export class Item extends Entity {
@@ -18,8 +20,10 @@ export class Item extends Entity {
         // 골드는 가까이 가면 빨려 들어온다 (E 안 눌러도 됨)
         const p = state.player, d = dist(this, p);
         if (d < 40) {
-            p.gold += this.value;
-            spawnText(p.x, p.y - 90, `+${this.value}G`, '#ffd84a', 15);
+            const gain = Math.round(this.value * (hasRelic('LUCKY_COIN') ? 1.3 : 1));
+            p.gold += gain;
+            spawnText(p.x, p.y - 90, `+${gain}G`, '#ffd84a', 15);
+            play('coin');
             this.remove = true;
         } else if (d < 170) {
             this.x += ((p.x - this.x) / d) * 420 * dt;

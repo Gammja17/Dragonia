@@ -26,8 +26,9 @@ src/
                     pixel(픽셀 스프라이트/빛 번짐/아이콘), vfx(일회성 효과), lighting(낮밤 조명)
   systems/          combat(충돌), raid(습격), kids(자식 명부/유전), dialogue(대화 진행), status(상태 이상),
                     quests(퀘스트 진행), weather(날씨), save(localStorage 세이브),
-                    npcActions(NPC별 상호작용: 대련·술래잡기·상점·축복·동료)
-  ui/               hud, dialogueUI, kidsPanel, customizer, toast
+                    npcActions(NPC별 상호작용: 대련·술래잡기·상점·축복·동료), relics(유물),
+                    events(밤 이벤트: 붉은 달·유성우), audio(WebAudio 효과음)
+  ui/               hud, dialogueUI, kidsPanel, journal(모험 일지), customizer, toast
 ```
 
 에셋 출처와 라이선스는 [CREDITS.md](CREDITS.md) 참고. `assets/raw/`는 내려받은 원본 보관용이라 저장소에 올리지 않는다.

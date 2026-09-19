@@ -6,6 +6,7 @@ import { isOnScreen } from '../core/camera.js';
 import { dist, rand } from '../core/utils.js';
 import { registerKid, mixGenes } from '../systems/kids.js';
 import { notify } from '../systems/quests.js';
+import { hasRelic } from '../systems/relics.js';
 import { showToast } from '../ui/toast.js';
 import { drawIcon, drawGlow } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
@@ -42,7 +43,7 @@ export class Nest extends Entity {
     update(dt) {
         if (!this.hasEgg) return;
         const near = dist(this, state.player) < 120;
-        this.progress += near ? dt * 18 : dt * 3;
+        this.progress += (near ? dt * 18 : dt * 3) * (hasRelic('NEST_CHARM') ? 1.5 : 1);
         if (this.progress > 100) this.hatch();
     }
     hatch() {

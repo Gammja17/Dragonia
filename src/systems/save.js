@@ -2,6 +2,7 @@ import { state } from '../core/state.js';
 import { BabyDragon } from '../entities/BabyDragon.js';
 import { registerKid, setKidStage } from './kids.js';
 import { PROP_SPRITES } from '../data/tiles.js';
+import { bossRelic } from './relics.js';
 
 // localStorage 세이브. 월드(지형·소품)는 시드 고정이라 저장하지 않는다. 떠돌이 NPC·적·아이템도 저장 안 함.
 const KEY = 'dragonia-save-v1';
@@ -37,6 +38,7 @@ export function saveGame() {
         bossesDefeated: state.bossesDefeated,
         raidCount: state.raid.count, upgrades: state.upgrades, openedChests: state.openedChests, blessingDay: state.blessingDay,
         companion: state.companion ? state.companion.config.name : null,
+        relics: state.relics, stats: state.stats, event: state.event,
         npcs: Object.fromEntries(state.entities.npcs.filter(n => n.config.fixed)
             .map(n => [n.config.name, { relation: n.relation, lastGiftDay: n.lastGiftDay ?? null, lastTalkDay: n.lastTalkDay ?? null, lastPresentDay: n.lastPresentDay ?? null, lastPlayDay: n.lastPlayDay ?? null }])),
         partner: state.partner ? state.partner.config.name : null,
@@ -68,6 +70,11 @@ export function applySave(data) {
     state.upgrades = data.upgrades || {};
     state.openedChests = data.openedChests || {};
     state.blessingDay = data.blessingDay || 0;
+    state.relics = data.relics || [];
+    state.stats = data.stats || { kills: {} };
+    state.event = data.event || null;
+    // 유물이 생기기 전에 잡은 보스의 전리품도 챙겨 준다
+    for (const id of Object.keys(state.bossesDefeated)) { const r = bossRelic(id); if (r && !state.relics.includes(r)) state.relics.push(r); }
     for (const c of state.entities.props) if (c.type === 'CHEST' && state.openedChests[c.chestId]) { c.opened = true; c.sprite = PROP_SPRITES.CHEST_OPEN[0]; }
     state.entities.bosses = state.entities.bosses.filter(b => !data.bossesDefeated[b.id]);
 

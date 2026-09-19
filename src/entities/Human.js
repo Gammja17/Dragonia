@@ -11,6 +11,7 @@ import { spawnEffect, spawnText } from '../render/vfx.js';
 import { updateStatus, statusTint } from '../systems/status.js';
 import { allies } from '../systems/combat.js';
 import { notify } from '../systems/quests.js';
+import { xpMult } from '../systems/events.js';
 import { showToast } from '../ui/toast.js';
 
 /** 마을을 습격하는 사냥꾼. type: data/enemies.js 의 HUNTERS 키 */
@@ -78,7 +79,8 @@ export class Human extends Entity {
 
     die() {
         this.remove = true;
-        state.player.gainXp(this.def.xp);
+        state.player.gainXp(this.def.xp * xpMult());
+        state.stats.kills.HUNTER = (state.stats.kills.HUNTER || 0) + 1;
         notify('kill', 'HUNTER');
         spawnEffect('SMOKE', this.x, this.y - 16, { size: this.def.scale ? 1.8 : 1 });
         const items = state.entities.items;

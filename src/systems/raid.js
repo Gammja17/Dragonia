@@ -5,6 +5,7 @@ import { Human } from '../entities/Human.js';
 import { showToast } from '../ui/toast.js';
 import { showRaidWarning } from '../ui/hud.js';
 import { notify } from './quests.js';
+import { play } from './audio.js';
 
 // 습격은 회차(state.raid.count)가 오를수록 인원이 늘고 새 병종이 섞인다. 3회차마다 대장이 온다.
 const SIDES = {
@@ -38,6 +39,7 @@ export function triggerRaid() {
     raid.active = true;
     const side = SIDES[pick(Object.keys(SIDES))];
     showRaidWarning(`${side.name}에서 습격! (${raid.count}차)`);
+    play('raid');
     showToast(`사냥꾼 습격 ${raid.count}차! ${side.name}에서 몰려옵니다. 마을 용들과 함께 막아내세요!`, '⚔️');
     for (const type of roster(raid.count)) {
         // 마을 가장자리 바깥, 그 변을 따라 흩어져서 등장

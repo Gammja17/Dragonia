@@ -83,7 +83,11 @@ export function drawLighting(ctx, cam) {
 
     // 비가 오면 푸르스름하게 어두워진다
     const wet = state.weather.intensity;
-    const [r, g, b] = ambient().map((v, i) => Math.round(v * (1 - wet * [0.34, 0.28, 0.16][i])));
+    let [r, g, b] = ambient().map((v, i) => Math.round(v * (1 - wet * [0.34, 0.28, 0.16][i])));
+    if (state.event === 'BLOOD_MOON') {   // 어두울수록 붉게
+        const k = Math.min(1, (1 - (r + g + b) / 765) * 1.6);
+        r = Math.round(r + (170 - r) * k); g = Math.round(g + (48 - g) * k); b = Math.round(b + (70 - b) * k);
+    }
     const dark = 1 - (0.3 * r + 0.59 * g + 0.11 * b) / 255; // 0(낮) ~ 0.7(밤)
     const lights = collectLights().filter(l => l.x + l.r > cx && l.x - l.r < cx + w && l.y + l.r > cy && l.y - l.r < cy + h);
 

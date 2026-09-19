@@ -10,6 +10,9 @@ import { Prop } from '../entities/Prop.js';
 import { Nest } from '../entities/Nest.js';
 import { FIXED_NPCS, WANDER_NAMES, WANDER_PERSONALITIES, WANDER_SPECIES, SPECIES_COLORS } from '../data/npcs.js';
 import { BIOME_ENEMIES, BOSSES } from '../data/enemies.js';
+import { enemyCapMult } from '../systems/events.js';
+
+const ELITE_CHANCE = 0.08;
 
 const DESPAWN_RANGE = 1900; // 플레이어에게서 이만큼 멀어진 적은 치운다
 
@@ -23,7 +26,8 @@ export function spawnEnemy() {
         const types = BIOME_ENEMIES[getBiome(x, y)];
         if (!types || dist({ x, y }, VILLAGE_CENTER) < 700) continue;
         if (Object.values(BOSSES).some(b => dist({ x, y }, b) < 420)) continue; // 결투장은 비워 둔다
-        state.entities.enemies.push(new Enemy(x, y, pick(types)));
+        const type = pick(types);
+        state.entities.enemies.push(new Enemy(x, y, type, type !== 'PREY' && Math.random() < ELITE_CHANCE));
         return;
     }
 }
@@ -46,7 +50,7 @@ export function spawnWanderingNPC() {
 export function updateSpawns() {
     const E = state.entities;
     for (const e of E.enemies) if (dist(e, state.player) > DESPAWN_RANGE) e.remove = true;
-    if (E.enemies.length < MAX_ENEMIES && Math.random() < 0.05) spawnEnemy();
+    if (E.enemies.length < MAX_ENEMIES * enemyCapMult() && Math.random() < 0.05) spawnEnemy();
 }
 
 /** 새 게임 월드 구성. 엘더 NPC를 반환(튜토리얼용). */

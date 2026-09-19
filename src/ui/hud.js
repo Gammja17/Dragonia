@@ -10,6 +10,7 @@ import { drawPortrait } from '../render/spritesheet.js';
 import { weatherName } from '../systems/weather.js';
 import { questLines, setQuestListener } from '../systems/quests.js';
 import { raidStatusText } from '../systems/raid.js';
+import { eventName } from '../systems/events.js';
 
 const $ = (id) => document.getElementById(id);
 let el = {};
@@ -51,7 +52,7 @@ export function showGameUI() {
 export function updateHud() {
     const p = state.player;
     if (!p) return;
-    el.biome.textContent = `${BIOMES[getBiome(p.x, p.y)].name} · ${dayPhaseName()} · ${weatherName()}`;
+    el.biome.textContent = `${BIOMES[getBiome(p.x, p.y)].name} · ${eventName() || dayPhaseName()} · ${weatherName()}`;
     el.name.textContent = p.config.name || 'Player';
     el.lvl.textContent = p.level;
     el.stage.textContent = p.stage.name;
