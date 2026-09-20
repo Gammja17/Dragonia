@@ -88,8 +88,9 @@ export function openNpcHub(npc, skipErrand = false) {
 
     opts.push({ label: '다음에 봐', onSelect: close });
 
-    // 진행 중인 부탁이 있으면 인사말 뒤에 진행도를 한 줄 덧붙인다
+    // 인사말 앞에 지금 무얼 하고 있었는지를 한 줄 깔아 둔다 (하루 일과)
     let text = greeting(npc, talk, tier);
+    if (npc.doing) text = `(${npc.doing}.)\n\n` + text;
     if (running && !isComplete(running)) text += `\n\n(${running.title} — ${goalText(running)}: ${questProgress(running)}/${running.goal.count || 1})`;
     show(npc, text, opts);
     return true;

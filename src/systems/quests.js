@@ -1,5 +1,6 @@
 import { state } from '../core/state.js';
 import { npcName } from '../data/npcs.js';
+import { planFor } from './routine.js';
 import { clamp } from '../core/utils.js';
 import { QUESTS, ACT_NAMES, questById } from '../data/quests.js';
 import { ENEMIES, BOSSES } from '../data/enemies.js';
@@ -85,6 +86,12 @@ export function offerFor(npc) {
     return QUESTS.find(q => !q.auto && q.giver === npc.config.name && !(q.id in Q.active) && !Q.done.includes(q.id)
         && (!q.requires || Q.done.includes(q.requires)));
 }
+/** 의뢰인 이름과, 일과를 아는 용이라면 지금 어디 있는지까지 */
+function giverLine(name) {
+    const plan = planFor(name);
+    return plan ? `${npcName(name)} — 지금 ${plan.mapName}` : npcName(name);
+}
+
 export function activeFor(npc) { return activeQuests().find(q => q.giver === npc.config.name); }
 
 /** NPC 머리 위 표시: '?' 완료 보고 가능, '!' 새 퀘스트, 없으면 null */
@@ -155,7 +162,7 @@ export function questLog() {
         if (!active && !done) continue;
         if (!seen.has(q.act)) { seen.add(q.act); groups.push({ act: q.act, name: ACT_NAMES[q.act] || q.act, rows: [] }); }
         groups.find(g => g.act === q.act).rows.push({
-            id: q.id, title: q.title, giver: npcName(q.giver),
+            id: q.id, title: q.title, giver: giverLine(q.giver),
             summary: q.summary || '', hint: q.hint || '', goal: goalText(q), reward: rewardText(q),
             progress: active ? `${questProgress(q)} / ${goalCount(q)}` : '완료',
             done, complete: active && isComplete(q),
@@ -167,7 +174,7 @@ export function questLog() {
         const next = QUESTS.find(q => (ACT_NAMES[q.act] || q.act) === g.name && !(q.id in Q.active) && !Q.done.includes(q.id)
             && (!q.requires || Q.done.includes(q.requires)));
         if (next) g.rows.push({
-            id: next.id, title: '???', giver: npcName(next.giver), upcoming: true,
+            id: next.id, title: '???', giver: giverLine(next.giver), upcoming: true,
             hint: next.auto ? '아직 때가 아니다. 세상을 더 돌아다녀 보자.' : `${npcName(next.giver)}에게 말을 걸어 보자.`,
         });
     }

@@ -4,7 +4,7 @@ import { cam, followCamera, isOnScreen, resizeCamera, cycleZoom, stepZoom } from
 import { clamp } from './core/utils.js';
 import { preloadTerrain, drawTerrain } from './world/terrain.js';
 import { updateSpawns } from './world/spawn.js';
-import { initWorld, updatePortals } from './systems/world.js';
+import { initWorld, updatePortals, getNpc } from './systems/world.js';
 import { resolveCombat, pruneEntities } from './systems/combat.js';
 import { updateRaid } from './systems/raid.js';
 import { updateWeather, drawWeather } from './systems/weather.js';
@@ -21,6 +21,7 @@ import { initWaystones, updateTravel } from './systems/travel.js';
 import { inDungeon } from './systems/delve.js';
 import { updateChronicle } from './systems/chronicle.js';
 import { updateCutscene, drawCutscene } from './systems/cutscene.js';
+import { updateRoutine } from './systems/routine.js';
 import { updateEvents, drawEvents } from './systems/events.js';
 import { initAudio } from './systems/audio.js';
 import { initJournal } from './ui/journal.js';
@@ -124,7 +125,7 @@ function update(dt) {
 
     resolveCombat();
     pruneEntities();
-    if (outside) { updateSpawns(); updateTravel(); updatePortals(); updateChronicle(dt); }
+    if (outside) { updateSpawns(); updateTravel(); updatePortals(); updateRoutine(dt, getNpc); updateChronicle(dt); }
 }
 
 function render() {

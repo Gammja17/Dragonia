@@ -23,7 +23,8 @@ src/
                     elements(브레스 속성/성장 단계), enemies(적·사냥꾼·보스), quests(퀘스트),
                     npcTalk(NPC 고유 대화·데이트·관계 장면), skills(스킬 13종),
                     story(수련·승급 시험·아침 장면), chronicle(돌아다니다 터지는 사건),
-                    dungeons(굴 입구), materials(대장간 소재·조리법), maps(지도 17장 명세)
+                    dungeons(굴 입구), materials(대장간 소재·조리법), maps(지도 17장 명세),
+                    routines(용들의 하루 일과)
   entities/         Dragon, BabyDragon, Enemy, Human, Nest, Projectile, Boss, Hazard, Particle, Item, Prop
   render/           assets, spritesheet, tint, dragonSprites, pixel(픽셀 아이콘), vfx,
                     lighting(낮밤 조명), palette(지형 리컬러), cursor(마우스 조준점)
@@ -31,8 +32,10 @@ src/
                     weather, save, npcActions(NPC 상호작용), relics(유물 장착),
                     smithing(대장간), travel(이동 석비), delve(굴 탐험),
                     chronicle(사건·장면 재생), events(밤 이벤트), audio, kidActions, story,
-                    world(지도 오가기·개체 배치), tutorial(길잡이)
-  ui/               hud(미니맵·길잡이), dialogueUI, kidsPanel, journal(퀘스트·기록·유물·도감 탭),
+                    world(지도 오가기·개체 배치), tutorial(길잡이),
+                    cutscene(사건 연출), routine(일과대로 용 옮기기)
+  ui/               hud(미니맵·길잡이), dialogueUI, kidsPanel,
+                    journal(퀘스트·마을 용들·기록·유물·도감 탭),
                     customizer, toast, touch(모바일 조작)
 ```
 
@@ -72,9 +75,22 @@ src/
 새로 그려진다. 층마다 파수꾼을 잡아야 아래로 내려갈 수 있고, 나올 때 가장 깊이 내려간
 만큼 보상을 받는다. 처음 만나는 굴은 마을에서 한 지도 거리인 동쪽 숲길의 **나무뿌리 구멍**.
 
+## 마을 용들의 하루
+용마다 맡은 일과 하루 일과가 있다 (`data/routines.js`). 카이론은 새벽부터 수련장에서
+창을 휘두르다 낮에는 숲길을 돌고 저녁이면 마을 모닥불로 온다. 비가 오거나 사냥꾼이
+쳐들어오면 하던 일을 내던지고 다른 자리로 간다.
+
+시간이 흘러 일과가 바뀌면 용은 포탈로 걸어 나가고, 올 용은 포탈로 걸어 들어온다.
+**[J] 일지 → [마을 용들]** 탭에서 지금 누가 어디서 무엇을 하는지 한눈에 볼 수 있고,
+퀘스트 줄에도 의뢰인이 지금 있는 곳이 적힌다.
+
 ## 이야기
 보스는 "가서 잡아라"로 시작하지 않는다. 달빛 골짜기에 발을 들이면 울음을 듣고,
 마을에 한여름 눈이 내리면 원인을 찾아 나서는 식으로, **돌아다니다 사건이 터지며** 열린다
 (`data/chronicle.js`). 호감도 단계가 오를 때마다 인물마다 장면이 하나씩 재생된다.
+
+장면이 걸리면 **컷씬**으로 전환된다 (`systems/cutscene.js`). 위아래로 띠가 내려오고,
+화면이 어두워지며 나와 말하는 용에게만 빛이 남는다. 지도 저편에 있던 상대는 연극처럼
+곁으로 와서 마주 서고, 장면이 끝나면 제 자리로 돌아간다.
 
 에셋 출처와 라이선스는 [CREDITS.md](CREDITS.md) 참고. `assets/raw/`는 내려받은 원본 보관용이라 저장소에 올리지 않는다.

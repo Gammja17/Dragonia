@@ -11,13 +11,15 @@ import { isMuted } from '../systems/audio.js';
 import { questLog, setTracked } from '../systems/quests.js';
 import { play } from '../systems/audio.js';
 import { markTutorial } from '../systems/tutorial.js';
+import { roster } from '../systems/routine.js';
+import { dayPhaseName } from '../render/lighting.js';
 
 // 모험 일지: [퀘스트] [기록] [유물] [도감] 탭. J 키로 연다.
 // 퀘스트 탭이 첫 화면이다. 줄을 누르면 펼쳐져 배경·목표·힌트·보상을 읽을 수 있고,
 // [추적] 을 누르면 화면 오른쪽 추적창에 그 퀘스트가 걸린다.
 
 const $ = (id) => document.getElementById(id);
-const TABS = [['quests', '퀘스트'], ['record', '기록'], ['relics', '유물'], ['codex', '도감']];
+const TABS = [['quests', '퀘스트'], ['folk', '마을 용들'], ['record', '기록'], ['relics', '유물'], ['codex', '도감']];
 let tab = 'quests';
 let openRow = null;   // 펼쳐 놓은 퀘스트 id
 
@@ -209,11 +211,41 @@ function renderCodex(body) {
     ]));
 }
 
+/** 마을 용들: 지금 누가 어디서 무엇을 하는지 */
+function renderFolk(body) {
+    const hour = Math.floor(state.dayTime * 24);
+    const min = Math.floor((state.dayTime * 24 % 1) * 60 / 10) * 10;
+    const head = document.createElement('div');
+    head.className = 'journal-title';
+    head.textContent = `${state.day}일째 ${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')} · ${dayPhaseName()}`;
+    body.appendChild(head);
+
+    const TIERS = [[75, '연인'], [50, '절친'], [25, '친구'], [10, '아는 사이'], [0, '낯선 사이']];
+    for (const r of roster()) {
+        const card = document.createElement('div');
+        card.className = 'folk-card' + (r.near ? ' here' : '');
+        const tier = TIERS.find(t => r.relation >= t[0])[1];
+        card.innerHTML = '<div class="folk-head"><b class="folk-name"></b><span class="folk-job"></span></div>' +
+                         '<div class="folk-where"></div><div class="folk-doing"></div>';
+        card.querySelector('.folk-name').textContent = r.label;
+        card.querySelector('.folk-job').textContent = `${r.job} · ${tier}`;
+        card.querySelector('.folk-where').textContent = (r.near ? '📍 ' : '') + r.where;
+        card.querySelector('.folk-doing').textContent = r.doing;
+        body.appendChild(card);
+    }
+
+    const note = document.createElement('div');
+    note.className = 'q-empty';
+    note.textContent = '용마다 하루 일과가 있다. 시간과 날씨에 따라 있는 곳이 달라진다.';
+    body.appendChild(note);
+}
+
 function render() {
     for (const b of document.querySelectorAll('.journal-tab')) b.classList.toggle('on', b.dataset.tab === tab);
     const body = $('journal-body');
     body.innerHTML = '';
     if (tab === 'quests') renderQuests(body);
+    else if (tab === 'folk') renderFolk(body);
     else if (tab === 'record') renderRecord(body);
     else if (tab === 'relics') renderRelics(body);
     else renderCodex(body);

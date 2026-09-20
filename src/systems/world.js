@@ -15,6 +15,7 @@ import { Boss } from '../entities/Boss.js';
 import { fadeScreen } from '../ui/hud.js';
 import { showToast } from '../ui/toast.js';
 import { play } from './audio.js';
+import { placeByRoutine, hasRoutine, ROUTINE_NAMES, planFor } from './routine.js';
 
 // 여러 장의 지도를 오가는 살림살이.
 //
@@ -151,6 +152,7 @@ function populate(id) {
             continue;
         }
         if (f.t === 'NPC') {
+            if (hasRoutine(f.name)) continue;    // 일과가 있는 용은 routine.js 가 놓는다
             const npc = getNpc(f.name, pos);
             npc.x = pos.x; npc.y = pos.y;
             npc.homeX = pos.x; npc.homeY = pos.y;
@@ -158,7 +160,10 @@ function populate(id) {
         }
     }
 
-    // 4) 떠돌이 용 (마을과 숲길에만 한둘)
+    // 4) 일과대로 지금 이 지도에 있어야 하는 용들
+    placeByRoutine(id, pools, getNpc);
+
+    // 5) 떠돌이 용 (마을과 숲길에만 한둘)
     if (!spec.clearings && rng() < 0.7) {
         const species = rng() < 0.8 ? 'LOOK' : pick(WANDER_SPECIES);
         const x = map.w * (0.3 + rng() * 0.4), y = map.h * (0.3 + rng() * 0.4);
@@ -173,7 +178,7 @@ function populate(id) {
 }
 
 /** 고정 NPC 는 한 번 만들고 계속 쓴다 (호감도·데이트가 그 안에 들어 있다) */
-function getNpc(name, pos) {
+export function getNpc(name, pos) {
     if (!npcCache.has(name)) {
         const def = FIXED_NPCS.find(d => d.name === name);
         npcCache.set(name, new Dragon(pos.x, pos.y, { ...def, fixed: true }));
@@ -183,6 +188,11 @@ function getNpc(name, pos) {
 
 /** 고정 NPC 를 모두 미리 만들어 둔다. 세이브 복원이 이름으로 찾을 수 있어야 한다 */
 function primeNpcs() {
+    // 일과가 있는 용은 어느 지도의 fixtures 에도 없을 수 있다. 먼저 만들어 둔다
+    for (const name of ROUTINE_NAMES) {
+        const plan = planFor(name, 12);
+        if (plan) { const npc = getNpc(name, plan); npc.homeMap = plan.map; }
+    }
     for (const [id, spec] of Object.entries(MAPS)) {
         for (const f of spec.fixtures || []) {
             if (f.t !== 'NPC') continue;

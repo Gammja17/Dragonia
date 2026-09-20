@@ -679,3 +679,17 @@ body.cutscene #dialogue-overlay {
 }
 body.cutscene #d-options { width: 100%; align-items: flex-start; }
 body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
+
+/* 일지 [마을 용들] 탭: 지금 누가 어디서 무엇을 하는지 */
+.folk-card {
+    border: 1px solid var(--gold-dim);
+    border-left: 3px solid var(--gold-dim);
+    background: var(--ink-raise);
+    padding: 7px 10px; margin-bottom: 6px;
+}
+.folk-card.here { border-left-color: var(--gold-lit); background: var(--ink-hover); }
+.folk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.folk-name { color: var(--gold-lit); font-size: 0.92rem; }
+.folk-job { color: var(--parch-dim); font-size: 0.68rem; }
+.folk-where { color: var(--parch-mid); font-size: 0.74rem; margin-top: 3px; }
+.folk-doing { color: var(--parch); font-size: 0.78rem; margin-top: 2px; line-height: 1.45; }

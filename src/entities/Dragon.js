@@ -565,6 +565,7 @@ export class Dragon extends Entity {
         }
         if (this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + 4 * dt);
 
+        if (this.walkTo) { this.facing = facingFromVector(this.walkTo.x - this.x, this.walkTo.y - this.y, this.facing); return; }   // 일과대로 걸어가는 중 (systems/routine.js 가 옮긴다)
         const following = this.state !== 'WANDER';
         const busy = (this.config.fixed || following) && this.fight(dt, following);
         if (following) this.updatePartner(dt, busy);

@@ -32,7 +32,7 @@ export function resolveCombat() {
 
 export function pruneEntities() {
     const E = state.entities;
-    for (const key of ['bullets', 'effects', 'hazards', 'bosses', 'enemies', 'humans', 'items', 'particles', 'babies']) {
+    for (const key of ['bullets', 'effects', 'hazards', 'bosses', 'enemies', 'humans', 'items', 'particles', 'babies', 'npcs']) {
         E[key] = E[key].filter(e => !e.remove);
     }
 }
