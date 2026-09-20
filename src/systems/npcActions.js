@@ -9,7 +9,7 @@ import { spawnEffect } from '../render/vfx.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
 import { setBossBar } from '../ui/hud.js';
-import { notify, questDialogue } from './quests.js';
+import { notify, offerFor, activeFor, isComplete, acceptQuest, turnInQuest, goalText, questProgress } from './quests.js';
 import { masterOptions, updateDrill, isDrill } from './story.js';
 import { learnSkill } from './skills.js';
 
@@ -33,46 +33,118 @@ function show(npc, text, options) {
     dialogueUI.show({ name: `${npc.config.name} · ${TIER_NAMES[relationTier(npc.relation)]}`, text, sheet: npc.sheet, onClose: close, options });
 }
 
-/** 고정 NPC의 대화 첫 화면. 이 NPC용 대화가 없으면 false */
+/**
+ * 고정 NPC의 대화 첫 화면. 이 NPC용 대화가 없으면 false.
+ * 선택지는 늘 네댓 개를 넘지 않게 묶는다: [용건] · [이야기] · [함께] · [마음] · [닫기].
+ * 자잘한 것들(잡담·선물·대련·상점·데이트)은 각 묶음 안에 들어간다.
+ */
 export function openNpcHub(npc) {
     const talk = NPC_TALK[npc.config.name];
     if (!npc.config.fixed || !talk) return false;
     const tier = relationTier(npc.relation);
-    const p = state.player;
     const name = npc.config.name;
-    // 퀘스트 제안·보고는 같은 화면 맨 위에. 진행 중이면 인사말 뒤에 진행도만 덧붙인다
-    const quest = questDialogue(npc);
-    const opts = quest ? quest.options.map(o => ({ label: o.label, onSelect: () => { o.action(); openNpcHub(npc); } })) : [];
-    opts.push({ label: '이야기를 나눈다', onSelect: () => chat(npc) });
+    const opts = [];
 
-    if (name === 'Tiamat') opts.push({ label: '대련을 신청한다', onSelect: () => startSpar(npc) });
-    if (name === 'Poco') opts.push({ label: '술래잡기 하자!', onSelect: () => startTag(npc) });
-    if (name === 'Gron') opts.push({ label: `물건을 본다 (소지금 ${p.gold}G)`, onSelect: () => openShop(npc) });
-    if (name === 'Elder') opts.push({ label: '축복을 청한다', onSelect: () => blessing(npc) });
-    if (name === 'Kairon') opts.unshift(...masterOptions(npc));
+    // 1) 용건 — 새 부탁이 있거나, 끝낸 일을 보고할 때만 나온다
+    const running = activeFor(npc);
+    if (running && isComplete(running)) {
+        opts.push({ label: `📜 [${running.title}] 끝냈다고 알린다`, onSelect: () => reportQuest(npc, running) });
+    } else if (!running) {
+        const offer = offerFor(npc);
+        if (offer) opts.push({ label: '📜 부탁이 있다는 눈치다', onSelect: () => hearQuest(npc, offer) });
+    }
 
-    // 연애 (짝이 될 수 있는 용만)
+    // 2) 이야기 — 잡담·선물·받을 것
+    opts.push({ label: '💬 이야기를 나눈다', onSelect: () => talkMenu(npc) });
+
+    // 3) 함께 — 그 용만의 것
+    const mine = ownMenu(npc, name);
+    if (mine) opts.push(mine);
+
+    // 4) 마음 — 짝이 될 수 있는 용만
     if (npc.config.canPartner) {
-        const dates = npc.dates || 0;
-        if (npc === state.partner) {
-            opts.push({ label: '우리… 아이를 가질까?', onSelect: () => familyTalk(npc) });
-        } else if (dates >= 3 && npc.relation >= 80) {
-            opts.push({ label: '♥ 마음을 고백한다', onSelect: () => confess(npc) });
-        } else if (npc.relation >= 40 && dates < 3 && npc.lastDateDay !== state.day) {
-            opts.push({ label: `♥ 데이트를 신청한다 (${dates}/3)`, onSelect: () => goOnDate(npc) });
-        }
+        const heart = heartCount(npc);
+        if (heart) opts.push({ label: `♥ 마음을 전한다${heart}`, onSelect: () => heartMenu(npc) });
     }
-    if (tier >= 2 && npc.lastPresentDay !== state.day) opts.push({ label: '(뭔가 주려는 눈치다)', onSelect: () => receivePresent(npc) });
-    if (name !== 'Elder' && name !== 'Kairon' && p.inventory.meat > 0 && npc.lastGiftDay !== state.day) opts.push({ label: '고기를 선물한다 (고기 -1)', onSelect: () => giveGift(npc) });
-    if (name !== 'Elder' && name !== 'Kairon' && npc !== state.partner) {
-        if (state.companion === npc) opts.push({ label: '이제 마을로 돌아가도 돼', onSelect: () => setCompanion(npc, false) });
-        else if (tier >= 2) opts.push({ label: '같이 모험을 떠나자', onSelect: () => setCompanion(npc, true) });
-    }
+
     opts.push({ label: '다음에 봐', onSelect: close });
+
+    // 진행 중인 부탁이 있으면 인사말 뒤에 진행도를 한 줄 덧붙인다
     let text = greeting(npc, talk, tier);
-    if (quest) text = quest.note ? `${text}  ${quest.text}` : quest.text;
+    if (running && !isComplete(running)) text += `\n\n(${running.title} — ${goalText(running)}: ${questProgress(running)}/${running.goal.count || 1})`;
     show(npc, text, opts);
     return true;
+}
+
+/** NPC 고유 행동 묶음. 없으면 null */
+function ownMenu(npc, name) {
+    const back = () => openNpcHub(npc);
+    const sub = [];
+    if (name === 'Elder') return { label: '✨ 축복을 청한다', onSelect: () => blessing(npc) };
+    if (name === 'Kairon') return { label: '🎓 가르침을 청한다', onSelect: () => show(npc, '무엇을 배우러 왔느냐.', [...masterOptions(npc), { label: '돌아간다', onSelect: back }]) };
+    if (name === 'Tiamat') sub.push({ label: '⚔️ 대련을 신청한다', onSelect: () => startSpar(npc) });
+    if (name === 'Poco') sub.push({ label: '🎾 술래잡기 하자!', onSelect: () => startTag(npc) });
+    if (name === 'Gron') sub.push({ label: `🔨 물건을 본다 (소지금 ${state.player.gold}G)`, onSelect: () => openShop(npc) });
+    // 동행 (짝은 늘 따라다니므로 제외)
+    if (npc !== state.partner) {
+        if (state.companion === npc) sub.push({ label: '이제 마을로 돌아가도 돼', onSelect: () => setCompanion(npc, false) });
+        else if (relationTier(npc.relation) >= 2) sub.push({ label: '🤝 같이 모험을 떠나자', onSelect: () => setCompanion(npc, true) });
+    }
+    if (!sub.length) return null;
+    if (sub.length === 1) return sub[0];
+    return { label: '🤝 함께 하자고 한다', onSelect: () => show(npc, '뭘 같이 할까?', [...sub, { label: '돌아간다', onSelect: back }]) };
+}
+
+/** 잡담·선물 묶음 */
+function talkMenu(npc) {
+    const p = state.player, name = npc.config.name;
+    const sub = [{ label: '요즘 어때?', onSelect: () => chat(npc) }];
+    if (name !== 'Elder' && name !== 'Kairon' && p.inventory.meat > 0 && npc.lastGiftDay !== state.day) {
+        sub.push({ label: '🎁 고기를 선물한다 (고기 -1)', onSelect: () => giveGift(npc) });
+    }
+    if (relationTier(npc.relation) >= 2 && npc.lastPresentDay !== state.day) {
+        sub.push({ label: '(뭔가 주려는 눈치다)', onSelect: () => receivePresent(npc) });
+    }
+    sub.push({ label: '돌아간다', onSelect: () => openNpcHub(npc) });
+    if (sub.length === 2) { chat(npc); return; }   // 잡담밖에 없으면 바로 잡담
+    show(npc, '무슨 얘기를 할까?', sub);
+}
+
+/** 연애 묶음에 붙는 꼬리표 (없으면 null = 아직 아무것도 못 한다) */
+function heartCount(npc) {
+    const dates = npc.dates || 0;
+    if (npc === state.partner) return '';
+    if (dates >= 3 && npc.relation >= 80) return ' — 고백할 수 있다';
+    if (npc.relation >= 40) return ` (데이트 ${dates}/3)`;
+    return null;
+}
+
+function heartMenu(npc) {
+    const dates = npc.dates || 0;
+    const sub = [];
+    if (npc === state.partner) {
+        sub.push({ label: '우리… 아이를 가질까?', onSelect: () => familyTalk(npc) });
+    } else if (dates >= 3 && npc.relation >= 80) {
+        sub.push({ label: '♥ 마음을 고백한다', onSelect: () => confess(npc) });
+    } else if (npc.relation >= 40 && dates < 3) {
+        if (npc.lastDateDay === state.day) sub.push({ label: `(오늘은 이미 함께 있었다 — ${dates}/3)`, onSelect: () => openNpcHub(npc) });
+        else sub.push({ label: `♥ 데이트를 신청한다 (${dates}/3)`, onSelect: () => goOnDate(npc) });
+    }
+    sub.push({ label: '돌아간다', onSelect: () => openNpcHub(npc) });
+    if (sub.length === 2) { sub[0].onSelect(); return; }
+    show(npc, '……', sub);
+}
+
+/** 부탁을 듣는다: 배경을 읽고 수락 여부를 고른다 */
+function hearQuest(npc, q) {
+    show(npc, q.offer, [
+        { label: `📜 맡는다 — ${q.title}`, onSelect: () => { acceptQuest(q); openNpcHub(npc); } },
+        { label: '지금은 어렵겠어', onSelect: () => openNpcHub(npc) },
+    ]);
+}
+
+function reportQuest(npc, q) {
+    show(npc, q.done, [{ label: `보상을 받는다 (${q.title})`, onSelect: () => { turnInQuest(q, npc); openNpcHub(npc); } }]);
 }
 
 /** 인사말: 가끔은 지금 상황(날씨, 밤, 습격, 가족…)에 맞는 한마디 */

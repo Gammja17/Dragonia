@@ -8,7 +8,8 @@ import { toggleKidsPanel } from './kidsPanel.js';
 import { dayPhaseName } from '../render/lighting.js';
 import { drawPortrait } from '../render/spritesheet.js';
 import { weatherName } from '../systems/weather.js';
-import { questLines, setQuestListener, notify } from '../systems/quests.js';
+import { trackedLine, setQuestListener, notify } from '../systems/quests.js';
+import { refreshJournal } from './journal.js';
 import { raidStatusText } from '../systems/raid.js';
 import { eventName } from '../systems/events.js';
 
@@ -25,7 +26,7 @@ export function initHud() {
         xpText: $('ui-xp-text'), hpText: $('ui-hp-text'), meat: $('ui-meat'), gold: $('ui-gold'), raidInfo: $('raid-info'),
         barXp: $('bar-xp'), barHp: $('bar-hp'), barHunger: $('bar-hunger'),
         biome: $('biome-text'), tip: $('interact-tip'), raid: $('raid-warning'),
-        minimap: $('minimap'), tracker: $('quest-tracker'),
+        minimap: $('minimap'), tracker: $('quest-tracker'), questMore: $('quest-more'),
         bossBar: $('boss-bar'), bossName: $('boss-name'), bossFill: $('boss-fill'),
         elSlots: [...document.querySelectorAll('#skill-bar .slot.el')],
         skillSlots: [...document.querySelectorAll('#skill-bar .slot.skill')],
@@ -128,17 +129,23 @@ function drawMinimap() {
     dot(p.x, p.y, 3.5, '#fff');
 }
 
+/** 추적창에는 추적 중인 퀘스트 하나만. 나머지는 [J] 일지에서 본다 */
 function refreshQuestTracker() {
     if (!state.player) return;
     el.tracker.innerHTML = '';
-    for (const line of questLines()) {
-        const div = document.createElement('div');
-        div.className = 'quest-line' + (line.complete ? ' complete' : '');
-        const b = document.createElement('b');
-        b.textContent = line.title;
-        div.append(b, line.text);
-        el.tracker.appendChild(div);
-    }
+    el.questMore.textContent = '';
+    const line = trackedLine();
+    if (!line) return;
+    const div = document.createElement('div');
+    div.className = 'quest-line' + (line.complete ? ' complete' : '');
+    const b = document.createElement('b');
+    b.textContent = line.title;
+    const goal = document.createElement('i');
+    goal.textContent = line.goal;
+    div.append(b, goal, line.text);
+    el.tracker.appendChild(div);
+    el.questMore.textContent = line.more > 0 ? `+ 맡은 일 ${line.more}개 · [J] 일지` : '[J] 일지';
+    refreshJournal();
 }
 
 /** 보스 체력 바. name 이 null 이면 숨긴다 */
@@ -149,9 +156,14 @@ export function setBossBar(name, ratio = 0) {
     el.bossFill.style.width = Math.max(0, ratio) * 100 + '%';
 }
 
+/** 일지·가족 같은 창이 떠 있으면 머리 위 안내는 가린다 (창 위에 겹쳐 보이던 문제) */
+function panelOpen() {
+    return ['journal-panel', 'kids-panel'].some(id => getComputedStyle($(id)).display !== 'none');
+}
+
 /** 근처 NPC 머리 위에 '말 걸기' 안내를 띄운다. 예전엔 화면 절반만큼 어긋난 위치에 떴다. */
 export function setInteractTarget(npc, text = 'T 대화') {
-    if (!npc) { el.tip.style.display = 'none'; return; }
+    if (!npc || panelOpen()) { el.tip.style.display = 'none'; return; }
     el.tip.textContent = text;
     const s = worldToScreen(npc.x, npc.y);
     el.tip.style.left = s.x + 'px';
