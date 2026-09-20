@@ -1,8 +1,9 @@
 import { state, emptyPools } from '../core/state.js';
 import { dist, pick, mulberry32 } from '../core/utils.js';
-import { setMapOverride } from '../world/terrain.js';
+import { setActiveMap } from '../world/terrain.js';
 import { generateFloor, bakeFloor, makeMapAdapter, spotInRoom, tileCenter, DUNGEON_SIZE } from '../world/dungeon.js';
 import { buildPropGrid } from '../world/collision.js';
+import { enterMap } from './world.js';
 import { Enemy } from '../entities/Enemy.js';
 import { Prop } from '../entities/Prop.js';
 import { BIOME_ENEMIES } from '../data/enemies.js';
@@ -42,7 +43,7 @@ export function enterDungeon(id) {
     const p = state.player;
     state.isDialogueOpen = false;
     dialogueUI.hide();
-    saved = { entities: state.entities, x: p.x, y: p.y };
+    saved = { mapId: state.mapId, x: p.x, y: p.y };
     state.dungeon = { id, depth: 1, seed: (Math.random() * 1e9) | 0, entryPos: { x: p.x, y: p.y }, best: 0 };
     play('evolve');
     fadeScreen(`${def.name} — 지하 1층`, () => buildFloor(1), () => {
@@ -59,7 +60,8 @@ function buildFloor(depth) {
     const adapter = makeMapAdapter(floor, bakeFloor(floor));
     d.floor = floor;
     d.adapter = adapter;
-    setMapOverride(adapter);
+    adapter.biome = def.biome;   // 소품·몬스터 색상판
+    setActiveMap(adapter);
     refreshMinimap();
 
     // 개체 풀을 굴 전용으로 갈아 끼운다. 짝·동료·아이들은 따라 들어온다
@@ -68,7 +70,7 @@ function buildFloor(depth) {
     const follower = (n) => n && (n === state.partner || n === state.companion);
     pools.npcs = before.npcs.filter(follower);
     pools.babies = before.babies.filter(b => state.kids.some(k => k.entity === b));
-    if (!saved) saved = { entities: before, x: state.player.x, y: state.player.y };
+    if (!saved) saved = { mapId: state.mapId, x: state.player.x, y: state.player.y };
     state.entities = pools;
 
     const rng = mulberry32(floor.seed + 1);
@@ -132,16 +134,10 @@ export function leaveDungeon() {
     const depth = d.best;
     play('sleep');
     fadeScreen('바깥 공기', () => {
-        setMapOverride(null);
-        refreshMinimap();
-        state.entities = saved.entities;
-        state.player.x = saved.x; state.player.y = saved.y + 70;
-        // 따라 들어왔던 식구들을 데리고 나온다
-        for (const n of [state.partner, state.companion]) if (n) { n.x = state.player.x + 70; n.y = state.player.y + 20; }
-        for (const k of state.kids) if (k.entity) { k.entity.x = state.player.x - 60; k.entity.y = state.player.y + 30; }
-        buildPropGrid(saved.entities.props);
+        const back = saved;
         state.dungeon = null;
         saved = null;
+        enterMap(back.mapId, { spot: { x: back.x, y: back.y + 80 } });
     }, () => {
         // 깊이 내려갔던 만큼 보상
         const p = state.player;

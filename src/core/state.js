@@ -26,6 +26,10 @@ export const state = {
     materials: {},       // 대장간 소재 (systems/smithing.js)
     waystones: [],       // 깨운 이동 석비 id (systems/travel.js)
     dungeon: null,       // 굴에 들어가 있으면 { id, depth, ... } (systems/delve.js)
+    mapId: 'VILLAGE',    // 지금 밟고 있는 지도 (data/maps.js · systems/world.js)
+    visited: [],         // 발을 들여 본 지도들
+    dojoSpot: null,      // 수련장 허수아비가 설 자리 (지도가 깔릴 때 정해진다)
+    denNest: null,       // 아지트 둥지 상태 (딴 지도에 있을 때도 알이 자라도록 들고 있는다)
     event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
     stats: { kills: {} },
     raidTimer: RAID_FIRST_DELAY,
@@ -66,7 +70,15 @@ export function resetState() {
         relicSlots: [],
         materials: {},
         waystones: [],       // 깨운 이동 석비 id (systems/travel.js)
-        dungeon: null,       // 굴에 들어가 있으면 { id, depth, ... } (systems/delve.js)
+        dungeon: null,
+        mapId: 'VILLAGE',
+        visited: [],
+        dojoSpot: null,
+        denNest: null,
+    mapId: 'VILLAGE',    // 지금 밟고 있는 지도 (data/maps.js · systems/world.js)
+    visited: [],         // 발을 들여 본 지도들
+    dojoSpot: null,      // 수련장 허수아비가 설 자리 (지도가 깔릴 때 정해진다)
+    denNest: null,       // 아지트 둥지 상태 (딴 지도에 있을 때도 알이 자라도록 들고 있는다)
         event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
         stats: { kills: {} },
         raidTimer: RAID_FIRST_DELAY,

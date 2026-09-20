@@ -1,5 +1,8 @@
 import { state } from '../core/state.js';
-import { CHEST_COUNT } from '../core/config.js';
+import { MAPS } from '../data/maps.js';
+
+// 지도마다 놓이는 상자 수의 합 (systems/world.js 의 spec.chests ?? 3)
+const CHEST_COUNT = Object.values(MAPS).reduce((n, m) => n + (m.chests ?? 3), 0);
 import { ENEMIES, BOSSES } from '../data/enemies.js';
 import { RELICS, ownsRelic, hasRelic, toggleRelic, slotCount } from '../systems/relics.js';
 import { MATERIALS } from '../data/materials.js';

@@ -1,255 +1,68 @@
-import { WORLD_SIZE, NEST_POS, HOMES, TRAINING } from '../core/config.js';
-import { mulberry32 } from '../core/utils.js';
 import { loadImages } from '../render/assets.js';
-import { TILE_SRC, TILE_SCALE, TILE, TILE_IMAGES, GRASS, GRASS_DECOR, DIRT, WATER, NEST_RING } from '../data/tiles.js';
-import { VILLAGE_RECT, LAKE, BIOMES, getBiome, RIVER_X, RIVER_Y } from './biomes.js';
-import { BOSSES } from '../data/enemies.js';
+import { TILE_IMAGES } from '../data/tiles.js';
 import { recolor, RECOLOR_NAMES } from '../render/palette.js';
 
-// 지형은 "큰 칸"(2x2 타일 = 96px) 단위로 만든다. 그러면 흙/물 영역의 폭이 항상 2타일 이상이라
-// 변 4 + 바깥 모서리 4 + 안쪽 모서리 4 + 가운데, 13종 타일만으로 빈틈없이 이어진다.
-const MARGIN = 2;                               // 월드 바깥으로 더 그리는 큰 칸 수 (카메라 여유분)
-const COARSE = Math.ceil(WORLD_SIZE / (TILE * 2)) + MARGIN * 2; // 한 변 큰 칸 수
-const SIZE = COARSE * 2;                        // 한 변 타일 수
-const ORIGIN = -MARGIN * TILE * 2;              // 타일 (0,0)의 월드 좌표
-const WORLD_SEED = 20260920;
+// 타일 그림을 들고 있고, "지금 밟고 있는 지도" 하나를 가리킨다.
+//
+// 예전엔 여기서 8000×8000 월드를 통째로 만들어 구웠다. 이제는 지도가 여러 장이라
+// (world/mapgen.js 가 만들고 systems/world.js 가 갈아 끼운다) 여기서는 현재 지도에
+// 물어보기만 한다. 굴도 같은 얼굴(groundAt/draw/minimap)을 하고 있어서 똑같이 끼워진다.
 
-const GRASS_ID = 0, DIRT_ID = 1, WATER_ID = 2;
-const GROUND_NAMES = ['GRASS', 'DIRT', 'WATER'];
-
-// ---------- 큰 강과 여울 ----------
-// 굽이치는 강 두 줄기가 월드를 네 덩이로 가른다. 강은 헤엄쳐 건널 수 없고,
-// 여울(강폭이 흙으로 메워진 곳)에서만 건넌다. 그래서 "어디로 돌아가야 하나"가 생긴다.
-export const RIVERS = [
-    { axis: 'v', at: RIVER_X, amp: 250, freq: 1 / 1700, width: 190 },   // 세로 강: 동/서를 가른다
-    { axis: 'h', at: RIVER_Y, amp: 290, freq: 1 / 1900, width: 190 },   // 가로 강: 북/남을 가른다
-];
-
-/** 강 i 의 중심선. 세로 강이면 y 를 주면 x 가, 가로 강이면 x 를 주면 y 가 나온다 */
-export function riverCenter(i, along) {
-    const r = RIVERS[i];
-    return r.at + Math.sin(along * r.freq) * r.amp;
-}
-
-function inRiver(x, y) {
-    for (let i = 0; i < RIVERS.length; i++) {
-        const r = RIVERS[i];
-        const along = r.axis === 'v' ? y : x;
-        const across = r.axis === 'v' ? x : y;
-        if (Math.abs(across - riverCenter(i, along)) < r.width / 2) return true;
-    }
-    return false;
-}
-
-// 여울: 강을 건널 수 있는 몇 안 되는 자리. river = 강 번호, along = 그 강을 따라간 좌표
-export const FORDS = [
-    { id: 'EAST_FORD',  river: 0, along: 1480, r: 230, name: '동쪽 여울',   desc: '달빛 골짜기로 가는 길목' },
-    { id: 'LOWER_FORD', river: 0, along: 5300, r: 230, name: '아랫 여울',   desc: '모래벌과 잿빛 화산 사이' },
-    { id: 'SOUTH_FORD', river: 1, along: 1560, r: 230, name: '남쪽 여울',   desc: '환영의 밀림으로 가는 길목' },
-    { id: 'FAR_FORD',   river: 1, along: 5650, r: 230, name: '동남 여울',   desc: '단풍 골로 넘어가는 다리목' },
-];
-
-/** 여울의 월드 좌표 */
-export function fordPos(f) {
-    const c = riverCenter(f.river, f.along);
-    return RIVERS[f.river].axis === 'v' ? { x: c, y: f.along } : { x: f.along, y: c };
-}
-
-const kinds = new Uint8Array(SIZE * SIZE);
 let images = null;
-let mapCanvas = null;
+let active = null;
 
-// 지금 밟고 있는 지도. 던전에 들어가면 world/dungeon.js 가 여기에 자기 지도를 끼워 넣는다.
-// { size, groundAt(x,y), draw(ctx,cam), minimap(size) } 를 갖춘 객체면 된다.
-let override = null;
-export function setMapOverride(m) { override = m; }
-export function currentMapSize() { return override ? override.size : WORLD_SIZE; }
-
-/** 큰 칸 (cx,cy) 중심의 월드 좌표 */
-const coarseCenter = (c) => ORIGIN + (c + 0.5) * TILE * 2;
-const toCoarse = (world) => Math.floor((world - ORIGIN) / (TILE * 2));
-
-function fillCoarse(cx, cy, id) {
-    if (cx < 0 || cy < 0 || cx >= COARSE || cy >= COARSE) return;
-    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
-        kinds[(cy * 2 + dy) * SIZE + cx * 2 + dx] = id;
-    }
-}
-const coarseKind = (cx, cy) => kinds[cy * 2 * SIZE + cx * 2];
-
-/** (x0,y0) → (x1,y1) 까지 가로/세로 번갈아 걷는 흙길. 물 위는 건너뛴다 */
-function carvePath(x0, y0, x1, y1) {
-    let x = x0, y = y0, horizontal = true;
-    while (x !== x1 || y !== y1) {
-        const isNest = [NEST_POS, ...HOMES].some(n => x === toCoarse(n.x) && y === toCoarse(n.y));
-        if (coarseKind(x, y) !== WATER_ID && !isNest) fillCoarse(x, y, DIRT_ID);
-        if (horizontal && x !== x1) x += Math.sign(x1 - x);
-        else if (y !== y1) y += Math.sign(y1 - y);
-        else x += Math.sign(x1 - x);
-        horizontal = !horizontal;
-    }
-}
-
-function generate() {
-    const rng = mulberry32(WORLD_SEED);
-    const v = VILLAGE_RECT;
-
-    // 호수 + 숲 속 작은 연못들
-    const arenas = [...Object.values(BOSSES), TRAINING];   // 넓은 흙 공터: 보스 결투장 + 수련장
-    const nests = [NEST_POS, ...HOMES];                     // 둥지마다 작은 마당
-    const fords = FORDS.map(f => ({ ...fordPos(f), r: f.r }));
-    const ponds = [{ x: LAKE.x, y: LAKE.y, r: LAKE.r - 90 }];
-    while (ponds.length < 26) {
-        const p = { x: 200 + rng() * (WORLD_SIZE - 400), y: 200 + rng() * (WORLD_SIZE - 400), r: 120 + rng() * 70 };
-        const nearVillage = Math.hypot(p.x - (v.x + v.w / 2), p.y - (v.y + v.h / 2)) < 850;
-        const nearPond = ponds.some(o => Math.hypot(p.x - o.x, p.y - o.y) < o.r + p.r + 250);
-        const nearArena = [...arenas, ...nests, ...fords].some(a => Math.hypot(p.x - a.x, p.y - a.y) < 600);
-        if (!nearVillage && !nearPond && !nearArena) ponds.push(p);
-    }
-
-    const inVillage = (x, y) => x > v.x && x < v.x + v.w && y > v.y && y < v.y + v.h;
-
-    for (let cy = 0; cy < COARSE; cy++) for (let cx = 0; cx < COARSE; cx++) {
-        const x = coarseCenter(cx), y = coarseCenter(cy);
-
-        // 1) 물이 들어오면 안 되는 곳부터. 결투장·둥지·마을·여울은 강보다 먼저다
-        if (nests.some(n => cx === toCoarse(n.x) && cy === toCoarse(n.y))) continue;                       // 둥지 칸은 풀밭
-        if (arenas.some(a => Math.hypot(x - a.x, y - a.y) < 340)) { fillCoarse(cx, cy, DIRT_ID); continue; }
-        if (nests.some(n => Math.hypot(x - n.x, y - n.y) < 210)) { fillCoarse(cx, cy, DIRT_ID); continue; }
-        if (fords.some(f => Math.hypot(x - f.x, y - f.y) < f.r)) { fillCoarse(cx, cy, DIRT_ID); continue; } // 여울: 강을 메운 흙바닥
-        if (inVillage(x, y)) {
-            // 마을 광장: 가장자리 칸은 가끔 빼서 네모 반듯하지 않게
-            const edgeX = x - v.x < 96 || v.x + v.w - x < 96;
-            const edgeY = y - v.y < 96 || v.y + v.h - y < 96;
-            if (edgeX && edgeY) continue;                    // 네 귀퉁이는 항상 뺀다
-            if ((edgeX || edgeY) && rng() < 0.3) continue;
-            fillCoarse(cx, cy, DIRT_ID);
-            continue;
-        }
-
-        // 2) 큰 강과 연못
-        if (inRiver(x, y) || ponds.some(p => Math.hypot(x - p.x, y - p.y) < p.r)) fillCoarse(cx, cy, WATER_ID);
-    }
-
-    // 길: 마을 → 여울 → 결투장. 강 건너편은 반드시 여울을 거쳐 이어 준다
-    const V = { x: v.x + v.w / 2, y: v.y + v.h / 2 };
-    const at = (id) => { const f = FORDS.find(q => q.id === id); return fordPos(f); };
-    const road = (a, b) => carvePath(toCoarse(a.x), toCoarse(a.y), toCoarse(b.x), toCoarse(b.y));
-
-    road({ x: v.x + v.w - 100, y: v.y + v.h - 100 }, LAKE);
-    road({ x: v.x + 100, y: v.y + 100 }, { x: 250, y: 350 });
-    for (const a of [...arenas.filter(a => a === TRAINING), ...nests]) road(V, a);
-
-    // 동쪽 골짜기 (모르가스 · 글라시아)
-    road(V, at('EAST_FORD'));
-    road(at('EAST_FORD'), BOSSES.MORGATH);
-    road(BOSSES.MORGATH, BOSSES.GLACIA);
-    // 남쪽 밀림 (잘고라 · 바실)
-    road(V, at('SOUTH_FORD'));
-    road(at('SOUTH_FORD'), BOSSES.ZALGORA);
-    road(BOSSES.ZALGORA, BOSSES.BASIL);
-    // 먼 남동쪽 (이그나르) — 두 갈래로 들어갈 수 있다
-    road(BOSSES.GLACIA, at('FAR_FORD'));
-    road(at('FAR_FORD'), BOSSES.IGNAR);
-    road(BOSSES.BASIL, at('LOWER_FORD'));
-    road(at('LOWER_FORD'), BOSSES.IGNAR);
-}
-
-/** 격자점마다 고정된 난수를 부드럽게 이은 값 (-0.5 ~ 0.5) */
-function smoothNoise(x, y, salt) {
-    const at = (ix, iy) => { const n = Math.sin(ix * 127.1 + iy * 311.7 + salt * 74.7) * 43758.5453; return n - Math.floor(n) - 0.5; };
-    const x0 = Math.floor(x), y0 = Math.floor(y), fx = x - x0, fy = y - y0;
-    const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
-    const top = at(x0, y0) + (at(x0 + 1, y0) - at(x0, y0)) * sx, bot = at(x0, y0 + 1) + (at(x0 + 1, y0 + 1) - at(x0, y0 + 1)) * sx;
-    return top + (bot - top) * sy;
-}
-
-function pickTile(set, tx, ty) {
-    const same = (dx, dy) => {
-        const x = tx + dx, y = ty + dy;
-        if (x < 0 || y < 0 || x >= SIZE || y >= SIZE) return true;
-        return kinds[y * SIZE + x] === kinds[ty * SIZE + tx];
-    };
-    let key = (same(0, -1) ? '' : 'N') + (same(0, 1) ? '' : 'S') + (same(-1, 0) ? '' : 'W') + (same(1, 0) ? '' : 'E');
-    if (!key) {
-        key = !same(1, 1) ? 'iSE' : !same(-1, 1) ? 'iSW' : !same(1, -1) ? 'iNE' : !same(-1, -1) ? 'iNW' : 'C';
-    }
-    const list = set[key] || set.C;
-    // 원본 시트의 2칸 반복 무늬가 이어지도록 위치 홀짝으로 고른다
-    const px = tx % 2 ? 0 : 1, py = ty % 2 ? 0 : 1;
-    if (list.length === 4) return list[py * 2 + px];
-    if (list.length === 2) return list[key === 'N' || key === 'S' ? px : py];
-    return list[0];
-}
-
-function bake() {
-    const rng = mulberry32(WORLD_SEED + 1);
-    mapCanvas = document.createElement('canvas');
-    mapCanvas.width = mapCanvas.height = SIZE * TILE_SRC;
-    const g = mapCanvas.getContext('2d');
-    for (let ty = 0; ty < SIZE; ty++) for (let tx = 0; tx < SIZE; tx++) {
-        const id = kinds[ty * SIZE + tx];
-        let t;
-        if (id === DIRT_ID) t = pickTile(DIRT, tx, ty);
-        else if (id === WATER_ID) t = pickTile(WATER, tx, ty);
-        else if (rng() < 0.06) t = GRASS_DECOR[Math.floor(rng() * GRASS_DECOR.length)];
-        else t = GRASS[(ty % 2) * 2 + (tx % 2)];
-        // 바이옴 경계는 완만한 노이즈로 구불구불하게 (타일마다 따로 흔들면 색종이처럼 깨져 보인다)
-        const wx = ORIGIN + (tx + 0.5) * TILE + smoothNoise(tx / 7, ty / 7, 11) * 420, wy = ORIGIN + (ty + 0.5) * TILE + smoothNoise(tx / 7, ty / 7, 47) * 420;
-        const palette = BIOMES[getBiome(wx, wy)].palette;
-        const sheet = images['ground' + (palette ? palette + 1 : '')];
-        g.drawImage(sheet, t[0] * TILE_SRC, t[1] * TILE_SRC, TILE_SRC, TILE_SRC, tx * TILE_SRC, ty * TILE_SRC, TILE_SRC, TILE_SRC);
-    }
-    // 둥지 돌무더기 (2x2 타일)
-    for (const n of [NEST_POS, ...HOMES]) {
-        const nx = toCoarse(n.x) * 2, ny = toCoarse(n.y) * 2;
-        NEST_RING.forEach(([sx, sy], i) => {
-            g.drawImage(images.ground, sx * TILE_SRC, sy * TILE_SRC, TILE_SRC, TILE_SRC, (nx + i % 2) * TILE_SRC, (ny + (i >> 1)) * TILE_SRC, TILE_SRC, TILE_SRC);
-        });
-    }
-}
-
-/** 게임 시작 전에 한 번 호출. 타일 이미지를 받고 지형을 만들어 둔다 */
+/** 게임 시작 전에 한 번. 타일 시트를 받고 바이옴별 색상판을 만들어 둔다 */
 export async function preloadTerrain() {
     images = await loadImages(TILE_IMAGES);
     // 색상판 3~6: 초록 숲 시트를 다시 칠해 설원·화산·단풍·사막을 만든다 (키는 ground4, trees4 … 식)
     RECOLOR_NAMES.forEach((name, i) => {
         for (const base of ['ground', 'trees', 'props']) images[base + (4 + i)] = recolor(images[base], name, base === 'ground');
     });
-    generate();
-    bake();
 }
 
 export function getTileImage(key) { return images ? images[key] : null; }
 
-/** 밟고 있는 바닥 종류: 'GRASS' | 'DIRT' | 'WATER' | (던전) 'FLOOR' | 'WALL' */
+/** systems/world.js 와 systems/delve.js 만 부른다 */
+export function setActiveMap(map) { active = map; }
+export function activeMap() { return active; }
+
+/** 지금 지도의 바이옴 (소품 색상판·등장 몬스터에 쓴다). 굴이면 그 굴의 바이옴 */
+export function activeBiome() {
+    if (!active) return 'FOREST';
+    return active.biome || (active.spec && active.spec.biome) || 'FOREST';
+}
+
+/** 지금 지도의 크기 (월드 px) */
+export function currentMapBounds() {
+    return active ? { w: active.w, h: active.h } : { w: 1920, h: 1440 };
+}
+/** 정사각형 하나로 물어보는 옛 코드를 위해 (카메라 경계 등) */
+export function currentMapSize() {
+    const b = currentMapBounds();
+    return Math.max(b.w, b.h);
+}
+
+/** 밟고 있는 바닥 종류: 'GRASS' | 'DIRT' | 'WATER' | (굴) 'FLOOR' | 'WALL' */
 export function groundAt(x, y) {
-    if (override) return override.groundAt(x, y);
-    const tx = Math.floor((x - ORIGIN) / TILE), ty = Math.floor((y - ORIGIN) / TILE);
-    if (tx < 0 || ty < 0 || tx >= SIZE || ty >= SIZE) return 'GRASS';
-    return GROUND_NAMES[kinds[ty * SIZE + tx]];
+    return active ? active.groundAt(x, y) : 'GRASS';
 }
 
 /** 카메라 영역만큼 지형을 그린다 (월드 좌표계에서 호출) */
 export function drawTerrain(ctx, cam) {
-    if (override) { override.draw(ctx, cam); return; }
-    if (!mapCanvas) return;
-    // 미리 구운 1배 지도에서 화면에 보이는 부분만 잘라 3배로 확대
-    const sx = Math.max(0, Math.floor((cam.x - ORIGIN) / TILE_SCALE));
-    const sy = Math.max(0, Math.floor((cam.y - ORIGIN) / TILE_SCALE));
-    const sw = Math.min(mapCanvas.width - sx, Math.ceil(cam.w / TILE_SCALE) + 1);
-    const sh = Math.min(mapCanvas.height - sy, Math.ceil(cam.h / TILE_SCALE) + 1);
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(mapCanvas, sx, sy, sw, sh, ORIGIN + sx * TILE_SCALE, ORIGIN + sy * TILE_SCALE, sw * TILE_SCALE, sh * TILE_SCALE);
-    ctx.imageSmoothingEnabled = true;
+    if (active) active.draw(ctx, cam);
 }
 
-/** 월드 전체를 size×size 로 줄인 지도 (미니맵 바탕) */
+/** 미니맵 바탕 */
 export function getMinimapBase(size) {
-    if (override) return override.minimap(size);
+    if (active) return active.minimap(size);
     const c = document.createElement('canvas');
     c.width = c.height = size;
-    const s = -ORIGIN / TILE_SCALE, span = WORLD_SIZE / TILE_SCALE;
-    c.getContext('2d').drawImage(mapCanvas, s, s, span, span, 0, 0, size, size);
     return c;
+}
+
+/** 미니맵 안에서 월드 좌표가 놓일 자리 { k, ox, oy } */
+export function minimapPlace(size) {
+    if (active && active.minimapPlace) return active.minimapPlace(size);
+    const b = currentMapBounds();
+    return { k: size / Math.max(b.w, b.h), ox: 0, oy: 0 };
 }

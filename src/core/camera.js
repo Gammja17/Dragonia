@@ -1,5 +1,5 @@
 import { clamp } from './utils.js';
-import { currentMapSize } from '../world/terrain.js';
+import { currentMapBounds } from '../world/terrain.js';
 
 // cam.w/h 는 "월드 기준" 화면 크기 (줌을 당기면 작아진다)
 export const cam = { x: 0, y: 0, w: 0, h: 0, zoom: 1, shakeX: 0, shakeY: 0 };
@@ -53,9 +53,10 @@ export function shake(power) { shakePower = Math.max(shakePower, power); }
 export function followCamera(target, smooth = 0.1) {
     cam.x += (target.x - cam.w / 2 - cam.x) * smooth;
     cam.y += (target.y - cam.h / 2 - cam.y) * smooth;
-    const size = currentMapSize();
-    cam.x = clamp(cam.x, -100, Math.max(-100, size - cam.w + 100));
-    cam.y = clamp(cam.y, -100, Math.max(-100, size - cam.h + 100));
+    // 지도가 화면보다 작으면 가운데에 둔다
+    const b = currentMapBounds();
+    cam.x = b.w <= cam.w ? (b.w - cam.w) / 2 : clamp(cam.x, 0, b.w - cam.w);
+    cam.y = b.h <= cam.h ? (b.h - cam.h) / 2 : clamp(cam.y, 0, b.h - cam.h);
     shakePower *= 0.86;
     cam.shakeX = (Math.random() - 0.5) * shakePower * 2;
     cam.shakeY = (Math.random() - 0.5) * shakePower * 2;

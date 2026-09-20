@@ -2,7 +2,7 @@ import { state } from '../core/state.js';
 import { npcName } from '../data/npcs.js';
 import { clamp, dist, pick, rand } from '../core/utils.js';
 import { NPC_TALK, TIER_NAMES, SITUATION_LINES, DATES, CONFESSION, FAMILY_TALK, BOND_SCENES, ROMANCE_GATES, relationTier } from '../data/npcTalk.js';
-import { NEST_POS, MAX_KIDS } from '../core/config.js';
+import { MAX_KIDS } from '../core/config.js';
 import { fadeScreen } from '../ui/hud.js';
 import { Projectile, addBullet } from '../entities/Projectile.js';
 import { burst } from '../entities/Particle.js';
@@ -256,11 +256,11 @@ function confess(npc) {
     });
 }
 
-/** 짝·단짝은 내 아지트로 이사 온다. 헤어지면 원래 보금자리로 */
-function moveHome(npc, toDen) {
-    npc.homeX = toDen ? NEST_POS.x + 90 : npc.config.x;
-    npc.homeY = toDen ? NEST_POS.y + 70 : npc.config.y;
-}
+/**
+ * 짝·단짝은 늘 따라다니므로 따로 집을 옮길 필요가 없다.
+ * 헤어지면 다음에 자기 지도에 들렀을 때 제자리에 서 있다 (systems/world.js 가 다시 놓는다).
+ */
+function moveHome() { /* 지도별로 다시 놓이므로 할 일이 없다 */ }
 
 function familyTalk(npc) {
     const nest = state.entities.nests[0];

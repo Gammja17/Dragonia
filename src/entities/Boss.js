@@ -41,6 +41,8 @@ export class Boss extends Entity {
         super(def.x, def.y);
         this.id = id;
         this.def = def;
+        // 결투장 자리는 지도가 정한다 (systems/world.js 가 덮어쓴다). def 의 좌표는 대비책
+        this.home = { x: def.x, y: def.y };
         this.hp = def.hp;
         this.statusImmune = true;
         this.sheet = getDragonSheet(def.species, def.colors);
@@ -78,7 +80,7 @@ export class Boss extends Entity {
             this.animator.update(dt);
             return;
         }
-        if (dist(this, this.def) > LEASH_RANGE || d > LEASH_RANGE * 1.3) { this.reset(); return; }
+        if (dist(this, this.home) > LEASH_RANGE || d > LEASH_RANGE * 1.3) { this.reset(); return; }
 
         const speedMult = updateStatus(this, dt);
         if (this.remove) return;
@@ -111,7 +113,7 @@ export class Boss extends Entity {
 
     reset() {
         this.awake = false;
-        this.x = this.def.x; this.y = this.def.y;
+        this.x = this.home.x; this.y = this.home.y;
         this.hp = this.def.hp;
         this.hidden = this.phase2 = false;
         this.charge = this.spiral = this.beam = this.burrow = this.blizzard = null;

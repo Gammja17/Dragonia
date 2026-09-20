@@ -1,5 +1,5 @@
 // 사건. 위에서부터 훑어서, 아직 안 본 것 중 조건이 맞는 첫 번째가 그 자리에서 재생된다.
-//   when(ctx)  ctx = { s(state), biome, region, night, day, done(id), active(id), lessons, boss(id), relationOf(name) }
+//   when(ctx)  ctx = { s(state), map(지도 id), biome, night, day, done(id), active(id), lessons, boss(id), relationOf(name) }
 //   grant      장면이 끝나면 저절로 맡게 되는 퀘스트 id (data/quests.js 에서 auto: true 인 것들)
 //
 // 보스는 더 이상 "가서 잡아라"로 시작하지 않는다. 밀림에 발을 들이면 무언가를 보고,
@@ -8,7 +8,7 @@ export const CHRONICLE = [
     // ---------- 1장: 마을에서 자라는 시기 ----------
     {
         id: 'ev_nara', title: '수련장 — 또래',
-        when: c => c.s.elderTutorialDone && c.biome !== 'VILLAGE' && Math.hypot(c.s.player.x - 2448, c.s.player.y - 1104) < 620,
+        when: c => c.s.elderTutorialDone && c.map === 'DOJO',
         lines: [
             { who: 'Nara', text: "거기 서. …네가 그 애구나. 하늘에서 떨어졌다는." },
             { who: 'Nara', text: "난 나라. 여기서 삼 년째 굴렀어. 오늘부터 같이 수련한다니까 미리 말해 두는데," },
@@ -19,7 +19,7 @@ export const CHRONICLE = [
     },
     {
         id: 'ev_first_night', title: '첫 밤',
-        when: c => c.night && c.day >= 2 && c.lessons >= 1 && c.region === 'HOMELAND',
+        when: c => c.night && c.day >= 2 && c.lessons >= 1 && c.map === 'VILLAGE',
         lines: [
             { who: '나', text: "(마을의 밤은 조용하다. 떨어지던 날의 소리가 아직 귀에 남아 있다.)" },
             { who: 'Elder', text: "잠이 안 오느냐. …나도 그렇단다. 삼백 년째." },
@@ -31,7 +31,7 @@ export const CHRONICLE = [
     // ---------- 보스는 사건으로 열린다 ----------
     {
         id: 'ev_morgath', title: '사건 — 골짜기의 울음', grant: 'm4',
-        when: c => c.done('m3') && !c.done('m4') && !c.active('m4') && c.biome === 'HOLLOW',
+        when: c => c.done('m3') && !c.done('m4') && !c.active('m4') && c.map === 'HOLLOW',
         lines: [
             { who: '???', text: "(골짜기 안쪽에서 긴 울음이 울렸다. 짐승의 소리가 아니었다. 뼈가 서로 갈리는 소리에 가까웠다.)" },
             { who: 'Kairon', text: "…따라왔다. 혼자 이 안쪽까지 들어오다니, 간이 크구나." },
@@ -42,7 +42,7 @@ export const CHRONICLE = [
     },
     {
         id: 'ev_zalgora', title: '사건 — 밀림에서 본 것', grant: 'm5',
-        when: c => c.done('m4') && !c.done('m5') && !c.active('m5') && c.biome === 'JUNGLE',
+        when: c => c.done('m4') && !c.done('m5') && !c.active('m5') && c.map === 'JUNGLE',
         lines: [
             { who: '나', text: "(나뭇잎 사이로 거대한 그림자가 지나갔다. 목이 둘이었다.)" },
             { who: '???', text: "「내가 왕이다」 「닥쳐, 네가 무슨 왕이야」 「내가—」" },
@@ -54,7 +54,7 @@ export const CHRONICLE = [
     },
     {
         id: 'ev_glacia', title: '사건 — 여름에 내린 눈', grant: 'm5a',
-        when: c => c.done('m5') && !c.done('m5a') && !c.active('m5a') && c.biome === 'VILLAGE',
+        when: c => c.done('m5') && !c.done('m5a') && !c.active('m5a') && c.map === 'VILLAGE',
         lines: [
             { who: '나', text: "(마을 광장에 눈이 내리고 있었다. 한여름에.)" },
             { who: 'Poco', text: "우와아 눈이다! …근데 왜 춥지? 왜 이렇게 추워?" },
@@ -66,7 +66,7 @@ export const CHRONICLE = [
     },
     {
         id: 'ev_basil', title: '사건 — 모래 속의 발자국', grant: 'm5b',
-        when: c => c.done('m5a') && !c.done('m5b') && !c.active('m5b') && c.biome === 'DESERT',
+        when: c => c.done('m5a') && !c.done('m5b') && !c.active('m5b') && c.map === 'DESERT',
         lines: [
             { who: '나', text: "(모래 위에 깊게 패인 자국이 이어져 있었다. 용의 발자국이 아니다. 무언가 땅속을 헤엄친 자국이다.)" },
             { who: 'Gron', text: "…거기 서라. 그 이상 들어가면 안 된다." },
@@ -93,14 +93,14 @@ export const CHRONICLE = [
 
     // ---------- 탐험 중의 작은 발견 ----------
     {
-        id: 'ev_river', title: '발견 — 큰 강',
-        when: c => c.region !== 'HOMELAND' && c.lessons >= 1,
+        id: 'ev_waystone', title: '발견 — 이동 석비',
+        when: c => c.s.entities.props.some(p => p.type === 'WAYSTONE' && Math.hypot(p.x - c.s.player.x, p.y - c.s.player.y) < 340) && c.map !== 'VILLAGE',
         lines: [
-            { who: '나', text: "(강을 건넜다. 물살이 세서 헤엄칠 엄두가 나지 않는 강이다.)" },
-            { who: '나', text: "(건널 수 있는 곳은 몇 안 되는 여울뿐. 마을 쪽을 돌아보니 꽤 멀리 온 것 같다.)" },
-            { who: '나', text: "(길목마다 옛 용들이 세워 둔 돌기둥이 있다. 손을 얹으면 멀리 있는 돌과 울린다고 했다. [E])" },
+            { who: '나', text: "(길목에 낡은 돌기둥이 서 있다. 손을 얹자 푸른 룬이 천천히 돌기 시작했다.)" },
+            { who: 'Elder', text: "(전에 엘더가 해 준 이야기가 떠올랐다.) 옛 용들이 길목마다 세워 둔 것이란다." },
+            { who: 'Elder', text: "한 번 깨워 두면 그 뒤로는 돌끼리 서로 울려. 먼 길을 두 번 걷지 않아도 되지. [E]로 써 보거라." },
         ],
-        toast: '이동 석비를 찾으면 먼 길을 건너뛸 수 있습니다.', icon: '🗿',
+        toast: '깨운 석비끼리는 [E]로 건너뛸 수 있습니다.', icon: '🗿',
     },
     {
         id: 'ev_cave', title: '발견 — 땅 밑의 길',
@@ -114,12 +114,12 @@ export const CHRONICLE = [
     },
     {
         id: 'ev_snowland', title: '발견 — 서리 봉우리',
-        when: c => c.biome === 'SNOW',
+        when: c => c.map === 'SNOW_ROAD',
         lines: [{ who: '나', text: "(숨을 쉴 때마다 하얀 김이 났다. 여기서는 불꽃이 금방 식는다. 대신 얼음 숨결은 더 매서워질 것 같다.)" }],
     },
     {
         id: 'ev_volcano', title: '발견 — 잿빛 화산',
-        when: c => c.biome === 'VOLCANO',
+        when: c => c.map === 'VOLCANO',
         lines: [
             { who: '나', text: "(비늘이 뜨거워졌다. 발밑의 돌이 아직 식지 않았다.)" },
             { who: '나', text: "(이 땅의 열기… 어디선가 맡아 본 냄새다. 떨어지던 날, 등 뒤에서 나던 냄새.)" },

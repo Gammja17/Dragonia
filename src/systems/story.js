@@ -2,7 +2,7 @@ import { state } from '../core/state.js';
 import { npcName } from '../data/npcs.js';
 import { playScene } from './chronicle.js';
 import { dist, rand, pick } from '../core/utils.js';
-import { TRAINING as DOJO } from '../core/config.js';
+
 import { LESSONS, TRIALS, SCENES } from '../data/story.js';
 import { NPC_TALK } from '../data/npcTalk.js';
 import { STAGES } from '../data/elements.js';
@@ -79,7 +79,8 @@ function startDrill(npc, drill, extra) {
         a.dummies = [];
         for (let i = 0; i < drill.count; i++) {
             const ang = (i / drill.count) * Math.PI * 2;
-            const d = new Enemy(DOJO.x + Math.cos(ang) * 240, DOJO.y + 60 + Math.sin(ang) * 170, 'DUMMY');
+            const spot = state.dojoSpot || { x: npc.x, y: npc.y + 120 };
+            const d = new Enemy(spot.x + Math.cos(ang) * 200, spot.y + 40 + Math.sin(ang) * 140, 'DUMMY');
             d.maxHp = d.hp = drill.hp;
             a.dummies.push(d);
             state.entities.enemies.push(d);

@@ -113,6 +113,8 @@ export function makeMapAdapter(floor, canvas) {
     let mini = null;
     return {
         size: DUNGEON_SIZE,
+        // 바깥 지도들과 같은 얼굴을 하고 있어야 한다 (경계 클램프·카메라가 w/h 를 본다)
+        w: DUNGEON_SIZE, h: DUNGEON_SIZE,
         groundAt(x, y) {
             const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE);
             if (tx < 0 || ty < 0 || tx >= N || ty >= N) return 'WALL';

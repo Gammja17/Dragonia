@@ -1,6 +1,6 @@
 import { state } from '../core/state.js';
 import { rand } from '../core/utils.js';
-import { getBiome } from '../world/biomes.js';
+import { activeBiome } from '../world/terrain.js';
 import { showToast } from '../ui/toast.js';
 
 // 날씨: CLEAR | RAIN | STORM. state.weather = { type, timer, intensity(0~1, 부드럽게 변함), flash }
@@ -22,7 +22,7 @@ export function updateWeather(dt) {
     w.timer -= dt;
     if (w.timer <= 0) {
         // 밀림은 비가 잦다
-        const rainy = getBiome(state.player.x, state.player.y) === 'JUNGLE' ? 0.7 : 0.4;
+        const rainy = activeBiome() === 'JUNGLE' ? 0.7 : 0.4;
         const r = Math.random();
         const next = w.type !== 'CLEAR' ? 'CLEAR' : r < rainy * 0.3 ? 'STORM' : r < rainy ? 'RAIN' : 'CLEAR';
         if (next !== w.type) {
@@ -41,7 +41,7 @@ export function updateWeather(dt) {
 export function drawWeather(ctx, cam) {
     if (state.dungeon) return;   // 굴 속에는 비도 눈도 오지 않는다
     const w = state.weather;
-    const biome = getBiome(state.player.x, state.player.y);
+    const biome = activeBiome();
     if (biome === 'SNOW' || biome === 'VOLCANO') {   // 설원엔 늘 눈, 화산엔 불티
         const snow = biome === 'SNOW', t = state.gameTime;
         ctx.save();

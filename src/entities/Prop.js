@@ -1,9 +1,9 @@
 import { Entity } from './Entity.js';
-import { isOnScreen } from '../core/camera.js';
+import { isOnScreen, cam } from '../core/camera.js';
 import { state } from '../core/state.js';
 import { PROP_SPRITES, TILE_SCALE } from '../data/tiles.js';
-import { getTileImage } from '../world/terrain.js';
-import { BIOMES, getBiome } from '../world/biomes.js';
+import { getTileImage, activeBiome } from '../world/terrain.js';
+import { BIOMES } from '../world/biomes.js';
 import { drawIcon, drawGlow } from '../render/pixel.js';
 import { getVfxImage, spawnEffect } from '../render/vfx.js';
 import { Item } from './Item.js';
@@ -25,7 +25,7 @@ export class Prop extends Entity {
         const variants = PROP_SPRITES[type];
         this.sprite = variants ? variants[Math.floor(this.seed * variants.length)] : null;
         // 숲 소품은 바이옴 색상판에 맞는 시트를 쓴다 (trees → trees2, trees3)
-        const palette = BIOMES[getBiome(x, y)].palette;
+        const palette = (BIOMES[activeBiome()] || BIOMES.FOREST).palette;
         this.sheetKey = this.sprite && (this.sprite.sheet === 'trees' || this.sprite.sheet === 'props') && palette ? this.sprite.sheet + (palette + 1) : this.sprite && this.sprite.sheet;
     }
     /** 밤에 주변을 밝히는 빛 (render/lighting.js) */
@@ -39,6 +39,7 @@ export class Prop extends Entity {
             case 'WAYSTONE': return { r: 130, color: '#7fd4ff', intensity: this.awake ? 0.85 : 0.35, dy: -40 };
             case 'STAIRS_UP': return { r: 200, color: '#ffe9b0', intensity: 0.9, dy: -20, emissive: true };
             case 'CAVE': return { r: 90, color: '#9fb4ff', intensity: 0.3, dy: -30 };
+            case 'PORTAL': return { r: 150, color: '#9fe3ff', intensity: 0.7, dy: -40, emissive: true };
             default: return null;
         }
     }
@@ -84,6 +85,7 @@ export class Prop extends Entity {
 
     draw(ctx) {
         if (!isOnScreen(this, 300)) return; // 큰 나무(높이 288px)가 화면 아래에서 툭 튀어나오지 않게
+        if (this.type === 'PORTAL') { this.drawPortal(ctx); return; }
         if (this.type === 'WAYSTONE') { this.drawWaystone(ctx); return; }
         if (ICON_PROPS[this.type]) { drawIcon(ctx, this.type, this.x, this.y - ICON_PROPS[this.type][1], ICON_PROPS[this.type][0]); return; }
         if (this.sprite) { this.drawSprite(ctx); return; }
@@ -95,6 +97,34 @@ export class Prop extends Entity {
         ctx.globalCompositeOperation = 'lighter';
         ctx.drawImage(fire, (f % 10) * 64, Math.floor(f / 10) * 64, 64, 64, this.x - 48, this.y - 112, 96, 96);
         ctx.globalCompositeOperation = 'source-over';
+    }
+
+    /** 다른 지도로 넘어가는 문. 어디로 가는지 이름을 붙여 둔다 */
+    drawPortal(ctx) {
+        const t = state.gameTime * 2 + this.seed * 6;
+        const glow = 0.55 + Math.sin(t) * 0.18;
+        drawGlow(ctx, this.x, this.y - 44, 52, '#9fe3ff', glow);
+        ctx.save();
+        ctx.translate(Math.round(this.x), Math.round(this.y));
+        const k = 1 / cam.zoom;
+        // 문틀 (월드 크기 그대로)
+        ctx.fillStyle = 'rgba(12, 20, 34, 0.85)';
+        ctx.fillRect(-34, -96, 68, 96);
+        ctx.fillStyle = '#7fd4ff';
+        ctx.fillRect(-36, -100, 72, 5);
+        ctx.fillRect(-36, -100, 5, 100);
+        ctx.fillRect(31, -100, 5, 100);
+        // 이름표는 줌과 무관하게
+        ctx.scale(k, k);           // 여기부터는 화면 픽셀 단위
+        ctx.textAlign = 'center';
+        ctx.font = '600 12px "Noto Sans KR"';
+        const label = this.portal ? this.portal.name : '';
+        const w = Math.ceil(ctx.measureText(label).width) + 16;
+        ctx.fillStyle = 'rgba(10, 9, 16, 0.85)';
+        ctx.fillRect(-w / 2, -146, w, 19);
+        ctx.fillStyle = '#9fe3ff';
+        ctx.fillText(label, 0, -132);
+        ctx.restore();
     }
 
     /** 이동 석비: 깨우기 전엔 흐릿하고, 깨우면 룬이 푸르게 돈다 */

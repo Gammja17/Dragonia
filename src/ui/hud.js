@@ -2,12 +2,13 @@ import { state } from '../core/state.js';
 import { showToast } from './toast.js';
 import { npcName } from '../data/npcs.js';
 import { worldToScreen } from '../core/camera.js';
-import { WORLD_SIZE, NEST_POS } from '../core/config.js';
-import { BIOMES, getBiome, REGIONS, getRegion } from '../world/biomes.js';
-import { WAYSTONES, isAwake } from '../systems/travel.js';
+
+import { BIOMES } from '../world/biomes.js';
+import { isAwake } from '../systems/travel.js';
 import { inDungeon, dungeonName } from '../systems/delve.js';
+import { currentMapName } from '../systems/world.js';
 import { tutorialView, updateTutorial } from '../systems/tutorial.js';
-import { getMinimapBase, currentMapSize } from '../world/terrain.js';
+import { getMinimapBase, minimapPlace, activeBiome } from '../world/terrain.js';
 import { SKILLS } from '../data/skills.js';
 import { toggleKidsPanel } from './kidsPanel.js';
 import { dayPhaseName } from '../render/lighting.js';
@@ -68,15 +69,12 @@ export function refreshMinimap() {
 export function updateHud() {
     const p = state.player;
     if (!p) return;
+    el.biome.innerHTML = '';
     if (inDungeon()) {
-        el.biome.innerHTML = '';
         el.biome.append(strong(dungeonName()));
     } else {
-        const biome = getBiome(p.x, p.y);
-        if (biome !== lastBiome) { lastBiome = biome; notify('visit', biome); }
-        el.biome.innerHTML = '';
-        el.biome.append(strong(`${REGIONS[getRegion(p.x, p.y)].name} · ${BIOMES[biome].name}`),
-                        sub(`${eventName() || dayPhaseName()} · ${weatherName()}`));
+        if (state.mapId !== lastBiome) { lastBiome = state.mapId; notify('visit', state.mapId); refreshMinimap(); }
+        el.biome.append(strong(currentMapName()), sub(`${eventName() || dayPhaseName()} · ${weatherName()}`));
     }
     el.name.textContent = p.config.name || 'Player';
     el.lvl.textContent = p.level;
@@ -159,29 +157,39 @@ export function toggleHelp() {
     $('help-chip').style.display = open ? 'block' : 'none';   // 열려 있는 동안엔 안내 칩을 감춘다
 }
 
+/**
+ * 미니맵: 지금 밟고 있는 지도 한 장만 보여 준다.
+ * 지도가 작아져서 통째로 담아도 읽을 만하다. 포탈·석비·굴·보스·상자를 점으로 찍는다.
+ */
 function drawMinimap() {
     if (!minimapBase) return;
-    const c = el.minimap, g = c.getContext('2d'), k = c.width / currentMapSize();
+    const c = el.minimap, g = c.getContext('2d');
+    const { k, ox, oy } = minimapPlace(c.width);
+    g.clearRect(0, 0, c.width, c.height);
     g.drawImage(minimapBase, 0, 0);
-    const dot = (x, y, r, color) => { g.fillStyle = color; g.beginPath(); g.arc(x * k, y * k, r, 0, Math.PI * 2); g.fill(); };
-    if (inDungeon()) {
-        for (const pr of state.entities.props) {
-            if (pr.type === 'STAIRS_DOWN') dot(pr.x, pr.y, 3, '#ff8a4a');
-            if (pr.type === 'STAIRS_UP') dot(pr.x, pr.y, 3, '#ffe9b0');
-            if (pr.type === 'CHEST' && !pr.opened) dot(pr.x, pr.y, 2, '#ffd84a');
-        }
-        for (const e of state.entities.enemies) dot(e.x, e.y, e.elite ? 2.5 : 1.5, e.elite ? '#ff4d4d' : 'rgba(255,120,120,0.7)');
-    } else {
-        for (const w of WAYSTONES) dot(w.x, w.y, isAwake(w.id) ? 2.5 : 1.5, isAwake(w.id) ? '#7fd4ff' : 'rgba(127,212,255,0.35)');
-        dot(NEST_POS.x, NEST_POS.y, 3, '#ffd84a');
-        for (const b of state.entities.bosses) dot(b.x, b.y, 4, '#ff4d4d');
+    const dot = (x, y, r, color) => {
+        g.fillStyle = color;
+        g.beginPath(); g.arc(ox + x * k, oy + y * k, r, 0, Math.PI * 2); g.fill();
+    };
+    const E = state.entities;
+    for (const pr of E.props) {
+        if (pr.portal) dot(pr.x, pr.y, 3, '#9fe3ff');
+        else if (pr.type === 'WAYSTONE') dot(pr.x, pr.y, 3, isAwake(pr.stoneId) ? '#7fd4ff' : 'rgba(127,212,255,0.4)');
+        else if (pr.type === 'CAVE') dot(pr.x, pr.y, 3.5, '#c58aff');
+        else if (pr.type === 'STAIRS_DOWN') dot(pr.x, pr.y, 3, '#ff8a4a');
+        else if (pr.type === 'STAIRS_UP') dot(pr.x, pr.y, 3, '#ffe9b0');
+        else if (pr.type === 'CHEST' && !pr.opened) dot(pr.x, pr.y, 2.5, '#ffd84a');
     }
-    for (const h of state.entities.humans) dot(h.x, h.y, 2, '#ff9a9a');
+    for (const n of E.nests) dot(n.x, n.y, 3, '#ffd84a');
+    for (const npc of E.npcs) if (npc.config.fixed) dot(npc.x, npc.y, 2.5, '#7dd36a');
+    for (const e of E.enemies) dot(e.x, e.y, e.elite ? 2.5 : 1.5, e.elite ? '#ffd84a' : 'rgba(255,120,120,0.75)');
+    for (const h of E.humans) dot(h.x, h.y, 2, '#ff9a9a');
+    for (const b of E.bosses) dot(b.x, b.y, 4.5, '#ff4d4d');
     if (state.partner) dot(state.partner.x, state.partner.y, 2.5, '#ff7aa8');
     if (state.companion) dot(state.companion.x, state.companion.y, 2.5, '#7dd3ff');
     const p = state.player;
-    g.strokeStyle = '#000'; g.lineWidth = 2;
-    g.beginPath(); g.arc(p.x * k, p.y * k, 4, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = '#000'; g.lineWidth = 2.5;
+    g.beginPath(); g.arc(ox + p.x * k, oy + p.y * k, 4, 0, Math.PI * 2); g.stroke();
     dot(p.x, p.y, 3.5, '#fff');
 }
 

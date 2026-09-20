@@ -8,7 +8,7 @@ import { acceptQuest } from './quests.js';
 import { QUESTS } from '../data/quests.js';
 import { CHRONICLE } from '../data/chronicle.js';
 import { BOND_SCENES } from '../data/npcTalk.js';
-import { getBiome, getRegion } from '../world/biomes.js';
+import { activeBiome } from '../world/terrain.js';
 import { inDungeon } from './delve.js';
 
 // 사건. "가서 잡아라" 대신, 돌아다니다 보면 일이 벌어지고 그 자리에서 이야기가 열린다.
@@ -28,8 +28,8 @@ function context() {
     const t = state.dayTime;
     return {
         s: state,
-        biome: getBiome(p.x, p.y),
-        region: getRegion(p.x, p.y),
+        biome: activeBiome(),
+        map: state.mapId,
         night: t < 0.22 || t > 0.82,
         day: state.day,
         done: (id) => state.quests.done.includes(id),

@@ -5,7 +5,7 @@ import { state } from '../core/state.js';
 import { npcName } from '../data/npcs.js';
 import { input, mouse } from '../core/input.js';
 import { isOnScreen, screenToWorld, cam } from '../core/camera.js';
-import { WORLD_SIZE, MAX_KIDS, PLAYER_SPAWN, VILLAGE_CENTER } from '../core/config.js';
+import { MAX_KIDS } from '../core/config.js';
 import { rand, dist, clamp, pick, roundRect } from '../core/utils.js';
 import { IDLE_LINES } from '../data/dialogues.js';
 import { ELEMENTS, STAGES } from '../data/elements.js';
@@ -29,12 +29,13 @@ import { drawIcon, drawGlow } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
 import { showToast } from '../ui/toast.js';
 import { setInteractTarget, toggleHelp } from '../ui/hud.js';
-import { groundAt, currentMapSize } from '../world/terrain.js';
+import { groundAt, currentMapBounds, activeBiome } from '../world/terrain.js';
 import { slideMove } from '../world/collision.js';
 import { nearbyWaystone, openTravelMenu } from '../systems/travel.js';
 import { tryDelveInteract } from '../systems/delve.js';
+import { reviveInVillage } from '../systems/world.js';
 import { markTutorial } from '../systems/tutorial.js';
-import { getBiome } from '../world/biomes.js';
+
 import { toggleKidsPanel } from '../ui/kidsPanel.js';
 import { startDialogue } from '../systems/dialogue.js';
 
@@ -190,9 +191,10 @@ export class Dragon extends Entity {
             if (this.config.fixed) showToast(`${npcName(this.config.name)}(이)가 쓰러졌습니다! 잠시 후 일어납니다.`, '💫');
         }
         if (this.hp <= 0 && this.isPlayer) {
-            showToast("쓰러졌습니다... 마을에서 부활합니다.", "💀");
+            showToast("쓰러졌습니다... 마을에서 눈을 뜹니다.", "💀");
             this.hp = this.maxHp;
-            this.x = PLAYER_SPAWN.x; this.y = PLAYER_SPAWN.y;
+            this.hunger = Math.max(this.hunger, 40);
+            reviveInVillage();
         }
     }
 
@@ -219,9 +221,9 @@ export class Dragon extends Entity {
         if (this.isPlayer) this.updatePlayer(dt);
         else this.updateNpc(dt);
 
-        const edge = currentMapSize() - 50;
-        this.x = clamp(this.x, 50, edge);
-        this.y = clamp(this.y, 50, edge);
+        const b = currentMapBounds();
+        this.x = clamp(this.x, 40, b.w - 40);
+        this.y = clamp(this.y, 40, b.h - 40);
 
         if (this.animator) {
             this.animator.playBase(this.moving ? 'move' : 'idle');
@@ -433,7 +435,7 @@ export class Dragon extends Entity {
         for (let i = 0; i < 12; i++) {
             const a = this.angle + (i / 12) * Math.PI * 2;
             const x = this.x + Math.cos(a) * 110, y = this.y + Math.sin(a) * 110;
-            if (groundAt(x, y) === 'WATER' && getBiome(x, y) !== 'VOLCANO') return { x, y }; // 용암에선 낚시 불가
+            if (groundAt(x, y) === 'WATER' && activeBiome() !== 'VOLCANO') return { x, y }; // 용암에선 낚시 불가
         }
         return null;
     }
@@ -614,8 +616,9 @@ export class Dragon extends Entity {
             this.resting = Math.random() < 0.35; // 가끔 멈춰 서 있기
         }
         // 습격 중엔 마을 용들이 광장으로 모여 함께 막는다 (스승은 수련장을 지킨다)
-        if (state.raid.active && this.config.fixed && this.config.role !== 'MASTER' && dist(this, VILLAGE_CENTER) > 300) {
-            this.moveBy(VILLAGE_CENTER.x - this.x, VILLAGE_CENTER.y - this.y, 210, dt);
+        const plaza = state.raid.active ? { x: this.homeX, y: this.homeY } : null;
+        if (plaza && this.config.fixed && this.config.role !== 'MASTER' && dist(this, plaza) > 320) {
+            this.moveBy(plaza.x - this.x, plaza.y - this.y, 210, dt);
             return;
         }
         if (this.resting) return;

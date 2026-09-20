@@ -1,5 +1,5 @@
 import { state } from '../core/state.js';
-import { DAY_LENGTH, WORLD_SIZE } from '../core/config.js';
+import { DAY_LENGTH } from '../core/config.js';
 import { getGlow, drawGlow } from './pixel.js';
 
 // 조명: 절반 해상도의 "빛 지도"를 만들어 화면에 곱한다(multiply).
@@ -24,8 +24,8 @@ const lm = document.createElement('canvas');
 const lmCtx = lm.getContext('2d');
 let vignette = null;
 
-const CLOUD_SPAN = WORLD_SIZE + 1200;
-const clouds = Array.from({ length: 14 }, (_, i) => ({ x: i * (CLOUD_SPAN / 14) + (i % 2) * 300, y: (i * 977) % WORLD_SIZE, r: 380 + (i * 53) % 160 }));
+const CLOUD_SPAN = 4200;   // 구름이 흘러가는 범위 (지도 한 장보다 넉넉하게)
+const clouds = Array.from({ length: 10 }, (_, i) => ({ x: i * (CLOUD_SPAN / 10) + (i % 2) * 300, y: (i * 977) % 2400, r: 380 + (i * 53) % 160 }));
 const fireflies = Array.from({ length: 40 }, () => ({ x: Math.random() * 4000, y: Math.random() * 4000, phase: Math.random() * 6.28, speed: 0.5 + Math.random() }));
 
 const CAVE_AMBIENT = [26, 26, 38];   // 굴 속: 횃불과 제 몸의 불빛만 보인다

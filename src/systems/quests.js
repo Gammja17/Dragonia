@@ -3,7 +3,7 @@ import { npcName } from '../data/npcs.js';
 import { clamp } from '../core/utils.js';
 import { QUESTS, ACT_NAMES, questById } from '../data/quests.js';
 import { ENEMIES, BOSSES } from '../data/enemies.js';
-import { BIOMES } from '../world/biomes.js';
+import { mapName } from '../data/maps.js';
 import { STAGES } from '../data/elements.js';
 import { showToast } from '../ui/toast.js';
 
@@ -33,7 +33,7 @@ export function goalText(q) {
         case 'boss': return `${BOSSES[g.id].name} 처치`;
         case 'stage': return `[${STAGES[g.index].name}](으)로 성장`;
         case 'collect': return `고기 ${n}개 전달`;
-        case 'visit': return `${BIOMES[g.target].name} 방문`;
+        case 'visit': return `${mapName(g.target)} 방문`;
         case 'hatch': return `알 ${n}개 부화`;
         case 'raid': return `마을 습격 ${n}회 격퇴`;
         case 'spar': return `대련 ${n}회 승리`;

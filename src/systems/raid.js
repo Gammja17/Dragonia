@@ -1,5 +1,6 @@
 import { state } from '../core/state.js';
-import { RAID_INTERVAL, VILLAGE_CENTER } from '../core/config.js';
+import { RAID_INTERVAL } from '../core/config.js';
+import { currentMapBounds } from '../world/terrain.js';
 import { rand, pick } from '../core/utils.js';
 import { Human } from '../entities/Human.js';
 import { showToast } from '../ui/toast.js';
@@ -15,6 +16,8 @@ const SIDES = {
 
 export function updateRaid(dt) {
     const raid = state.raid;
+    // 습격은 마을에 있을 때만 벌어진다. 딴 데 있으면 시계가 멈춘다
+    if (state.mapId !== 'VILLAGE') { if (!raid.active) return; }
     if (raid.active) {
         if (state.entities.humans.length === 0) endRaid();
         return;
@@ -45,8 +48,10 @@ export function triggerRaid() {
     for (const type of roster(raid.count)) {
         // 마을 가장자리 바깥, 그 변을 따라 흩어져서 등장
         const spread = rand(-260, 260);
-        const x = VILLAGE_CENTER.x + side.dx * 640 + (side.dx ? rand(-60, 60) : spread);
-        const y = VILLAGE_CENTER.y + side.dy * 640 + (side.dy ? rand(-60, 60) : spread);
+        const b = currentMapBounds();
+        const cx = b.w / 2, cy = b.h / 2;
+        const x = cx + side.dx * (b.w * 0.38) + (side.dx ? rand(-60, 60) : spread);
+        const y = cy + side.dy * (b.h * 0.36) + (side.dy ? rand(-60, 60) : spread);
         const h = new Human(x, y, type);
         h.maxHp = h.hp = Math.round(h.hp * (1 + 0.12 * (raid.count - 1)));   // 회차가 오를수록 단단해진다
         h.power = 1 + 0.08 * (raid.count - 1);

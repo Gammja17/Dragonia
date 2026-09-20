@@ -3,7 +3,8 @@ import { input, initInput, mouse } from './core/input.js';
 import { cam, followCamera, isOnScreen, resizeCamera, cycleZoom, stepZoom } from './core/camera.js';
 import { clamp } from './core/utils.js';
 import { preloadTerrain, drawTerrain } from './world/terrain.js';
-import { buildWorld, updateSpawns } from './world/spawn.js';
+import { updateSpawns } from './world/spawn.js';
+import { initWorld, updatePortals } from './systems/world.js';
 import { resolveCombat, pruneEntities } from './systems/combat.js';
 import { updateRaid } from './systems/raid.js';
 import { updateWeather, drawWeather } from './systems/weather.js';
@@ -63,7 +64,7 @@ async function startGame(config, loadSave = false) {
     await assetsReady;
     const save = loadSave ? readSave() : null;
     resetState();
-    const elder = buildWorld(save ? save.player.config : config);
+    const elder = initWorld(save ? save.player.config : config);
     if (save) applySave(save);
     initWaystones();
     state.gameActive = true;
@@ -121,7 +122,7 @@ function update(dt) {
 
     resolveCombat();
     pruneEntities();
-    if (outside) { updateSpawns(); updateTravel(); updateChronicle(dt); }
+    if (outside) { updateSpawns(); updateTravel(); updatePortals(); updateChronicle(dt); }
 }
 
 function render() {
