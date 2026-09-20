@@ -28,7 +28,10 @@ const CLOUD_SPAN = WORLD_SIZE + 1200;
 const clouds = Array.from({ length: 14 }, (_, i) => ({ x: i * (CLOUD_SPAN / 14) + (i % 2) * 300, y: (i * 977) % WORLD_SIZE, r: 380 + (i * 53) % 160 }));
 const fireflies = Array.from({ length: 40 }, () => ({ x: Math.random() * 4000, y: Math.random() * 4000, phase: Math.random() * 6.28, speed: 0.5 + Math.random() }));
 
+const CAVE_AMBIENT = [26, 26, 38];   // 굴 속: 횃불과 제 몸의 불빛만 보인다
+
 function ambient() {
+    if (state.dungeon) return CAVE_AMBIENT;
     const t = state.dayTime;
     let i = 1;
     while (AMBIENT_KEYS[i][0] < t) i++;
@@ -98,7 +101,7 @@ export function drawLighting(ctx, cam) {
     lmCtx.fillRect(0, 0, lw, lh);
 
     // 낮에는 구름 그림자가 천천히 지나간다
-    const cloudAlpha = 0.3 * Math.max(0, 1 - dark * 2.5);
+    const cloudAlpha = state.dungeon ? 0 : 0.3 * Math.max(0, 1 - dark * 2.5);   // 굴 속엔 구름 그림자가 없다
     if (cloudAlpha > 0.01) {
         const shadow = getGlow('#141c3a');
         lmCtx.globalAlpha = cloudAlpha;
@@ -126,8 +129,8 @@ export function drawLighting(ctx, cam) {
         if (l.emissive) drawGlow(ctx, l.x - cx, l.y - cy, l.r * 0.45, l.color, (0.16 + dark * 0.3) * l.intensity);
     }
 
-    // 3) 밤의 반딧불이
-    const night = Math.min(1, Math.max(0, (dark - 0.3) * 3));
+    // 3) 밤의 반딧불이 (굴 속엔 없다)
+    const night = state.dungeon ? 0 : Math.min(1, Math.max(0, (dark - 0.3) * 3));
     if (night > 0) {
         for (const f of fireflies) {
             const t = state.gameTime * f.speed + f.phase;

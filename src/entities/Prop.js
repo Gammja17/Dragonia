@@ -14,6 +14,9 @@ import { play } from '../systems/audio.js';
 
 const BERRY_REGROW = 100; // 초
 
+// 코드로 찍은 픽셀 아이콘으로 그리는 소품: [배율, 발에서 위로 올릴 px]
+const ICON_PROPS = { CAVE: [6, 36], STAIRS_DOWN: [5, 24], STAIRS_UP: [5, 24] };
+
 export class Prop extends Entity {
     constructor(x, y, type) {
         super(x, y);
@@ -34,6 +37,8 @@ export class Prop extends Entity {
             case 'BERRY': return this.ripe ? { r: 70, color: '#ff7a9a', intensity: 0.4, dy: -20 } : null;
             case 'CHEST': return this.opened ? null : { r: 110, color: '#ffd84a', intensity: 0.7, dy: -16 };
             case 'WAYSTONE': return { r: 130, color: '#7fd4ff', intensity: this.awake ? 0.85 : 0.35, dy: -40 };
+            case 'STAIRS_UP': return { r: 200, color: '#ffe9b0', intensity: 0.9, dy: -20, emissive: true };
+            case 'CAVE': return { r: 90, color: '#9fb4ff', intensity: 0.3, dy: -30 };
             default: return null;
         }
     }
@@ -60,7 +65,7 @@ export class Prop extends Entity {
     open() {
         this.opened = true;
         this.sprite = PROP_SPRITES.CHEST_OPEN[0];
-        state.openedChests[this.chestId] = true;
+        if (this.chestId != null) state.openedChests[this.chestId] = true;   // 굴의 상자는 한 판짜리라 기록하지 않는다
         const far = Math.hypot(this.x - 1200, this.y - 1200) / 1000;   // 마을에서 멀수록 두둑하다
         const gold = Math.round(20 + far * 25 + Math.random() * 20);
         const items = state.entities.items;
@@ -79,6 +84,7 @@ export class Prop extends Entity {
     draw(ctx) {
         if (!isOnScreen(this, 300)) return; // 큰 나무(높이 288px)가 화면 아래에서 툭 튀어나오지 않게
         if (this.type === 'WAYSTONE') { this.drawWaystone(ctx); return; }
+        if (ICON_PROPS[this.type]) { drawIcon(ctx, this.type, this.x, this.y - ICON_PROPS[this.type][1], ICON_PROPS[this.type][0]); return; }
         if (this.sprite) { this.drawSprite(ctx); return; }
         // 모닥불: 장작(코드로 찍은 픽셀) + 불꽃 애니메이션
         drawIcon(ctx, 'LOGS', this.x, this.y, 3);

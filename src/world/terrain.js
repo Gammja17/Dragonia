@@ -59,6 +59,12 @@ const kinds = new Uint8Array(SIZE * SIZE);
 let images = null;
 let mapCanvas = null;
 
+// 지금 밟고 있는 지도. 던전에 들어가면 world/dungeon.js 가 여기에 자기 지도를 끼워 넣는다.
+// { size, groundAt(x,y), draw(ctx,cam), minimap(size) } 를 갖춘 객체면 된다.
+let override = null;
+export function setMapOverride(m) { override = m; }
+export function currentMapSize() { return override ? override.size : WORLD_SIZE; }
+
 /** 큰 칸 (cx,cy) 중심의 월드 좌표 */
 const coarseCenter = (c) => ORIGIN + (c + 0.5) * TILE * 2;
 const toCoarse = (world) => Math.floor((world - ORIGIN) / (TILE * 2));
@@ -216,8 +222,9 @@ export async function preloadTerrain() {
 
 export function getTileImage(key) { return images ? images[key] : null; }
 
-/** 월드 좌표의 바닥 종류: 'GRASS' | 'DIRT' | 'WATER' */
+/** 밟고 있는 바닥 종류: 'GRASS' | 'DIRT' | 'WATER' | (던전) 'FLOOR' | 'WALL' */
 export function groundAt(x, y) {
+    if (override) return override.groundAt(x, y);
     const tx = Math.floor((x - ORIGIN) / TILE), ty = Math.floor((y - ORIGIN) / TILE);
     if (tx < 0 || ty < 0 || tx >= SIZE || ty >= SIZE) return 'GRASS';
     return GROUND_NAMES[kinds[ty * SIZE + tx]];
@@ -225,6 +232,7 @@ export function groundAt(x, y) {
 
 /** 카메라 영역만큼 지형을 그린다 (월드 좌표계에서 호출) */
 export function drawTerrain(ctx, cam) {
+    if (override) { override.draw(ctx, cam); return; }
     if (!mapCanvas) return;
     // 미리 구운 1배 지도에서 화면에 보이는 부분만 잘라 3배로 확대
     const sx = Math.max(0, Math.floor((cam.x - ORIGIN) / TILE_SCALE));
@@ -238,6 +246,7 @@ export function drawTerrain(ctx, cam) {
 
 /** 월드 전체를 size×size 로 줄인 지도 (미니맵 바탕) */
 export function getMinimapBase(size) {
+    if (override) return override.minimap(size);
     const c = document.createElement('canvas');
     c.width = c.height = size;
     const s = -ORIGIN / TILE_SCALE, span = WORLD_SIZE / TILE_SCALE;

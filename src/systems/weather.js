@@ -39,6 +39,7 @@ export function updateWeather(dt) {
 
 /** 조명 위에 그린다 (화면 좌표계) */
 export function drawWeather(ctx, cam) {
+    if (state.dungeon) return;   // 굴 속에는 비도 눈도 오지 않는다
     const w = state.weather;
     const biome = getBiome(state.player.x, state.player.y);
     if (biome === 'SNOW' || biome === 'VOLCANO') {   // 설원엔 늘 눈, 화산엔 불티

@@ -23,6 +23,7 @@ export const state = {
     fadeTargets: [],     // 이번 프레임에 나무 뒤로 숨으면 안 되는 것들
     relics: [],          // 가진 유물 id (systems/relics.js)
     waystones: [],       // 깨운 이동 석비 id (systems/travel.js)
+    dungeon: null,       // 굴에 들어가 있으면 { id, depth, ... } (systems/delve.js)
     event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
     stats: { kills: {} },
     raidTimer: RAID_FIRST_DELAY,
@@ -59,6 +60,7 @@ export function resetState() {
         story: { scenes: [], lessons: [], lessonDay: 0 },   // systems/story.js
         relics: [],          // 가진 유물 id (systems/relics.js)
         waystones: [],       // 깨운 이동 석비 id (systems/travel.js)
+        dungeon: null,       // 굴에 들어가 있으면 { id, depth, ... } (systems/delve.js)
         event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
         stats: { kills: {} },
         raidTimer: RAID_FIRST_DELAY,

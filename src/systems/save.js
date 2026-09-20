@@ -23,6 +23,7 @@ export function deleteSave() { localStorage.removeItem(KEY); }
 export function saveGame() {
     const p = state.player;
     if (!p || !state.gameActive) return;
+    if (state.dungeon) return;   // 굴은 한 판짜리다. 나온 뒤에 저장한다
     const nest = state.entities.nests[0];
     const data = {
         v: 1,

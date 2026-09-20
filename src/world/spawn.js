@@ -5,6 +5,7 @@ import { getBiome } from './biomes.js';
 import { groundAt } from './terrain.js';
 import { buildPropGrid, solidAt } from './collision.js';
 import { WAYSTONES } from '../systems/travel.js';
+import { DUNGEONS } from '../data/dungeons.js';
 import { Dragon } from '../entities/Dragon.js';
 import { Enemy } from '../entities/Enemy.js';
 import { Boss } from '../entities/Boss.js';
@@ -116,6 +117,12 @@ export function buildWorld(config) {
     // 보스 결투장 입구의 화톳불
     for (const b of Object.values(BOSSES)) {
         E.props.push(new Prop(b.x - 260, b.y + 200, 'CAMPFIRE'), new Prop(b.x + 260, b.y + 200, 'CAMPFIRE'));
+    }
+    // 굴 입구 (systems/delve.js). 들어갈 때마다 안이 새로 그려진다
+    for (const [id, d] of Object.entries(DUNGEONS)) {
+        const cave = new Prop(d.x, d.y, 'CAVE');
+        cave.caveId = id;
+        E.props.push(cave);
     }
     // 이동 석비 (systems/travel.js). 길목마다 하나씩 서 있다
     for (const w of WAYSTONES) {

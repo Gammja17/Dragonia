@@ -58,16 +58,19 @@ function hitsProp(x, y, r) {
     return false;
 }
 
-/** 물인가. 발밑 한 점만 보면 타일 모서리에서 끼기 쉬워 좌우도 같이 본다 */
-function hitsWater(x, y, r) {
-    return groundAt(x, y) === 'WATER'
-        || groundAt(x - r * 0.7, y) === 'WATER'
-        || groundAt(x + r * 0.7, y) === 'WATER';
+/** 지날 수 없는 바닥: 물(바깥 세상) · 벽(던전) */
+const BLOCKING = { WATER: 1, WALL: 1 };
+
+/** 막힌 바닥인가. 발밑 한 점만 보면 타일 모서리에서 끼기 쉬워 좌우도 같이 본다 */
+function hitsGround(x, y, r) {
+    return !!(BLOCKING[groundAt(x, y)]
+        || BLOCKING[groundAt(x - r * 0.7, y)]
+        || BLOCKING[groundAt(x + r * 0.7, y)]);
 }
 
 /** 그 자리에 설 수 없으면 true */
 export function solidAt(x, y, r = 18) {
-    return hitsWater(x, y, r) || hitsProp(x, y, r);
+    return hitsGround(x, y, r) || hitsProp(x, y, r);
 }
 
 /**

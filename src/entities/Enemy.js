@@ -15,6 +15,7 @@ import { play } from '../systems/audio.js';
 import { Projectile, addBullet } from './Projectile.js';
 import { xpMult } from '../systems/events.js';
 import { grantRelic, randomRelic } from '../systems/relics.js';
+import { onGuardianDown } from '../systems/delve.js';
 
 export class Enemy extends Entity {
     /** elite: 정예 — 크고 단단하고 아프지만 보상이 두둑하다 */
@@ -95,6 +96,7 @@ export class Enemy extends Entity {
         notify('kill', this.type);
         if (this.def.move !== 'flee') notify('killAny');
         if (this.elite) notify('elite');
+        if (this.isGuardian) onGuardianDown();
     }
     draw(ctx) {
         if (!isOnScreen(this)) return;

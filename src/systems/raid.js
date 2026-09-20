@@ -68,6 +68,7 @@ function endRaid() {
 
 /** HUD용: 다음 습격까지 남은 시간 또는 남은 사냥꾼 수 */
 export function raidStatusText() {
+    if (state.dungeon) return '';   // 굴 속에서는 습격 시계가 멈춘다
     if (state.raid.active) return `습격 중! 남은 사냥꾼 ${state.entities.humans.length}`;
     const t = Math.max(0, Math.ceil(state.raidTimer));
     return `다음 습격 ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;

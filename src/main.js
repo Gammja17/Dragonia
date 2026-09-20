@@ -17,6 +17,7 @@ import { preloadVfx } from './render/vfx.js';
 import { updateLighting, drawLighting } from './render/lighting.js';
 import { drawCrosshair } from './render/cursor.js';
 import { initWaystones, updateTravel } from './systems/travel.js';
+import { inDungeon } from './systems/delve.js';
 import { updateEvents, drawEvents } from './systems/events.js';
 import { initAudio } from './systems/audio.js';
 import { initJournal } from './ui/journal.js';
@@ -103,7 +104,8 @@ function loop(now) {
 function update(dt) {
     const E = state.entities;
     state.gameTime += dt;
-    updateRaid(dt);
+    const outside = !inDungeon();
+    if (outside) updateRaid(dt);   // 굴 속에서는 마을 습격도, 야생 적의 보충도 없다
     const prevDayTime = state.dayTime;
     updateLighting(dt);
     updateEvents(dt, prevDayTime);
@@ -117,8 +119,7 @@ function update(dt) {
 
     resolveCombat();
     pruneEntities();
-    updateSpawns();
-    updateTravel();
+    if (outside) { updateSpawns(); updateTravel(); }
 }
 
 function render() {

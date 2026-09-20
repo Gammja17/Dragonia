@@ -28,9 +28,10 @@ import { drawIcon, drawGlow } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
 import { showToast } from '../ui/toast.js';
 import { setInteractTarget, toggleHelp } from '../ui/hud.js';
-import { groundAt } from '../world/terrain.js';
+import { groundAt, currentMapSize } from '../world/terrain.js';
 import { slideMove } from '../world/collision.js';
 import { nearbyWaystone, openTravelMenu } from '../systems/travel.js';
+import { tryDelveInteract } from '../systems/delve.js';
 import { getBiome } from '../world/biomes.js';
 import { toggleKidsPanel } from '../ui/kidsPanel.js';
 import { startDialogue } from '../systems/dialogue.js';
@@ -216,8 +217,9 @@ export class Dragon extends Entity {
         if (this.isPlayer) this.updatePlayer(dt);
         else this.updateNpc(dt);
 
-        this.x = clamp(this.x, 50, WORLD_SIZE - 50);
-        this.y = clamp(this.y, 50, WORLD_SIZE - 50);
+        const edge = currentMapSize() - 50;
+        this.x = clamp(this.x, 50, edge);
+        this.y = clamp(this.y, 50, edge);
 
         if (this.animator) {
             this.animator.playBase(this.moving ? 'move' : 'idle');
@@ -445,6 +447,9 @@ export class Dragon extends Entity {
 
     interact() {
         const E = state.entities;
+
+        // 0) 굴 입구·오르내리는 구멍 (systems/delve.js)
+        if (!this.fishing && tryDelveInteract()) return;
 
         // 0) 이동 석비가 곁에 있으면 먼저 (systems/travel.js)
         if (!this.fishing && !this.carrying) {
