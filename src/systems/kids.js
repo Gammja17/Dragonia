@@ -1,11 +1,19 @@
 import { state } from '../core/state.js';
 import { clamp, rand, pick, lerpColor } from '../core/utils.js';
 import { KID_PERSONALITIES } from '../data/npcTalk.js';
+import { KID_NAMES, NPC_NAMES_KO } from '../data/npcs.js';
 import { refreshKidsPanel } from '../ui/kidsPanel.js';
+
+/** 아직 아무도 쓰지 않은 이름 하나 (마을 용 이름과도 겹치지 않게) */
+function freshKidName() {
+    const taken = new Set([...state.kids.map(k => k.name), ...Object.values(NPC_NAMES_KO)]);
+    const pool = KID_NAMES.filter(n => !taken.has(n));
+    return pool.length ? pick(pool) : `막내 ${state.kids.length + 1}`;
+}
 
 export function registerKid(baby) {
     const id = state.kids.length + 1;
-    const kid = { id, name: `아가 ${id}`, stage: 'BABY', affection: 0, mode: 'FOLLOW', personality: pick(Object.keys(KID_PERSONALITIES)), entity: baby }; // mode: FOLLOW(따라오기) | STAY(둥지 지키기)
+    const kid = { id, name: freshKidName(), stage: 'BABY', affection: 0, mode: 'FOLLOW', personality: pick(Object.keys(KID_PERSONALITIES)), entity: baby }; // mode: FOLLOW(따라오기) | STAY(둥지 지키기)
     state.kids.push(kid);
     refreshKidsPanel();
     return kid;
