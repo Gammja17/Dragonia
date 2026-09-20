@@ -25,7 +25,7 @@ function furnitureLight(prop) {
 }
 
 // 코드로 찍은 픽셀 아이콘으로 그리는 소품: [배율, 발에서 위로 올릴 px]
-const ICON_PROPS = { CAVE: [6, 36], DEN_MOUTH: [6, 36], STAIRS_DOWN: [5, 24], STAIRS_UP: [5, 24] };
+const ICON_PROPS = { CAVE: [6, 36], DEN_MOUTH: [8, 48], STAIRS_DOWN: [5, 24], STAIRS_UP: [5, 24] };
 
 export class Prop extends Entity {
     constructor(x, y, type) {

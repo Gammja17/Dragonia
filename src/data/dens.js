@@ -13,7 +13,7 @@ import { registerMapNames } from './maps.js';
 export const DENS = {
     DEN_MINE: {
         id: 'DEN_MINE', name: '나의 굴', owner: null, mine: true,
-        outer: 'DEN', at: [5, 7], tw: 19, th: 13, seed: 401, torches: 3,
+        outer: 'DEN', at: [7, 5], tw: 19, th: 13, seed: 401, torches: 3,
         decor: [],
         intro: '(내 굴이다. 아직은 돌바닥뿐이지만, 하나씩 들여놓으면 될 일이다.)',
     },

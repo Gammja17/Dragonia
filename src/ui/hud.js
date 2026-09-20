@@ -186,6 +186,7 @@ function drawMinimap() {
         if (pr.portal) dot(pr.x, pr.y, 3, '#9fe3ff');
         else if (pr.type === 'WAYSTONE') dot(pr.x, pr.y, 3, isAwake(pr.stoneId) ? '#7fd4ff' : 'rgba(127,212,255,0.4)');
         else if (pr.type === 'CAVE') dot(pr.x, pr.y, 3.5, '#c58aff');
+        else if (pr.type === 'DEN_MOUTH') dot(pr.x, pr.y, 3.5, pr.denId === 'DEN_MINE' ? '#ffd84a' : '#d8a86a');
         else if (pr.type === 'STAIRS_DOWN') dot(pr.x, pr.y, 3, '#ff8a4a');
         else if (pr.type === 'STAIRS_UP') dot(pr.x, pr.y, 3, '#ffe9b0');
         else if (pr.type === 'CHEST' && !pr.opened) dot(pr.x, pr.y, 2.5, '#ffd84a');

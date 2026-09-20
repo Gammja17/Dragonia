@@ -51,8 +51,9 @@ export const MAPS = {
         roads: [[[7, 11], [7, 6]]],
         portals: [{ side: 'S', to: 'VILLAGE', name: '드래곤 빌리지' }],
         fixtures: [
-            // 둥지는 굴 안에 있다 (data/dens.js 의 DEN_MINE)
-            { t: 'PROP', type: 'CAMPFIRE', at: [7, 5] },
+            // 둥지는 굴 안으로 들어갔다 (data/dens.js 의 DEN_MINE).
+            // 굴 입구는 예전에 둥지가 있던 그 자리에 둔다 — 돌아온 용이 헤매지 않게
+            { t: 'PROP', type: 'SIGN', at: [8, 5] },
             { t: 'PROP', type: 'CAMPFIRE', at: [9, 7] },
             { t: 'PROP', type: 'BARREL', at: [5, 5] },
             { t: 'WAYSTONE', at: [9, 5] },

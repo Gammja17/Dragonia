@@ -319,7 +319,7 @@ export class Dragon extends Entity {
         // 굴 입구·굴 안은 [E] 로
         const mouth = !target && !nestNear ? E0.props.find(x => x.type === 'DEN_MOUTH' && dist(this, x) < 120) : null;
         if (inMyDen()) setInteractTarget(this, 'E 굴 꾸미기');
-        else if (mouth) setInteractTarget(mouth, 'E 굴에 들어간다');
+        else if (mouth) setInteractTarget(mouth, mouth.denId === 'DEN_MINE' ? 'E 내 굴에 들어간다 (둥지)' : 'E 굴에 들어간다');
         else setInteractTarget(target || nestNear, nestNear ? 'Space 둥지에서 쉬기' : isKid ? 'Space 아이와 대화' : 'Space 대화 · L 플러팅');
 
         // 말 걸기는 [Space]. T 도 그대로 쓸 수 있다.
