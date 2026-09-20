@@ -5,7 +5,7 @@ import { refreshKidsPanel } from '../ui/kidsPanel.js';
 
 export function registerKid(baby) {
     const id = state.kids.length + 1;
-    const kid = { id, name: `Kid ${id}`, stage: 'BABY', affection: 0, mode: 'FOLLOW', personality: pick(Object.keys(KID_PERSONALITIES)), entity: baby }; // mode: FOLLOW(따라오기) | STAY(둥지 지키기)
+    const kid = { id, name: `아가 ${id}`, stage: 'BABY', affection: 0, mode: 'FOLLOW', personality: pick(Object.keys(KID_PERSONALITIES)), entity: baby }; // mode: FOLLOW(따라오기) | STAY(둥지 지키기)
     state.kids.push(kid);
     refreshKidsPanel();
     return kid;

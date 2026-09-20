@@ -169,7 +169,9 @@ function renderRelics(body) {
     title.className = 'journal-title';
     title.textContent = `모은 유물 ${owned.length} / ${Object.keys(RELICS).length}`;
     list.appendChild(title);
-    for (const [id, r] of Object.entries(RELICS)) {
+    // 가진 것을 위로, 아직 못 찾은 것을 아래로
+    const sorted = Object.entries(RELICS).sort((a, b) => (ownsRelic(b[0]) ? 1 : 0) - (ownsRelic(a[0]) ? 1 : 0));
+    for (const [id, r] of sorted) {
         if (!ownsRelic(id)) {
             const dim = document.createElement('div');
             dim.className = 'journal-row dim';

@@ -1,4 +1,5 @@
 import { state } from '../core/state.js';
+import { npcName } from '../data/npcs.js';
 import { playScene } from './chronicle.js';
 import { dist, rand, pick } from '../core/utils.js';
 import { TRAINING as DOJO } from '../core/config.js';
@@ -65,7 +66,7 @@ function meditate(npc) {
 
 function say(npc, text, then) {
     state.isDialogueOpen = true;
-    dialogueUI.show({ name: npc.config.name, text, sheet: npc.sheet, onClose: close, options: [{ label: then ? '시작한다!' : '알겠습니다.', onSelect: () => { close(); if (then) then(); } }] });
+    dialogueUI.show({ name: npcName(npc.config.name), text, sheet: npc.sheet, onClose: close, options: [{ label: then ? '시작한다!' : '알겠습니다.', onSelect: () => { close(); if (then) then(); } }] });
 }
 
 // ---------- 수련 ----------

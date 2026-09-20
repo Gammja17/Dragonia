@@ -1,3 +1,12 @@
+// 화면에 보여 줄 이름. 안쪽에서는 영문 키를 그대로 쓴다 (대사·퀘스트·세이브가 이 키로 묶여 있다).
+// 보여 줄 때만 npcName() 을 거친다.
+export const NPC_NAMES_KO = {
+    Elder: '엘더', Tiamat: '티아맷', Poco: '포코', Gron: '그론', Nara: '나라', Kairon: '카이론',
+    Kirin: '키린', Raze: '레이즈', Mira: '미라', Dusk: '더스크',
+    Iro: '이로', Sora: '소라', Flint: '플린트', Ember: '엠버',
+};
+export const npcName = (id) => NPC_NAMES_KO[id] || id || '???';
+
 // 마을 고정 NPC
 export const FIXED_NPCS = [
     {

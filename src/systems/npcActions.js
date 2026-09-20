@@ -1,4 +1,5 @@
 import { state } from '../core/state.js';
+import { npcName } from '../data/npcs.js';
 import { clamp, dist, pick, rand } from '../core/utils.js';
 import { NPC_TALK, TIER_NAMES, SITUATION_LINES, DATES, CONFESSION, FAMILY_TALK, BOND_SCENES, ROMANCE_GATES, relationTier } from '../data/npcTalk.js';
 import { NEST_POS, MAX_KIDS } from '../core/config.js';
@@ -46,7 +47,7 @@ function addRelation(npc, amount) {
 function show(npc, text, options) {
     state.isDialogueOpen = true;
     state.currentNpc = npc;
-    dialogueUI.show({ name: `${npc.config.name} · ${TIER_NAMES[relationTier(npc.relation)]}`, text, sheet: npc.sheet, onClose: close, options });
+    dialogueUI.show({ name: `${npcName(npc.config.name)} · ${TIER_NAMES[relationTier(npc.relation)]}`, text, sheet: npc.sheet, onClose: close, options });
 }
 
 /**
@@ -196,7 +197,7 @@ function giveGift(npc) {
     npc.lastGiftDay = state.day;
     addRelation(npc, 8);
     burst(npc.x, npc.y - 60, '#ff7aa8', 1, 10);
-    showToast(`${npc.config.name}에게 고기를 선물했습니다. (호감 ↑)`, '🎁');
+    showToast(`${npcName(npc.config.name)}에게 고기를 선물했습니다. (호감 ↑)`, '🎁');
     show(npc, '…이걸 나한테? 고마워. 잘 먹을게.', [{ label: '별말씀을.', onSelect: () => openNpcHub(npc) }]);
 }
 
@@ -205,7 +206,7 @@ function receivePresent(npc) {
     const gold = 15 + relationTier(npc.relation) * 10;
     state.player.gold += gold;
     state.player.inventory.meat += 1;
-    showToast(`${npc.config.name}의 선물: ${gold}G, 고기 1개`, '🎁');
+    showToast(`${npcName(npc.config.name)}의 선물: ${gold}G, 고기 1개`, '🎁');
     show(npc, '자, 이거. 오다가 주웠어. …별건 아니고.', [{ label: '고마워!', onSelect: () => openNpcHub(npc) }]);
 }
 
@@ -227,7 +228,7 @@ function goOnDate(npc) {
         npc.dates = (npc.dates || 0) + 1;
         addRelation(npc, 12);
         spawnEffect('HEART', npc.x, npc.y - 80, { color: '#ff7aa8', size: 1.4 });
-        showToast(`${npc.config.name}와(과) 데이트했습니다. (${npc.dates}/3, 호감 ↑)`, '💕');
+        showToast(`${npcName(npc.config.name)}와(과) 데이트했습니다. (${npc.dates}/3, 호감 ↑)`, '💕');
     }));
 }
 
@@ -240,7 +241,7 @@ function confess(npc) {
         npc.state = 'PARTNER_FOLLOW';
         moveHome(npc, true);
         for (let i = 0; i < 6; i++) spawnEffect('HEART', npc.x + rand(-60, 60), npc.y - 60 - rand(0, 60), { color: '#ff7aa8', size: 1.2 });
-        showToast(`${npc.config.name}(이)가 짝이 되었습니다! 이제 아지트에서 함께 삽니다.`, '💞');
+        showToast(`${npcName(npc.config.name)}(이)가 짝이 되었습니다! 이제 아지트에서 함께 삽니다.`, '💞');
     });
 }
 
@@ -261,7 +262,7 @@ function familyTalk(npc) {
         npc.lastEggDay = state.day;
         nest.layEgg(state.player, npc);
         spawnEffect('RING', nest.x, nest.y, { size: 1.4 });
-        showToast(`${npc.config.name}(이)가 둥지에 알을 낳았습니다! 곁에서 품어 주세요.`, '🥚');
+        showToast(`${npcName(npc.config.name)}(이)가 둥지에 알을 낳았습니다! 곁에서 품어 주세요.`, '🥚');
     });
 }
 
@@ -271,12 +272,12 @@ function setCompanion(npc, join) {
         state.companion = npc;
         npc.state = 'COMPANION_FOLLOW';
         moveHome(npc, true);   // 단짝도 아지트에서 같이 지낸다
-        showToast(`${npc.config.name}(이)가 동료로 합류했습니다!`, '🤝');
+        showToast(`${npcName(npc.config.name)}(이)가 동료로 합류했습니다!`, '🤝');
     } else {
         state.companion = null;
         npc.state = 'WANDER';
         moveHome(npc, false);
-        showToast(`${npc.config.name}(이)가 마을로 돌아갑니다.`, '👋');
+        showToast(`${npcName(npc.config.name)}(이)가 마을로 돌아갑니다.`, '👋');
     }
     close();
 }

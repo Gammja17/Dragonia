@@ -1,16 +1,17 @@
 import { dist } from '../core/utils.js';
 
 // palette: 지형 색상판 번호. 0~2 는 Gentle Forest 원본 3종, 3~6 은 0번을 다시 칠해 만든다 (render/palette.js)
+// name 은 화면에 띄우는 이름(한국어), en 은 원래 붙여 둔 영문 이름
 export const BIOMES = {
-    VILLAGE: { name: 'Dragon Village',  safe: true,  palette: 0 },
-    LAKE:    { name: 'Mystic Lake',     safe: true,  palette: 0 },
-    FOREST:  { name: 'Wild Forest',     safe: false, palette: 0 },
-    JUNGLE:  { name: 'Illusion Jungle', safe: false, palette: 1 },
-    HOLLOW:  { name: 'Moonlit Hollow',  safe: false, palette: 2 },
-    SNOW:    { name: 'Frostfang Peaks', safe: false, palette: 3 },
-    VOLCANO: { name: 'Ember Wastes',    safe: false, palette: 4 },
-    AUTUMN:  { name: 'Maple Vale',      safe: false, palette: 5 },
-    DESERT:  { name: 'Dead Dunes',      safe: false, palette: 6 },
+    VILLAGE: { name: '드래곤 빌리지', en: 'Dragon Village',  safe: true,  palette: 0 },
+    LAKE:    { name: '신비의 호수',   en: 'Mystic Lake',     safe: true,  palette: 0 },
+    FOREST:  { name: '깊은 숲',       en: 'Wild Forest',     safe: false, palette: 0 },
+    JUNGLE:  { name: '환영의 밀림',   en: 'Illusion Jungle', safe: false, palette: 1 },
+    HOLLOW:  { name: '달빛 골짜기',   en: 'Moonlit Hollow',  safe: false, palette: 2 },
+    SNOW:    { name: '서리 봉우리',   en: 'Frostfang Peaks', safe: false, palette: 3 },
+    VOLCANO: { name: '잿빛 화산',     en: 'Ember Wastes',    safe: false, palette: 4 },
+    AUTUMN:  { name: '단풍 골',       en: 'Maple Vale',      safe: false, palette: 5 },
+    DESERT:  { name: '죽은 사구',     en: 'Dead Dunes',      safe: false, palette: 6 },
 };
 
 export const VILLAGE_RECT = { x: 800, y: 800, w: 800, h: 800 };

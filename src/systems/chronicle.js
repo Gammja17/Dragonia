@@ -1,4 +1,5 @@
 import { state } from '../core/state.js';
+import { npcName } from '../data/npcs.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
 import { play } from './audio.js';
@@ -100,7 +101,7 @@ export function playScene(title, lines, then) {
         const npc = state.entities.npcs.find(n => n.config.name === line.who);
         state.isDialogueOpen = true;
         dialogueUI.show({
-            name: line.who === '나' ? state.player.config.name : line.who,
+            name: line.who === '나' ? state.player.config.name : npcName(line.who),
             text: line.text,
             sheet: line.who === '나' ? state.player.sheet : npc ? npc.sheet : null,
             onClose: step,

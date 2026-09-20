@@ -1,4 +1,5 @@
 import { state } from '../core/state.js';
+import { npcName } from '../data/npcs.js';
 import { worldToScreen } from '../core/camera.js';
 import { WORLD_SIZE, NEST_POS } from '../core/config.js';
 import { BIOMES, getBiome, REGIONS, getRegion } from '../world/biomes.js';
@@ -16,6 +17,8 @@ import { raidStatusText } from '../systems/raid.js';
 import { eventName } from '../systems/events.js';
 
 const $ = (id) => document.getElementById(id);
+const strong = (text) => { const e = document.createElement('b'); e.textContent = text; return e; };
+const sub = (text) => { const e = document.createElement('i'); e.textContent = text; return e; };
 let el = {};
 let minimapBase = null;
 let lastBiome = null;
@@ -42,6 +45,7 @@ export function initHud() {
         el.showBtn.style.display = 'none';
     });
     $('kids-toggle-btn').addEventListener('click', toggleKidsPanel);
+    $('help-close').addEventListener('click', toggleHelp);
     setQuestListener(refreshQuestTracker);
 }
 
@@ -63,16 +67,19 @@ export function updateHud() {
     const p = state.player;
     if (!p) return;
     if (inDungeon()) {
-        el.biome.textContent = dungeonName();
+        el.biome.innerHTML = '';
+        el.biome.append(strong(dungeonName()));
     } else {
         const biome = getBiome(p.x, p.y);
         if (biome !== lastBiome) { lastBiome = biome; notify('visit', biome); }
-        el.biome.textContent = `${REGIONS[getRegion(p.x, p.y)].name} › ${BIOMES[biome].name} · ${eventName() || dayPhaseName()} · ${weatherName()}`;
+        el.biome.innerHTML = '';
+        el.biome.append(strong(`${REGIONS[getRegion(p.x, p.y)].name} · ${BIOMES[biome].name}`),
+                        sub(`${eventName() || dayPhaseName()} · ${weatherName()}`));
     }
     el.name.textContent = p.config.name || 'Player';
     el.lvl.textContent = p.level;
     el.stage.textContent = p.stage.name;
-    el.partner.textContent = state.partner ? state.partner.config.name : '없음';
+    el.partner.textContent = state.partner ? npcName(state.partner.config.name) : '없음';
     el.meat.textContent = p.inventory.meat;
     el.gold.textContent = p.gold;
     $('twig-slot').style.display = state.den.built ? 'none' : '';
@@ -88,7 +95,9 @@ export function updateHud() {
     el.xpText.textContent = Math.floor(xpPct) + '%';
     el.barXp.style.width = xpPct + '%';
     el.barHp.style.width = (p.hp / p.maxHp) * 100 + '%';
-    el.barHunger.style.width = Math.max(0, Math.min(100, p.hunger)) + '%';
+    const hungerPct = Math.max(0, Math.min(100, p.hunger));
+    el.barHunger.style.width = hungerPct + '%';
+    $('ui-hunger-text').textContent = Math.round(hungerPct) + '%';
 
     for (const slot of el.elSlots) {
         const id = slot.dataset.el;
@@ -121,7 +130,9 @@ export function updateHud() {
 
 export function toggleHelp() {
     const panel = $('help-panel');
-    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    const open = panel.style.display === 'flex';
+    panel.style.display = open ? 'none' : 'flex';
+    $('help-chip').style.display = open ? 'block' : 'none';   // 열려 있는 동안엔 안내 칩을 감춘다
 }
 
 function drawMinimap() {
@@ -177,9 +188,9 @@ export function setBossBar(name, ratio = 0) {
     el.bossFill.style.width = Math.max(0, ratio) * 100 + '%';
 }
 
-/** 일지·가족 같은 창이 떠 있으면 머리 위 안내는 가린다 (창 위에 겹쳐 보이던 문제) */
+/** 일지·가족·도움말 창이 떠 있으면 머리 위 안내는 가린다 (창 위에 겹쳐 보이던 문제) */
 function panelOpen() {
-    return ['journal-panel', 'kids-panel'].some(id => getComputedStyle($(id)).display !== 'none');
+    return ['journal-panel', 'kids-panel', 'help-panel'].some(id => getComputedStyle($(id)).display !== 'none');
 }
 
 /** 근처 NPC 머리 위에 '말 걸기' 안내를 띄운다. 예전엔 화면 절반만큼 어긋난 위치에 떴다. */

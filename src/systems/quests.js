@@ -1,4 +1,5 @@
 import { state } from '../core/state.js';
+import { npcName } from '../data/npcs.js';
 import { clamp } from '../core/utils.js';
 import { QUESTS, ACT_NAMES, questById } from '../data/quests.js';
 import { ENEMIES, BOSSES } from '../data/enemies.js';
@@ -73,7 +74,7 @@ export function notify(type, target) {
         // 'delve' 는 쌓이는 게 아니라 "가장 깊이 내려간 층"이다
         if (type === 'delve') state.quests.active[q.id] = Math.max(state.quests.active[q.id] || 0, target);
         else state.quests.active[q.id]++;
-        if (isComplete(q)) showToast(`[${q.title}] 목표 달성! ${q.giver}에게 돌아가자`, '📜');
+        if (isComplete(q)) showToast(`[${q.title}] 목표 달성! ${npcName(q.giver)}에게 돌아가자`, '📜');
     }
     onChange();
 }
@@ -137,7 +138,7 @@ export function trackedLine() {
     return {
         title: q.title,
         goal: goalText(q),
-        text: isComplete(q) ? `완료! → ${q.giver}에게 보고` : `${questProgress(q)} / ${goalCount(q)}`,
+        text: isComplete(q) ? `완료! → ${npcName(q.giver)}에게 보고` : `${questProgress(q)} / ${goalCount(q)}`,
         complete: isComplete(q),
         more: activeQuests().length - 1,
     };
@@ -154,7 +155,7 @@ export function questLog() {
         if (!active && !done) continue;
         if (!seen.has(q.act)) { seen.add(q.act); groups.push({ act: q.act, name: ACT_NAMES[q.act] || q.act, rows: [] }); }
         groups.find(g => g.act === q.act).rows.push({
-            id: q.id, title: q.title, giver: q.giver,
+            id: q.id, title: q.title, giver: npcName(q.giver),
             summary: q.summary || '', hint: q.hint || '', goal: goalText(q), reward: rewardText(q),
             progress: active ? `${questProgress(q)} / ${goalCount(q)}` : '완료',
             done, complete: active && isComplete(q),
@@ -166,8 +167,8 @@ export function questLog() {
         const next = QUESTS.find(q => (ACT_NAMES[q.act] || q.act) === g.name && !(q.id in Q.active) && !Q.done.includes(q.id)
             && (!q.requires || Q.done.includes(q.requires)));
         if (next) g.rows.push({
-            id: next.id, title: '???', giver: next.giver, upcoming: true,
-            hint: next.auto ? '아직 때가 아니다. 세상을 더 돌아다녀 보자.' : `${next.giver}에게 말을 걸어 보자.`,
+            id: next.id, title: '???', giver: npcName(next.giver), upcoming: true,
+            hint: next.auto ? '아직 때가 아니다. 세상을 더 돌아다녀 보자.' : `${npcName(next.giver)}에게 말을 걸어 보자.`,
         });
     }
     return groups;

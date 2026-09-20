@@ -1,4 +1,5 @@
 import { state } from '../core/state.js';
+import { npcName } from '../data/npcs.js';
 import { clamp } from '../core/utils.js';
 import { NPC_SCRIPTS } from '../data/dialogues.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
@@ -39,7 +40,7 @@ function renderNode(group, key, npc) {
     const node = group[key];
     if (!node) { closeDialogue(); return; }
     dialogueUI.show({
-        name: npc.config.name || '???',
+        name: npcName(npc.config.name),
         text: node.text,
         options: [
             ...node.options.map(opt => ({ label: opt.t, onSelect: () => choose(group, opt, npc) })),
@@ -95,6 +96,6 @@ function gift(npc) {
     npc.relation = clamp((npc.relation || 0) + 8, 0, 100);
     burst(npc.x, npc.y - 60, '#ff7aa8', 1, 10);
     npc.say('고마워! 잘 먹을게.');
-    showToast(`${npc.config.name}에게 고기를 선물했습니다. (호감 ↑)`, '🎁');
+    showToast(`${npcName(npc.config.name)}에게 고기를 선물했습니다. (호감 ↑)`, '🎁');
     closeDialogue();
 }

@@ -15,6 +15,15 @@ export function refreshKidsPanel() {
     $('kids-count').textContent = state.kids.length;
     const list = $('kids-list');
     list.innerHTML = '';
+    if (!state.kids.length) {
+        const empty = document.createElement('div');
+        empty.className = 'kids-empty';
+        empty.textContent = state.partner
+            ? '아직 아이가 없다. 짝에게 말을 걸어 [마음] → 아이 이야기를 꺼내 보자.'
+            : '아직 아이가 없다. 마음이 통하는 용과 짝이 되면 둥지에 알을 품을 수 있다.';
+        list.appendChild(empty);
+        return;
+    }
     for (const k of state.kids) {
         const row = document.createElement('div');
         row.className = 'kid-row';

@@ -2,6 +2,7 @@ import { Entity } from './Entity.js';
 import { Projectile, addBullet } from './Projectile.js';
 import { burst } from './Particle.js';
 import { state } from '../core/state.js';
+import { npcName } from '../data/npcs.js';
 import { input, mouse } from '../core/input.js';
 import { isOnScreen, screenToWorld } from '../core/camera.js';
 import { WORLD_SIZE, MAX_KIDS, PLAYER_SPAWN, VILLAGE_CENTER } from '../core/config.js';
@@ -185,7 +186,7 @@ export class Dragon extends Entity {
             this.downTimer = 25;
             const talk = NPC_TALK[this.config.name];
             this.say(talk ? talk.down : '으윽…');
-            if (this.config.fixed) showToast(`${this.config.name}(이)가 쓰러졌습니다! 잠시 후 일어납니다.`, '💫');
+            if (this.config.fixed) showToast(`${npcName(this.config.name)}(이)가 쓰러졌습니다! 잠시 후 일어납니다.`, '💫');
         }
         if (this.hp <= 0 && this.isPlayer) {
             showToast("쓰러졌습니다... 마을에서 부활합니다.", "💀");
@@ -692,7 +693,7 @@ export class Dragon extends Entity {
         ctx.fillStyle = '#fff';
         ctx.font = '10px Fredoka';
         ctx.textAlign = 'center';
-        ctx.fillText(this.config.name || 'Dragon', 0, 0);
+        ctx.fillText(this.isPlayer ? (this.config.name || '용') : npcName(this.config.name), 0, 0);
         const mark = questMarker(this);
         if (mark) {
             ctx.font = '900 26px Fredoka';
