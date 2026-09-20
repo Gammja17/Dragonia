@@ -8,7 +8,7 @@ import { refreshKidsPanel } from '../ui/kidsPanel.js';
 function freshKidName() {
     const taken = new Set([...state.kids.map(k => k.name), ...Object.values(NPC_NAMES_KO)]);
     const pool = KID_NAMES.filter(n => !taken.has(n));
-    return pool.length ? pick(pool) : `막내 ${state.kids.length + 1}`;
+    return pool.length ? pick(pool) : `${pick(KID_NAMES)} ${state.kids.length + 1}세`;   // 이름이 다 떨어지면(거의 없다) 대를 잇는 식으로
 }
 
 export function registerKid(baby) {
