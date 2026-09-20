@@ -270,6 +270,22 @@ function primeNpcs() {
 /** 세이브를 불러올 때 NPC 상태를 찾아 쓰도록 */
 export function fixedNpcs() { return [...npcCache.values()]; }
 
+/**
+ * 이름으로 그 용을 찾는다. 지금 지도에 없어도 캐시에서 꺼내 준다.
+ * 컷씬에서 초상화가 비어 있던 이유가 이것이다 — 말하는 용이 딴 지도에 있으면
+ * state.entities.npcs 에서 찾지 못해 sheet 가 null 이 되었다.
+ */
+export function anyNpc(name) {
+    if (state.entities && state.entities.npcs) {
+        const here = state.entities.npcs.find(n => n.config.name === name);
+        if (here) return here;
+    }
+    if (npcCache.has(name)) return npcCache.get(name);
+    const def = FIXED_NPCS.find(d => d.name === name);
+    if (!def) return null;
+    return getNpc(name, { x: 0, y: 0 });   // 만들어 두면 다음부터 캐시에서 나온다
+}
+
 /** 짝·동료·아이들을 지금 지도로 데려온다 */
 function bringFamily(pools, x, y) {
     for (const n of [state.partner, state.companion]) {

@@ -12,6 +12,7 @@ import { activeBiome } from '../world/terrain.js';
 import { inDungeon } from './delve.js';
 import { isGatherNow } from './gathering.js';
 import { beginCutscene, focusOn, endCutscene } from './cutscene.js';
+import { anyNpc } from './world.js';
 
 // 사건. "가서 잡아라" 대신, 돌아다니다 보면 일이 벌어지고 그 자리에서 이야기가 열린다.
 //
@@ -94,9 +95,10 @@ export function playScene(title, lines, then, { cinematic = true } = {}) {
     if (cinematic) beginCutscene(title || '');
     else if (title) showToast(title, '📖');
 
+    // 말하는 용이 지금 이 지도에 없어도 찾아낸다 (초상화가 비면 장면이 허전하다)
     const find = (who) => who === '나' ? state.player
-        : state.entities.npcs.find(n => n.config.name === who)
-        || state.entities.bosses.find(b => b.id === who || (b.def && b.def.name === who))
+        : state.entities.bosses.find(b => b.id === who || (b.def && b.def.name === who))
+        || anyNpc(who)
         || null;
 
     let i = 0;

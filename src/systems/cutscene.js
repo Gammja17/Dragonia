@@ -34,25 +34,63 @@ export const scene = {
     snap: true,            // 장면이 막 시작했으면 카메라를 바로 옮긴다
 };
 
-// 무대에 세우려고 옮긴 개체들. 끝나면 있던 자리로 돌려놓는다
-const moved = [];
+// 무대에 올린 개체들. 끝나면 있던 자리로 돌려놓는다.
+//   guest: 이 지도에 없던 용을 잠깐 불러온 경우 (끝나면 다시 내보낸다)
+const cast = [];
 
 /**
- * 말하는 쪽이 지도 저 끝에 있으면 아무도 화면에 안 잡힌다.
- * 연극처럼, 내 곁으로 걸어와 선 셈 치고 옮겨 놓는다 (끝나면 제자리로).
+ * 무대에 세운다.
+ *
+ * 말하는 용이 지도 저 끝에 있거나 아예 다른 지도에 있으면 화면에 아무도 안 잡힌다.
+ * 연극처럼 불러와 내 곁에 세우되, 툭 나타나면 어색하니 옆에서 걸어 들어오게 한다.
+ * 이미 무대에 오른 용은 자리를 지키고, 말할 차례에만 반걸음 앞으로 나선다.
  */
 function stage(e) {
     if (!e || e === state.player) return;
     const p = state.player;
-    if (Math.hypot(e.x - p.x, e.y - p.y) < STAGE * 1.6) return;   // 이미 곁에 있다
-    if (!moved.some(m => m.e === e)) moved.push({ e, x: e.x, y: e.y, facing: e.facing });
-    // 둘 다 화면에 들어오게 옆으로만 세운다. 원래 있던 쪽을 그대로 지킨다
-    const side = e.x >= p.x ? 1 : -1;
-    const spot = clearSpot(p.x + STAGE * side, p.y - 14);
-    e.x = spot.x; e.y = spot.y;
-    e.facing = side > 0 ? 'left' : 'right';     // 나를 마주 본다
+    let m = cast.find(c => c.e === e);
+
+    if (!m) {
+        const here = state.entities.npcs.includes(e) || state.entities.bosses.includes(e);
+        m = { e, x: e.x, y: e.y, facing: e.facing, guest: !here, slot: cast.length };
+        cast.push(m);
+        if (!here) state.entities.npcs.push(e);     // 이 지도에 없던 용을 잠깐 불러온다
+    }
+
+    // 자리: 나를 가운데 두고 좌우로 번갈아 선다
+    const side = m.slot % 2 === 0 ? 1 : -1;
+    const rank = Math.floor(m.slot / 2);
+    const spot = clearSpot(p.x + side * (STAGE + rank * 92), p.y - 14 - rank * 26);
+    m.to = spot;
+    m.face = side > 0 ? 'left' : 'right';
+
+    // 처음 오를 때는 화면 밖에서 걸어 들어온다
+    if (!m.entered) {
+        m.entered = true;
+        e.x = spot.x + side * 260;
+        e.y = spot.y + 30;
+    }
     p.facing = side > 0 ? 'right' : 'left';
-    e.vx = 0; e.vy = 0;
+}
+
+/** 무대에 오른 이들을 제자리로 걸린다. 말하는 쪽은 반걸음 앞으로 */
+function walkCast(dt) {
+    for (const m of cast) {
+        const speaking = scene.focus === m.e;
+        const tx = m.to.x, ty = m.to.y + (speaking ? 14 : 0);   // 말할 차례엔 앞으로 나선다
+        const dx = tx - m.e.x, dy = ty - m.e.y;
+        const d = Math.hypot(dx, dy);
+        if (d > 2) {
+            const k = Math.min(1, (dt * 260) / d);
+            m.e.x += dx * k;
+            m.e.y += dy * k;
+            m.e.moving = d > 24;
+        } else {
+            m.e.moving = false;
+        }
+        m.e.facing = m.face;
+        m.e.vx = 0; m.e.vy = 0;
+    }
 }
 
 /** 무대 자리가 물·바위면 조금 비켜 세운다 */
@@ -86,8 +124,12 @@ export function focusOn(entity) {
 
 /** 컷씬 끝 */
 export function endCutscene() {
-    for (const m of moved) { m.e.x = m.x; m.e.y = m.y; m.e.facing = m.facing; }
-    moved.length = 0;
+    for (const m of cast) {
+        m.e.x = m.x; m.e.y = m.y; m.e.facing = m.facing; m.e.moving = false;
+        // 불러왔던 용은 다시 제 일과로 돌려보낸다
+        if (m.guest) state.entities.npcs = state.entities.npcs.filter(n => n !== m.e);
+    }
+    cast.length = 0;
     scene.on = false;
     scene.focus = null;
     scene.titleT = 0;
@@ -112,6 +154,7 @@ export function cutsceneTarget() {
 
 /** 매 프레임: 띠와 어둠이 스르르 들어오고 나간다 (대화창이 떠 있어도 돌아야 한다) */
 export function updateCutscene(dt) {
+    if (scene.on) walkCast(dt);        // 세계가 멈춰 있어도 배우는 움직인다
     const want = scene.on ? 1 : 0;
     scene.bars += (want - scene.bars) * EASE;
     scene.dim += (want - scene.dim) * EASE;
