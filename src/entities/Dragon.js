@@ -37,8 +37,11 @@ const WALK_SPEED = 260;
 const SPRINT_MULT = 1.5;
 const INTERACT_RANGE = 180;
 const TALK_RANGE = 300;      // 마우스로 가리킨 상대에게는 조금 더 멀리서도 말을 걸 수 있다
-const AIM_RANGE = 560;       // 자동 조준: 이 거리 안, 바라보는 쪽 ±AIM_CONE 안의 가장 가까운 적을 겨눈다
+const AIM_RANGE = 560;       // 자동 조준(터치·키보드): 이 거리 안, 바라보는 쪽 ±AIM_CONE 안의 가장 가까운 적을 겨눈다
 const AIM_CONE = 1.0;
+const AIM_MAGNET = 95;       // 마우스 조준: 커서가 적에게 이만큼 가까우면 그 적에게 살짝 붙여 준다
+// 허기 단계: 배가 고프면 느려지고 숨결이 굼떠진다. 예전처럼 공격을 막지는 않는다
+const HUNGER_PECKISH = 35, HUNGER_STARVING = 12;
 const DASH_TIME = 0.2, DASH_COOLDOWN = 1.0, DASH_MULT = 3.4;
 const MOUTH_OFFSET = 40; // 화염구가 생성되는 위치(발 기준점에서 바라보는 방향으로)
 
@@ -237,7 +240,8 @@ export class Dragon extends Entity {
         const { dx, dy } = input.axis();
         if (this.fishing) this.updateFishing(dt, dx || dy);
         this.dashCd -= dt; this.invuln -= dt; this.fury -= dt; this.guard -= dt; this.slowTimer -= dt;
-        const baseSpeed = WALK_SPEED * this.stage.speed * (1 + 0.04 * (state.upgrades.spd || 0)) * (hasRelic('WIND_FEATHER') ? 1.08 : 1) * (this.slowTimer > 0 ? 0.55 : 1);
+        const baseSpeed = WALK_SPEED * this.stage.speed * (1 + 0.04 * (state.upgrades.spd || 0)) * (hasRelic('WIND_FEATHER') ? 1.08 : 1)
+            * (this.slowTimer > 0 ? 0.55 : 1) * [1, 0.86, 0.7][this.hungerLevel];
         const locked = this.channels.some(c => c.lock);   // 급강하 중엔 조작 불가
         // Shift 를 탁 누르면 대시(잠깐 무적), 계속 누르고 있으면 달리기
         if (locked) { /* 스킬이 몸을 움직이는 중 */ }
@@ -255,9 +259,9 @@ export class Dragon extends Entity {
             burst(this.x, this.y - 30 * this.stage.scale, this.colors.body, 0.35);
         } else if (dx || dy) {
             this.moveBy(dx, dy, baseSpeed * (input.down('sprint') ? SPRINT_MULT : 1), dt);
-            this.hunger -= 0.5 * dt * (hasRelic('IRON_STOMACH') ? 0.5 : 1);
+            this.hunger -= 0.35 * dt * (hasRelic('IRON_STOMACH') ? 0.5 : 1);
         } else {
-            this.hunger -= 0.1 * dt * (hasRelic('IRON_STOMACH') ? 0.5 : 1);
+            this.hunger -= 0.08 * dt * (hasRelic('IRON_STOMACH') ? 0.5 : 1);
         }
         if (hasRelic('LIFE_STONE')) this.hp = Math.min(this.maxHp, this.hp + 1.5 * dt);
         this.hunger = Math.max(0, this.hunger);
@@ -272,10 +276,12 @@ export class Dragon extends Entity {
         const isKid = target && E0.babies.includes(target);
         const nestNear = !target && E0.nests[0] && dist(this, E0.nests[0]) < 110 ? E0.nests[0] : null;
         state.talkTarget = target;   // 그릴 때 발밑에 표시한다
-        setInteractTarget(target || nestNear, nestNear ? 'T 둥지에서 쉬기' : isKid ? 'T · 클릭: 아이와 대화' : 'T · 클릭: 대화 / L 플러팅');
+        setInteractTarget(target || nestNear, nestNear ? 'T 둥지에서 쉬기' : isKid ? 'T 아이와 대화' : 'T 대화 / L 플러팅');
 
-        const wantTalk = input.pressed('talk') || (mouse.clicked && pointed && pointed === target);
-        if (mouse.clicked && pointed && pointed !== target) showToast('너무 멀어요. 가까이 가서 말을 거세요.', '💬');
+        // 왼쪽 버튼은 브레스라, 탭으로 말 걸기는 터치 기기에서만 (mouse.inside 가 false)
+        const tapped = mouse.clicked && !mouse.inside;
+        const wantTalk = input.pressed('talk') || (tapped && pointed && pointed === target);
+        if (tapped && pointed && pointed !== target) showToast('너무 멀어요. 가까이 가서 말을 거세요.', '💬');
         if (wantTalk && target) { if (isKid) openKidHub(target); else startDialogue(target, 'TALK'); }
         else if (wantTalk && nestNear) openNestMenu();
         if (input.pressed('flirt') && target && !isKid) startDialogue(target, 'FLIRT');
@@ -287,7 +293,8 @@ export class Dragon extends Entity {
         });
 
         this.fireTimer -= dt;
-        if (input.down('attack') && this.fireTimer <= 0) this.attack();   // 꾹 누르고 있으면 연사
+        // 스페이스나 마우스 왼쪽 버튼을 꾹 누르고 있으면 연사. 대화창이 떠 있을 땐 updatePlayer 가 아예 안 돈다
+        if ((input.down('attack') || mouse.down) && this.fireTimer <= 0) this.attack();
         for (const slot of SKILL_SLOTS) if (input.pressed('skill' + slot)) useSlot(this, slot);
         if (input.pressed('skillbook')) openSkillBook();
         if (input.pressed('ultimate')) this.useUltimate();
@@ -299,11 +306,30 @@ export class Dragon extends Entity {
         if (input.pressed('mute')) showToast(toggleMute() ? '효과음 끔' : '효과음 켬', '🔊');
     }
 
-    /** 바라보는 방향 근처의 가장 가까운 적 쪽으로 살짝 겨눠 준다. 없으면 바라보는 방향 그대로 */
+    /**
+     * 브레스·스킬이 날아갈 방향.
+     *  마우스를 쓰는 중이면 커서 쪽이 기준이고, 커서가 적 위에 얹히면 그 적에게 살짝 붙는다.
+     *  터치·키보드만 쓸 때는 예전처럼 바라보는 쪽 원뿔 안의 가장 가까운 적을 자동으로 겨눈다.
+     */
     aimAngle() {
         const E = state.entities;
         const foes = [...E.enemies, ...E.humans, ...E.bosses];
         if (state.activity && (state.activity.type === 'SPAR' || state.activity.type === 'DUEL')) foes.push(state.activity.npc);
+        const sc = this.stage.scale;
+        const ox = this.x, oy = this.y - 40 * sc;
+        const toward = (e) => ({ angle: Math.atan2(e.y - 20 - oy, e.x - ox), target: e });
+
+        if (mouse.inside) {
+            const c = screenToWorld(mouse.x, mouse.y);
+            let best = null, bestD = AIM_MAGNET;
+            for (const e of foes) {
+                if (e.awake === false) continue;
+                const d = Math.hypot(e.x - c.x, e.y - 20 - c.y);
+                if (d < bestD) { best = e; bestD = d; }
+            }
+            return best ? toward(best) : { angle: Math.atan2(c.y - oy, c.x - ox), target: null };
+        }
+
         let best = null, bestD = AIM_RANGE;
         for (const e of foes) {
             if (e.awake === false) continue;
@@ -313,9 +339,23 @@ export class Dragon extends Entity {
             da = Math.atan2(Math.sin(da), Math.cos(da));
             if (Math.abs(da) < AIM_CONE || d < 120) { best = e; bestD = d; }
         }
-        if (!best) return { angle: this.angle, target: null };
-        const sc = this.stage.scale;
-        return { angle: Math.atan2(best.y - 20 - (this.y - 40 * sc), best.x - this.x), target: best };
+        return best ? toward(best) : { angle: this.angle, target: null };
+    }
+
+    /** 0 배부름 · 1 출출함(조금 느려짐) · 2 굶주림(많이 느려짐) */
+    get hungerLevel() { return this.hunger < HUNGER_STARVING ? 2 : this.hunger < HUNGER_PECKISH ? 1 : 0; }
+
+    /** 땅을 겨누는 스킬(운석·급강하)이 떨어질 자리. 커서가 적 위면 그 적, 아니면 커서 자리(최대 사거리까지) */
+    aimPoint(maxRange) {
+        const { angle, target } = this.aimAngle();
+        if (target) return { x: target.x, y: target.y };
+        if (mouse.inside) {
+            const c = screenToWorld(mouse.x, mouse.y);
+            const d = Math.hypot(c.x - this.x, c.y - this.y) || 1;
+            const k = Math.min(1, maxRange / d);
+            return { x: this.x + (c.x - this.x) * k, y: this.y + (c.y - this.y) * k };
+        }
+        return { x: this.x + Math.cos(angle) * maxRange, y: this.y + Math.sin(angle) * maxRange };
     }
 
     get damageMult() {
@@ -323,11 +363,10 @@ export class Dragon extends Entity {
     }
 
     attack() {
-        if (this.hunger < 10) { if (input.pressed('attack')) showToast("배가 너무 고파요!", "😫"); return; }
         const el = ELEMENTS[this.element];
         const st = this.stageIndex;
-        this.fireTimer = (el.rateByStage ? el.rateByStage[st] : el.rate) * (this.fury > 0 ? 0.75 : 1);
-        this.hunger -= el.rate * 1.2;       // 어떤 속성이든 쏘는 동안 초당 1.2씩 허기가 준다
+        const slug = [1, 1.25, 1.5][this.hungerLevel];   // 배가 고프면 숨결이 굼떠진다
+        this.fireTimer = (el.rateByStage ? el.rateByStage[st] : el.rate) * (this.fury > 0 ? 0.75 : 1) * slug;
         if (this.animator) this.animator.play('attack');
         const { angle } = this.aimAngle();
         this.facing = facingFromVector(Math.cos(angle), Math.sin(angle), this.facing);

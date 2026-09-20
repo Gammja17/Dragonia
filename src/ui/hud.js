@@ -96,7 +96,8 @@ export function updateHud() {
     if (state.rally > 0) buffs.push(['용의 함성', false]);
     if (state.blessingDay === state.day) buffs.push(['엘더의 축복', false]);
     if (p.slowTimer > 0) buffs.push(['둔화', true]);
-    if (p.hunger < 10) buffs.push(['굶주림', true]);
+    if (p.hungerLevel === 2) buffs.push(['굶주림 (이속·공속 저하)', true]);
+    else if (p.hungerLevel === 1) buffs.push(['출출함 (조금 느려짐)', true]);
     const row = $('buff-row'), key = buffs.map(b => b[0]).join();
     if (row.dataset.key !== key) {
         row.dataset.key = key;

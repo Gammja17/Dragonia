@@ -39,9 +39,7 @@ export function useSlot(p, slot) {
     if (!id) { showToast(`[${slot}] 칸이 비어 있습니다. [B] 스킬 수첩에서 장착하세요.`, '📖'); return; }
     const def = SKILLS[id];
     if ((p.cooldowns[id] || 0) > 0 || p.channels.some(c => c.lock)) return;
-    if (p.hunger < def.hunger + 5) { showToast("배가 너무 고파요!", "😫"); return; }
-    p.hunger -= def.hunger;
-    p.cooldowns[id] = def.cooldown * (hasRelic('GLACIA_TEAR') ? 0.75 : 1);
+    p.cooldowns[id] = def.cooldown * (hasRelic('GLACIA_TEAR') ? 0.75 : 1);   // 스킬은 대기 시간만 쓴다 (허기는 안 든다)
     if (p.animator) p.animator.play('attack');
     CAST[id](p);
 }
@@ -72,8 +70,7 @@ const CAST = {
         shake(8); play('roar');
     },
     METEOR(p) {
-        const { angle, target } = p.aimAngle();
-        const x = target ? target.x : p.x + Math.cos(angle) * 300, y = target ? target.y : p.y + Math.sin(angle) * 300;
+        const { x, y } = p.aimPoint(420);
         addHazard(x, y, { faction: 'ALLY', r: 185, delay: 0.6, linger: 2.5, damage: 48 * power(p, 'FIRE'), dps: 6 * power(p, 'FIRE'),
             color: '#ff6a2a', effect: 'FIRE_HIT', effectSize: 2.8, sound: 'boom', shake: 12, status: { type: 'BURN', duration: 4 } });
         spawnEffect('MAGIC_CIRCLE', x, y, { size: 1.6, color: '#ff9a3c' });
@@ -143,8 +140,7 @@ const CAST = {
         }
     },
     DIVE(p) {
-        const { angle, target } = p.aimAngle();
-        const tx = target ? target.x : p.x + Math.cos(angle) * 340, ty = target ? target.y : p.y + Math.sin(angle) * 340;
+        const { x: tx, y: ty } = p.aimPoint(420);
         p.channels.push({ id: 'DIVE', time: 0.55, total: 0.55, sx: p.x, sy: p.y, tx, ty, lock: true });
         p.invuln = 0.7;
         spawnEffect('DUST', p.x, p.y, { size: 1.5, color: '#d8c8a8' });

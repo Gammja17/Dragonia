@@ -15,6 +15,7 @@ import { initCustomizer } from './ui/customizer.js';
 import { preloadDragonSprites } from './render/dragonSprites.js';
 import { preloadVfx } from './render/vfx.js';
 import { updateLighting, drawLighting } from './render/lighting.js';
+import { drawCrosshair } from './render/cursor.js';
 import { updateEvents, drawEvents } from './systems/events.js';
 import { initAudio } from './systems/audio.js';
 import { initJournal } from './ui/journal.js';
@@ -142,6 +143,8 @@ function render() {
     drawEvents(ctx);
     ctx.globalCompositeOperation = 'lighter'; // 파티클은 빛 알갱이
     for (const p of E.particles) p.draw(ctx);
+    ctx.globalCompositeOperation = 'source-over';
+    drawCrosshair(ctx);                        // 조준점은 파티클 위에
     ctx.restore();
 
     // 조명·날씨도 같은 배율 안에서 (cam.w/h 가 곧 화면 크기)

@@ -26,14 +26,18 @@ const held = {};
 const prev = {};
 let virtualAxis = { dx: 0, dy: 0 };   // 터치 스틱
 
-// 마우스: 화면 좌표와 이번 프레임의 클릭 여부. 월드 좌표는 camera 로 바꿔 쓴다 (entities/Dragon.js)
-export const mouse = { x: 0, y: 0, clicked: false, inside: false };
+// 마우스: 화면 좌표, 이번 프레임의 클릭 여부, 버튼을 누르고 있는지. 월드 좌표는 camera 로 바꿔 쓴다 (entities/Dragon.js)
+//  inside  진짜 마우스를 쓰는 중인가 (터치로 누르면 false). 조준 방식을 여기서 가른다
+//  down    왼쪽 버튼을 누르고 있다 → 브레스 연사
+//  clicked 이번 프레임에 눌렀다 (터치 탭 포함)
+//  right   이번 프레임에 오른쪽 버튼을 눌렀다
+export const mouse = { x: 0, y: 0, clicked: false, down: false, right: false, inside: false };
 
 export const input = {
     down(action) { return !!held[action]; },
     pressed(action) { return !!held[action] && !prev[action]; },
     /** 매 프레임 끝에 호출해 '이번 프레임에 눌림' 판정을 갱신 */
-    endFrame() { for (const k in held) prev[k] = held[k]; mouse.clicked = false; },
+    endFrame() { for (const k in held) prev[k] = held[k]; mouse.clicked = false; mouse.right = false; },
     /** 터치 버튼이 키보드처럼 동작을 누르고 뗀다 */
     setVirtual(action, down) { held[action] = down; },
     setAxis(dx, dy) { virtualAxis = { dx, dy }; },
@@ -62,6 +66,13 @@ export function initInput() {
     const canvas = document.getElementById('gameCanvas');
     canvas.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.inside = true; });
     canvas.addEventListener('mouseleave', () => { mouse.inside = false; });
-    canvas.addEventListener('mousedown', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.clicked = true; });
+    canvas.addEventListener('mousedown', (e) => {
+        mouse.x = e.clientX; mouse.y = e.clientY; mouse.inside = true;
+        if (e.button === 0) { mouse.clicked = true; mouse.down = true; }
+        if (e.button === 2) mouse.right = true;
+    });
+    window.addEventListener('mouseup', (e) => { if (e.button === 0) mouse.down = false; });
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());   // 오른쪽 버튼을 게임에 쓴다
+    // 터치는 inside 를 false 로 둔다. 조준은 자동으로, 공격은 화면 버튼으로 한다 (ui/touch.js)
     canvas.addEventListener('touchstart', (e) => { const t = e.changedTouches[0]; mouse.x = t.clientX; mouse.y = t.clientY; mouse.clicked = true; mouse.inside = false; }, { passive: true });
 }
