@@ -7,7 +7,8 @@ import { ENEMIES, BOSSES } from '../data/enemies.js';
 import { RELICS, ownsRelic, hasRelic, toggleRelic, slotCount } from '../systems/relics.js';
 import { MATERIALS } from '../data/materials.js';
 import { matCount } from '../systems/smithing.js';
-import { isMuted } from '../systems/audio.js';
+import { isMuted, sfxVolume, setSfxVolume } from '../systems/audio.js';
+import { musicVolume, setMusicVolume } from '../systems/music.js';
 import { questLog, setTracked } from '../systems/quests.js';
 import { BRANCHES, GROWTH_NODES, NODES_BY_ID } from '../data/growth.js';
 import { SKILLS, SKILL_BRANCHES, SKILL_SLOTS, MAX_SKILL_RANK } from '../data/skills.js';
@@ -25,7 +26,7 @@ import { dayPhaseName } from '../render/lighting.js';
 // 성장·스킬 탭은 뿌리 하나에서 세 갈래가 뻗는 나무로 그린다 (systems/growth.js 가 값을 갖고 있다).
 
 const $ = (id) => document.getElementById(id);
-const TABS = [['growth', '성장'], ['skills', '스킬'], ['quests', '퀘스트'], ['folk', '마을 용들'], ['record', '기록'], ['relics', '유물'], ['codex', '도감']];
+const TABS = [['growth', '성장'], ['skills', '스킬'], ['quests', '퀘스트'], ['folk', '마을 용들'], ['record', '기록'], ['relics', '유물'], ['codex', '도감'], ['sound', '소리']];
 let tab = 'quests';
 let openRow = null;   // 펼쳐 놓은 퀘스트 id
 let picked = null;    // 나무에서 고른 마디 { kind: 'node' | 'skill', id }
@@ -146,8 +147,40 @@ function renderRecord(body) {
         ['막아낸 습격', `${state.raid.count - (state.raid.active ? 1 : 0)}회`],
         ['연 보물상자', `${chests} / ${CHEST_COUNT}`],
         ['끝낸 퀘스트', `${state.quests.done.length}`],
-        ['효과음 (M 키)', isMuted() ? '꺼짐' : '켜짐'],
     ]));
+}
+
+/** 소리 탭: 배경음·효과음 음량과, 빌려 쓴 음원의 만든 이 */
+function renderSound(body) {
+    const head = document.createElement('div');
+    head.className = 'journal-title';
+    head.textContent = '음량';
+    body.appendChild(head);
+    body.appendChild(volumeRow('배경음', musicVolume, setMusicVolume));
+    body.appendChild(volumeRow('효과음', sfxVolume, setSfxVolume));
+    body.appendChild(section('전체', [['소리 끄기 (M 키)', isMuted() ? '꺼짐' : '켜짐']]));
+    body.appendChild(section('빌려 쓴 소리', [
+        ['배경음 15곡', 'Music by Eric Matyas · www.soundimage.org'],
+        ['효과음 일부', 'Kenney (CC0)'],
+        ['나머지 효과음', '코드로 그때그때 만든다'],
+    ]));
+}
+
+function volumeRow(label, get, set) {
+    const row = document.createElement('div');
+    row.className = 'journal-row';
+    const name = document.createElement('span');
+    name.textContent = label;
+    const knob = document.createElement('span');
+    knob.className = 'journal-slider';
+    const bar = document.createElement('input');
+    bar.type = 'range'; bar.min = 0; bar.max = 100; bar.value = Math.round(get() * 100);
+    const num = document.createElement('i');
+    num.textContent = bar.value;
+    bar.addEventListener('input', () => { set(bar.value / 100); num.textContent = bar.value; });
+    knob.append(bar, num);
+    row.append(name, knob);
+    return row;
 }
 
 /** 유물 탭: 가진 것 중 골라 끼운다. 칸 수는 몸이 자랄수록 는다 */
@@ -467,6 +500,7 @@ function render() {
     else if (tab === 'folk') renderFolk(body);
     else if (tab === 'record') renderRecord(body);
     else if (tab === 'relics') renderRelics(body);
+    else if (tab === 'sound') renderSound(body);
     else renderCodex(body);
     renderPicked();
 }

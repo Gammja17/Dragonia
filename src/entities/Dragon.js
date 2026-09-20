@@ -350,7 +350,7 @@ export class Dragon extends Entity {
         if (input.pressed('journal')) toggleJournal();
         if (input.pressed('skillbook')) toggleJournal('skills');   // 스킬 나무
         if (input.pressed('growthTab')) toggleJournal('growth');   // 성장 나무
-        if (input.pressed('mute')) showToast(toggleMute() ? '효과음 끔' : '효과음 켬', '🔊');
+        if (input.pressed('mute')) showToast(toggleMute() ? '소리 끔' : '소리 켬', '🔊');
 
         // 보는 방향은 프레임 끝에 딱 한 번 정한다. 마우스를 쓰는 중이면 커서 쪽, 아니면 가는 쪽.
         // 예전엔 moveBy 가 매 프레임 '가는 쪽'으로, attack 이 쏠 때마다 '겨눈 쪽'으로 따로 돌려놔서

@@ -1,7 +1,12 @@
-// 효과음: 파일 없이 WebAudio 로 즉석에서 만든다. 브라우저 정책상 첫 클릭/키 입력 뒤에야 소리가 난다.
+// 효과음: 대부분은 파일 없이 WebAudio 로 즉석에서 만들고, 합성으로는 흉내 내기 힘든 몇 가지만
+// 녹음된 소리(assets/sfx, Kenney CC0)를 쓴다. 브라우저 정책상 첫 클릭/키 입력 뒤에야 소리가 난다.
 const MUTE_KEY = 'dragonia-muted';
+const VOL_KEY = 'dragonia-sfx-vol';
 let ctx = null;
+let out = null;   // 효과음이 모두 지나는 마디. 음량 손잡이가 여기를 잡는다
 let muted = localStorage.getItem(MUTE_KEY) === '1';
+const savedVol = parseFloat(localStorage.getItem(VOL_KEY));
+let vol = Number.isFinite(savedVol) ? savedVol : 0.8;
 const lastPlayed = {};
 
 // [파형, 시작 Hz, 끝 Hz, 길이(초), 음량]. 여러 줄이면 순서대로 0.07초 간격으로 울린다
@@ -43,6 +48,41 @@ const SOUNDS = {
     step:   [['noise', 300, 150, 0.04, 0.02]],
 };
 
+// 녹음된 소리. [음량, 파일들] — 여러 개면 울릴 때마다 하나를 골라서 같은 소리가 반복돼 들리지 않게 한다
+const SAMPLES = {
+    step:  [0.30, ['step1', 'step2', 'step3', 'step4', 'step5']],
+    hit:   [0.45, ['hit1', 'hit2', 'hit3']],
+    crit:  [0.60, ['crit1', 'crit2', 'crit3']],
+    slash: [0.50, ['slash1', 'slash2']],
+    guard: [0.45, ['guard1', 'guard2', 'guard3']],
+    coin:  [0.45, ['coin']],
+    ui:    [0.35, ['ui']],
+};
+const buffers = {};   // 파일 이름 → 풀어 놓은 소리. 못 받으면 비어 있고, 그러면 합성음으로 돌아간다
+
+function loadSamples() {
+    for (const [, files] of Object.values(SAMPLES)) {
+        for (const f of files) {
+            if (buffers[f]) continue;
+            fetch(`assets/sfx/${f}.ogg`)
+                .then(r => r.arrayBuffer())
+                .then(b => ctx.decodeAudioData(b))
+                .then(buf => { buffers[f] = buf; })
+                .catch(() => {});
+        }
+    }
+}
+
+function playSample(buf, gain) {
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.value = 0.92 + Math.random() * 0.16;   // 조금씩 음을 흔들어 기계처럼 들리지 않게
+    const g = ctx.createGain();
+    g.gain.value = gain;
+    src.connect(g).connect(out);
+    src.start();
+}
+
 let noise = null;
 function noiseBuffer() {
     if (noise) return noise;
@@ -56,8 +96,21 @@ export function initAudio() {
     if (!ctx) {
         const AC = window.AudioContext || window.webkitAudioContext;
         if (AC) ctx = new AC();
+        if (ctx) {
+            out = ctx.createGain();
+            out.gain.value = vol;
+            out.connect(ctx.destination);
+            loadSamples();
+        }
     }
     if (ctx && ctx.state === 'suspended') ctx.resume();
+}
+
+export function sfxVolume() { return vol; }
+export function setSfxVolume(v) {
+    vol = Math.max(0, Math.min(1, v));
+    localStorage.setItem(VOL_KEY, vol);
+    if (out) out.gain.value = vol;
 }
 
 export function isMuted() { return muted; }
@@ -68,9 +121,15 @@ export function toggleMute() {
 }
 
 export function play(name) {
-    if (!ctx || muted || !SOUNDS[name]) return;
+    if (!ctx || muted) return;
     const now = ctx.currentTime;
     if (now - (lastPlayed[name] || 0) < 0.04) return; // 같은 소리가 한 프레임에 겹쳐 울리지 않게
+    const sample = SAMPLES[name];
+    if (sample) {
+        const buf = buffers[sample[1][Math.floor(Math.random() * sample[1].length)]];
+        if (buf) { lastPlayed[name] = now; playSample(buf, sample[0]); return; }
+    }
+    if (!SOUNDS[name]) return;
     lastPlayed[name] = now;
     SOUNDS[name].forEach(([type, f0, f1, dur, vol], i) => {
         const t = now + i * 0.07;
@@ -93,7 +152,7 @@ export function play(name) {
             src.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
             src.connect(gain);
         }
-        gain.connect(ctx.destination);
+        gain.connect(out);
         src.start(t);
         src.stop(t + dur + 0.02);
     });

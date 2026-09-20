@@ -47,6 +47,40 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 
 고기·알·동전·장작·머리 장신구 아이콘은 코드로 직접 찍은 픽셀이다(`src/render/pixel.js`).
 
+## 배경음 (`assets/music/`)
+
+모두 **Eric Matyas** 가 만들어 무료로 나눠 주는 곡이다. 조건은 게임 화면 안에 만든 이를 밝히는 것이고,
+일지 → [소리] 탭에 `Music by Eric Matyas · www.soundimage.org` 로 적어 두었다. 출처: https://soundimage.org/
+
+| 파일 | 곡 이름 | 쓰이는 곳 |
+|---|---|---|
+| `title.ogg` | Of Legends and Fables 4 | 타이틀 · 용 만들기 |
+| `village.ogg` | Bustling Village | 드래곤 빌리지 |
+| `den.ogg` | Dreaming of Faraway Places | 굴 안 (내 굴 · 남의 굴) |
+| `lake.ogg` | Magic Ocean | 신비의 호수 |
+| `forest.ogg` | Secret Hollow | 깊은 숲 · 아지트 |
+| `autumn.ogg` | The Meadow We Call Home | 단풍 골 |
+| `jungle.ogg` | Lost Jungle | 환영의 밀림 |
+| `hollow.ogg` | Moonlight Flying | 달빛 골짜기 |
+| `snow.ogg` | Faraway Winter Wonderland | 서리 봉우리 |
+| `desert.ogg` | Desert Mystery | 죽은 사구 |
+| `volcano.ogg` | Smoky Sky | 잿빛 화산 |
+| `dungeon.ogg` | A Maze of Secret Dungeons | 굴 탐험 |
+| `boss.ogg` | Battle of the Ancients | 보스 결투 |
+| `raid.ogg` | Tower Defense | 마을 습격 |
+| `bloodmoon.ogg` | Darkness Approaches | 붉은 달이 뜬 밤 |
+
+## 효과음 (`assets/sfx/`)
+
+| 파일 | 원작 | 라이선스 | 출처 |
+|---|---|---|---|
+| `step1~5.ogg` | "Impact Sounds" by Kenney — `footstep_grass_000~004` | CC0 | https://kenney.nl/assets/impact-sounds |
+| `hit1~3.ogg`, `crit1~3.ogg` | 같은 팩 — `impactPunch_medium/heavy_000~002` | CC0 | 〃 |
+| `guard1~3.ogg` | 같은 팩 — `impactMetal_light_000~002` | CC0 | 〃 |
+| `slash1~2.ogg`, `coin.ogg`, `ui.ogg` | "RPG Audio" by Kenney — `knifeSlice`, `handleCoins`, `metalClick` | CC0 | https://kenney.nl/assets/rpg-audio |
+
+나머지 효과음 40여 종은 파일 없이 WebAudio 로 그때그때 만든다 (`src/systems/audio.js`).
+
 ## 라이선스 전문
 - CC BY 3.0: https://creativecommons.org/licenses/by/3.0/
 - CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/
