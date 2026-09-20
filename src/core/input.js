@@ -5,7 +5,7 @@ const KEYMAP = {
     KeyA: 'left', ArrowLeft: 'left',
     KeyD: 'right', ArrowRight: 'right',
     ShiftLeft: 'sprint', ShiftRight: 'sprint',
-    Space: 'attack',
+    Space: 'confirm',      // 말 걸기 · 대화창 넘기기 (공격은 마우스 왼쪽 버튼)
     KeyE: 'interact',
     KeyT: 'talk',
     KeyL: 'flirt',

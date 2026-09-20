@@ -35,26 +35,26 @@ export const dialogueUI = {
         const box = $('d-options');
         box.innerHTML = '';
         const list = options.length ? options : [{ label: '닫기', onSelect: onClose }];
-        for (const opt of list) {
+        list.forEach((opt, i) => {
             const btn = document.createElement('button');
             btn.className = 'd-btn';
-            btn.textContent = `${box.children.length + 1}. ${opt.label}`;
+            btn.textContent = opt.label;                      // 번호는 붙이지 않는다 (방향키로 고른다)
             btn.onclick = () => { play('ui'); opt.onSelect(); };
+            // 마우스를 '움직여' 얹으면 그 줄이 골라진다.
+            // mouseenter 를 쓰면 창이 열리는 순간 커서 밑에 깔린 줄이 멋대로 골라진다
+            btn.onmousemove = () => { if (selected !== i) { selected = i; highlight(); } };
             box.appendChild(btn);
-        }
+        });
         selected = 0;
         highlight();
     },
-    /** 키보드로 고르기: 숫자키는 바로 선택, W/S·방향키로 옮기고 Enter/E 로 확정 */
+    /** 키보드로 고르기: 방향키(또는 W·S)로 옮기고 [Space]·Enter 로 고른다 */
     handleKeys(input) {
         const buttons = [...$('d-options').children];
         if (!buttons.length) return;
-        for (let i = 0; i < Math.min(9, buttons.length); i++) {
-            if (input.pressed('num' + (i + 1))) { buttons[i].click(); return; }
-        }
-        if (input.pressed('down') || input.pressed('right')) { selected = (selected + 1) % buttons.length; highlight(); }
-        if (input.pressed('up') || input.pressed('left')) { selected = (selected + buttons.length - 1) % buttons.length; highlight(); }
-        if (input.pressed('confirm') || input.pressed('interact')) buttons[selected].click();
+        if (input.pressed('down') || input.pressed('right')) { selected = (selected + 1) % buttons.length; play('ui'); highlight(); }
+        if (input.pressed('up') || input.pressed('left')) { selected = (selected + buttons.length - 1) % buttons.length; play('ui'); highlight(); }
+        if (input.pressed('confirm') || input.pressed('interact') || input.pressed('talk')) buttons[selected].click();
     },
     hide() {
         $('dialogue-overlay').style.display = 'none';

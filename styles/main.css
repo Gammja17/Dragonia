@@ -334,23 +334,28 @@ body {
     color: var(--parch); font-size: 1rem; line-height: 1.62;
     margin-bottom: 11px; min-height: 2.9em; white-space: pre-wrap;
 }
-/* auto-fill 이라야 선택지가 하나일 때 화면을 가로지르지 않는다 */
+/* 세로로 한 줄씩. 방향키로 오르내리고 [Space] 로 고른다 (번호는 붙이지 않는다) */
 #d-options {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 6px; align-content: start;
+    display: flex; flex-direction: column; gap: 4px;
+    width: min(680px, 100%);
 }
 .d-btn {
+    position: relative;
     background: var(--ink-raise); color: var(--parch);
     border: 1px solid var(--gold-dim); border-left: 3px solid transparent;
-    padding: 8px 12px; cursor: pointer; font-size: 0.86rem; text-align: left;
+    padding: 8px 12px 8px 28px; cursor: pointer; font-size: 0.88rem; text-align: left;
     font-family: var(--font-ko); line-height: 1.35;
-    transition: background 0.12s, border-color 0.12s;
+    transition: background 0.1s, border-color 0.1s;
 }
-.d-btn:hover { background: var(--ink-hover); border-color: var(--gold); border-left-color: var(--gold-lit); }
+.d-btn::before {
+    content: '▶'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--gold-lit); font-size: 0.7rem; opacity: 0;
+}
 .d-btn.selected {
     background: rgba(255, 216, 74, 0.16); border-color: var(--gold);
     border-left-color: var(--gold-lit); color: #fff;
 }
+.d-btn.selected::before { opacity: 1; }
 
 /* ==========================================================================
    모험 일지

@@ -280,11 +280,12 @@ export class Dragon extends Entity {
         const isKid = target && E0.babies.includes(target);
         const nestNear = !target && E0.nests[0] && dist(this, E0.nests[0]) < 110 ? E0.nests[0] : null;
         state.talkTarget = target;   // 그릴 때 발밑에 표시한다
-        setInteractTarget(target || nestNear, nestNear ? 'T 둥지에서 쉬기' : isKid ? 'T 아이와 대화' : 'T 대화 / L 플러팅');
+        setInteractTarget(target || nestNear, nestNear ? 'Space 둥지에서 쉬기' : isKid ? 'Space 아이와 대화' : 'Space 대화 · L 플러팅');
 
+        // 말 걸기는 [Space]. T 도 그대로 쓸 수 있다.
         // 왼쪽 버튼은 브레스라, 탭으로 말 걸기는 터치 기기에서만 (mouse.inside 가 false)
         const tapped = mouse.clicked && !mouse.inside;
-        const wantTalk = input.pressed('talk') || (tapped && pointed && pointed === target);
+        const wantTalk = input.pressed('confirm') || input.pressed('talk') || (tapped && pointed && pointed === target);
         if (tapped && pointed && pointed !== target) showToast('너무 멀어요. 가까이 가서 말을 거세요.', '💬');
         if (wantTalk && target) { if (isKid) openKidHub(target); else startDialogue(target, 'TALK'); }
         else if (wantTalk && nestNear) openNestMenu();
@@ -297,7 +298,8 @@ export class Dragon extends Entity {
         });
 
         this.fireTimer -= dt;
-        // 스페이스나 마우스 왼쪽 버튼을 꾹 누르고 있으면 연사. 대화창이 떠 있을 땐 updatePlayer 가 아예 안 돈다
+        // 마우스 왼쪽 버튼(모바일은 [불] 버튼)을 꾹 누르고 있으면 연사.
+        // 대화창이 떠 있을 땐 updatePlayer 가 아예 안 돈다
         if ((input.down('attack') || mouse.down) && this.fireTimer <= 0) this.attack();
         for (const slot of SKILL_SLOTS) if (input.pressed('skill' + slot)) useSlot(this, slot);
         if (input.pressed('skillbook')) openSkillBook();
