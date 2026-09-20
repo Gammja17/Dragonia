@@ -246,6 +246,23 @@ export function setInteractTarget(npc, text = 'T 대화') {
     el.tip.style.display = 'block';
 }
 
+/**
+ * 지역 이름을 화면 위쪽에 잠깐 띄웠다 지운다 (지도를 옮길 때).
+ * 게임을 멈추지도, 화면을 덮지도 않는다 — 걸어가면서 그대로 읽힌다.
+ */
+let regionTimer = null;
+export function showRegionBanner(name, sub = '') {
+    const el0 = $('region-banner');
+    $('region-name').textContent = name;
+    $('region-sub').textContent = sub;
+    // 연달아 옮길 때도 처음부터 다시 재생되도록 애니메이션을 끊었다 건다
+    el0.classList.remove('on');
+    void el0.offsetWidth;
+    el0.classList.add('on');
+    clearTimeout(regionTimer);
+    regionTimer = setTimeout(() => el0.classList.remove('on'), 2800);
+}
+
 export function showRaidWarning(text) {
     el.raid.textContent = text;
     el.raid.style.display = 'block';

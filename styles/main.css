@@ -886,6 +886,37 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
     .detail-actions { justify-content: flex-start; }
 }
 
+/* ---------- 지역 이름 배너 (지도를 옮길 때 위쪽에 잠깐) ---------- */
+#region-banner {
+    position: absolute; top: 12%; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    pointer-events: none; z-index: 190; opacity: 0;
+    font-family: var(--font-ko); text-align: center; white-space: nowrap;
+}
+#region-banner.on { animation: region-in 2.8s ease-out forwards; }
+@keyframes region-in {
+    0%   { opacity: 0; transform: translateX(-50%) translateY(-14px); letter-spacing: 10px; }
+    14%  { opacity: 1; transform: translateX(-50%) translateY(0);     letter-spacing: 4px; }
+    78%  { opacity: 1; letter-spacing: 4px; }
+    100% { opacity: 0; letter-spacing: 7px; }
+}
+#region-name {
+    font-size: 2rem; font-weight: 700; color: var(--parch);
+    text-shadow: 0 2px 0 #1a1206, 0 0 22px rgba(216, 178, 90, 0.55);
+}
+#region-sub { font-size: 0.82rem; color: var(--gold-lit); letter-spacing: 3px; text-shadow: 0 2px 4px #000; }
+/* 이름 위아래로 가늘게 긋는 금선. 가운데가 밝고 끝으로 갈수록 사라진다 */
+.region-rule {
+    width: min(360px, 62vw); height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.85;
+}
+@media (max-width: 900px) {
+    #region-name { font-size: 1.4rem; }
+    #region-sub { font-size: 0.7rem; }
+    .region-rule { width: 70vw; }
+}
+
 /* 달 밝은 밤의 모임 안내 (일지 [마을 용들] 탭) */
 .folk-moon {
     color: var(--parch-mid); font-size: 0.74rem; line-height: 1.5;

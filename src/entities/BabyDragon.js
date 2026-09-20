@@ -8,7 +8,7 @@ import { dist, rand, pick, roundRect } from '../core/utils.js';
 import { setKidStage, addAffection, findKid } from '../systems/kids.js';
 import { showToast } from '../ui/toast.js';
 import { KID_TALK } from '../data/npcTalk.js';
-import { facingFromVector, drawAccessory } from './Dragon.js';
+import { facingFromVector, drawAccessory, outlineFor } from './Dragon.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
 import { Animator, drawFrame } from '../render/spritesheet.js';
 
@@ -139,7 +139,10 @@ export class BabyDragon extends Entity {
         if (state.talkTarget === this) { ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(0, 0, 40 * s + 10, 16 * s + 4, 0, 0, Math.PI * 2); ctx.stroke(); }
         ctx.restore();
         const hover = this.sheet.flying ? Math.sin(state.gameTime * 3 + this.x) * 4 * s : 0;
-        drawFrame(ctx, this.sheet, this.animator.frame(this.facing), this.x, this.y + hover, s, { t: state.gameTime + this.followGap, moving: this.animator.name === 'move', attacking: this.animator.name === 'attack' && !this.animator.done });
+        const kf = this.animator.frame(this.facing);
+        drawFrame(ctx, this.sheet, kf, this.x, this.y + hover, s,
+            { t: state.gameTime + this.followGap, moving: this.animator.name === 'move', attacking: this.animator.name === 'attack' && !this.animator.done },
+            (this._outline || (this._outline = outlineFor(kf, false))));
         if (this.stage === 'BABY') drawAccessory(ctx, this.sheet, 'SHELL', this.facing, this.x, this.y + hover, s * 1.6);
 
         // 이름표와 말풍선. 줌을 되돌려 그려서 멀리 당겨 봐도 같은 크기로 또렷하다

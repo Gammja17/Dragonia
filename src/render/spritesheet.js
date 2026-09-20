@@ -99,11 +99,55 @@ export function drawPortrait(canvas, sheet) {
     g.drawImage(f.img, f.sx, f.sy, f.sw, f.sh, (canvas.width - f.sw * k) / 2, (canvas.height - f.sh * k) / 2, f.sw * k, f.sh * k);
 }
 
+// ---------- 실루엣(외곽선) ----------
+// 용이 배경 픽셀에 묻히지 않도록, 스프라이트 뒤에 같은 모양을 한 가지 색으로 여러 번 어긋나게 깔아
+// 테두리를 만든다. 색을 입힌 실루엣은 이미지마다 한 번만 만들어 두고 계속 쓴다.
+const silCache = new WeakMap();
+function silhouette(img, color) {
+    let byColor = silCache.get(img);
+    if (!byColor) silCache.set(img, byColor = new Map());
+    let c = byColor.get(color);
+    if (c) return c;
+    c = document.createElement('canvas');
+    c.width = img.width; c.height = img.height;
+    const g = c.getContext('2d');
+    g.drawImage(img, 0, 0);
+    g.globalCompositeOperation = 'source-in';   // 그려진 픽셀만 남기고 전부 한 색으로
+    g.fillStyle = color;
+    g.fillRect(0, 0, c.width, c.height);
+    byColor.set(color, c);
+    return c;
+}
+
+const OUTLINE_STEPS = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]];
+
+// 한 칸을 1x1 로 줄여 그리면 그 그림의 평균색이 한 픽셀에 담긴다. 테두리 색을 그 용이
+// 실제로 띠는 색에서 뽑을 때 쓴다 (config 의 colors 는 외형 시트에는 안 먹으므로 믿을 수 없다).
+// 외형 시트는 여러 용이 한 장을 나눠 쓰므로 반드시 '그 칸'만 떠야 저마다 제 색이 나온다.
+const avgCache = new WeakMap();
+export function averageColor(img, sx = 0, sy = 0, sw = img.width, sh = img.height) {
+    let byRect = avgCache.get(img);
+    if (!byRect) avgCache.set(img, byRect = new Map());
+    const key = `${sx},${sy},${sw},${sh}`;
+    let rgb = byRect.get(key);
+    if (rgb) return rgb;
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = 1;
+    const g = cv.getContext('2d', { willReadFrequently: true });
+    g.drawImage(img, sx, sy, sw, sh, 0, 0, 1, 1);
+    const d = g.getImageData(0, 0, 1, 1).data;
+    const a = d[3] / 255 || 1;          // 투명한 여백이 섞여 있으니 알파로 되돌린다
+    rgb = [Math.min(255, d[0] / a), Math.min(255, d[1] / a), Math.min(255, d[2] / a)];
+    byRect.set(key, rgb);
+    return rgb;
+}
+
 /**
  * anchor 기준점(발 위치)이 (x,y)에 오도록 그린다.
- * motion: { t, moving, attacking } — 한 장짜리(procedural) 시트는 이 값으로 통통 튀고 숨 쉬고 덤벼드는 움직임을 만든다
+ * motion:  { t, moving, attacking } — 한 장짜리(procedural) 시트는 이 값으로 통통 튀고 숨 쉬고 덤벼드는 움직임을 만든다
+ * outline: { color, width } — 스프라이트 둘레에 두를 테두리 (배경과 섞여 보이지 않게)
  */
-export function drawFrame(ctx, sheet, f, x, y, scale = 1, motion = null) {
+export function drawFrame(ctx, sheet, f, x, y, scale = 1, motion = null, outline = null) {
     const s = sheet.scale * scale;
     let w = f.sw * s, h = f.sh * s;
     if (sheet.procedural && motion) {
@@ -113,10 +157,15 @@ export function drawFrame(ctx, sheet, f, x, y, scale = 1, motion = null) {
         h *= 1 + breathe + hop * 0.05 + (motion.attacking ? 0.08 : 0);
         w *= 1 - breathe + (motion.attacking ? 0.06 : 0);
     }
-    if (!f.flip) { ctx.drawImage(f.img, f.sx, f.sy, f.sw, f.sh, x - w * sheet.anchor.x, y - h * sheet.anchor.y, w, h); return; }
+    const dx = -w * sheet.anchor.x, dy = -h * sheet.anchor.y;
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(-1, 1);
-    ctx.drawImage(f.img, f.sx, f.sy, f.sw, f.sh, -w * sheet.anchor.x, -h * sheet.anchor.y, w, h);
+    if (f.flip) ctx.scale(-1, 1);
+    if (outline) {
+        const sil = silhouette(f.img, outline.color);
+        const r = outline.width;
+        for (const [ox, oy] of OUTLINE_STEPS) ctx.drawImage(sil, f.sx, f.sy, f.sw, f.sh, dx + ox * r, dy + oy * r, w, h);
+    }
+    ctx.drawImage(f.img, f.sx, f.sy, f.sw, f.sh, dx, dy, w, h);
     ctx.restore();
 }

@@ -12,8 +12,15 @@ import { Prop } from '../entities/Prop.js';
 import { PROP_SPRITES } from '../data/tiles.js';
 import { Nest } from '../entities/Nest.js';
 import { Boss } from '../entities/Boss.js';
-import { fadeScreen } from '../ui/hud.js';
+import { showRegionBanner } from '../ui/hud.js';
 import { showToast } from '../ui/toast.js';
+
+// 지역 이름 밑에 한 줄로 붙는 설명
+const BIOME_LABEL = {
+    VILLAGE: '용들의 마을', FOREST: '푸른 숲', LAKE: '물가', HOLLOW: '달빛이 고인 골짜기',
+    JUNGLE: '무성한 밀림', SNOW: '눈과 서리의 땅', DESERT: '메마른 사구',
+    AUTUMN: '단풍이 지는 골', VOLCANO: '잿빛 화산 지대',
+};
 import { play } from './audio.js';
 import { placeByRoutine, hasRoutine, ROUTINE_NAMES, planFor } from './routine.js';
 import { invitedUp, blockAtBorder } from './borderGate.js';
@@ -127,20 +134,28 @@ function populate(id) {
     const portals = spec.portals || [];
 
     // 1) 나무·덤불·열매·상자
+    // 나무 한 그루는 240x288px 이나 차지한다. 예전 값(큰 칸당 0.5그루)이면 캐노피 넓이의 합이
+    // 지도 넓이를 넘어서서(단풍 골 기준 156%) 화면이 통째로 초록 덩어리가 됐다. 그루 수를 줄이고
+    // 서로 최소 간격을 두어 빈터와 길이 저절로 나게 한다.
+    // 밑동 충돌 상자는 17x11 뿐이라(world/collision.js) 길이 막히고 뚫리는 구조는 그대로다.
     const trees = spec.trees ?? 0.4;
     const area = map.cw * map.ch;
-    const scatter = (n, make) => {
-        for (let i = 0, tries = 0; i < n && tries < n * 14; tries++) {
+    /** minGap: 같은 종류끼리 이만큼(px)은 떨어뜨린다 */
+    const scatter = (n, make, minGap = 0) => {
+        const placed = [];
+        for (let i = 0, tries = 0; i < n && tries < n * 24; tries++) {
             const x = rng() * map.w, y = rng() * map.h;
             if (map.groundAt(x, y) !== 'GRASS') continue;
             if (portals.some(p => dist({ x, y }, portalSpot(map, p.side)) < 150)) continue;
+            if (minGap && placed.some(q => Math.hypot(q.x - x, q.y - y) < minGap)) continue;
             make(x, y);
+            placed.push({ x, y });
             i++;
         }
     };
-    scatter(Math.round(area * trees * 0.5), (x, y) => pools.props.push(new Prop(x, y, 'TREE')));
-    scatter(Math.round(area * 0.6), (x, y) => pools.props.push(new Prop(x, y, pick(['BUSH', 'BUSH', 'FERN', 'ROCK', 'STUMP']))));
-    scatter(Math.round(area * 0.08), (x, y) => pools.props.push(new Prop(x, y, 'BERRY')));
+    scatter(Math.round(area * trees * 0.18), (x, y) => pools.props.push(new Prop(x, y, 'TREE')), 165);
+    scatter(Math.round(area * 0.22), (x, y) => pools.props.push(new Prop(x, y, pick(['BUSH', 'BUSH', 'FERN', 'ROCK', 'STUMP']))), 70);
+    scatter(Math.round(area * 0.06), (x, y) => pools.props.push(new Prop(x, y, 'BERRY')), 90);
 
     let chestNo = 0;
     scatter(spec.chests ?? 3, (x, y) => {
@@ -376,17 +391,19 @@ export function nearbyDenMouth() {
     return best;
 }
 
-/** 포탈·이동 석비로 지도를 옮긴다 */
+/**
+ * 포탈·이동 석비로 지도를 옮긴다.
+ * 화면을 까맣게 덮지 않는다 — 곧바로 옮기고, 지역 이름만 위쪽에 잠깐 띄웠다 지운다.
+ * (예전엔 3초 넘게 암전돼서 오갈 때마다 흐름이 끊겼다)
+ */
 export function travelTo(id, from = null, spot = null) {
     if (travelling) return;
     travelling = true;
     play('dash');
-    fadeScreen(mapName(id), () => {
-        enterMap(id, { from, spot });
-    }, () => {
-        travelling = false;
-        showToast(mapName(id), '🧭');
-    });
+    enterMap(id, { from, spot });
+    showRegionBanner(mapName(id), MAPS[id] ? BIOME_LABEL[MAPS[id].biome] || '' : '');
+    // 도착하자마자 뒤돌아 다시 포탈을 밟는 일이 없게 아주 짧게만 잠근다
+    setTimeout(() => { travelling = false; }, 350);
 }
 
 /** 지금 지도에 어울리는 적 종류 */
