@@ -150,7 +150,7 @@ export const QUESTS = [
         id: 's8', giver: 'Gron', act: 'Gron', requires: 's7', title: '숲의 보물',
         offer: "숲 곳곳에 옛 용들이 숨겨 둔 [보물상자]가 있다. 다섯 개만 찾아 열어 봐라. 내용물은 네 거다.",
         summary: "삼백 년 전 이 숲으로 쫓겨 온 용들이, 언젠가 돌아갈 날을 생각하며 묻어 둔 것들이다. 아무도 돌아가지 못했다.",
-        hint: "숲 곳곳의 보물상자를 다섯 개 찾아 [E]로 연다.",
+        hint: "숲 곳곳의 보물상자를 다섯 개 찾아 [Space]로 연다.",
         done: "다 찾았냐? 보는 눈이 있군. 상자는 아직 많이 남았을 거다.",
         goal: { type: 'chest', count: 5 }, reward: { xp: 350, relation: 10 },
     },

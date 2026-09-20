@@ -7,7 +7,7 @@ import { input, mouse } from '../core/input.js';
 import { isOnScreen, screenToWorld, cam } from '../core/camera.js';
 import { MAX_KIDS } from '../core/config.js';
 import { rand, dist, clamp, pick, roundRect } from '../core/utils.js';
-import { IDLE_LINES } from '../data/dialogues.js';
+import { IDLE_LINES, NIGHT_LINES, RAIN_LINES } from '../data/dialogues.js';
 import { ELEMENTS, STAGES } from '../data/elements.js';
 import { SKILL_SLOTS } from '../data/skills.js';
 import { useSlot, updateChannels, checkSkillUnlocks } from '../systems/skills.js';
@@ -640,9 +640,8 @@ export class Dragon extends Entity {
     updateNpc(dt) {
         this.chatTimer -= dt;
         if (this.chatTimer <= 0) {
-            const lines = IDLE_LINES[this.config.personality];
-            if (lines && lines.length) this.say(pick(lines));
-            this.chatTimer = rand(10, 25);
+            this.say(this.idleLine());
+            this.chatTimer = rand(14, 32);
         }
 
         if (state.activity && state.activity.npc === this) { updateActivityNpc(this, dt); return; }
@@ -659,6 +658,22 @@ export class Dragon extends Entity {
         const busy = (this.config.fixed || following) && this.fight(dt, following);
         if (following) this.updatePartner(dt, busy);
         else if (!busy) this.updateWander(dt);
+    }
+
+    /**
+     * 혼잣말 한 줄. 성격만 보고 고르면 네댓 줄이 돌아 금방 외워진다.
+     * 때(밤·비)와 지금 하는 일(systems/routine.js 의 doing)을 섞어 고른다.
+     */
+    idleLine() {
+        const night = state.dayTime < 0.22 || state.dayTime > 0.82;
+        const wet = state.weather.type === 'RAIN' || state.weather.type === 'SNOW';
+        const r = Math.random();
+        // 지금 하는 일을 흘리듯 말한다 — 이게 있어야 "저 용이 뭘 하는 중"이 읽힌다
+        if (this.doing && r < 0.3) return `(${this.doing}.)`;
+        if (wet && r < 0.5) return pick(RAIN_LINES);
+        if (night && r < 0.55) return pick(NIGHT_LINES);
+        const lines = IDLE_LINES[this.config.personality];
+        return lines && lines.length ? pick(lines) : '…';
     }
 
     /** 마을 용·짝·동료의 전투. 싸우는 중이면 true */

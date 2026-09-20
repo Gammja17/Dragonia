@@ -38,11 +38,9 @@ export class Enemy extends Entity {
     }
     update(dt) {
         if (this.hitFlash > 0) this.hitFlash -= dt * 10;
-        if (this.knock && this.knock.t > 0) {   // 맞고 밀리는 중
-            this.knock.t -= dt;
-            this.x += this.knock.x * dt * 9;
-            this.y += this.knock.y * dt * 9;
-        }
+        // 맞고 움찔하는 표시. 실제로 밀어내면 조준한 자리에서 벗어나 총알이 빗나간다.
+        // 그려질 때만 어긋나게 하고 자리는 그대로 둔다
+        if (this.knock && this.knock.t > 0) this.knock.t -= dt * 6;
         const speed = this.def.speed * updateStatus(this, dt);
         if (this.remove) return;
         const player = state.player;
@@ -89,8 +87,8 @@ export class Enemy extends Entity {
             // 맞은 쪽으로 밀린다. 맞은 티가 나야 때린 맛이 난다
             if (from) {
                 const a = Math.atan2(this.y - from.y, this.x - from.x);
-                const push = Math.min(26, 8 + dmg * 0.7) * (this.elite ? 0.5 : 1);
-                this.knock = { x: Math.cos(a) * push, y: Math.sin(a) * push, t: 0.14 };
+                const push = Math.min(14, 5 + dmg * 0.4) * (this.elite ? 0.55 : 1);
+                this.knock = { x: Math.cos(a) * push, y: Math.sin(a) * push, t: 1 };
             }
         }
         if (this.hp <= 0 && !this.remove) { hitStop(0.05); this.die(); }
@@ -131,7 +129,9 @@ export class Enemy extends Entity {
         const hop = this.def.hop ? Math.abs(Math.sin(state.gameTime * 5 + this.phase)) * 10 : Math.abs(Math.sin(state.gameTime * 10 + this.phase)) * 4;
         const [tx, ty] = this.def.sprite;
         if (this.def.filter && !(this.hitFlash > 0)) ctx.filter = this.def.filter;
-        drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, { sx: tx * 16, sy: ty * 16, sw: 16, sh: 16 }, this.x, this.y + 4 - hop - lift, { flip: Math.cos(this.angle) < 0, scale: this.elite ? 4.5 : 3 });
+        const kx = this.knock && this.knock.t > 0 ? this.knock.x * this.knock.t : 0;
+        const ky = this.knock && this.knock.t > 0 ? this.knock.y * this.knock.t : 0;
+        drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, { sx: tx * 16, sy: ty * 16, sw: 16, sh: 16 }, this.x + kx, this.y + 4 - hop - lift + ky, { flip: Math.cos(this.angle) < 0, scale: this.elite ? 4.5 : 3 });
         ctx.filter = 'none';
         this.drawHpBar(ctx, this.hp / this.maxHp, (this.elite ? 82 : 58) + lift, this.elite ? 50 : 34);
     }
