@@ -10,6 +10,7 @@ import { CHRONICLE } from '../data/chronicle.js';
 import { BOND_SCENES } from '../data/npcTalk.js';
 import { activeBiome } from '../world/terrain.js';
 import { inDungeon } from './delve.js';
+import { beginCutscene, focusOn, endCutscene } from './cutscene.js';
 
 // 사건. "가서 잡아라" 대신, 돌아다니다 보면 일이 벌어지고 그 자리에서 이야기가 열린다.
 //
@@ -87,25 +88,34 @@ function fire(ev) {
  * 여러 줄짜리 장면을 차례로 보여 준다. 아침 장면(systems/story.js)도 이걸 쓴다.
  * line = { who: NPC 이름 | '나' | '???', text }
  */
-export function playScene(title, lines, then) {
-    if (title) showToast(title, '📖');
+export function playScene(title, lines, then, { cinematic = true } = {}) {
+    if (cinematic) beginCutscene(title || '');
+    else if (title) showToast(title, '📖');
+
+    const find = (who) => who === '나' ? state.player
+        : state.entities.npcs.find(n => n.config.name === who)
+        || state.entities.bosses.find(b => b.id === who || (b.def && b.def.name === who))
+        || null;
+
     let i = 0;
     const step = () => {
         if (i >= lines.length) {
             state.isDialogueOpen = false;
             dialogueUI.hide();
+            if (cinematic) endCutscene();
             if (then) then();
             return;
         }
         const line = lines[i++];
-        const npc = state.entities.npcs.find(n => n.config.name === line.who);
+        const speaker = find(line.who);
+        if (cinematic) focusOn(speaker);
         state.isDialogueOpen = true;
         dialogueUI.show({
             name: line.who === '나' ? state.player.config.name : npcName(line.who),
             text: line.text,
-            sheet: line.who === '나' ? state.player.sheet : npc ? npc.sheet : null,
+            sheet: line.who === '나' ? state.player.sheet : speaker ? speaker.sheet : null,
             onClose: step,
-            options: [{ label: i < lines.length ? '▶ 다음' : '▶ 끝', onSelect: step }],
+            options: [{ label: i < lines.length ? '다음' : '끝', onSelect: step }],
         });
         play('talk');
     };

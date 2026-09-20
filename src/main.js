@@ -20,6 +20,7 @@ import { drawCrosshair } from './render/cursor.js';
 import { initWaystones, updateTravel } from './systems/travel.js';
 import { inDungeon } from './systems/delve.js';
 import { updateChronicle } from './systems/chronicle.js';
+import { updateCutscene, drawCutscene } from './systems/cutscene.js';
 import { updateEvents, drawEvents } from './systems/events.js';
 import { initAudio } from './systems/audio.js';
 import { initJournal } from './ui/journal.js';
@@ -87,10 +88,11 @@ function loop(now) {
     if (mouse.wheel) showToast(`시점: ${stepZoom(mouse.wheel, canvas.width, canvas.height)}`, '🔍');
     if (state.isDialogueOpen) {
         if (input.pressed('cancel')) closeDialogue();
-        else dialogueUI.handleKeys(input);   // 숫자키 / 방향키 + Enter 로 선택
+        else dialogueUI.handleKeys(input);   // 방향키 + Space 로 선택
     } else {
         update(dt);
     }
+    updateCutscene(dt);   // 세계가 멈춰 있어도 띠와 어둠은 계속 움직여야 한다
 
     followCamera(state.player);
     render();
@@ -158,4 +160,6 @@ function render() {
     drawLighting(ctx, cam);
     drawWeather(ctx, cam);
     ctx.restore();
+
+    drawCutscene(ctx, canvas.width, canvas.height);   // 레터박스·스포트라이트는 배율 밖에서
 }

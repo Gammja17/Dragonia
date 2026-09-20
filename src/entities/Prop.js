@@ -1,6 +1,7 @@
 import { Entity } from './Entity.js';
 import { isOnScreen, cam } from '../core/camera.js';
 import { state } from '../core/state.js';
+import { inCutscene } from '../systems/cutscene.js';
 import { PROP_SPRITES, TILE_SCALE } from '../data/tiles.js';
 import { getTileImage, activeBiome } from '../world/terrain.js';
 import { BIOMES } from '../world/biomes.js';
@@ -114,6 +115,7 @@ export class Prop extends Entity {
         ctx.fillRect(-36, -100, 72, 5);
         ctx.fillRect(-36, -100, 5, 100);
         ctx.fillRect(31, -100, 5, 100);
+        if (inCutscene()) { ctx.restore(); return; }   // 컷씬에서는 안내 글자를 비운다
         // 이름표는 줌과 무관하게
         ctx.scale(k, k);           // 여기부터는 화면 픽셀 단위
         ctx.textAlign = 'center';

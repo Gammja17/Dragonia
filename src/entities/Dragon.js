@@ -35,6 +35,7 @@ import { nearbyWaystone, openTravelMenu } from '../systems/travel.js';
 import { tryDelveInteract } from '../systems/delve.js';
 import { reviveInVillage } from '../systems/world.js';
 import { markTutorial } from '../systems/tutorial.js';
+import { inCutscene } from '../systems/cutscene.js';
 
 import { toggleKidsPanel } from '../ui/kidsPanel.js';
 import { startDialogue } from '../systems/dialogue.js';
@@ -698,6 +699,7 @@ export class Dragon extends Entity {
      * 글씨가 같은 크기로 또렷하게 남는다 (예전엔 10px 글씨가 줌 아웃하면 6px이 됐다).
      */
     drawNameplate(ctx) {
+        if (inCutscene()) return;   // 컷씬에서는 대화창이 말하는 이를 알려 준다
         const top = this.sheet ? this.sheet.fh * this.sheet.scale * this.sheet.anchor.y : 90;
         const k = 1 / cam.zoom;
         ctx.save();

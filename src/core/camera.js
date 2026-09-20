@@ -1,8 +1,9 @@
 import { clamp } from './utils.js';
 import { currentMapBounds } from '../world/terrain.js';
+import { cutsceneTarget, scene } from '../systems/cutscene.js';
 
 // cam.w/h 는 "월드 기준" 화면 크기 (줌을 당기면 작아진다)
-export const cam = { x: 0, y: 0, w: 0, h: 0, zoom: 1, shakeX: 0, shakeY: 0 };
+export const cam = { x: 0, y: 0, w: 0, h: 0, zoom: 1, shakeX: 0, shakeY: 0, screenW: 0, screenH: 0 };
 
 // 픽셀아트가 뭉개지지 않게, 타일 배율(3배 × 줌)이 정수가 되는 값만 쓴다.
 // 멀리(2배) → 보통(3배) → 가까이(4배) → 아주 가까이(5배) 순으로 늘어놓는다.
@@ -20,9 +21,17 @@ let shakePower = 0;
 export function zoomName() { return ZOOM_NAMES[zoomIndex]; }
 
 export function resizeCamera(screenW, screenH) {
-    cam.zoom = ZOOMS[zoomIndex] || 1;
-    cam.w = screenW / cam.zoom;
-    cam.h = screenH / cam.zoom;
+    cam.screenW = screenW; cam.screenH = screenH;
+    applyBoost(1);
+}
+
+// 컷씬은 시점을 잠깐 더 당긴다. 줌 단계를 건드리지 않고 배율만 덧씌운다
+let boost = 1;
+function applyBoost(b) {
+    boost = b;
+    cam.zoom = (ZOOMS[zoomIndex] || 1) * boost;
+    cam.w = cam.screenW / cam.zoom;
+    cam.h = cam.screenH / cam.zoom;
 }
 
 /** 줌 단계를 바꾼다. 화면 가운데를 붙잡아 두어 시점이 튀지 않게 한다 */
@@ -51,12 +60,19 @@ export function stepZoom(dir, screenW, screenH) {
 export function shake(power) { shakePower = Math.max(shakePower, power); }
 
 export function followCamera(target, smooth = 0.1) {
+    // 컷씬이면 둘 사이를 천천히 본다
+    const shot = cutsceneTarget();
+    if (shot) { target = shot; smooth = scene.snap ? 1 : 0.055; scene.snap = false; }
+    if (Math.abs(boost - scene.boost) > 0.0015) applyBoost(scene.boost);
     cam.x += (target.x - cam.w / 2 - cam.x) * smooth;
     cam.y += (target.y - cam.h / 2 - cam.y) * smooth;
-    // 지도가 화면보다 작으면 가운데에 둔다
+    // 지도가 화면보다 작으면 가운데에 둔다.
+    // 컷씬일 때는 경계를 조금 넘어가도 둔다 — 인물을 대화창 위로 올려야 하는데
+    // 작은 지도에서는 경계에 걸려 화면 아래쪽에 박혀 버린다 (어차피 띠가 가린다)
     const b = currentMapBounds();
-    cam.x = b.w <= cam.w ? (b.w - cam.w) / 2 : clamp(cam.x, 0, b.w - cam.w);
-    cam.y = b.h <= cam.h ? (b.h - cam.h) / 2 : clamp(cam.y, 0, b.h - cam.h);
+    const slack = shot ? cam.h * 0.34 : 0;
+    cam.x = b.w <= cam.w ? (b.w - cam.w) / 2 : clamp(cam.x, -slack, b.w - cam.w + slack);
+    cam.y = b.h <= cam.h && !shot ? (b.h - cam.h) / 2 : clamp(cam.y, -slack, Math.max(-slack, b.h - cam.h + slack));
     shakePower *= 0.86;
     cam.shakeX = (Math.random() - 0.5) * shakePower * 2;
     cam.shakeY = (Math.random() - 0.5) * shakePower * 2;
