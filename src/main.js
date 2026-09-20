@@ -17,6 +17,7 @@ import { preloadDragonSprites } from './render/dragonSprites.js';
 import { preloadVfx } from './render/vfx.js';
 import { updateLighting, drawLighting } from './render/lighting.js';
 import { drawCrosshair } from './render/cursor.js';
+import { applyHitStop, updateFeedback, drawFeedback } from './render/feedback.js';
 import { initWaystones, updateTravel } from './systems/travel.js';
 import { inDungeon } from './systems/delve.js';
 import { updateChronicle } from './systems/chronicle.js';
@@ -89,8 +90,10 @@ async function startGame(config, loadSave = false) {
 
 function loop(now) {
     if (!state.gameActive) return;
-    const dt = clamp((now - lastTime) / 1000, 0, 0.1);
+    const real = clamp((now - lastTime) / 1000, 0, 0.1);
     lastTime = now;
+    const dt = applyHitStop(real);   // 맞은 순간 세상이 아주 잠깐 멈춘다
+    updateFeedback(real);
 
     if (input.pressed('zoom')) showToast(`시점: ${cycleZoom(canvas.width, canvas.height)}`, '🔍');
     if (mouse.wheel) showToast(`시점: ${stepZoom(mouse.wheel, canvas.width, canvas.height)}`, '🔍');
@@ -178,5 +181,6 @@ function render() {
     drawWeather(ctx, cam);
     ctx.restore();
 
+    drawFeedback(ctx, canvas.width, canvas.height);   // 피격 번쩍임·위기 비네트
     drawCutscene(ctx, canvas.width, canvas.height);   // 레터박스·스포트라이트는 배율 밖에서
 }

@@ -7,6 +7,7 @@ const KEYMAP = {
     ShiftLeft: 'sprint', ShiftRight: 'sprint',
     Space: 'confirm',      // 말 걸기 · 대화창 넘기기 (공격은 마우스 왼쪽 버튼)
     KeyE: 'interact',
+    KeyC: 'eat',           // 고기 먹기. 상호작용과 섞이면 상자를 열려다 고기를 먹는다
     KeyT: 'talk',
     KeyL: 'flirt',
     KeyK: 'kids',

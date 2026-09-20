@@ -2,6 +2,7 @@ import { Entity } from './Entity.js';
 import { Item } from './Item.js';
 import { burst } from './Particle.js';
 import { state } from '../core/state.js';
+import { hitStop } from '../render/feedback.js';
 import { isOnScreen } from '../core/camera.js';
 import { dist } from '../core/utils.js';
 import { ENEMIES } from '../data/enemies.js';
@@ -37,6 +38,11 @@ export class Enemy extends Entity {
     }
     update(dt) {
         if (this.hitFlash > 0) this.hitFlash -= dt * 10;
+        if (this.knock && this.knock.t > 0) {   // 맞고 밀리는 중
+            this.knock.t -= dt;
+            this.x += this.knock.x * dt * 9;
+            this.y += this.knock.y * dt * 9;
+        }
         const speed = this.def.speed * updateStatus(this, dt);
         if (this.remove) return;
         const player = state.player;
@@ -76,10 +82,18 @@ export class Enemy extends Entity {
         if (d < 40 && speed > 0) player.takeDamage(this.def.damage * (this.elite ? 1.6 : 1) * dt);
     }
     /** silent: 지속 피해(화상)처럼 번쩍임 없이 깎을 때 */
-    takeDamage(dmg, silent = false) {
+    takeDamage(dmg, silent = false, from = null) {
         this.hp -= dmg;
-        if (!silent) this.hitFlash = 1;
-        if (this.hp <= 0 && !this.remove) this.die();
+        if (!silent) {
+            this.hitFlash = 1;
+            // 맞은 쪽으로 밀린다. 맞은 티가 나야 때린 맛이 난다
+            if (from) {
+                const a = Math.atan2(this.y - from.y, this.x - from.x);
+                const push = Math.min(26, 8 + dmg * 0.7) * (this.elite ? 0.5 : 1);
+                this.knock = { x: Math.cos(a) * push, y: Math.sin(a) * push, t: 0.14 };
+            }
+        }
+        if (this.hp <= 0 && !this.remove) { hitStop(0.05); this.die(); }
     }
     die() {
         this.remove = true;

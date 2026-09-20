@@ -19,6 +19,7 @@ import { weatherDamageMult } from '../systems/weather.js';
 import { updateActivityNpc } from '../systems/npcActions.js';
 import { NPC_TALK } from '../data/npcTalk.js';
 import { spawnText, spawnBolt } from '../render/vfx.js';
+import { hitStop, flash } from '../render/feedback.js';
 import { shake } from '../core/camera.js';
 import { hasRelic } from '../systems/relics.js';
 import { play, toggleMute } from '../systems/audio.js';
@@ -217,8 +218,15 @@ export class Dragon extends Entity {
         // 위기를 몇 번 넘겼는지는 '허물 벗기'를 스스로 깨우치는 조건이 된다
         if (wasSafe && this.hp > 0 && this.hp <= this.maxHp * 0.2) state.stats.brinks = (state.stats.brinks || 0) + 1;
         burst(this.x, this.y - 40, '#e74c3c', 0.8, 5);
-        if (this.isPlayer && dmg >= 3) { play('hurt'); shake(Math.min(10, 2 + dmg * 0.3)); }
-        if (this.isPlayer && dmg >= 3) spawnText(this.x, this.y - 90 * this.stage.scale, `-${Math.round(dmg)}`, '#ff6b5e', 15);
+        if (this.isPlayer && dmg >= 3) {
+            play('hurt');
+            shake(Math.min(14, 4 + dmg * 0.45));
+            hitStop(0.07);                                   // 맞은 순간 세상이 잠깐 멈춘다
+            flash(Math.min(0.85, 0.3 + dmg / 40));           // 화면이 붉게 번쩍
+            this.hurtFlash = 0.35;                           // 몸이 붉게 물든다
+            spawnEffect('SPARK', this.x, this.y - 44 * this.stage.scale, { size: 1.2, color: '#ff6b5e' });
+            spawnText(this.x, this.y - 90 * this.stage.scale, `-${Math.round(dmg)}`, '#ff6b5e', 18);
+        }
         if (this.animator) this.animator.play('hit');
         if (this.hp <= 0 && !this.isPlayer) {           // 마을 용은 죽지 않고 잠시 쓰러진다
             this.hp = 0;
@@ -265,6 +273,7 @@ export class Dragon extends Entity {
         this.hoverY = flying ? Math.sin(state.gameTime * 2 + this.animPhase) * 6 : 0;
 
         this.moving = false;
+        if (this.hurtFlash > 0) this.hurtFlash -= dt;
         if (this.isPlayer) this.updatePlayer(dt);
         else this.updateNpc(dt);
 
@@ -348,6 +357,7 @@ export class Dragon extends Entity {
         if (tapped && pointed && pointed !== target) showToast('너무 멀어요. 가까이 가서 말을 거세요.', '💬');
         if (wantTalk && target) { if (isKid) openKidHub(target); else startDialogue(target, 'TALK'); }
         else if (wantTalk && nestNear) openNestMenu();
+        else if (input.pressed('confirm')) this.interact();   // 말 걸 상대가 없으면 눈앞의 것을 집는다
         if (input.pressed('flirt') && target && !isKid) startDialogue(target, 'FLIRT');
 
         for (const k in this.cooldowns) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt);
@@ -364,6 +374,7 @@ export class Dragon extends Entity {
         if (input.pressed('ultimate')) this.useUltimate();
         if (this.beam) this.updateBeam(dt);
         if (input.pressed('interact')) this.interact();
+        if (input.pressed('eat')) this.eat();
         if (input.pressed('kids')) toggleKidsPanel();
         if (input.pressed('help')) toggleHelp();
         if (input.pressed('journal')) toggleJournal();
@@ -577,21 +588,6 @@ export class Dragon extends Entity {
         }
         if (picked) return;
 
-        // 2) 고기 사용: 배고프면 자기가 먹고, 아니면 근처 아기에게
-        if (this.inventory.meat > 0) {
-            if (this.hunger < 90) {
-                this.inventory.meat--;
-                this.hunger += 40;
-                this.hp = Math.min(this.maxHp, this.hp + 30);
-                markTutorial('ate');
-                showToast("고기를 먹었습니다.", "😋");
-                play('eat');
-                return;
-            }
-            const baby = E.babies.find(b => dist(this, b) < 80);
-            if (baby) { this.inventory.meat--; baby.feed(); return; }
-        }
-
         // 2-1) 그루터기에서 나뭇가지 줍기 (둥지 재료)
         const stump = E.props.find(s => s.type === 'STUMP' && s.ripe && dist(this, s) < 80);
         if (stump && !state.den.built) { stump.gather(); return; }
@@ -604,7 +600,7 @@ export class Dragon extends Entity {
         const chest = E.props.find(c => c.type === 'CHEST' && !c.opened && dist(this, c) < 80);
         if (chest) { chest.open(); return; }
 
-        // 3-1) 아기 쓰다듬기
+        // 3-1) 아기 쓰다듬기 (고기를 먹이는 건 아이 대화창에서)
         const kid = E.babies.find(b => dist(this, b) < 80);
         if (kid && !this.carrying && kid.pet()) return;
 
@@ -623,10 +619,21 @@ export class Dragon extends Entity {
         const water = !this.carrying && this.nearWater();
         if (water) {
             this.fishing = { x: water.x, y: water.y, wait: rand(1.5, 4.5), bite: 0 };
-            showToast('낚싯줄을 드리웠습니다. 찌가 흔들릴 때 [E]!', '🎣');
-        } else if (this.inventory.meat > 0 && this.hunger >= 90) {
-            showToast("배가 너무 불러요!", "✋");
+            showToast('낚싯줄을 드리웠습니다. 찌가 흔들릴 때 [Space]!', '🎣');
         }
+    }
+
+    /** [C] 고기를 먹는다. 상호작용과 섞어 두면 상자를 열려다 고기가 먹힌다 */
+    eat() {
+        if (this.inventory.meat <= 0) { showToast('가진 고기가 없습니다.', '🍖'); return; }
+        if (this.hunger >= 95) { showToast('배가 너무 불러요!', '✋'); return; }
+        this.inventory.meat--;
+        this.hunger = Math.min(100, this.hunger + 40);
+        this.hp = Math.min(this.maxHp, this.hp + 30);
+        markTutorial('ate');
+        spawnText(this.x, this.y - 90 * this.stage.scale, '+40', '#9fe08a', 15);
+        showToast('고기를 먹었습니다.', '😋');
+        play('eat');
     }
 
     // ---------- NPC ----------
@@ -784,7 +791,35 @@ export class Dragon extends Entity {
         if (!this.isPlayer) {
             this.drawNameplate(ctx);
             this.drawHpBar(ctx, this.hp / this.maxHp, -12, 60);
+        } else {
+            this.drawPlayerBar(ctx);
         }
+    }
+
+    /**
+     * 내 용 머리 위의 체력바. HUD 구석의 막대만으로는 싸우는 중에 눈이 가지 않아
+     * 언제 맞았는지도 모른 채 쓰러진다. 다쳤을 때만 머리 위에 띄운다.
+     */
+    drawPlayerBar(ctx) {
+        const r = this.hp / this.maxHp;
+        if (r >= 1) return;
+        const top = this.sheet ? this.sheet.fh * this.sheet.scale * this.sheet.anchor.y : 90;
+        const k = 1 / cam.zoom;
+        const W = 74, H = 8;
+        ctx.save();
+        ctx.translate(Math.round(this.x), Math.round(this.y - top - 2 + this.hoverY));
+        ctx.scale(k, k);
+        ctx.fillStyle = 'rgba(8, 7, 14, 0.82)';
+        ctx.fillRect(-W / 2 - 2, -H - 2, W + 4, H + 4);
+        ctx.fillStyle = r > 0.5 ? '#7ddc5a' : r > 0.25 ? '#ffc93c' : '#ff5a4d';
+        ctx.fillRect(-W / 2, -H, W * r, H);
+        // 위험하면 테두리가 맥박친다
+        if (r <= 0.3) {
+            ctx.strokeStyle = `rgba(255,90,77,${(0.5 + Math.sin(state.gameTime * 8) * 0.4).toFixed(2)})`;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-W / 2 - 2, -H - 2, W + 4, H + 4);
+        }
+        ctx.restore();
     }
 
     /**
