@@ -458,3 +458,5 @@ body.touch #help-chip, body.touch #help-panel { display: none !important; }
 .slot.ult.ready { box-shadow: 0 0 16px rgba(199,125,255,0.9); border-color: #fff; animation: ult-pulse 0.8s infinite alternate; }
 @keyframes ult-pulse { from { transform: translateY(0); } to { transform: translateY(-5px); } }
 .inv-row .inv-slot { font-size: 0.78rem; padding: 6px 8px; }
+
+.help-sep { margin-top: 8px; padding-top: 7px; border-top: 1px solid rgba(216,178,90,0.35); color: #ffd84a; font-weight: 700; }

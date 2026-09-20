@@ -1,4 +1,4 @@
-import { mulberry32, rand, pick } from '../core/utils.js';
+import { mulberry32 } from '../core/utils.js';
 import { TILE, TILE_SRC } from '../data/tiles.js';
 import { getTileImage } from './terrain.js';
 
@@ -152,5 +152,3 @@ export function spotInRoom(room, rng = Math.random) {
     const ty = room.y + 1 + Math.floor(rng() * Math.max(1, room.h - 2));
     return tileCenter(tx, ty);
 }
-
-export { rand, pick };

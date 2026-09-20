@@ -1,5 +1,5 @@
 import { state, emptyPools } from '../core/state.js';
-import { dist, rand, pick, mulberry32 } from '../core/utils.js';
+import { dist, pick, mulberry32 } from '../core/utils.js';
 import { setMapOverride } from '../world/terrain.js';
 import { generateFloor, bakeFloor, makeMapAdapter, spotInRoom, tileCenter, DUNGEON_SIZE } from '../world/dungeon.js';
 import { buildPropGrid } from '../world/collision.js';

@@ -78,7 +78,8 @@ export function applySave(data) {
     state.openedChests = data.openedChests || {};
     state.blessingDay = data.blessingDay || 0;
     state.relics = data.relics || [];
-    state.relicSlots = data.relicSlots || [];
+    // 예전 세이브에는 장착 칸이 없다. 가진 유물 앞쪽 몇 개를 자동으로 끼워 준다
+    state.relicSlots = data.relicSlots || state.relics.slice(0, 3);
     state.materials = data.materials || {};
     state.waystones = data.waystones || [];
     state.den = data.den || { built: state.kids.length > 0 || !!data.nest.hasEgg, twigs: 0 };   // 옛 세이브: 이미 알·아이가 있으면 지은 걸로 친다
