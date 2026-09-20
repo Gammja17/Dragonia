@@ -32,7 +32,9 @@ export const state = {
     denNest: null,       // 둥지 상태 (딴 지도에 있을 때도 알이 자라도록 들고 있는다)
     indoors: false,      // 굴 안(보금자리·미궁)인가 — 조명·날씨가 달라진다
     event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
-    stats: { kills: {} },
+    stats: { kills: {}, brinks: 0 },   // brinks: 체력 20% 아래까지 몰렸다 살아난 횟수 (스킬 해금 조건)
+    growth: { points: 0, nodes: {}, ranks: {} },   // 성장 트리와 스킬 강화 (systems/growth.js)
+    revivedDay: 0,       // '불사의 심장'으로 버틴 날 (하루 한 번)
     raidTimer: RAID_FIRST_DELAY,
     elderTutorialDone: false,
     tutorial: { moved: false, journal: false, ate: false, finished: false },   // systems/tutorial.js
@@ -86,7 +88,9 @@ export function resetState() {
         densSeen: [],
         holding: null,
         event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
-        stats: { kills: {} },
+        stats: { kills: {}, brinks: 0 },
+        growth: { points: 0, nodes: {}, ranks: {} },
+        revivedDay: 0,
         raidTimer: RAID_FIRST_DELAY,
         elderTutorialDone: false,
         tutorial: { moved: false, journal: false, ate: false, finished: false },

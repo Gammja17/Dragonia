@@ -10,7 +10,8 @@ import { rand, dist, clamp, pick, roundRect } from '../core/utils.js';
 import { IDLE_LINES } from '../data/dialogues.js';
 import { ELEMENTS, STAGES } from '../data/elements.js';
 import { SKILL_SLOTS } from '../data/skills.js';
-import { useSlot, updateChannels, openSkillBook } from '../systems/skills.js';
+import { useSlot, updateChannels, checkSkillUnlocks } from '../systems/skills.js';
+import { stat, hasPerk, grantPoints, POINTS_PER_LEVEL, POINTS_PER_STAGE } from '../systems/growth.js';
 import { openNestMenu, pendingTrial } from '../systems/story.js';
 import { applyStatus } from '../systems/status.js';
 import { notify, questMarker } from '../systems/quests.js';
@@ -94,6 +95,8 @@ export class Dragon extends Entity {
         this.skills = [];                       // 배운 스킬 id (data/skills.js)
         this.slots = { Q: null, F: null, R: null }; // 장착한 스킬
         this.cooldowns = {};                    // 스킬 id → 남은 대기 시간
+        this.cdMax = {};                        // 스킬 id → 그때 걸린 전체 대기 시간 (HUD 의 대기 표시용)
+        this.gale = 0;        // 성장 트리 '질풍': 대시 뒤 연사가 빨라지는 남은 시간
         this.channels = [];                     // 진행 중인 스킬 (systems/skills.js)
         this.guard = 0;       // 강철 비늘 남은 시간
         this.ult = 0;         // 필살기 게이지 0~100 (삼원룡만)
@@ -129,14 +132,17 @@ export class Dragon extends Entity {
         if (this.isPlayer && state.blessingDay === state.day) amount *= 1.25; // 엘더의 축복
         this.xp += amount;
         if (this.xp < this.maxXp) return;
+        let levels = 0;
         while (this.xp >= this.maxXp) {   // 퀘스트 보상처럼 한 번에 여러 레벨이 오를 수 있다
             this.level++;
+            levels++;
             this.xp -= this.maxXp;
             this.maxXp = Math.floor(this.maxXp * 1.45);
             this.maxHp += 20;
         }
         this.hp = this.maxHp;
         if (!this.isPlayer) return;
+        grantPoints(levels * POINTS_PER_LEVEL, `레벨 ${this.level} 달성`);
         showToast(`LEVEL UP! LV.${this.level}`, '🔥');
         play('level');
         burst(this.x, this.y, '#f1c40f', 1.2, 25);
@@ -156,6 +162,7 @@ export class Dragon extends Entity {
         this.stageIndex = idx;
         this.maxHp += 40;
         this.hp = this.maxHp;
+        grantPoints(POINTS_PER_STAGE, `${this.stage.name}(으)로 진화`);
         showToast(`진화! [${this.stage.name}](이)가 되었습니다` + (this.stage.unlock ? ` — ${this.stage.unlock}` : ''), '🐲');
         spawnEffect('SHOCKWAVE', this.x, this.y, { size: 3, color: '#ffe9a0' });
         spawnEffect('RING', this.x, this.y - 40, { size: 2.6 });
@@ -181,7 +188,11 @@ export class Dragon extends Entity {
         if (!this.isPlayer && this.downTimer > 0) return;
         if (this.isPlayer && this.invuln > 0) return;
         if (this.isPlayer && this.guard > 0) dmg *= 0.3;   // 강철 비늘
+        if (this.isPlayer) dmg *= 1 - Math.min(0.6, stat('armor'));   // 성장 트리 '단단한 등'
+        const wasSafe = this.isPlayer && this.hp > this.maxHp * 0.2;
         this.hp -= dmg;
+        // 위기를 몇 번 넘겼는지는 '허물 벗기'를 스스로 깨우치는 조건이 된다
+        if (wasSafe && this.hp > 0 && this.hp <= this.maxHp * 0.2) state.stats.brinks = (state.stats.brinks || 0) + 1;
         burst(this.x, this.y - 40, '#e74c3c', 0.8, 5);
         if (this.isPlayer && dmg >= 3) { play('hurt'); shake(Math.min(10, 2 + dmg * 0.3)); }
         if (this.isPlayer && dmg >= 3) spawnText(this.x, this.y - 90 * this.stage.scale, `-${Math.round(dmg)}`, '#ff6b5e', 15);
@@ -194,6 +205,16 @@ export class Dragon extends Entity {
             if (this.config.fixed) showToast(`${npcName(this.config.name)}(이)가 쓰러졌습니다! 잠시 후 일어납니다.`, '💫');
         }
         if (this.hp <= 0 && this.isPlayer) {
+            // 성장 트리 '불사의 심장': 하루 한 번은 쓰러지지 않고 버틴다
+            if (hasPerk('UNDYING') && state.revivedDay !== state.day) {
+                state.revivedDay = state.day;
+                this.hp = 1;
+                this.invuln = 3;
+                spawnEffect('AURA', this.x, this.y - 40, { size: 2.4, color: '#ffd84a' });
+                showToast('불사의 심장이 뛴다! 체력 1로 버텼습니다 (하루 한 번)', '💛');
+                play('evolve');
+                return;
+            }
             showToast("쓰러졌습니다... 마을에서 눈을 뜹니다.", "💀");
             this.hp = this.maxHp;
             this.hunger = Math.max(this.hunger, 40);
@@ -249,8 +270,8 @@ export class Dragon extends Entity {
     updatePlayer(dt) {
         const { dx, dy } = input.axis();
         if (this.fishing) this.updateFishing(dt, dx || dy);
-        this.dashCd -= dt; this.invuln -= dt; this.fury -= dt; this.guard -= dt; this.slowTimer -= dt;
-        const baseSpeed = WALK_SPEED * this.stage.speed * (1 + 0.04 * (state.upgrades.spd || 0)) * (hasRelic('WIND_FEATHER') ? 1.08 : 1)
+        this.dashCd -= dt; this.invuln -= dt; this.fury -= dt; this.guard -= dt; this.slowTimer -= dt; this.gale -= dt;
+        const baseSpeed = WALK_SPEED * this.stage.speed * (1 + 0.04 * (state.upgrades.spd || 0)) * (1 + stat('speed')) * (hasRelic('WIND_FEATHER') ? 1.08 : 1)
             * (this.slowTimer > 0 ? 0.55 : 1) * [1, 0.86, 0.7][this.hungerLevel];
         const locked = this.channels.some(c => c.lock);   // 급강하 중엔 조작 불가
         // Shift 를 탁 누르면 대시(잠깐 무적), 계속 누르고 있으면 달리기
@@ -258,7 +279,8 @@ export class Dragon extends Entity {
         else if (input.pressed('sprint') && (dx || dy) && this.dashCd <= 0) {
             const len = Math.hypot(dx, dy);
             this.dashDir = { x: dx / len, y: dy / len };
-            this.dashTime = DASH_TIME; this.dashCd = DASH_COOLDOWN; this.invuln = DASH_TIME + 0.12;
+            this.dashTime = DASH_TIME; this.dashCd = DASH_COOLDOWN * (1 - Math.min(0.6, stat('dash'))); this.invuln = DASH_TIME + 0.12;
+            if (hasPerk('GALE')) this.gale = 3;   // 성장 트리 '질풍'
             play('dash');
             spawnEffect('PUFF', this.x, this.y - 6);
         }
@@ -269,10 +291,10 @@ export class Dragon extends Entity {
             burst(this.x, this.y - 30 * this.stage.scale, this.colors.body, 0.35);
         } else if (dx || dy) {
             this.moveBy(dx, dy, baseSpeed * (input.down('sprint') ? SPRINT_MULT : 1), dt);
-            this.hunger -= 0.35 * dt * (hasRelic('IRON_STOMACH') ? 0.5 : 1);
+            this.hunger -= 0.35 * dt * this.hungerMult;
             markTutorial('moved');
         } else {
-            this.hunger -= 0.08 * dt * (hasRelic('IRON_STOMACH') ? 0.5 : 1);
+            this.hunger -= 0.08 * dt * this.hungerMult;
         }
         if (hasRelic('LIFE_STONE')) this.hp = Math.min(this.maxHp, this.hp + 1.5 * dt);
         this.hunger = Math.max(0, this.hunger);
@@ -313,14 +335,18 @@ export class Dragon extends Entity {
         // 대화창이 떠 있을 땐 updatePlayer 가 아예 안 돈다
         if ((input.down('attack') || mouse.down) && this.fireTimer <= 0) this.attack();
         for (const slot of SKILL_SLOTS) if (input.pressed('skill' + slot)) useSlot(this, slot);
-        if (input.pressed('skillbook')) openSkillBook();
         if (input.pressed('ultimate')) this.useUltimate();
         if (this.beam) this.updateBeam(dt);
         if (input.pressed('interact')) this.interact();
         if (input.pressed('kids')) toggleKidsPanel();
         if (input.pressed('help')) toggleHelp();
         if (input.pressed('journal')) toggleJournal();
+        if (input.pressed('skillbook')) toggleJournal('skills');   // 스킬 나무
+        if (input.pressed('growthTab')) toggleJournal('growth');   // 성장 나무
         if (input.pressed('mute')) showToast(toggleMute() ? '효과음 끔' : '효과음 켬', '🔊');
+        // 스스로 깨우치는 스킬·각성은 1초에 한 번만 살펴본다
+        this.unlockTimer = (this.unlockTimer || 0) - dt;
+        if (this.unlockTimer <= 0) { this.unlockTimer = 1; checkSkillUnlocks(); }
     }
 
     /**
@@ -362,6 +388,9 @@ export class Dragon extends Entity {
     /** 0 배부름 · 1 출출함(조금 느려짐) · 2 굶주림(많이 느려짐) */
     get hungerLevel() { return this.hunger < HUNGER_STARVING ? 2 : this.hunger < HUNGER_PECKISH ? 1 : 0; }
 
+    /** 허기가 주는 속도. 유물 '무쇠 위장'과 성장 트리 '무쇠 위장'이 함께 줄여 준다 */
+    get hungerMult() { return (hasRelic('IRON_STOMACH') ? 0.5 : 1) * (1 - Math.min(0.6, stat('hunger'))); }
+
     /** 땅을 겨누는 스킬(운석·급강하)이 떨어질 자리. 커서가 적 위면 그 적, 아니면 커서 자리(최대 사거리까지) */
     aimPoint(maxRange) {
         const { angle, target } = this.aimAngle();
@@ -376,14 +405,16 @@ export class Dragon extends Entity {
     }
 
     get damageMult() {
-        return this.stage.damage * (1 + 0.08 * (state.upgrades.dmg || 0)) * (hasRelic('OLD_FANG') ? 1.15 : 1) * (this.fury > 0 ? 1.3 : 1);
+        const scorn = hasPerk('SCORN') && this.hp <= this.maxHp * 0.35 ? 1.45 : 1;   // 성장 트리 '역린'
+        return this.stage.damage * (1 + 0.08 * (state.upgrades.dmg || 0)) * (1 + stat('dmg')) * scorn
+            * (hasRelic('OLD_FANG') ? 1.15 : 1) * (this.fury > 0 ? 1.3 : 1);
     }
 
     attack() {
         const el = ELEMENTS[this.element];
         const st = this.stageIndex;
         const slug = [1, 1.25, 1.5][this.hungerLevel];   // 배가 고프면 숨결이 굼떠진다
-        this.fireTimer = (el.rateByStage ? el.rateByStage[st] : el.rate) * (this.fury > 0 ? 0.75 : 1) * slug;
+        this.fireTimer = (el.rateByStage ? el.rateByStage[st] : el.rate) * (this.fury > 0 ? 0.75 : 1) * slug * (this.gale > 0 ? 0.65 : 1);
         if (this.animator) this.animator.play('attack');
         const { angle } = this.aimAngle();
         this.facing = facingFromVector(Math.cos(angle), Math.sin(angle), this.facing);
@@ -399,7 +430,8 @@ export class Dragon extends Entity {
         const sc = this.stage.scale;
         const mx = this.x + Math.cos(angle) * MOUTH_OFFSET * sc;
         const my = this.y - 40 * sc + Math.sin(angle) * MOUTH_OFFSET * sc;
-        const damage = ELEMENTS[this.element].damage * this.damageMult * weatherDamageMult(this.element) * damageMult;
+        const breathBonus = this.isPlayer ? 1 + stat('breath') : 1;   // 성장 트리 '타오르는 목'
+        const damage = ELEMENTS[this.element].damage * this.damageMult * breathBonus * weatherDamageMult(this.element) * damageMult;
         const el = ELEMENTS[this.element];
         addBullet(new Projectile(mx, my, angle, { faction: 'ALLY', element: this.element, damage, scale: 0.7 + sc * 0.3, pierce: !!el.pierce && this.stageIndex >= (el.pierceFromStage || 0), fromPlayer: true }));
     }

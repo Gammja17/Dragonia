@@ -9,19 +9,26 @@ import { MATERIALS } from '../data/materials.js';
 import { matCount } from '../systems/smithing.js';
 import { isMuted } from '../systems/audio.js';
 import { questLog, setTracked } from '../systems/quests.js';
+import { BRANCHES, GROWTH_NODES, NODES_BY_ID } from '../data/growth.js';
+import { SKILLS, SKILL_BRANCHES, SKILL_SLOTS, MAX_SKILL_RANK } from '../data/skills.js';
+import { LESSONS } from '../data/story.js';
+import { points, nodeRank, nodeStatus, investNode, skillRank, skillUpgradeCost, upgradeSkill } from '../systems/growth.js';
+import { skillCooldown } from '../systems/skills.js';
 import { play } from '../systems/audio.js';
 import { markTutorial } from '../systems/tutorial.js';
 import { roster } from '../systems/routine.js';
 import { dayPhaseName } from '../render/lighting.js';
 
-// 모험 일지: [퀘스트] [기록] [유물] [도감] 탭. J 키로 연다.
-// 퀘스트 탭이 첫 화면이다. 줄을 누르면 펼쳐져 배경·목표·힌트·보상을 읽을 수 있고,
+// 모험 일지: [성장] [스킬] [퀘스트] [기록] [유물] [도감] 탭. J 키로 연다 ([G] 성장 · [B] 스킬).
+// 퀘스트 탭은 줄을 누르면 펼쳐져 배경·목표·힌트·보상을 읽을 수 있고,
 // [추적] 을 누르면 화면 오른쪽 추적창에 그 퀘스트가 걸린다.
+// 성장·스킬 탭은 뿌리 하나에서 세 갈래가 뻗는 나무로 그린다 (systems/growth.js 가 값을 갖고 있다).
 
 const $ = (id) => document.getElementById(id);
-const TABS = [['quests', '퀘스트'], ['folk', '마을 용들'], ['record', '기록'], ['relics', '유물'], ['codex', '도감']];
+const TABS = [['growth', '성장'], ['skills', '스킬'], ['quests', '퀘스트'], ['folk', '마을 용들'], ['record', '기록'], ['relics', '유물'], ['codex', '도감']];
 let tab = 'quests';
 let openRow = null;   // 펼쳐 놓은 퀘스트 id
+let picked = null;    // 나무에서 고른 마디 { kind: 'node' | 'skill', id }
 
 export function initJournal() {
     $('journal-close').addEventListener('click', () => { $('journal-panel').style.display = 'none'; });
@@ -31,9 +38,11 @@ export function initJournal() {
         b.className = 'journal-tab';
         b.dataset.tab = id;
         b.textContent = label;
-        b.addEventListener('click', () => { tab = id; play('ui'); render(); });
+        b.addEventListener('click', () => { tab = id; picked = null; play('ui'); render(); });
         bar.appendChild(b);
     }
+    // 창 크기가 바뀌면 나무의 줄기를 다시 그어야 한다
+    window.addEventListener('resize', () => { if ($('journal-panel').style.display === 'flex') render(); });
 }
 
 function section(title, rows) {
@@ -202,6 +211,211 @@ function renderRelics(body) {
         Object.entries(MATERIALS).map(([k, m]) => [m.name, `${matCount(k)}개 — ${m.desc}`])));
 }
 
+// ---------- 성장 · 스킬 나무 ----------
+const el = (tag, cls, text) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+};
+const BRANCH_GLYPH = { FANG: '▲', SCALE: '⬢', WING: '✦', BODY: '▲', BREATH: '⬢', SOUL: '✦' };
+
+/**
+ * 갈래 셋이 뿌리 하나에서 뻗어 올라가는 나무를 그린다.
+ * branches: [{ key, title, sub, color, tiers: [[항목,...] 아래줄부터] }]
+ * makeNode(항목, 색) 은 '.tnode' 하나를 돌려준다.
+ * 이어 주는 줄기는 DOM 을 붙인 뒤 실제 위치를 재서 SVG 로 긋는다 (줄마다 마디 수가 달라도 맞는다).
+ */
+function buildTree(body, branches, rootLabel, makeNode) {
+    const wrap = el('div', 'tree-wrap');
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'tree-links');
+    wrap.appendChild(svg);
+
+    const canopy = el('div', 'tree-canopy');
+    for (const b of branches) {
+        const col = el('div', 'tree-branch');
+        col.style.setProperty('--c', b.color);
+        const head = el('div', 'branch-head');
+        head.append(el('span', 'branch-glyph', BRANCH_GLYPH[b.key]), el('span', 'branch-name', b.title),
+                    ...(b.sub ? [el('span', 'branch-sub', b.sub)] : []));
+        // 위가 높은 단계라서 아래줄(기초)부터 만들고 뒤집어 쌓는다 (CSS column-reverse)
+        const rows = el('div', 'branch-rows');
+        for (const tier of b.tiers) {
+            const row = el('div', 'branch-row');
+            for (const item of tier) row.appendChild(makeNode(item, b.color));
+            rows.appendChild(row);
+        }
+        col.append(head, rows);
+        canopy.appendChild(col);
+    }
+    wrap.appendChild(canopy);
+
+    const root = el('div', 'tree-root');
+    root.append(el('span', 'root-glyph', '❖'), el('span', 'root-label', rootLabel));
+    wrap.appendChild(root);
+    body.appendChild(wrap);
+    drawLinks(wrap, svg, root);
+}
+
+/** 마디들의 실제 위치를 재서 줄기를 긋는다 */
+function drawLinks(wrap, svg, root) {
+    const box = wrap.getBoundingClientRect();
+    if (!box.width) return;
+    svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+    svg.setAttribute('width', box.width);
+    svg.setAttribute('height', box.height);
+    svg.innerHTML = '';
+    const center = (e, atTop) => {
+        const r = e.getBoundingClientRect();
+        return { x: r.left - box.left + r.width / 2, y: (atTop ? r.top : r.bottom) - box.top };
+    };
+    const line = (a, b, color, lit) => {
+        const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const midY = (a.y + b.y) / 2;
+        p.setAttribute('d', `M ${a.x} ${a.y} L ${a.x} ${midY} L ${b.x} ${midY} L ${b.x} ${b.y}`);
+        p.setAttribute('class', 'tree-link' + (lit ? ' lit' : ''));
+        if (lit) p.setAttribute('stroke', color);
+        svg.appendChild(p);
+    };
+    const rootTop = center(root, true);
+    for (const branch of wrap.querySelectorAll('.tree-branch')) {
+        const color = branch.style.getPropertyValue('--c');
+        const rows = [...branch.querySelectorAll('.branch-row')];
+        rows.forEach((row, i) => {
+            const below = i === 0 ? null : [...rows[i - 1].querySelectorAll('.tnode')];
+            for (const n of row.querySelectorAll('.tnode')) {
+                const lit = n.classList.contains('on');
+                if (!below) { line(center(n, false), rootTop, color, lit); continue; }
+                // 아래줄에서 이미 딴 마디가 있으면 거기서, 없으면 첫 칸에서 뻗어 올린다
+                const from = below.find(x => x.classList.contains('on')) || below[0];
+                line(center(n, false), center(from, true), color, lit && from.classList.contains('on'));
+            }
+        });
+    }
+}
+
+function pickNode(kind, id) { picked = { kind, id }; play('ui'); render(); }
+
+function renderGrowth(body) {
+    const p = state.player;
+    body.appendChild(treeNote(`레벨 ${p.level} · ${p.stage.name}`,
+        '레벨업마다 포인트 2, 승급 시험마다 3. 위로 갈수록 자란 몸이라야 버틴다 — 마디를 눌러 조건과 효과를 본다.'));
+    const branches = Object.entries(BRANCHES).map(([key, b]) => ({
+        key, title: b.name, sub: b.sub, color: b.color,
+        tiers: [0, 1, 2, 3].map(t => GROWTH_NODES.filter(n => n.branch === key && n.tier === t)),
+    }));
+    buildTree(body, branches, `${p.stage.name} · 레벨 ${p.level}`, growthNode);
+}
+
+function growthNode(node, color) {
+    const st = nodeStatus(node), rank = st.rank;
+    const n = el('div', 'tnode' + (rank > 0 ? ' on' : '') + (rank >= node.max ? ' full' : '')
+        + (st.can ? ' can' : '') + (rank === 0 && !st.can ? ' locked' : '')
+        + (picked && picked.kind === 'node' && picked.id === node.id ? ' sel' : ''));
+    n.style.setProperty('--c', color);
+    const gem = el('div', 'tnode-gem');
+    gem.appendChild(el('span', 'tnode-rank', `${rank}/${node.max}`));
+    n.append(gem, el('div', 'tnode-name', node.name));
+    n.addEventListener('click', () => pickNode('node', node.id));
+    return n;
+}
+
+/** 아직 못 배운 스킬을 어디서 얻는지 */
+function sourceText(id) {
+    const s = SKILLS[id].source;
+    if (s.type === 'MASTER') {
+        const lesson = LESSONS.find(l => l.skill === id);
+        return lesson ? `스승 카이론 — ${lesson.title} (레벨 ${lesson.level})` : '스승 카이론의 수련';
+    }
+    if (s.type === 'BOSS') return `${(BOSSES[s.id] || {}).name || s.id}를 쓰러뜨리면`;
+    if (s.type === 'AWAKEN') return `${s.hint} — ${s.need.map(([i, r]) => `${SKILLS[i].name} ${r}단`).join(' + ')}`;
+    return s.hint;
+}
+
+function renderSkills(body) {
+    const p = state.player, total = Object.keys(SKILLS).length;
+    body.appendChild(treeNote(`배운 스킬 ${p.skills.length} / ${total}`,
+        `장착 ${SKILL_SLOTS.map(s => `[${s}] ${p.slots[s] ? SKILLS[p.slots[s]].name : '─'}`).join('  ')} — 마디를 눌러 장착하고 강화한다.`));
+    const branches = Object.entries(SKILL_BRANCHES).map(([key, b]) => ({
+        key, title: b.name, sub: '', color: b.color,
+        tiers: [0, 1, 2, 3].map(t => Object.keys(SKILLS).filter(id => SKILLS[id].branch === key && SKILLS[id].tier === t)).filter(r => r.length),
+    }));
+    buildTree(body, branches, `${p.skills.length} / ${total} 습득`, skillNode);
+}
+
+function skillNode(id, color) {
+    const def = SKILLS[id], rank = skillRank(id), known = rank > 0;
+    const slot = SKILL_SLOTS.find(s => state.player.slots[s] === id);
+    const n = el('div', 'tnode' + (known ? ' on' : ' locked') + (known && skillUpgradeCost(id) === null ? ' full' : '')
+        + (picked && picked.kind === 'skill' && picked.id === id ? ' sel' : ''));
+    n.style.setProperty('--c', color);
+    const gem = el('div', 'tnode-gem');
+    gem.appendChild(el('span', 'tnode-rank', known ? '★'.repeat(rank) : '?'));
+    if (slot) gem.appendChild(el('span', 'tnode-slot', slot));
+    n.append(gem, el('div', 'tnode-name', known ? def.name : '???'));
+    n.addEventListener('click', () => pickNode('skill', id));
+    return n;
+}
+
+function treeNote(title, text) {
+    const b = el('div', 'tree-note');
+    b.append(el('div', 'tree-note-title', title), el('div', 'tree-note-text', text));
+    return b;
+}
+
+/** 나무 아래 자세히 보기 줄: 고른 마디의 설명과 버튼 */
+function renderPicked() {
+    const bar = $('journal-detail');
+    bar.innerHTML = '';
+    const onTree = tab === 'growth' || tab === 'skills';
+    bar.style.display = onTree ? 'flex' : 'none';
+    if (!onTree) return;
+    if (!picked || (picked.kind === 'node') !== (tab === 'growth')) {
+        bar.appendChild(el('div', 'detail-hint', '마디를 눌러 자세히 보고 성장 포인트를 쓴다.'));
+        return;
+    }
+    const info = el('div', 'detail-info'), actions = el('div', 'detail-actions');
+
+    if (picked.kind === 'node') {
+        const node = NODES_BY_ID[picked.id], st = nodeStatus(node), rank = nodeRank(node.id);
+        info.append(el('div', 'detail-name', `${node.name} — ${rank} / ${node.max}단`),
+            el('div', 'detail-text', rank >= node.max ? node.desc(rank)
+                : `지금 ${rank ? node.desc(rank) : '아직 찍지 않았다'} → 다음 단계 ${node.desc(rank + 1)}`));
+        if (rank < node.max) {
+            const btn = el('button', 'detail-btn' + (st.can ? '' : ' off'), st.can ? `한 단 올리기 (포인트 ${node.cost})` : st.reason);
+            btn.addEventListener('click', () => { if (investNode(node.id)) render(); });
+            actions.appendChild(btn);
+        }
+    } else {
+        const def = SKILLS[picked.id], rank = skillRank(picked.id), cost = skillUpgradeCost(picked.id);
+        info.append(el('div', 'detail-name', rank ? `${def.name} — ${rank} / ${MAX_SKILL_RANK}단` : `${def.name} (아직 못 배움)`),
+            el('div', 'detail-text', rank ? `${def.desc} · 대기 ${skillCooldown(picked.id).toFixed(1)}초` : sourceText(picked.id)));
+        if (rank) {
+            for (const s of SKILL_SLOTS) {
+                const on = state.player.slots[s] === picked.id;
+                const btn = el('button', 'detail-btn slot-btn' + (on ? ' on' : ''), on ? `[${s}] 해제` : `[${s}] 에 장착`);
+                btn.addEventListener('click', () => { equip(picked.id, s, on); render(); });
+                actions.appendChild(btn);
+            }
+            if (cost !== null) {
+                const btn = el('button', 'detail-btn', `강화 ${rank + 1}단 (포인트 ${cost})`);
+                btn.addEventListener('click', () => { if (upgradeSkill(picked.id)) render(); });
+                actions.appendChild(btn);
+            } else actions.appendChild(el('div', 'detail-hint', '끝까지 익힌 기술이다'));
+        }
+    }
+    bar.append(info, actions);
+}
+
+function equip(id, slot, unequip) {
+    const p = state.player;
+    if (unequip) { p.slots[slot] = null; return; }
+    for (const s of SKILL_SLOTS) if (p.slots[s] === id) p.slots[s] = p.slots[slot];   // 이미 장착된 스킬이면 자리를 맞바꾼다
+    p.slots[slot] = id;
+    play('ui');
+}
+
 function renderCodex(body) {
     const kills = state.stats.kills;
     const names = { ...ENEMIES, HUNTER: { name: '사냥꾼' } };
@@ -242,20 +456,26 @@ function renderFolk(body) {
 
 function render() {
     for (const b of document.querySelectorAll('.journal-tab')) b.classList.toggle('on', b.dataset.tab === tab);
+    // 나무는 세 갈래를 나란히 놓아야 해서 창을 넓게 쓴다
+    $('journal-panel').classList.toggle('wide', tab === 'growth' || tab === 'skills');
+    $('journal-points').textContent = points() > 0 ? `성장 포인트 ${points()}` : '';
     const body = $('journal-body');
     body.innerHTML = '';
-    if (tab === 'quests') renderQuests(body);
+    if (tab === 'growth') renderGrowth(body);
+    else if (tab === 'skills') renderSkills(body);
+    else if (tab === 'quests') renderQuests(body);
     else if (tab === 'folk') renderFolk(body);
     else if (tab === 'record') renderRecord(body);
     else if (tab === 'relics') renderRelics(body);
     else renderCodex(body);
+    renderPicked();
 }
 
 /** 일지를 열거나 닫는다. tabId 를 주면 그 탭으로 연다 */
 export function toggleJournal(tabId) {
     const panel = $('journal-panel');
     if (panel.style.display === 'flex' && (!tabId || tabId === tab)) { panel.style.display = 'none'; return; }
-    if (tabId) tab = tabId;
+    if (tabId && tabId !== tab) { tab = tabId; picked = null; }
     markTutorial('journal');
     render();
     panel.style.display = 'flex';
