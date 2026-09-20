@@ -6,6 +6,11 @@ import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
 import { openNpcHub } from './npcActions.js';
 import { burst } from '../entities/Particle.js';
+import { beginCutscene, focusOn, endCutscene } from './cutscene.js';
+
+// 이 모듈이 컷씬을 걸었는지. 걸었을 때만 우리가 내린다
+// (사건 장면은 systems/chronicle.js 가 따로 관리한다)
+let ourCutscene = false;
 
 /** type: 'TALK' | 'FLIRT' */
 export function startDialogue(npc, type) {
@@ -21,6 +26,12 @@ export function startDialogue(npc, type) {
     let key = 'intro';
     if (npc.config.role === 'ELDER') {
         group = (!state.elderTutorialDone && type === 'TALK') ? NPC_SCRIPTS.TUTORIAL : NPC_SCRIPTS.WISE;
+        // 눈을 뜨고 처음 촌장과 나누는 말은 이야기의 첫 장면이다. 컷씬으로 연출한다
+        if (group === NPC_SCRIPTS.TUTORIAL) {
+            ourCutscene = true;
+            beginCutscene('처음 눈을 뜬 날');
+            focusOn(npc);
+        }
     } else if (type === 'FLIRT' && npc.config.canPartner) {
         group = NPC_SCRIPTS.FLIRT;
         key = npc.relation < 30 ? 'low' : npc.relation < 60 ? 'mid' : 'high';
@@ -34,6 +45,7 @@ export function closeDialogue() {
     state.isDialogueOpen = false;
     state.currentNpc = null;
     dialogueUI.hide();
+    if (ourCutscene) { ourCutscene = false; endCutscene(); }
 }
 
 function renderNode(group, key, npc) {

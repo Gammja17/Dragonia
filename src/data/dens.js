@@ -59,6 +59,36 @@ export const DENS = {
                 ['SHIELD', 6, 0], ['STRAW', 10, 7], ['ORB', 2, 6], ['PILLAR', 11, 3]],
         intro: '(창 대신 뚫린 구멍으로 마을이 내려다보인다. 망루지기의 굴답다.)',
     },
+
+    // ---- 구름마루 마을의 굴들. 물가 쪽으로 열려 있어 늘 물소리가 난다 ----
+    DEN_RIUN: {
+        id: 'DEN_RIUN', name: '리운의 굴', owner: 'Riun',
+        outer: 'CLOUDTOP', at: [7, 6], tw: 15, th: 11, seed: 411, torches: 4, locked: 10,
+        decor: [['SHELF', 2, 1], ['SHELF', 3, 1], ['ORB', 11, 3], ['TABLE', 7, 4],
+                ['STOOL', 6, 4], ['STOOL', 8, 4], ['PILLAR', 12, 2], ['STRAW', 11, 8], ['PICTURE', 5, 0]],
+        intro: '(굴 안쪽까지 물소리가 들어온다. 벽이 젖어 반들거린다.)',
+    },
+    DEN_SEIRAN: {
+        id: 'DEN_SEIRAN', name: '세이란의 굴', owner: 'Seiran',
+        outer: 'CLOUDTOP', at: [15, 6], tw: 13, th: 10, seed: 412, torches: 3, locked: 15,
+        decor: [['POTIONS', 2, 2], ['POTIONS', 3, 2], ['POTIONS', 4, 2], ['SHELF', 9, 1],
+                ['ORB', 6, 4], ['STRAW', 10, 7], ['TABLE', 5, 6], ['PICTURE', 7, 0]],
+        intro: '(약초 말리는 냄새가 가득하다. 바닥에 고인 물에 천장이 비친다.)',
+    },
+    DEN_HARU: {
+        id: 'DEN_HARU', name: '하루의 굴', owner: 'Haru',
+        outer: 'CLOUDTOP', at: [8, 11], tw: 12, th: 9, seed: 413, torches: 2, locked: 5,
+        decor: [['STRAW', 5, 4], ['RUBBLE', 2, 6], ['RUBBLE', 3, 6], ['CHEST', 9, 5],
+                ['POTIONS', 1, 3], ['BANNER', 6, 0], ['STOOL', 8, 2]],
+        intro: '(주워 온 돌이 종류별로 줄 맞춰 놓여 있다. 아래 세상에서 흘러온 것들이다.)',
+    },
+    DEN_YUAN: {
+        id: 'DEN_YUAN', name: '유안의 굴', owner: 'Yuan',
+        outer: 'CLOUDTOP', at: [15, 11], tw: 13, th: 10, seed: 414, torches: 2, locked: 25,
+        decor: [['SWORD', 3, 0], ['SWORD', 5, 0], ['SHIELD', 7, 0], ['SHIELD', 9, 0],
+                ['STRAW', 1, 7], ['ANVIL', 10, 5], ['FENCE', 6, 6], ['RUBBLE', 11, 7]],
+        intro: '(무기가 벽 한 면을 채우고 있다. 전부 손질이 되어 있고, 전부 쓰인 적이 없다.)',
+    },
 };
 
 export const DEN_IDS = Object.keys(DENS);

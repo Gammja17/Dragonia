@@ -5,6 +5,8 @@
 export const BIOMES = {
     VILLAGE: { name: '드래곤 빌리지', safe: true,  palette: 0 },
     LAKE:    { name: '신비의 호수',   safe: true,  palette: 0 },
+    FALLS:   { name: '구름 폭포',     safe: true,  palette: 0 },
+    CLOUDTOP:{ name: '구름마루 마을', safe: true,  palette: 0 },
     FOREST:  { name: '숲',            safe: false, palette: 0 },
     JUNGLE:  { name: '밀림',          safe: false, palette: 1 },
     HOLLOW:  { name: '골짜기',        safe: false, palette: 2 },

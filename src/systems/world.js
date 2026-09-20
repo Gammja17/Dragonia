@@ -23,6 +23,7 @@ const BIOME_LABEL = {
 };
 import { play } from './audio.js';
 import { placeByRoutine, hasRoutine, ROUTINE_NAMES, planFor } from './routine.js';
+import { invitedUp, blockAtBorder } from './borderGate.js';
 import { DENS, densOn } from '../data/dens.js';
 import { buildRoom } from '../world/room.js';
 import { FURNITURE } from '../data/furniture.js';
@@ -227,7 +228,7 @@ function populate(id) {
     placeByRoutine(id, pools, getNpc);
 
     // 5) 떠돌이 용 (마을과 숲길에만 한둘)
-    if (!spec.clearings && rng() < 0.7) {
+    if (!spec.clearings && spec.wanderer !== false && rng() < 0.7) {
         const species = rng() < 0.8 ? 'LOOK' : pick(WANDER_SPECIES);
         const x = map.w * (0.3 + rng() * 0.4), y = map.h * (0.3 + rng() * 0.4);
         pools.npcs.push(new Dragon(x, y, {
@@ -362,6 +363,8 @@ export function updatePortals() {
     const gate = state.entities.props.find(x => x.portal && dist(p, x) < PORTAL_RANGE);
     if (!gate) return;
     if (state.raid.active) { showToast('사냥꾼이 마을을 치고 있다. 지금 떠날 수는 없다.', '⚔️'); return; }
+    // 폭포 위는 남의 마을이다. 모임에 한 번 나가 봐야 올라갈 수 있다 (systems/gathering.js)
+    if (gate.portal.to === 'CLOUDTOP' && !invitedUp()) { blockAtBorder(); return; }
     // 굴에서 나올 때는 들어갔던 입구 앞에 선다 (side 가 없다)
     const spot = gate.portal.spot ? { x: gate.portal.spot.x, y: gate.portal.spot.y + 84 } : null;
     travelTo(gate.portal.to, gate.portal.side ? OPPOSITE[gate.portal.side] : null, spot);

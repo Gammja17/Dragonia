@@ -2,10 +2,11 @@ import { state } from '../core/state.js';
 import { ROUTINES, slotAtHour } from '../data/routines.js';
 import { MAPS, mapName } from '../data/maps.js';
 import { DENS } from '../data/dens.js';
+import { isGatherNow, GATHER_SPOTS, GATHER_MAP } from './gathering.js';
 import { coarseCenter } from '../world/mapgen.js';
 import { ROOM_PAD } from '../world/room.js';
 import { TILE } from '../data/tiles.js';
-import { npcName } from '../data/npcs.js';
+import { npcName, FIXED_NPCS } from '../data/npcs.js';
 
 // 하루 일과. data/routines.js 가 "누가 몇 시에 어디서 무엇을 하는지"를 적어 두면
 // 여기서 그 말대로 용들을 지도 위에 놓고 옮긴다.
@@ -28,12 +29,16 @@ export function planFor(name, hour = state.dayTime * 24) {
     const r = ROUTINES[name];
     if (!r) return null;
     let slot = slotAtHour(r, hour);
+    const gather = isGatherNow() && GATHER_SPOTS[name];
     // 길잡이를 마치기 전에는 촌장이 마을을 뜨지 않는다. 처음 온 아이가 헤매지 않게
-    if (name === 'Elder' && !(state.tutorial && state.tutorial.finished)) {
+    // (모임 날 밤만은 예외다 — 촌장이 빠진 모임은 모임이 아니다)
+    if (name === 'Elder' && !gather && !(state.tutorial && state.tutorial.finished)) {
         slot = r.day.find(d => d.h === 9) || slot;
     }
-    if (state.raid.active && r.raid) slot = r.raid;
-    else if (r.rain && (state.weather.type === 'RAIN' || state.weather.type === 'SNOW')) slot = r.rain;
+    // 달이 가장 밝은 밤에는 두 마을이 모두 폭포 아래로 내려온다
+    if (gather) slot = { map: GATHER_MAP, spot: GATHER_SPOTS[name], doing: '달 밝은 밤의 모임에 나와 있다' };
+    if (state.raid.active && r.raid) slot = r.raid;   // 마을이 불타는 것보다 급한 모임은 없다
+    else if (!isGatherNow() && r.rain && (state.weather.type === 'RAIN' || state.weather.type === 'SNOW')) slot = r.rain;
     if (!MAPS[slot.map] && !DENS[slot.map]) return null;
     return {
         job: r.job,
@@ -71,6 +76,7 @@ export function roster() {
             where: here ? '나와 함께 있다' : plan.mapName,
             doing: here ? '나를 따라다니고 있다' : plan.doing,
             near: (here ? state.mapId : plan.map) === state.mapId,
+            east: !!(FIXED_NPCS.find(d => d.name === name) || {}).east,
             relation: npc ? (npc.relation || 0) : 0,
         };
     });

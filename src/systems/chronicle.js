@@ -10,6 +10,7 @@ import { CHRONICLE } from '../data/chronicle.js';
 import { BOND_SCENES } from '../data/npcTalk.js';
 import { activeBiome } from '../world/terrain.js';
 import { inDungeon } from './delve.js';
+import { isGatherNow } from './gathering.js';
 import { beginCutscene, focusOn, endCutscene } from './cutscene.js';
 
 // 사건. "가서 잡아라" 대신, 돌아다니다 보면 일이 벌어지고 그 자리에서 이야기가 열린다.
@@ -36,6 +37,7 @@ function context() {
         done: (id) => state.quests.done.includes(id),
         active: (id) => id in state.quests.active,
         lessons: state.story.lessons.length,
+        gathering: isGatherNow(),
         boss: (id) => !!state.bossesDefeated[id],
         relationOf: (name) => {
             const n = state.entities.npcs.find(x => x.config.name === name);

@@ -60,10 +60,55 @@ export const MAPS = {
     },
     LAKE: {
         name: '신비의 호수', biome: 'LAKE', cw: 20, ch: 15, seed: 103, trees: 0.4,
-        ponds: [[8, 8, 5]],
-        roads: [[[18, 7], [14, 7], [14, 11]]],
-        portals: [{ side: 'E', to: 'VILLAGE', name: '드래곤 빌리지' }],
-        fixtures: [{ t: 'PROP', type: 'CAMPFIRE', at: [14, 11] }, { t: 'PROP', type: 'SIGN', at: [16, 7] }],
+        ponds: [[8, 10, 4]],
+        roads: [[[18, 7], [14, 7], [14, 11]], [[14, 7], [10, 7], [10, 1]]],
+        portals: [
+            { side: 'E', to: 'VILLAGE', name: '드래곤 빌리지' },
+            { side: 'N', to: 'FALLS', name: '구름 폭포' },
+        ],
+        fixtures: [
+            { t: 'PROP', type: 'CAMPFIRE', at: [14, 11] }, { t: 'PROP', type: 'SIGN', at: [16, 7] },
+            { t: 'WAYSTONE', at: [12, 7] },
+        ],
+    },
+
+    // ---------------- 북쪽: 구름 폭포 너머의 또 다른 마을 ----------------
+    // 물줄기를 거슬러 올라가면 폭포가 있고, 그 위에 동양용들이 사는 마을이 있다.
+    // 두 마을은 오래 서로를 모른 척해 왔다 (data/chronicle.js 의 만남 사건들).
+    FALLS: {
+        name: '구름 폭포', biome: 'FALLS', cw: 20, ch: 16, seed: 120, trees: 0.4, wanderer: false,
+        // 폭포는 동쪽에 쏟아지고, 위로 오르는 길은 서쪽 벼랑을 탄다
+        ponds: [[14, 5, 3]],
+        clearings: [[9, 10, 3]],
+        roads: [[[10, 14], [10, 2]], [[10, 8], [15, 8]]],
+        portals: [
+            { side: 'S', to: 'LAKE', name: '신비의 호수' },
+            { side: 'N', to: 'CLOUDTOP', name: '구름마루 마을' },
+        ],
+        fixtures: [
+            { t: 'PROP', type: 'WATERFALL', at: [13, 4] },
+            { t: 'PROP', type: 'WATERFALL', at: [15, 4] },
+            { t: 'PROP', type: 'WATERFALL', at: [14, 3] },
+            { t: 'PROP', type: 'SIGN', at: [10, 7] },
+            { t: 'PROP', type: 'CAMPFIRE', at: [9, 10] },
+            { t: 'WAYSTONE', at: [8, 9] },
+        ],
+    },
+    CLOUDTOP: {
+        name: '구름마루 마을', biome: 'CLOUDTOP', cw: 22, ch: 16, seed: 121, trees: 0.18, wanderer: false,
+        plaza: [6, 5, 11, 7],
+        ponds: [[4, 12, 2], [18, 12, 2]],      // 남쪽 출구는 비워 둔다
+        roads: [[[11, 15], [11, 2]], [[2, 8], [19, 8]]],
+        portals: [{ side: 'S', to: 'FALLS', name: '구름 폭포' }],
+        fixtures: [
+            { t: 'PROP', type: 'FOUNTAIN', at: [11, 8] },
+            { t: 'PROP', type: 'HOUSE', at: [7, 6] }, { t: 'PROP', type: 'HOUSE', at: [15, 6] },
+            { t: 'PROP', type: 'HOUSE', at: [8, 11] }, { t: 'PROP', type: 'HOUSE', at: [15, 11] },
+            { t: 'PROP', type: 'CAMPFIRE', at: [11, 11] },
+            { t: 'PROP', type: 'BARREL', at: [13, 6] }, { t: 'PROP', type: 'CRATE', at: [9, 9] },
+            { t: 'PROP', type: 'SIGN', at: [11, 13] },
+            { t: 'WAYSTONE', at: [11, 5] },
+        ],
     },
 
     // ---------------- 동쪽: 수련장 · 달빛 골짜기 · 서리 봉우리 ----------------
@@ -235,7 +280,7 @@ export const MAPS = {
 
 /** 이야기가 흐르는 차례. 미니맵의 '가 볼 곳' 과 빠른 이동 목록을 이 순서로 보여 준다 */
 export const MAP_ORDER = [
-    'VILLAGE', 'DEN', 'LAKE', 'EAST_ROAD', 'DOJO', 'HOLLOW', 'MORGATH_LAIR',
+    'VILLAGE', 'DEN', 'LAKE', 'FALLS', 'CLOUDTOP', 'EAST_ROAD', 'DOJO', 'HOLLOW', 'MORGATH_LAIR',
     'SNOW_ROAD', 'GLACIA_LAIR', 'SOUTH_ROAD', 'JUNGLE', 'ZALGORA_LAIR',
     'DESERT', 'BASIL_LAIR', 'AUTUMN', 'VOLCANO', 'IGNAR_LAIR',
 ];

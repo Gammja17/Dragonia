@@ -79,8 +79,10 @@ export function updateHud() {
         el.biome.append(strong(currentMapName()), sub(`${eventName() || dayPhaseName()} · ${weatherName()}`));
     }
     el.name.textContent = p.config.name || 'Player';
+    el.name.title = state.story.title ? `${p.config.name} · ${state.story.title}` : '';
     el.lvl.textContent = p.level;
-    el.stage.textContent = p.stage.name;
+    // 의식에서 받은 칭호가 있으면 단계 대신 그것을 보여 준다 (systems/story.js)
+    el.stage.textContent = state.story.title || p.stage.name;
     el.partner.textContent = state.partner ? npcName(state.partner.config.name) : '없음';
     el.meat.textContent = p.inventory.meat;
     el.gold.textContent = p.gold;
