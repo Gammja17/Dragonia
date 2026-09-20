@@ -27,6 +27,7 @@ import { initDenPanel, isDecorPanelOpen, closeDecorPanel } from './ui/denPanel.j
 import { inMyDen } from './systems/den.js';
 import { updateEvents, drawEvents } from './systems/events.js';
 import { initAudio } from './systems/audio.js';
+import { initMusic, updateMusic } from './systems/music.js';
 import { initJournal } from './ui/journal.js';
 import { initTouch } from './ui/touch.js';
 import { dialogueUI } from './ui/dialogueUI.js';
@@ -53,6 +54,7 @@ initDenPanel();
 setDenRebuilder(refreshDen);
 initTouch();
 initCustomizer(startGame);
+initMusic();
 window.addEventListener('beforeunload', saveGame);
 
 // 드래곤 시트와 타일셋은 페이지 로드 직후부터 받기 시작한다
@@ -108,7 +110,7 @@ function loop(now) {
     render();
 
     hudAccumulator += dt;
-    if (hudAccumulator > 0.1) { updateHud(); hudAccumulator = 0; }
+    if (hudAccumulator > 0.1) { updateHud(); updateMusic(); hudAccumulator = 0; }
     saveAccumulator += dt;
     if (saveAccumulator > AUTOSAVE_INTERVAL) { saveGame(); saveAccumulator = 0; }
 

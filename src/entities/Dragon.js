@@ -366,7 +366,7 @@ export class Dragon extends Entity {
         if (input.pressed('journal')) toggleJournal();
         if (input.pressed('skillbook')) toggleJournal('skills');   // 스킬 나무
         if (input.pressed('growthTab')) toggleJournal('growth');   // 성장 나무
-        if (input.pressed('mute')) showToast(toggleMute() ? '효과음 끔' : '효과음 켬', '🔊');
+        if (input.pressed('mute')) showToast(toggleMute() ? '소리 끔' : '소리 켬', '🔊');
 
         // 보는 방향은 프레임 끝에 딱 한 번, 아래 순서대로 정한다.
         //   1) 쏘는 중이면 겨눈 쪽   — 숨결이 엉뚱한 쪽에서 나가지 않게
