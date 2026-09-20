@@ -65,10 +65,10 @@
             <div class="slot el" data-el="ICE"><span class="slot-key">2</span><span class="slot-name">냉기</span></div>
             <div class="slot el" data-el="THUNDER"><span class="slot-key">3</span><span class="slot-name">번개</span></div>
             <div class="slot-gap"></div>
-            <div class="slot skill" data-skill="Q"><span class="slot-key">Q</span><span class="slot-name">-</span><div class="slot-cd"></div></div>
-            <div class="slot skill" data-skill="F"><span class="slot-key">F</span><span class="slot-name">-</span><div class="slot-cd"></div></div>
+            <div class="slot skill" data-skill="Q"><span class="slot-rank"></span><span class="slot-key">Q</span><span class="slot-name">-</span><div class="slot-cd"></div></div>
+            <div class="slot skill" data-skill="F"><span class="slot-rank"></span><span class="slot-key">F</span><span class="slot-name">-</span><div class="slot-cd"></div></div>
             <div class="slot ult" id="ult-slot" style="display:none;"><span class="slot-key">X</span><span class="slot-name">융합 브레스</span><div class="slot-cd"></div></div>
-            <div class="slot skill" data-skill="R"><span class="slot-key">R</span><span class="slot-name">-</span><div class="slot-cd"></div></div>
+            <div class="slot skill" data-skill="R"><span class="slot-rank"></span><span class="slot-key">R</span><span class="slot-name">-</span><div class="slot-cd"></div></div>
         </div>
 
         <button id="hud-show-btn">▶ HUD</button>
@@ -97,6 +97,7 @@
             </div>
 
             <div id="buff-row"></div>
+            <button id="points-chip" style="display:none;">🌟 성장 포인트 <b id="points-num">0</b></button>
             <div class="inv-row">
                 <div class="inv-slot"><span>고기</span> <span id="ui-meat">0</span></div>
                 <div class="inv-slot"><span>골드</span> <span id="ui-gold">0</span></div>
@@ -122,10 +123,12 @@
     <div id="journal-panel" class="panel">
         <div class="panel-head">
             <div class="panel-title">모험 일지</div>
+            <div id="journal-points"></div>
             <button id="journal-close" class="panel-close">닫기 (J)</button>
         </div>
         <div id="journal-tabs"></div>
         <div id="journal-body" class="panel-body"></div>
+        <div id="journal-detail"></div>
     </div>
 
     <div id="fade-screen"><div id="fade-text"></div></div>
@@ -152,11 +155,11 @@
             <div class="help-row"><b>왼클릭</b><span>브레스. 꾹 누르면 연사</span></div>
             <div class="help-row"><b>1 2 3</b><span>숨결 속성 바꾸기</span></div>
             <div class="help-row"><b>Q F R</b><span>장착한 스킬 (대기 시간만 쓴다)</span></div>
-            <div class="help-row"><b>B</b><span>스킬 수첩 · <b class="inline">X</b> 필살기</span></div>
+            <div class="help-row"><b>B</b><span>스킬 나무 — 장착·강화 · <b class="inline">G</b> 성장 나무 · <b class="inline">X</b> 필살기</span></div>
             <div class="help-row"><b>E</b><span>줍기 · 먹기 · 상자 · 열매 · 낚시 · 석비 · 굴</span></div>
             <div class="help-row"><b>Space</b><span>말 걸기 · 둥지에서 잠자기 · 대화창 넘기기</span></div>
             <div class="help-row"><b>방향키</b><span>대화 선택지 고르기 (Space 로 결정) · <b class="inline">L</b> 플러팅</span></div>
-            <div class="help-row"><b>J</b><span>일지 — 퀘스트 · 기록 · 유물 · 도감</span></div>
+            <div class="help-row"><b>J</b><span>일지 — 성장 · 스킬 · 퀘스트 · 기록 · 유물 · 도감</span></div>
             <div class="help-row"><b>K</b><span>가족 · <b class="inline">V</b> 시점 · <b class="inline">M</b> 소리 · <b class="inline">Esc</b> 닫기</span></div>
 
             <div class="help-sep">알아 두면 좋은 것</div>
@@ -164,6 +167,8 @@
             <div class="help-row"><b>강</b><span>헤엄칠 수 없다. 흙바닥 여울을 찾아 건넌다</span></div>
             <div class="help-row"><b>유물</b><span>끼운 것만 힘이 된다. 칸은 자랄수록 늘어난다</span></div>
             <div class="help-row"><b>강화</b><span>골드가 아니라 소재로 그론의 모루에서 두드린다</span></div>
+            <div class="help-row"><b>성장 포인트</b><span>레벨업마다 2, 승급 시험마다 3. 성장 나무와 스킬 강화에 쓴다</span></div>
+            <div class="help-row"><b>스킬</b><span>수련·보스 말고도 혼자 깨우치거나, 둘을 익히면 열리는 것이 있다</span></div>
         </div>
     </div>
 

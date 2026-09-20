@@ -5,6 +5,7 @@ import { PROP_SPRITES } from '../data/tiles.js';
 import { bossRelic } from './relics.js';
 import { BOSS_SKILLS } from '../data/skills.js';
 import { NEST_POS } from '../core/config.js';
+import { reconcilePoints } from './growth.js';
 
 // localStorage 세이브. 월드(지형·소품)는 시드 고정이라 저장하지 않는다. 떠돌이 NPC·적·아이템도 저장 안 함.
 const KEY = 'dragonia-save-v1';
@@ -43,6 +44,7 @@ export function saveGame() {
         companion: state.companion ? state.companion.config.name : null,
         den: state.den, ult: p.ult,
         relics: state.relics, relicSlots: state.relicSlots, materials: state.materials, waystones: state.waystones, stats: state.stats, event: state.event, story: state.story,
+        growth: state.growth, revivedDay: state.revivedDay,
         npcs: Object.fromEntries(state.entities.npcs.filter(n => n.config.fixed)
             .map(n => [n.config.name, { relation: n.relation, lastGiftDay: n.lastGiftDay ?? null, lastTalkDay: n.lastTalkDay ?? null, lastPresentDay: n.lastPresentDay ?? null, lastPlayDay: n.lastPlayDay ?? null, dates: n.dates || 0, lastDateDay: n.lastDateDay ?? null, lastEggDay: n.lastEggDay ?? null, lastMeditateDay: n.lastMeditateDay ?? null }])),
         partner: state.partner ? state.partner.config.name : null,
@@ -86,7 +88,13 @@ export function applySave(data) {
     p.ult = data.ult || 0;
     state.story = data.story || { scenes: [], lessons: [], lessonDay: 0 };
     state.stats = data.stats || { kills: {} };
+    if (state.stats.brinks === undefined) state.stats.brinks = 0;
     state.event = data.event || null;
+    // 성장 트리: 찍어 둔 것을 되살리고, 남은 포인트는 레벨·단계에서 다시 계산한다
+    // (성장 트리가 없던 옛 세이브도 그동안 쌓였어야 할 포인트를 그대로 받는다)
+    state.growth = data.growth || { points: 0, nodes: {}, ranks: {} };
+    state.revivedDay = data.revivedDay || 0;
+    reconcilePoints();
     // 유물이 생기기 전에 잡은 보스의 전리품도 챙겨 준다
     for (const id of Object.keys(state.bossesDefeated)) { const r = bossRelic(id); if (r && !state.relics.includes(r)) state.relics.push(r); }
     for (const c of state.entities.props) if (c.type === 'CHEST' && state.openedChests[c.chestId]) { c.opened = true; c.sprite = PROP_SPRITES.CHEST_OPEN[0]; }

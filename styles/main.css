@@ -614,3 +614,131 @@ body.touch #toast-box { top: 96px; }
     #toast-box { top: 88px; width: 86vw; }
     #kids-panel, #help-panel { width: min(320px, 92vw); }
 }
+
+/* ================= 성장 · 스킬 나무 (일지의 [성장] [스킬] 탭) ================= */
+/* 패널이 열리면 바깥 세상이 어두워진다. 그림자 하나로 덮으므로 따로 DOM 이 필요 없다 */
+.panel { box-shadow: 0 0 0 100vmax rgba(3, 4, 9, 0.72); }
+
+#journal-panel.wide { width: min(1040px, 95vw); max-height: 88vh; }
+#journal-points { font-size: 0.74rem; color: var(--gold-lit); font-family: var(--font-num); white-space: nowrap; }
+
+.tree-note { background: var(--ink-raise); border-left: 3px solid var(--gold); padding: 7px 12px; margin-bottom: 4px; }
+.tree-note-title { color: var(--gold-lit); font-weight: 700; font-size: 0.88rem; }
+.tree-note-text { color: var(--parch-mid); font-size: 0.74rem; margin-top: 3px; line-height: 1.5; }
+
+/* flex: 1 0 auto — 남는 자리는 채우되 내용보다 작아지지 않는다 (작아지면 나무가 설명 위로 넘친다) */
+.tree-wrap {
+    position: relative; flex: 1 0 auto;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    padding: 12px 0 0;
+}
+.tree-links { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: visible; }
+.tree-link { fill: none; stroke: var(--gold-dim); stroke-width: 4; stroke-linejoin: miter; }
+.tree-link.lit { stroke-width: 5; filter: drop-shadow(0 0 5px rgba(255, 216, 74, 0.55)); }
+
+.tree-canopy { position: relative; z-index: 1; display: flex; gap: 10px; align-items: flex-end; justify-content: center; width: 100%; }
+.tree-branch { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.branch-head { display: flex; align-items: baseline; gap: 6px; border-bottom: 3px solid var(--c); padding: 0 14px 5px; white-space: nowrap; }
+.branch-glyph { font-size: 0.78rem; color: var(--c); }
+.branch-name { font-size: 0.92rem; font-weight: 700; color: var(--parch); letter-spacing: 1px; }
+.branch-sub { font-size: 0.68rem; color: var(--c); }
+
+.branch-rows { display: flex; flex-direction: column-reverse; align-items: center; gap: 22px; }
+.branch-row { display: flex; gap: 14px; justify-content: center; }
+
+/* 마디: 마름모 보석 + 이름 */
+.tnode { width: 92px; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+.tnode-gem {
+    position: relative; width: 46px; height: 46px; transform: rotate(45deg);
+    display: flex; align-items: center; justify-content: center;
+    background: var(--ink-solid); border: 3px solid #3a4152;
+    box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.5);
+    transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
+}
+.tnode-rank {
+    transform: rotate(-45deg); font-family: var(--font-num);
+    font-size: 0.7rem; font-weight: 600; color: var(--parch-dim); letter-spacing: -0.5px; white-space: nowrap;
+}
+.tnode-slot {
+    position: absolute; top: -10px; right: -10px; transform: rotate(-45deg);
+    background: var(--good); color: #0b1a10; font-size: 0.6rem; font-weight: 700;
+    width: 16px; height: 16px; line-height: 16px; text-align: center; border: 1px solid #0b1a10;
+}
+.tnode-name { font-size: 0.68rem; color: var(--parch-mid); text-align: center; line-height: 1.3; }
+
+.tnode.on .tnode-gem { background: #1d2033; border-color: var(--c); box-shadow: inset 0 0 12px rgba(255,255,255,0.12), 0 0 12px -2px var(--c); }
+.tnode.on .tnode-rank { color: var(--parch); }
+.tnode.on .tnode-name { color: var(--parch); font-weight: 700; }
+.tnode.full .tnode-gem { background: var(--c); box-shadow: 0 0 18px -2px var(--c); }
+.tnode.full .tnode-rank { color: #11131f; }
+/* 지금 포인트를 쓸 수 있는 마디는 금빛 고리를 두르고 숨 쉰다 (테두리 색은 갈래 색 그대로) */
+.tnode.can .tnode-gem { animation: gem-pulse 1.5s infinite alternate; }
+.tnode.can.locked .tnode-gem { border-color: #8d7a44; }
+.tnode.can .tnode-name { color: var(--gold-lit); }
+@keyframes gem-pulse {
+    from { box-shadow: 0 0 0 2px rgba(255, 216, 74, 0.35); }
+    to   { box-shadow: 0 0 0 3px rgba(255, 216, 74, 0.75), 0 0 16px 1px rgba(255, 216, 74, 0.5); }
+}
+.tnode:hover .tnode-gem { border-color: var(--gold); }
+.tnode:hover .tnode-name { color: var(--parch); }
+.tnode.sel .tnode-gem { border-color: var(--parch); box-shadow: 0 0 0 3px rgba(236, 227, 207, 0.25), 0 0 16px 0 var(--c); }
+.tnode.sel .tnode-name { color: var(--parch); }
+.tnode.locked .tnode-name { color: var(--parch-dim); }
+
+/* 뿌리 */
+.tree-root {
+    position: relative; z-index: 1; margin-top: 26px;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--ink-solid); border: 3px solid var(--gold); padding: 7px 20px;
+    box-shadow: 0 0 22px -4px rgba(216, 178, 90, 0.8);
+}
+.root-glyph { color: var(--gold-lit); font-size: 0.92rem; }
+.root-label { font-size: 0.78rem; font-weight: 700; color: var(--parch); letter-spacing: 1px; }
+
+/* 나무 아래 자세히 보기 줄 */
+#journal-detail {
+    display: none; align-items: center; gap: 14px;
+    border-top: 1px solid var(--gold-dim); padding: 10px 2px 0; margin-top: 8px; min-height: 54px;
+}
+.detail-info { flex: 1; min-width: 0; }
+.detail-name { font-size: 0.88rem; font-weight: 700; color: var(--gold-lit); }
+.detail-text { font-size: 0.75rem; color: var(--parch-mid); margin-top: 3px; line-height: 1.45; }
+.detail-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.detail-hint { font-size: 0.73rem; color: var(--parch-dim); }
+.detail-btn {
+    background: rgba(255, 216, 74, 0.14); color: var(--parch); border: 1px solid var(--gold);
+    padding: 8px 14px; font-size: 0.76rem; font-weight: 700; cursor: pointer;
+    font-family: var(--font-ko); white-space: nowrap;
+}
+.detail-btn:hover { background: rgba(255, 216, 74, 0.28); }
+.detail-btn.off { background: var(--ink-raise); border-color: var(--gold-dim); color: var(--parch-dim); cursor: default; }
+.detail-btn.off:hover { background: var(--ink-raise); }
+.detail-btn.slot-btn { padding: 8px 10px; font-weight: 400; }
+.detail-btn.slot-btn.on { background: rgba(125, 211, 106, 0.18); border-color: var(--good); color: var(--parch); }
+
+/* HUD: 성장 포인트 알림 · 스킬 칸의 강화 별 */
+#points-chip {
+    width: 100%; margin-bottom: 8px; padding: 6px 8px; cursor: pointer; white-space: nowrap;
+    background: rgba(255, 216, 74, 0.16); border: 1px solid var(--gold);
+    color: var(--gold-lit); font-size: 0.72rem; font-family: var(--font-ko);
+    animation: point-pulse 1.6s infinite alternate;
+}
+#points-chip b { color: var(--parch); font-size: 0.9rem; }
+#points-chip:hover { background: rgba(255, 216, 74, 0.3); }
+@keyframes point-pulse { from { box-shadow: 0 0 0 rgba(255,216,74,0); } to { box-shadow: 0 0 14px rgba(255,216,74,0.5); } }
+.slot-rank { position: absolute; top: 2px; right: 4px; font-size: 0.55rem; color: var(--gold-lit); letter-spacing: -1px; }
+
+@media (max-width: 900px), (max-height: 620px) {
+    #journal-panel.wide { width: 97vw; max-height: 92vh; }
+    .tree-canopy { gap: 2px; }
+    .tnode { width: 62px; }
+    .tnode-gem { width: 38px; height: 38px; border-width: 2px; }
+    .tnode-rank, .tnode-name { font-size: 0.6rem; }
+    .branch-rows { gap: 16px; }
+    .branch-row { gap: 6px; }
+    .branch-head { padding: 0 6px 4px; }
+    .branch-name { font-size: 0.78rem; }
+    .branch-sub { display: none; }
+    #journal-detail { flex-direction: column; align-items: stretch; gap: 8px; }
+    .detail-actions { justify-content: flex-start; }
+}

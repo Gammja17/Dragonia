@@ -27,7 +27,9 @@ export const state = {
     waystones: [],       // 깨운 이동 석비 id (systems/travel.js)
     dungeon: null,       // 굴에 들어가 있으면 { id, depth, ... } (systems/delve.js)
     event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
-    stats: { kills: {} },
+    stats: { kills: {}, brinks: 0 },   // brinks: 체력 20% 아래까지 몰렸다 살아난 횟수 (스킬 해금 조건)
+    growth: { points: 0, nodes: {}, ranks: {} },   // 성장 트리와 스킬 강화 (systems/growth.js)
+    revivedDay: 0,       // '불사의 심장'으로 버틴 날 (하루 한 번)
     raidTimer: RAID_FIRST_DELAY,
     elderTutorialDone: false,
     player: null,
@@ -67,7 +69,9 @@ export function resetState() {
         waystones: [],       // 깨운 이동 석비 id (systems/travel.js)
         dungeon: null,       // 굴에 들어가 있으면 { id, depth, ... } (systems/delve.js)
         event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
-        stats: { kills: {} },
+        stats: { kills: {}, brinks: 0 },
+        growth: { points: 0, nodes: {}, ranks: {} },
+        revivedDay: 0,
         raidTimer: RAID_FIRST_DELAY,
         elderTutorialDone: false,
         player: null,

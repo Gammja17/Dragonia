@@ -12,7 +12,8 @@ import { dayPhaseName } from '../render/lighting.js';
 import { drawPortrait } from '../render/spritesheet.js';
 import { weatherName } from '../systems/weather.js';
 import { trackedLine, setQuestListener, notify } from '../systems/quests.js';
-import { refreshJournal } from './journal.js';
+import { refreshJournal, toggleJournal } from './journal.js';
+import { points, skillRank } from '../systems/growth.js';
 import { raidStatusText } from '../systems/raid.js';
 import { eventName } from '../systems/events.js';
 
@@ -46,6 +47,7 @@ export function initHud() {
     });
     $('kids-toggle-btn').addEventListener('click', toggleKidsPanel);
     $('help-close').addEventListener('click', toggleHelp);
+    $('points-chip').addEventListener('click', () => toggleJournal('growth'));
     setQuestListener(refreshQuestTracker);
 }
 
@@ -106,10 +108,16 @@ export function updateHud() {
     }
     for (const slot of el.skillSlots) {
         const id = p.slots[slot.dataset.skill];   // 그 칸에 장착한 스킬
+        const rank = id ? skillRank(id) : 0;
         slot.classList.toggle('locked', !id);
         slot.querySelector('.slot-name').textContent = id ? SKILLS[id].name : '비어 있음';
-        slot.lastElementChild.style.height = id ? Math.min(100, ((p.cooldowns[id] || 0) / SKILLS[id].cooldown) * 100) + '%' : '0';
+        slot.querySelector('.slot-rank').textContent = rank > 1 ? '★'.repeat(rank - 1) : '';
+        // 대기 표시는 그때 실제로 걸린 시간(강화·성장으로 줄어든 값) 기준
+        slot.lastElementChild.style.height = id ? Math.min(100, ((p.cooldowns[id] || 0) / (p.cdMax[id] || SKILLS[id].cooldown)) * 100) + '%' : '0';
     }
+    const pts = points();
+    $('points-chip').style.display = pts > 0 ? 'block' : 'none';
+    if (pts > 0) $('points-num').textContent = pts;
     // 걸려 있는 효과들
     const buffs = [];
     if (p.fury > 0) buffs.push(['분노', false]);
