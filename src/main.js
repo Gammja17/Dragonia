@@ -4,7 +4,7 @@ import { cam, followCamera, isOnScreen, resizeCamera, cycleZoom, stepZoom } from
 import { clamp } from './core/utils.js';
 import { preloadTerrain, drawTerrain } from './world/terrain.js';
 import { updateSpawns } from './world/spawn.js';
-import { initWorld, updatePortals, getNpc } from './systems/world.js';
+import { initWorld, updatePortals, getNpc, refreshDen } from './systems/world.js';
 import { resolveCombat, pruneEntities } from './systems/combat.js';
 import { updateRaid } from './systems/raid.js';
 import { updateWeather, drawWeather } from './systems/weather.js';
@@ -22,6 +22,9 @@ import { inDungeon } from './systems/delve.js';
 import { updateChronicle } from './systems/chronicle.js';
 import { updateCutscene, drawCutscene } from './systems/cutscene.js';
 import { updateRoutine } from './systems/routine.js';
+import { updateDenPlace, drawDenGhost, isPlacing, cancelPlacing, setDenRebuilder } from './systems/denPlace.js';
+import { initDenPanel, isDecorPanelOpen, closeDecorPanel } from './ui/denPanel.js';
+import { inMyDen } from './systems/den.js';
 import { updateEvents, drawEvents } from './systems/events.js';
 import { initAudio } from './systems/audio.js';
 import { initJournal } from './ui/journal.js';
@@ -46,6 +49,8 @@ initInput();
 initHud();
 initKidsPanel();
 initJournal();
+initDenPanel();
+setDenRebuilder(refreshDen);
 initTouch();
 initCustomizer(startGame);
 window.addEventListener('beforeunload', saveGame);
@@ -87,6 +92,10 @@ function loop(now) {
 
     if (input.pressed('zoom')) showToast(`시점: ${cycleZoom(canvas.width, canvas.height)}`, '🔍');
     if (mouse.wheel) showToast(`시점: ${stepZoom(mouse.wheel, canvas.width, canvas.height)}`, '🔍');
+    if (input.pressed('cancel')) {
+        if (isPlacing()) cancelPlacing();
+        else if (isDecorPanelOpen()) closeDecorPanel();
+    }
     if (state.isDialogueOpen) {
         if (input.pressed('cancel')) closeDialogue();
         else dialogueUI.handleKeys(input);   // 방향키 + Space 로 선택
@@ -125,7 +134,11 @@ function update(dt) {
 
     resolveCombat();
     pruneEntities();
-    if (outside) { updateSpawns(); updateTravel(); updatePortals(); updateRoutine(dt, getNpc); updateChronicle(dt); }
+    if (outside) {
+        if (inMyDen()) updateDenPlace();                      // 굴 안: 살림살이 놓기
+        else updateSpawns();
+        updateTravel(); updatePortals(); updateRoutine(dt, getNpc); updateChronicle(dt);
+    }
 }
 
 function render() {
@@ -148,6 +161,7 @@ function render() {
     drawables.sort((a, b) => a.y - b.y);
     for (const e of drawables) e.draw(ctx);
 
+    drawDenGhost(ctx);                         // 놓을 자리에 반투명하게
     for (const b of E.bullets) b.draw(ctx);
     for (const fx of E.effects) fx.draw(ctx);
     drawEvents(ctx);

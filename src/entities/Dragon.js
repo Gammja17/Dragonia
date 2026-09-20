@@ -33,6 +33,8 @@ import { groundAt, currentMapBounds, activeBiome } from '../world/terrain.js';
 import { slideMove } from '../world/collision.js';
 import { nearbyWaystone, openTravelMenu } from '../systems/travel.js';
 import { tryDelveInteract } from '../systems/delve.js';
+import { tryDenInteract } from '../systems/denEnter.js';
+import { inMyDen } from '../systems/den.js';
 import { reviveInVillage } from '../systems/world.js';
 import { markTutorial } from '../systems/tutorial.js';
 import { inCutscene } from '../systems/cutscene.js';
@@ -285,7 +287,11 @@ export class Dragon extends Entity {
         const isKid = target && E0.babies.includes(target);
         const nestNear = !target && E0.nests[0] && dist(this, E0.nests[0]) < 110 ? E0.nests[0] : null;
         state.talkTarget = target;   // 그릴 때 발밑에 표시한다
-        setInteractTarget(target || nestNear, nestNear ? 'Space 둥지에서 쉬기' : isKid ? 'Space 아이와 대화' : 'Space 대화 · L 플러팅');
+        // 굴 입구·굴 안은 [E] 로
+        const mouth = !target && !nestNear ? E0.props.find(x => x.type === 'DEN_MOUTH' && dist(this, x) < 120) : null;
+        if (inMyDen()) setInteractTarget(this, 'E 굴 꾸미기');
+        else if (mouth) setInteractTarget(mouth, 'E 굴에 들어간다');
+        else setInteractTarget(target || nestNear, nestNear ? 'Space 둥지에서 쉬기' : isKid ? 'Space 아이와 대화' : 'Space 대화 · L 플러팅');
 
         // 말 걸기는 [Space]. T 도 그대로 쓸 수 있다.
         // 왼쪽 버튼은 브레스라, 탭으로 말 걸기는 터치 기기에서만 (mouse.inside 가 false)
@@ -455,6 +461,9 @@ export class Dragon extends Entity {
 
     interact() {
         const E = state.entities;
+
+        // 0) 보금자리 굴 — 들어가기 / 안에서는 꾸미기 (systems/denEnter.js)
+        if (!this.fishing && tryDenInteract()) return;
 
         // 0) 굴 입구·오르내리는 구멍 (systems/delve.js)
         if (!this.fishing && tryDelveInteract()) return;

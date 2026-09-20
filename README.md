@@ -18,13 +18,14 @@ src/
   main.js           부트스트랩 + 게임 루프 + 렌더 순서
   core/             config, state(런타임 상태), input(키보드·마우스), camera, utils
   world/            biomes(바이옴 팔레트), mapgen(지도 한 장 찍어 내기), terrain(지금 지도의 지형),
-                    collision(물·벽·소품 충돌), dungeon(무작위 지하 미궁 생성), spawn(적 배치)
+                    collision(물·벽·소품 충돌), dungeon(무작위 지하 미궁 생성),
+                    room(굴 속 방 한 칸), spawn(적 배치)
   data/             dialogues(대사 트리), npcs(고정 NPC), sprites(드래곤 시트), tiles(타일 좌표),
                     elements(브레스 속성/성장 단계), enemies(적·사냥꾼·보스), quests(퀘스트),
                     npcTalk(NPC 고유 대화·데이트·관계 장면), skills(스킬 13종),
                     story(수련·승급 시험·아침 장면), chronicle(돌아다니다 터지는 사건),
                     dungeons(굴 입구), materials(대장간 소재·조리법), maps(지도 17장 명세),
-                    routines(용들의 하루 일과)
+                    routines(용들의 하루 일과), dens(용마다의 보금자리 굴), furniture(살림살이)
   entities/         Dragon, BabyDragon, Enemy, Human, Nest, Projectile, Boss, Hazard, Particle, Item, Prop
   render/           assets, spritesheet, tint, dragonSprites, pixel(픽셀 아이콘), vfx,
                     lighting(낮밤 조명), palette(지형 리컬러), cursor(마우스 조준점)
@@ -33,9 +34,10 @@ src/
                     smithing(대장간), travel(이동 석비), delve(굴 탐험),
                     chronicle(사건·장면 재생), events(밤 이벤트), audio, kidActions, story,
                     world(지도 오가기·개체 배치), tutorial(길잡이),
-                    cutscene(사건 연출), routine(일과대로 용 옮기기)
+                    cutscene(사건 연출), routine(일과대로 용 옮기기),
+                    den(굴 살림살이·아늑함), denEnter(드나들기), denPlace(놓을 자리 고르기)
   ui/               hud(미니맵·길잡이), dialogueUI, kidsPanel,
-                    journal(퀘스트·마을 용들·기록·유물·도감 탭),
+                    journal(퀘스트·마을 용들·기록·유물·도감 탭), denPanel(굴 꾸미기),
                     customizer, toast, touch(모바일 조작)
 ```
 
@@ -45,8 +47,8 @@ src/
 - **1 2 3** 숨결 속성 · **Q F R** 스킬 · **B** 스킬 수첩 · **X** 필살기
 - **Space** 말 걸기 · 둥지에서 잠자기 · 대화창 넘기기 (**T** 도 같음)
 - **방향키** 대화 선택지 고르기 (**Space** 로 결정)
-- **E** 줍기 · 먹기 · 상자 · 열매 · 낚시 · 이동 석비 · 굴 드나들기
-- **L** 플러팅 · **K** 가족 · **J** 일지
+- **E** 줍기 · 먹기 · 상자 · 열매 · 낚시 · 이동 석비 · 굴 드나들기 · **굴 꾸미기**
+- **L** 플러팅 · **K** 가족 · **J** 일지 (퀘스트 · 마을 용들 · 기록 · 유물 · 도감)
 - **마우스 휠** 시점 확대·축소 (**V** 로도 단계를 넘긴다) · **M** 소리 · **Esc** 닫기
 
 ## 세계
@@ -83,6 +85,16 @@ src/
 시간이 흘러 일과가 바뀌면 용은 포탈로 걸어 나가고, 올 용은 포탈로 걸어 들어온다.
 **[J] 일지 → [마을 용들]** 탭에서 지금 누가 어디서 무엇을 하는지 한눈에 볼 수 있고,
 퀘스트 줄에도 의뢰인이 지금 있는 곳이 적힌다.
+
+## 굴
+용은 저마다 굴 하나씩을 배정받아 산다 (`data/dens.js`). 지도 위의 **굴 입구**에서 [E].
+
+**내 굴**은 비어 있는 채로 시작한다. 살림살이를 엮어 들여놓고 [E]로 자리를 골라 놓는다.
+모으면 **아늑함**이 오르고, 굴에서 자고 일어날 때 몸이 더 잘 낫는다. 둥지도 굴 안에 있다.
+살림살이는 골드와 소재로 엮거나 보물상자에서 나온다 (`data/furniture.js`).
+
+**남의 굴**은 그 용답게 처음부터 꾸며져 있다. 사이가 어느 정도 가까워야 들어갈 수 있고,
+밤이면 주인이 자고 있다. 카이론의 굴에는 무기밖에 없고, 포코의 굴에는 먹다 남긴 것이 널려 있다.
 
 ## 이야기
 보스는 "가서 잡아라"로 시작하지 않는다. 달빛 골짜기에 발을 들이면 울음을 듣고,

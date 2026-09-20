@@ -45,7 +45,8 @@ export function saveGame() {
         raidCount: state.raid.count, upgrades: state.upgrades, openedChests: state.openedChests, blessingDay: state.blessingDay,
         companion: state.companion ? state.companion.config.name : null,
         den: state.den, ult: p.ult,
-        relics: state.relics, relicSlots: state.relicSlots, materials: state.materials, waystones: state.waystones, stats: state.stats, event: state.event, story: state.story,
+        relics: state.relics, relicSlots: state.relicSlots, materials: state.materials, waystones: state.waystones,
+        furniture: state.furniture, denDecor: state.denDecor, densSeen: state.densSeen, stats: state.stats, event: state.event, story: state.story,
         npcs: Object.fromEntries(fixedNpcs()
             .map(n => [n.config.name, { relation: n.relation, lastGiftDay: n.lastGiftDay ?? null, lastTalkDay: n.lastTalkDay ?? null, lastPresentDay: n.lastPresentDay ?? null, lastPlayDay: n.lastPlayDay ?? null, dates: n.dates || 0, lastDateDay: n.lastDateDay ?? null, lastEggDay: n.lastEggDay ?? null, lastMeditateDay: n.lastMeditateDay ?? null }])),
         partner: state.partner ? state.partner.config.name : null,
@@ -86,6 +87,9 @@ export function applySave(data) {
     state.relicSlots = data.relicSlots || state.relics.slice(0, 3);
     state.materials = data.materials || {};
     state.waystones = data.waystones || [];
+    state.furniture = data.furniture || {};
+    state.denDecor = data.denDecor || [];
+    state.densSeen = data.densSeen || [];
     state.visited = data.visited || [];
     state.den = data.den || { built: !!(data.nest && data.nest.hasEgg), twigs: 0 };
     state.denNest = data.nest || { hasEgg: false, progress: 0, genes: null };

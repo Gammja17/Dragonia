@@ -48,12 +48,11 @@ export const MAPS = {
     DEN: {
         name: '나의 아지트', biome: 'FOREST', cw: 15, ch: 12, seed: 102, trees: 0.35,
         clearings: [[7, 6, 3]],
-        nests: [[7, 5]],
         roads: [[[7, 11], [7, 6]]],
         portals: [{ side: 'S', to: 'VILLAGE', name: '드래곤 빌리지' }],
         fixtures: [
-            { t: 'NEST', at: [7, 5] },
-            { t: 'PROP', type: 'HOUSE', at: [5, 7] },
+            // 둥지는 굴 안에 있다 (data/dens.js 의 DEN_MINE)
+            { t: 'PROP', type: 'CAMPFIRE', at: [7, 5] },
             { t: 'PROP', type: 'CAMPFIRE', at: [9, 7] },
             { t: 'PROP', type: 'BARREL', at: [5, 5] },
             { t: 'WAYSTONE', at: [9, 5] },
@@ -241,4 +240,7 @@ export const MAP_ORDER = [
     'DESERT', 'BASIL_LAIR', 'AUTUMN', 'VOLCANO', 'IGNAR_LAIR',
 ];
 
-export const mapName = (id) => (MAPS[id] ? MAPS[id].name : id);
+// 굴(data/dens.js)도 지도 하나로 친다. 이름은 여기서 함께 풀어 준다
+let denNames = {};
+export function registerMapNames(extra) { denNames = { ...denNames, ...extra }; }
+export const mapName = (id) => (MAPS[id] ? MAPS[id].name : denNames[id] || id);

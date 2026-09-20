@@ -131,6 +131,21 @@
 
     <div id="fade-screen"><div id="fade-text"></div></div>
 
+    <div id="den-panel" class="panel">
+        <div class="panel-head">
+            <div class="panel-title">굴 꾸미기</div>
+            <button id="den-close" class="panel-close">닫기 (E)</button>
+        </div>
+        <div class="den-meta"><b id="den-cozy">아늑함 0</b><span id="den-cozy-note"></span></div>
+        <div id="den-tabs" class="journal-tabs">
+            <button class="journal-tab on" data-tab="have">가진 것</button>
+            <button class="journal-tab" data-tab="craft">엮는다</button>
+            <button class="journal-tab" data-tab="here">놓아 둔 것</button>
+        </div>
+        <div id="den-body" class="panel-body"></div>
+    </div>
+
+    <div id="den-hint"></div>
     <div id="scene-title"></div>
 
     <div id="dialogue-overlay">
@@ -156,16 +171,18 @@
             <div class="help-row"><b>1 2 3</b><span>숨결 속성 바꾸기</span></div>
             <div class="help-row"><b>Q F R</b><span>장착한 스킬 (대기 시간만 쓴다)</span></div>
             <div class="help-row"><b>B</b><span>스킬 수첩 · <b class="inline">X</b> 필살기</span></div>
-            <div class="help-row"><b>E</b><span>줍기 · 먹기 · 상자 · 열매 · 낚시 · 석비 · 굴</span></div>
+            <div class="help-row"><b>E</b><span>줍기 · 먹기 · 상자 · 열매 · 낚시 · 석비 · 굴 드나들기 · 굴 꾸미기</span></div>
             <div class="help-row"><b>Space</b><span>말 걸기 · 둥지에서 잠자기 · 대화창 넘기기</span></div>
             <div class="help-row"><b>방향키</b><span>대화 선택지 고르기 (Space 로 결정) · <b class="inline">L</b> 플러팅</span></div>
-            <div class="help-row"><b>J</b><span>일지 — 퀘스트 · 기록 · 유물 · 도감</span></div>
+            <div class="help-row"><b>J</b><span>일지 — 퀘스트 · 마을 용들 · 기록 · 유물 · 도감</span></div>
             <div class="help-row"><b>휠</b><span>시점 확대·축소 (<b class="inline">V</b> 로도 넘어간다)</span></div>
             <div class="help-row"><b>K</b><span>가족 · <b class="inline">M</b> 소리 · <b class="inline">Esc</b> 닫기</span></div>
 
             <div class="help-sep">알아 두면 좋은 것</div>
             <div class="help-row"><b>허기</b><span>마나가 아니다. 배가 고프면 느려지기만 한다</span></div>
-            <div class="help-row"><b>강</b><span>헤엄칠 수 없다. 흙바닥 여울을 찾아 건넌다</span></div>
+            <div class="help-row"><b>지도</b><span>가장자리 문을 밟으면 옆 지도로 넘어간다. 물은 못 건넌다</span></div>
+            <div class="help-row"><b>일과</b><span>용마다 시간대별로 있는 곳이 다르다. 일지에서 확인한다</span></div>
+            <div class="help-row"><b>굴</b><span>내 굴은 [E]로 꾸민다. 아늑할수록 잘 쉰다. 남의 굴도 찾아갈 수 있다</span></div>
             <div class="help-row"><b>유물</b><span>끼운 것만 힘이 된다. 칸은 자랄수록 늘어난다</span></div>
             <div class="help-row"><b>강화</b><span>골드가 아니라 소재로 그론의 모루에서 두드린다</span></div>
         </div>

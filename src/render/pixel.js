@@ -171,6 +171,24 @@ const ICONS = {
             '..oooooooo..',
         ],
     },
+    // 보금자리 굴 입구. 안쪽에 불빛이 보여 "누가 산다"는 느낌을 준다
+    DEN_MOUTH: {
+        palette: { o: '#181410', R: '#6b6153', r: '#8d8474', d: '#0a0a10', f: '#ffb347', y: '#ffd98a', w: '#7a5b3a' },
+        rows: [
+            '...RRRRRR...',
+            '..RrrrrrrR..',
+            '.RrrRRRRrrR.',
+            'RrrRwwwwRrrR',
+            'RrRwddddwRrR',
+            'RrRwddddwRrR',
+            'RrRwdyydwRrR',
+            'RrRwdyfydwRr',
+            'RrRwddffdwRr',
+            'RRRwddddwRRR',
+            '.oRwwwwwwRo.',
+            '..oooooooo..',
+        ],
+    },
     STAIRS_DOWN: {
         palette: { o: '#181410', S: '#6b6153', s: '#4a453a', d: '#05050a' },
         rows: [

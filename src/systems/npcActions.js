@@ -1,4 +1,5 @@
 import { state } from '../core/state.js';
+import { inMyDen, visitLine } from './den.js';
 import { npcName } from '../data/npcs.js';
 import { clamp, dist, pick, rand } from '../core/utils.js';
 import { NPC_TALK, TIER_NAMES, SITUATION_LINES, DATES, CONFESSION, FAMILY_TALK, BOND_SCENES, ROMANCE_GATES, relationTier } from '../data/npcTalk.js';
@@ -88,9 +89,11 @@ export function openNpcHub(npc, skipErrand = false) {
 
     opts.push({ label: '다음에 봐', onSelect: close });
 
-    // 인사말 앞에 지금 무얼 하고 있었는지를 한 줄 깔아 둔다 (하루 일과)
+    // 인사말 앞에 지금 무얼 하고 있었는지를 한 줄 깔아 둔다 (하루 일과).
+    // 내 굴까지 따라 들어왔다면 굴 구경평부터 한다
     let text = greeting(npc, talk, tier);
-    if (npc.doing) text = `(${npc.doing}.)\n\n` + text;
+    if (inMyDen()) text = `${visitLine()}\n\n` + text;
+    else if (npc.doing) text = `(${npc.doing}.)\n\n` + text;
     if (running && !isComplete(running)) text += `\n\n(${running.title} — ${goalText(running)}: ${questProgress(running)}/${running.goal.count || 1})`;
     show(npc, text, opts);
     return true;

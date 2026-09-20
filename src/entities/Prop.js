@@ -2,7 +2,8 @@ import { Entity } from './Entity.js';
 import { isOnScreen, cam } from '../core/camera.js';
 import { state } from '../core/state.js';
 import { inCutscene } from '../systems/cutscene.js';
-import { PROP_SPRITES, TILE_SCALE } from '../data/tiles.js';
+import { PROP_SPRITES, TILE_SCALE, TILE, TILE_SRC } from '../data/tiles.js';
+import { FURNITURE } from '../data/furniture.js';
 import { getTileImage, activeBiome } from '../world/terrain.js';
 import { BIOMES } from '../world/biomes.js';
 import { drawIcon, drawGlow } from '../render/pixel.js';
@@ -11,12 +12,20 @@ import { Item } from './Item.js';
 import { showToast } from '../ui/toast.js';
 import { notify } from '../systems/quests.js';
 import { grantRelic, randomRelic } from '../systems/relics.js';
+import { giveFurniture } from '../systems/den.js';
 import { play } from '../systems/audio.js';
 
 const BERRY_REGROW = 100; // 초
 
+/** 스스로 빛나는 살림살이 (화로·구슬) */
+function furnitureLight(prop) {
+    const f = FURNITURE[prop.fid];
+    if (!f || !f.light) return null;
+    return { r: 240 + Math.sin(state.gameTime * 9 + prop.seed * 7) * 16, color: f.light, dy: -28, emissive: true };
+}
+
 // 코드로 찍은 픽셀 아이콘으로 그리는 소품: [배율, 발에서 위로 올릴 px]
-const ICON_PROPS = { CAVE: [6, 36], STAIRS_DOWN: [5, 24], STAIRS_UP: [5, 24] };
+const ICON_PROPS = { CAVE: [6, 36], DEN_MOUTH: [6, 36], STAIRS_DOWN: [5, 24], STAIRS_UP: [5, 24] };
 
 export class Prop extends Entity {
     constructor(x, y, type) {
@@ -40,6 +49,8 @@ export class Prop extends Entity {
             case 'WAYSTONE': return { r: 130, color: '#7fd4ff', intensity: this.awake ? 0.85 : 0.35, dy: -40 };
             case 'STAIRS_UP': return { r: 200, color: '#ffe9b0', intensity: 0.9, dy: -20, emissive: true };
             case 'CAVE': return { r: 90, color: '#9fb4ff', intensity: 0.3, dy: -30 };
+            case 'DEN_MOUTH': return { r: 190, color: '#ffc87a', intensity: 0.75, dy: -34, emissive: true };
+            case 'FURNITURE': return furnitureLight(this);
             case 'PORTAL': return { r: 150, color: '#9fe3ff', intensity: 0.7, dy: -40, emissive: true };
             default: return null;
         }
@@ -78,6 +89,11 @@ export class Prop extends Entity {
         spawnEffect('STAR', this.x, this.y - 20);
         play('pickup');
         if (Math.random() < 0.22) { const id = randomRelic(); if (id) grantRelic(id, this.x, this.y); }
+        // 가끔 굴에 들여놓을 살림살이가 들어 있다 (systems/den.js)
+        if (Math.random() < 0.3) {
+            const pool = Object.keys(FURNITURE).filter(k => (FURNITURE[k].cost.gold || 0) <= 120);
+            giveFurniture(pool[Math.floor(Math.random() * pool.length)]);
+        }
         showToast('보물상자를 열었습니다!', '🎁');
         notify('chest');
     }
@@ -86,6 +102,7 @@ export class Prop extends Entity {
 
     draw(ctx) {
         if (!isOnScreen(this, 300)) return; // 큰 나무(높이 288px)가 화면 아래에서 툭 튀어나오지 않게
+        if (this.type === 'FURNITURE') { this.drawFurniture(ctx); return; }
         if (this.type === 'PORTAL') { this.drawPortal(ctx); return; }
         if (this.type === 'WAYSTONE') { this.drawWaystone(ctx); return; }
         if (ICON_PROPS[this.type]) { drawIcon(ctx, this.type, this.x, this.y - ICON_PROPS[this.type][1], ICON_PROPS[this.type][0]); return; }
@@ -98,6 +115,21 @@ export class Prop extends Entity {
         ctx.globalCompositeOperation = 'lighter';
         ctx.drawImage(fire, (f % 10) * 64, Math.floor(f / 10) * 64, 64, 64, this.x - 48, this.y - 112, 96, 96);
         ctx.globalCompositeOperation = 'source-over';
+    }
+
+    /** 굴에 놓은 살림살이. assets/tiles/dungeon.png 에서 칸 하나를 떠 온다 */
+    drawFurniture(ctx, alpha = 1) {
+        const f = FURNITURE[this.fid];
+        const sheet = getTileImage('dungeon');
+        if (!f || !sheet) return;
+        const [sx, sy] = f.tile, [sw, sh] = f.span;
+        const w = sw * TILE, h = sh * TILE;
+        if (alpha !== 1) { ctx.save(); ctx.globalAlpha = alpha; }
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(sheet, sx * TILE_SRC, sy * TILE_SRC, sw * TILE_SRC, sh * TILE_SRC,
+                      Math.round(this.x - w / 2), Math.round(this.y - h), w, h);
+        ctx.imageSmoothingEnabled = true;
+        if (alpha !== 1) ctx.restore();
     }
 
     /** 다른 지도로 넘어가는 문. 어디로 가는지 이름을 붙여 둔다 */

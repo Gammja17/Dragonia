@@ -29,12 +29,17 @@ export const state = {
     mapId: 'VILLAGE',    // 지금 밟고 있는 지도 (data/maps.js · systems/world.js)
     visited: [],         // 발을 들여 본 지도들
     dojoSpot: null,      // 수련장 허수아비가 설 자리 (지도가 깔릴 때 정해진다)
-    denNest: null,       // 아지트 둥지 상태 (딴 지도에 있을 때도 알이 자라도록 들고 있는다)
+    denNest: null,       // 둥지 상태 (딴 지도에 있을 때도 알이 자라도록 들고 있는다)
+    indoors: false,      // 굴 안(보금자리·미궁)인가 — 조명·날씨가 달라진다
     event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
     stats: { kills: {} },
     raidTimer: RAID_FIRST_DELAY,
     elderTutorialDone: false,
     tutorial: { moved: false, journal: false, ate: false, finished: false },   // systems/tutorial.js
+    furniture: {},          // 가진 살림살이 { 가구id: 개수 }   systems/den.js
+    denDecor: [],           // 내 굴에 놓아 둔 것 [{ id, tx, ty }]
+    densSeen: [],           // 들어가 본 굴
+    holding: null,          // 지금 들고 놓으려는 살림살이 id
     player: null,
     partner: null,
     currentNpc: null,
@@ -75,10 +80,11 @@ export function resetState() {
         visited: [],
         dojoSpot: null,
         denNest: null,
-    mapId: 'VILLAGE',    // 지금 밟고 있는 지도 (data/maps.js · systems/world.js)
-    visited: [],         // 발을 들여 본 지도들
-    dojoSpot: null,      // 수련장 허수아비가 설 자리 (지도가 깔릴 때 정해진다)
-    denNest: null,       // 아지트 둥지 상태 (딴 지도에 있을 때도 알이 자라도록 들고 있는다)
+        indoors: false,
+        furniture: {},
+        denDecor: [],
+        densSeen: [],
+        holding: null,
         event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
         stats: { kills: {} },
         raidTimer: RAID_FIRST_DELAY,

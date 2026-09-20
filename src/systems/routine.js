@@ -1,7 +1,10 @@
 import { state } from '../core/state.js';
 import { ROUTINES, slotAtHour } from '../data/routines.js';
 import { MAPS, mapName } from '../data/maps.js';
+import { DENS } from '../data/dens.js';
 import { coarseCenter } from '../world/mapgen.js';
+import { ROOM_PAD } from '../world/room.js';
+import { TILE } from '../data/tiles.js';
 import { npcName } from '../data/npcs.js';
 
 // 하루 일과. data/routines.js 가 "누가 몇 시에 어디서 무엇을 하는지"를 적어 두면
@@ -31,15 +34,15 @@ export function planFor(name, hour = state.dayTime * 24) {
     }
     if (state.raid.active && r.raid) slot = r.raid;
     else if (r.rain && (state.weather.type === 'RAIN' || state.weather.type === 'SNOW')) slot = r.rain;
-    const spec = MAPS[slot.map];
-    if (!spec) return null;
+    if (!MAPS[slot.map] && !DENS[slot.map]) return null;
     return {
         job: r.job,
         map: slot.map,
         mapName: mapName(slot.map),
         doing: slot.doing,
-        x: coarseCenter(slot.spot[0]),
-        y: coarseCenter(slot.spot[1]),
+        ...(DENS[slot.map]
+            ? { x: (ROOM_PAD + slot.spot[0]) * TILE + TILE / 2, y: (ROOM_PAD + slot.spot[1]) * TILE + TILE }
+            : { x: coarseCenter(slot.spot[0]), y: coarseCenter(slot.spot[1]) }),
     };
 }
 

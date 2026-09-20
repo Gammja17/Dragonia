@@ -16,6 +16,11 @@ import { fadeScreen } from '../ui/hud.js';
 import { showToast } from '../ui/toast.js';
 import { play } from './audio.js';
 import { placeByRoutine, hasRoutine, ROUTINE_NAMES, planFor } from './routine.js';
+import { DENS, densOn } from '../data/dens.js';
+import { buildRoom } from '../world/room.js';
+import { FURNITURE } from '../data/furniture.js';
+import { decorOf, tileToWorld } from './den.js';
+import { denIntro } from './denEnter.js';
 
 // 여러 장의 지도를 오가는 살림살이.
 //
@@ -41,11 +46,44 @@ export function currentMapName() { return mapName(state.mapId); }
 /** 지도 인스턴스 (없으면 만들어 캐시) */
 function getMap(id) {
     if (!mapCache.has(id)) {
+        if (DENS[id]) { mapCache.set(id, buildRoom(DENS[id])); return mapCache.get(id); }
         const spec = MAPS[id];
         if (!spec) throw new Error('알 수 없는 지도: ' + id);
         mapCache.set(id, buildMap({ ...spec, id }));
     }
     return mapCache.get(id);
+}
+
+/** 굴 안 한 칸. 바깥 지도와 달리 방 하나뿐이고 살림살이가 놓여 있다 */
+function populateDen(id) {
+    const map = getMap(id);
+    const spec = DENS[id];
+    const pools = emptyPools();
+
+    // 나가는 문 — 방 아래쪽 한가운데
+    const mouth = new Prop(map.center.x, map.floorRect.y + map.floorRect.h - TILE * 0.4, 'PORTAL');
+    mouth.portal = { to: spec.outer, name: mapName(spec.outer), spot: at(spec.at) };
+    pools.props.push(mouth);
+
+    // 살림살이
+    for (const d of decorOf(id)) {
+        const f = FURNITURE[d.id];
+        if (!f) continue;
+        const w = tileToWorld(d.tx, d.ty);
+        const item = new Prop(w.x + (f.span[0] - 1) * TILE / 2, w.y, 'FURNITURE');
+        item.fid = d.id;
+        pools.props.push(item);
+    }
+
+    // 내 굴에는 둥지가 있다. 자고 일어나는 곳이자 알을 품는 곳
+    if (spec.mine) {
+        const nest = new Nest(map.center.x, map.floorRect.y + TILE * 1.6);
+        if (state.denNest) Object.assign(nest, state.denNest);
+        pools.nests.push(nest);
+    }
+
+    placeByRoutine(id, pools, getNpc);
+    return { map, pools };
 }
 
 /** 큰 칸 좌표 → 월드 좌표 */
@@ -80,6 +118,7 @@ function edgeWalls(map, props, rng, portals) {
 
 /** 지도 하나의 개체를 전부 만든다 */
 function populate(id) {
+    if (DENS[id]) return populateDen(id);
     const map = getMap(id);
     const spec = MAPS[id];
     const rng = mulberry32((spec.seed || 1) * 31 + 7);
@@ -158,6 +197,15 @@ function populate(id) {
             npc.homeX = pos.x; npc.homeY = pos.y;
             pools.npcs.push(npc);
         }
+    }
+
+    // 3-2) 이 지도에 입구가 있는 굴들
+    for (const denId of densOn(id)) {
+        const spec = DENS[denId];
+        const pos = at(spec.at);
+        const mouth = new Prop(pos.x, pos.y, 'DEN_MOUTH');
+        mouth.denId = denId;
+        pools.props.push(mouth);
     }
 
     // 4) 일과대로 지금 이 지도에 있어야 하는 용들
@@ -247,6 +295,7 @@ export function enterMap(id, { from = null, spot = null } = {}) {
 
     const { map, pools } = populate(id);
     state.mapId = id;
+    state.indoors = !!DENS[id];
     setActiveMap(map);
 
     // 설 자리를 고르기 전에 소품 격자를 먼저 깔아야 solidAt() 이 제대로 답한다
@@ -271,6 +320,7 @@ export function enterMap(id, { from = null, spot = null } = {}) {
 
     state.entities = pools;
     if (!state.visited.includes(id)) state.visited.push(id);
+    if (DENS[id]) denIntro(id);
     return map;
 }
 
@@ -283,6 +333,7 @@ export function initWorld(config) {
         accessory: config.accessory || null, look: config.look || 0,
     }, true);
     primeNpcs();
+    state.furniture = { STRAW: 1 };   // 첫 잠자리 한 벌은 마을에서 챙겨 준다
     enterMap(START_MAP, {});
     const v = getMap(START_MAP);
     state.player.x = v.w / 2; state.player.y = v.h * 0.62;
@@ -296,7 +347,30 @@ export function updatePortals() {
     const gate = state.entities.props.find(x => x.portal && dist(p, x) < PORTAL_RANGE);
     if (!gate) return;
     if (state.raid.active) { showToast('사냥꾼이 마을을 치고 있다. 지금 떠날 수는 없다.', '⚔️'); return; }
-    travelTo(gate.portal.to, OPPOSITE[gate.portal.side]);
+    // 굴에서 나올 때는 들어갔던 입구 앞에 선다 (side 가 없다)
+    const spot = gate.portal.spot ? { x: gate.portal.spot.x, y: gate.portal.spot.y + 84 } : null;
+    travelTo(gate.portal.to, gate.portal.side ? OPPOSITE[gate.portal.side] : null, spot);
+}
+
+/** 살림살이를 놓거나 치웠을 때, 굴 안 소품만 다시 깐다 */
+export function refreshDen() {
+    if (!DENS[state.mapId]) return;
+    const { pools } = populateDen(state.mapId);
+    // 지금 서 있는 나와 따라다니는 식구는 그대로 두고 소품만 바꾼다
+    state.entities.props = pools.props;
+    buildPropGrid(state.entities.props);
+}
+
+/** 굴 입구 가까이 있으면 그 굴 id */
+export function nearbyDenMouth() {
+    const p = state.player;
+    let best = null, bestD = 120;
+    for (const m of state.entities.props) {
+        if (m.type !== 'DEN_MOUTH') continue;
+        const d = dist(p, m);
+        if (d < bestD) { best = m; bestD = d; }
+    }
+    return best;
 }
 
 /** 포탈·이동 석비로 지도를 옮긴다 */

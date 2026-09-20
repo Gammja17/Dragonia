@@ -31,7 +31,7 @@ const fireflies = Array.from({ length: 40 }, () => ({ x: Math.random() * 4000, y
 const CAVE_AMBIENT = [26, 26, 38];   // 굴 속: 횃불과 제 몸의 불빛만 보인다
 
 function ambient() {
-    if (state.dungeon) return CAVE_AMBIENT;
+    if (state.dungeon || state.indoors) return CAVE_AMBIENT;
     const t = state.dayTime;
     let i = 1;
     while (AMBIENT_KEYS[i][0] < t) i++;
@@ -101,7 +101,7 @@ export function drawLighting(ctx, cam) {
     lmCtx.fillRect(0, 0, lw, lh);
 
     // 낮에는 구름 그림자가 천천히 지나간다
-    const cloudAlpha = state.dungeon ? 0 : 0.3 * Math.max(0, 1 - dark * 2.5);   // 굴 속엔 구름 그림자가 없다
+    const cloudAlpha = state.dungeon || state.indoors ? 0 : 0.3 * Math.max(0, 1 - dark * 2.5);   // 굴 속엔 구름 그림자가 없다
     if (cloudAlpha > 0.01) {
         const shadow = getGlow('#141c3a');
         lmCtx.globalAlpha = cloudAlpha;
@@ -130,7 +130,7 @@ export function drawLighting(ctx, cam) {
     }
 
     // 3) 밤의 반딧불이 (굴 속엔 없다)
-    const night = state.dungeon ? 0 : Math.min(1, Math.max(0, (dark - 0.3) * 3));
+    const night = state.dungeon || state.indoors ? 0 : Math.min(1, Math.max(0, (dark - 0.3) * 3));
     if (night > 0) {
         for (const f of fireflies) {
             const t = state.gameTime * f.speed + f.phase;

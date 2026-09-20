@@ -61,6 +61,7 @@ function buildFloor(depth) {
     d.floor = floor;
     d.adapter = adapter;
     adapter.biome = def.biome;   // 소품·몬스터 색상판
+    state.indoors = true;
     setActiveMap(adapter);
     refreshMinimap();
 

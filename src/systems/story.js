@@ -1,4 +1,5 @@
 import { state } from '../core/state.js';
+import { cozyRest } from './den.js';
 import { npcName } from '../data/npcs.js';
 import { playScene } from './chronicle.js';
 import { dist, rand, pick } from '../core/utils.js';
@@ -185,7 +186,9 @@ export function openNestMenu() {
     state.isDialogueOpen = true;
     const busy = state.raid.active || state.activity || state.entities.bosses.some(b => b.awake);
     dialogueUI.show({
-        name: '둥지', text: busy ? '지금은 잠들 수 없다. 주변이 너무 소란스럽다.' : `${state.day}일째. 포근한 둥지다. 자고 일어나면 다음 날 아침이 된다.`, onClose: close,
+        name: '둥지', text: busy
+            ? '지금은 잠들 수 없다. 주변이 너무 소란스럽다.'
+            : `${state.day}일째. 자고 일어나면 다음 날 아침이 된다.\n(굴: ${cozyRest().tier.name} — ${cozyRest().tier.note})`, onClose: close,
         options: busy ? [{ label: '나중에', onSelect: close }] : [
             { label: '잠을 잔다 (다음 날 아침까지)', onSelect: sleep },
             ...(state.den.built ? [] : [{ label: `둥지를 짓는다 (나뭇가지 ${state.den.twigs}/8, 30G)`, onSelect: buildNest }]),
@@ -221,7 +224,9 @@ function sleep() {
         state.weather.type = 'CLEAR'; state.weather.timer = rand(40, 90);
         state.raidTimer = Math.max(state.raidTimer, 45);   // 눈 뜨자마자 습격당하지 않게
         p.hp = p.maxHp;
-        p.hunger = Math.max(30, p.hunger - 25);              // 자는 동안 배가 꺼진다
+        // 굴이 아늑할수록 배가 덜 꺼진다 (systems/den.js)
+        const rest = cozyRest();
+        p.hunger = Math.max(30, p.hunger - Math.round(25 * (1 - rest.heal)));
         for (const n of state.entities.npcs) if (n.config.fixed) { n.x = n.homeX; n.y = n.homeY; n.hp = n.maxHp; n.downTimer = 0; }
         for (const n of [state.partner, state.companion]) if (n) { n.x = p.x + 70; n.y = p.y + 20; }
         saveGame();
