@@ -64,10 +64,17 @@ export function drawAccessory(ctx, sheet, accessory, facing, x, y, scale) {
     drawIcon(ctx, accessory, left + sheet.fw * s * hx, top + sheet.fh * s * hy, Math.max(2, Math.round(3 * scale)));
 }
 
-/** 이동 벡터 → 4방향 */
+// 지금 보고 있는 축(가로/세로)을 조금 우대한다. 정확히 대각선으로 움직일 때
+// |dx| 와 |dy| 가 엎치락뒤치락하면서 매 프레임 방향이 갈리던 것을 막는다
+const FACE_BIAS = 1.2;
+
+/** 이동 벡터 → 4방향. fallback 은 지금 보고 있는 방향 */
 export function facingFromVector(dx, dy, fallback = 'down') {
     if (!dx && !dy) return fallback;
-    if (Math.abs(dx) >= Math.abs(dy)) return dx > 0 ? 'right' : 'left';
+    const ax = Math.abs(dx), ay = Math.abs(dy);
+    const wasHoriz = fallback === 'left' || fallback === 'right';
+    const horiz = wasHoriz ? ax * FACE_BIAS >= ay : ax >= ay * FACE_BIAS;
+    if (horiz) return dx > 0 ? 'right' : 'left';
     return dy > 0 ? 'down' : 'up';
 }
 
@@ -343,7 +350,16 @@ export class Dragon extends Entity {
         if (input.pressed('journal')) toggleJournal();
         if (input.pressed('skillbook')) toggleJournal('skills');   // 스킬 나무
         if (input.pressed('growthTab')) toggleJournal('growth');   // 성장 나무
-        if (input.pressed('mute')) showToast(toggleMute() ? '효과음 끔' : '효과음 켬', '🔊');
+        if (input.pressed('mute')) showToast(toggleMute() ? '소리 끔' : '소리 켬', '🔊');
+
+        // 보는 방향은 프레임 끝에 딱 한 번 정한다. 마우스를 쓰는 중이면 커서 쪽, 아니면 가는 쪽.
+        // 예전엔 moveBy 가 매 프레임 '가는 쪽'으로, attack 이 쏠 때마다 '겨눈 쪽'으로 따로 돌려놔서
+        // 왼쪽으로 달리며 오른쪽을 쏘면 스프라이트가 좌우로 튀었다
+        if (!locked) {
+            const look = mouse.inside ? this.aimAngle().angle : (dx || dy) ? Math.atan2(dy, dx) : null;
+            if (look !== null) this.facing = facingFromVector(Math.cos(look), Math.sin(look), this.facing);
+        }
+
         // 스스로 깨우치는 스킬·각성은 1초에 한 번만 살펴본다
         this.unlockTimer = (this.unlockTimer || 0) - dt;
         if (this.unlockTimer <= 0) { this.unlockTimer = 1; checkSkillUnlocks(); }
@@ -417,7 +433,6 @@ export class Dragon extends Entity {
         this.fireTimer = (el.rateByStage ? el.rateByStage[st] : el.rate) * (this.fury > 0 ? 0.75 : 1) * slug * (this.gale > 0 ? 0.65 : 1);
         if (this.animator) this.animator.play('attack');
         const { angle } = this.aimAngle();
-        this.facing = facingFromVector(Math.cos(angle), Math.sin(angle), this.facing);
         const pellets = el.pelletsByStage ? el.pelletsByStage[st] : el.pellets;
         for (let i = 0; i < pellets; i++) this.breathe(angle + (i - (pellets - 1) / 2) * el.spread);
         const sc = this.stage.scale;
@@ -647,7 +662,11 @@ export class Dragon extends Entity {
     updatePartner(dt, fighting = false) {
         const player = state.player;
         if (dist(this, player) > (fighting ? 260 : 110)) {
+            // 싸우는 중이라면 몸은 플레이어를 쫓아가도 얼굴은 적에게 둔다 (fight 가 정해 둔 방향).
+            // 그러지 않으면 따라붙는 거리 경계를 넘나들 때마다 적 쪽과 플레이어 쪽으로 번갈아 돌아본다
+            const look = fighting ? this.facing : null;
             this.moveBy(player.x - this.x, player.y - this.y, 240, dt);
+            if (look) this.facing = look;
         }
     }
 
@@ -665,10 +684,13 @@ export class Dragon extends Entity {
             return;
         }
         if (this.resting) return;
-        let a = this.wanderAngle;
-        if (dist(this, { x: this.homeX, y: this.homeY }) > 500) {
-            a = Math.atan2(this.homeY - this.y, this.homeX - this.x);
-        }
+        // 집에서 너무 멀어지면 돌아온다. 한 번 돌아서면 넉넉히 가까워질 때까지 계속 간다.
+        // 예전엔 500 을 넘자마자 집 쪽, 넘지 않으면 다시 바깥쪽이라 경계 위에서 매 프레임
+        // 방향이 뒤집혔고, 그래서 스프라이트가 좌우로 파르르 떨렸다
+        const away = dist(this, { x: this.homeX, y: this.homeY });
+        if (away > 500) this.goingHome = true;
+        else if (away < 380) this.goingHome = false;
+        const a = this.goingHome ? Math.atan2(this.homeY - this.y, this.homeX - this.x) : this.wanderAngle;
         this.moveBy(Math.cos(a), Math.sin(a), 60, dt);
     }
 

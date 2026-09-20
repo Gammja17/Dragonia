@@ -109,6 +109,26 @@ body {
 .journal-row span:last-child { color: var(--parch-mid); text-align: right; }
 .journal-row.dim { opacity: 0.42; }
 
+/* 소리 탭의 음량 손잡이. 둥근 손잡이 대신 금색 쐐기를 쓴다 (판의 금테와 같은 결) */
+.journal-slider { display: flex; align-items: center; gap: 9px; }
+.journal-slider input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    width: 132px; height: 5px; margin: 0;
+    background: var(--ink-raise); border: 1px solid var(--gold-dim); cursor: pointer;
+}
+.journal-slider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 9px; height: 15px;
+    background: var(--gold); border: 1px solid var(--ink-solid);
+}
+.journal-slider input[type="range"]::-moz-range-thumb {
+    width: 9px; height: 15px; border-radius: 0;
+    background: var(--gold); border: 1px solid var(--ink-solid);
+}
+.journal-slider i {
+    font-style: normal; font-family: var(--font-num); font-size: 0.72rem;
+    color: var(--parch-mid); width: 24px; text-align: right;
+}
+
 /* ==========================================================================
    HUD (왼쪽 위)
    ========================================================================== */
@@ -381,7 +401,9 @@ body {
 }
 #journal-tabs { display: flex; gap: 4px; margin-bottom: 9px; }
 .journal-tab {
-    flex: 1; padding: 6px 4px; cursor: pointer; font-size: 0.76rem;
+    /* 탭이 여덟 칸이라 좁다. 글자는 한 줄로 두고 칸만 줄어들게 한다 */
+    flex: 1; min-width: 0; white-space: nowrap; letter-spacing: -0.3px;
+    padding: 6px 2px; cursor: pointer; font-size: 0.74rem;
     font-family: var(--font-ko); color: var(--parch-dim);
     background: var(--ink-raise); border: 1px solid var(--gold-dim);
 }
