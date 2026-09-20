@@ -4,7 +4,7 @@ import { state } from '../core/state.js';
 import { PROP_SPRITES, TILE_SCALE } from '../data/tiles.js';
 import { getTileImage } from '../world/terrain.js';
 import { BIOMES, getBiome } from '../world/biomes.js';
-import { drawIcon } from '../render/pixel.js';
+import { drawIcon, drawGlow } from '../render/pixel.js';
 import { getVfxImage, spawnEffect } from '../render/vfx.js';
 import { Item } from './Item.js';
 import { showToast } from '../ui/toast.js';
@@ -17,7 +17,7 @@ const BERRY_REGROW = 100; // 초
 export class Prop extends Entity {
     constructor(x, y, type) {
         super(x, y);
-        this.type = type; // TREE | STUMP | ROCK | BUSH | FERN | HOUSE | FOUNTAIN | CRATE | BARREL | SIGN | CAMPFIRE
+        this.type = type; // TREE | STUMP | ROCK | BUSH | FERN | HOUSE | FOUNTAIN | CRATE | BARREL | SIGN | CAMPFIRE | WAYSTONE
         this.seed = Math.abs(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1; // 위치로 정해지는 고정 난수
         const variants = PROP_SPRITES[type];
         this.sprite = variants ? variants[Math.floor(this.seed * variants.length)] : null;
@@ -33,6 +33,7 @@ export class Prop extends Entity {
             case 'FOUNTAIN': return { r: 170, color: '#9fd8ff', intensity: 0.5, dy: -20 };
             case 'BERRY': return this.ripe ? { r: 70, color: '#ff7a9a', intensity: 0.4, dy: -20 } : null;
             case 'CHEST': return this.opened ? null : { r: 110, color: '#ffd84a', intensity: 0.7, dy: -16 };
+            case 'WAYSTONE': return { r: 130, color: '#7fd4ff', intensity: this.awake ? 0.85 : 0.35, dy: -40 };
             default: return null;
         }
     }
@@ -72,8 +73,12 @@ export class Prop extends Entity {
         showToast('보물상자를 열었습니다!', '🎁');
         notify('chest');
     }
+    /** 이동 석비가 깨어 있는가 (systems/travel.js) */
+    get awake() { return this.stoneId ? state.waystones.includes(this.stoneId) : false; }
+
     draw(ctx) {
         if (!isOnScreen(this, 300)) return; // 큰 나무(높이 288px)가 화면 아래에서 툭 튀어나오지 않게
+        if (this.type === 'WAYSTONE') { this.drawWaystone(ctx); return; }
         if (this.sprite) { this.drawSprite(ctx); return; }
         // 모닥불: 장작(코드로 찍은 픽셀) + 불꽃 애니메이션
         drawIcon(ctx, 'LOGS', this.x, this.y, 3);
@@ -83,6 +88,19 @@ export class Prop extends Entity {
         ctx.globalCompositeOperation = 'lighter';
         ctx.drawImage(fire, (f % 10) * 64, Math.floor(f / 10) * 64, 64, 64, this.x - 48, this.y - 112, 96, 96);
         ctx.globalCompositeOperation = 'source-over';
+    }
+
+    /** 이동 석비: 깨우기 전엔 흐릿하고, 깨우면 룬이 푸르게 돈다 */
+    drawWaystone(ctx) {
+        const awake = this.awake;
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        this.drawShadow(ctx, 20);
+        ctx.restore();
+        if (awake) drawGlow(ctx, this.x, this.y - 46, 46 + Math.sin(state.gameTime * 2 + this.seed * 6) * 6, '#7fd4ff', 0.5);
+        ctx.globalAlpha = awake ? 1 : 0.72;
+        drawIcon(ctx, 'WAYSTONE', this.x, this.y - 42, 5);
+        ctx.globalAlpha = 1;
     }
 
     /** 타일셋 소품. 그림자는 스프라이트에 포함돼 있다 */

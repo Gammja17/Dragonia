@@ -29,6 +29,8 @@ import { spawnEffect } from '../render/vfx.js';
 import { showToast } from '../ui/toast.js';
 import { setInteractTarget, toggleHelp } from '../ui/hud.js';
 import { groundAt } from '../world/terrain.js';
+import { slideMove } from '../world/collision.js';
+import { nearbyWaystone, openTravelMenu } from '../systems/travel.js';
 import { getBiome } from '../world/biomes.js';
 import { toggleKidsPanel } from '../ui/kidsPanel.js';
 import { startDialogue } from '../systems/dialogue.js';
@@ -223,13 +225,12 @@ export class Dragon extends Entity {
         }
     }
 
-    /** 방향 벡터로 이동하고 facing/angle 갱신 */
+    /** 방향 벡터로 이동하고 facing/angle 갱신. 물·나무·집은 통과하지 못하고 미끄러진다 */
     moveBy(dx, dy, speed, dt) {
         const len = Math.hypot(dx, dy);
         if (!len) return;
         dx /= len; dy /= len;
-        this.x += dx * speed * dt;
-        this.y += dy * speed * dt;
+        slideMove(this, this.x + dx * speed * dt, this.y + dy * speed * dt, 20);
         this.angle = Math.atan2(dy, dx);
         this.facing = facingFromVector(dx, dy, this.facing);
         this.moving = true;
@@ -444,6 +445,12 @@ export class Dragon extends Entity {
 
     interact() {
         const E = state.entities;
+
+        // 0) 이동 석비가 곁에 있으면 먼저 (systems/travel.js)
+        if (!this.fishing && !this.carrying) {
+            const stone = nearbyWaystone();
+            if (stone) { openTravelMenu(stone); return; }
+        }
 
         // 0) 낚시 중: 입질이 왔을 때 E 를 누르면 낚는다
         if (this.fishing) {

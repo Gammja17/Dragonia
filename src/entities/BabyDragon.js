@@ -2,6 +2,7 @@ import { Entity } from './Entity.js';
 import { Projectile, addBullet } from './Projectile.js';
 import { burst } from './Particle.js';
 import { state } from '../core/state.js';
+import { slideMove } from '../world/collision.js';
 import { isOnScreen } from '../core/camera.js';
 import { dist, rand, pick, roundRect } from '../core/utils.js';
 import { setKidStage, addAffection, findKid } from '../systems/kids.js';
@@ -99,8 +100,7 @@ export class BabyDragon extends Entity {
         const d = dist(this, target);
         const keep = 70 + this.followGap; // 아이마다 조금씩 다른 거리에서 따라온다
         if (d > keep) {
-            this.x += Math.cos(this.angle) * 190 * dt;
-            this.y += Math.sin(this.angle) * 190 * dt;
+            slideMove(this, this.x + Math.cos(this.angle) * 190 * dt, this.y + Math.sin(this.angle) * 190 * dt, 12);
         }
     }
 
@@ -127,8 +127,7 @@ export class BabyDragon extends Entity {
         }
         if (!this.home) { const nest = state.entities.nests[0]; this.home = { x: nest.x, y: nest.y }; }
         if (dist(this, this.home) > 200) this.angle = Math.atan2(this.home.y - this.y, this.home.x - this.x);
-        this.x += Math.cos(this.angle) * 40 * dt;
-        this.y += Math.sin(this.angle) * 40 * dt;
+        slideMove(this, this.x + Math.cos(this.angle) * 40 * dt, this.y + Math.sin(this.angle) * 40 * dt, 12);
     }
 
     draw(ctx) {

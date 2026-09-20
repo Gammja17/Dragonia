@@ -2,6 +2,7 @@ import { Entity } from './Entity.js';
 import { Item } from './Item.js';
 import { Projectile, addBullet } from './Projectile.js';
 import { state } from '../core/state.js';
+import { slideMove } from '../world/collision.js';
 import { isOnScreen } from '../core/camera.js';
 import { dist } from '../core/utils.js';
 import { HUNTERS } from '../data/enemies.js';
@@ -50,8 +51,7 @@ export class Human extends Entity {
         this.angle = Math.atan2(target.y - this.y, target.x - this.x);
 
         if (d > this.def.range) {
-            this.x += Math.cos(this.angle) * speed * dt;
-            this.y += Math.sin(this.angle) * speed * dt;
+            slideMove(this, this.x + Math.cos(this.angle) * speed * dt, this.y + Math.sin(this.angle) * speed * dt, 14);
         } else if (this.cooldown <= 0) {
             this.attack(target);
             this.cooldown = this.def.cooldown;

@@ -2,7 +2,7 @@ import { WORLD_SIZE, NEST_POS, HOMES, TRAINING } from '../core/config.js';
 import { mulberry32 } from '../core/utils.js';
 import { loadImages } from '../render/assets.js';
 import { TILE_SRC, TILE_SCALE, TILE, TILE_IMAGES, GRASS, GRASS_DECOR, DIRT, WATER, NEST_RING } from '../data/tiles.js';
-import { VILLAGE_RECT, LAKE, BIOMES, getBiome } from './biomes.js';
+import { VILLAGE_RECT, LAKE, BIOMES, getBiome, RIVER_X, RIVER_Y } from './biomes.js';
 import { BOSSES } from '../data/enemies.js';
 import { recolor, RECOLOR_NAMES } from '../render/palette.js';
 
@@ -16,6 +16,44 @@ const WORLD_SEED = 20260920;
 
 const GRASS_ID = 0, DIRT_ID = 1, WATER_ID = 2;
 const GROUND_NAMES = ['GRASS', 'DIRT', 'WATER'];
+
+// ---------- 큰 강과 여울 ----------
+// 굽이치는 강 두 줄기가 월드를 네 덩이로 가른다. 강은 헤엄쳐 건널 수 없고,
+// 여울(강폭이 흙으로 메워진 곳)에서만 건넌다. 그래서 "어디로 돌아가야 하나"가 생긴다.
+export const RIVERS = [
+    { axis: 'v', at: RIVER_X, amp: 250, freq: 1 / 1700, width: 190 },   // 세로 강: 동/서를 가른다
+    { axis: 'h', at: RIVER_Y, amp: 290, freq: 1 / 1900, width: 190 },   // 가로 강: 북/남을 가른다
+];
+
+/** 강 i 의 중심선. 세로 강이면 y 를 주면 x 가, 가로 강이면 x 를 주면 y 가 나온다 */
+export function riverCenter(i, along) {
+    const r = RIVERS[i];
+    return r.at + Math.sin(along * r.freq) * r.amp;
+}
+
+function inRiver(x, y) {
+    for (let i = 0; i < RIVERS.length; i++) {
+        const r = RIVERS[i];
+        const along = r.axis === 'v' ? y : x;
+        const across = r.axis === 'v' ? x : y;
+        if (Math.abs(across - riverCenter(i, along)) < r.width / 2) return true;
+    }
+    return false;
+}
+
+// 여울: 강을 건널 수 있는 몇 안 되는 자리. river = 강 번호, along = 그 강을 따라간 좌표
+export const FORDS = [
+    { id: 'EAST_FORD',  river: 0, along: 1480, r: 230, name: '동쪽 여울',   desc: '달빛 골짜기로 가는 길목' },
+    { id: 'LOWER_FORD', river: 0, along: 5300, r: 230, name: '아랫 여울',   desc: '모래벌과 잿빛 화산 사이' },
+    { id: 'SOUTH_FORD', river: 1, along: 1560, r: 230, name: '남쪽 여울',   desc: '환영의 밀림으로 가는 길목' },
+    { id: 'FAR_FORD',   river: 1, along: 5650, r: 230, name: '동남 여울',   desc: '단풍 골로 넘어가는 다리목' },
+];
+
+/** 여울의 월드 좌표 */
+export function fordPos(f) {
+    const c = riverCenter(f.river, f.along);
+    return RIVERS[f.river].axis === 'v' ? { x: c, y: f.along } : { x: f.along, y: c };
+}
 
 const kinds = new Uint8Array(SIZE * SIZE);
 let images = null;
@@ -53,38 +91,62 @@ function generate() {
     // 호수 + 숲 속 작은 연못들
     const arenas = [...Object.values(BOSSES), TRAINING];   // 넓은 흙 공터: 보스 결투장 + 수련장
     const nests = [NEST_POS, ...HOMES];                     // 둥지마다 작은 마당
+    const fords = FORDS.map(f => ({ ...fordPos(f), r: f.r }));
     const ponds = [{ x: LAKE.x, y: LAKE.y, r: LAKE.r - 90 }];
     while (ponds.length < 26) {
         const p = { x: 200 + rng() * (WORLD_SIZE - 400), y: 200 + rng() * (WORLD_SIZE - 400), r: 120 + rng() * 70 };
         const nearVillage = Math.hypot(p.x - (v.x + v.w / 2), p.y - (v.y + v.h / 2)) < 850;
         const nearPond = ponds.some(o => Math.hypot(p.x - o.x, p.y - o.y) < o.r + p.r + 250);
-        const nearArena = [...arenas, ...nests].some(a => Math.hypot(p.x - a.x, p.y - a.y) < 600);
+        const nearArena = [...arenas, ...nests, ...fords].some(a => Math.hypot(p.x - a.x, p.y - a.y) < 600);
         if (!nearVillage && !nearPond && !nearArena) ponds.push(p);
     }
 
+    const inVillage = (x, y) => x > v.x && x < v.x + v.w && y > v.y && y < v.y + v.h;
+
     for (let cy = 0; cy < COARSE; cy++) for (let cx = 0; cx < COARSE; cx++) {
         const x = coarseCenter(cx), y = coarseCenter(cy);
-        if (ponds.some(p => Math.hypot(x - p.x, y - p.y) < p.r)) { fillCoarse(cx, cy, WATER_ID); continue; }
-        if (nests.some(n => cx === toCoarse(n.x) && cy === toCoarse(n.y))) continue;                          // 둥지 칸은 풀밭으로
-        if (arenas.some(a => Math.hypot(x - a.x, y - a.y) < 340)) { fillCoarse(cx, cy, DIRT_ID); continue; } // 보스 결투장·수련장
-        if (nests.some(n => Math.hypot(x - n.x, y - n.y) < 210)) { fillCoarse(cx, cy, DIRT_ID); continue; }    // 둥지 마당
 
-        // 마을 광장: 가장자리 칸은 가끔 빼서 네모 반듯하지 않게
-        const inX = x > v.x && x < v.x + v.w, inY = y > v.y && y < v.y + v.h;
-        if (inX && inY) {
+        // 1) 물이 들어오면 안 되는 곳부터. 결투장·둥지·마을·여울은 강보다 먼저다
+        if (nests.some(n => cx === toCoarse(n.x) && cy === toCoarse(n.y))) continue;                       // 둥지 칸은 풀밭
+        if (arenas.some(a => Math.hypot(x - a.x, y - a.y) < 340)) { fillCoarse(cx, cy, DIRT_ID); continue; }
+        if (nests.some(n => Math.hypot(x - n.x, y - n.y) < 210)) { fillCoarse(cx, cy, DIRT_ID); continue; }
+        if (fords.some(f => Math.hypot(x - f.x, y - f.y) < f.r)) { fillCoarse(cx, cy, DIRT_ID); continue; } // 여울: 강을 메운 흙바닥
+        if (inVillage(x, y)) {
+            // 마을 광장: 가장자리 칸은 가끔 빼서 네모 반듯하지 않게
             const edgeX = x - v.x < 96 || v.x + v.w - x < 96;
             const edgeY = y - v.y < 96 || v.y + v.h - y < 96;
             if (edgeX && edgeY) continue;                    // 네 귀퉁이는 항상 뺀다
             if ((edgeX || edgeY) && rng() < 0.3) continue;
             fillCoarse(cx, cy, DIRT_ID);
+            continue;
         }
+
+        // 2) 큰 강과 연못
+        if (inRiver(x, y) || ponds.some(p => Math.hypot(x - p.x, y - p.y) < p.r)) fillCoarse(cx, cy, WATER_ID);
     }
 
-    // 마을 → 호수, 마을 → 북서쪽 숲길
-    carvePath(toCoarse(v.x + v.w - 100), toCoarse(v.y + v.h - 100), toCoarse(LAKE.x), toCoarse(LAKE.y));
-    carvePath(toCoarse(v.x + 100), toCoarse(v.y + 100), toCoarse(250), toCoarse(350));
-    // 마을 → 각 보스 결투장
-    for (const a of [...arenas, ...nests]) carvePath(toCoarse(v.x + v.w / 2), toCoarse(v.y + v.h / 2), toCoarse(a.x), toCoarse(a.y));
+    // 길: 마을 → 여울 → 결투장. 강 건너편은 반드시 여울을 거쳐 이어 준다
+    const V = { x: v.x + v.w / 2, y: v.y + v.h / 2 };
+    const at = (id) => { const f = FORDS.find(q => q.id === id); return fordPos(f); };
+    const road = (a, b) => carvePath(toCoarse(a.x), toCoarse(a.y), toCoarse(b.x), toCoarse(b.y));
+
+    road({ x: v.x + v.w - 100, y: v.y + v.h - 100 }, LAKE);
+    road({ x: v.x + 100, y: v.y + 100 }, { x: 250, y: 350 });
+    for (const a of [...arenas.filter(a => a === TRAINING), ...nests]) road(V, a);
+
+    // 동쪽 골짜기 (모르가스 · 글라시아)
+    road(V, at('EAST_FORD'));
+    road(at('EAST_FORD'), BOSSES.MORGATH);
+    road(BOSSES.MORGATH, BOSSES.GLACIA);
+    // 남쪽 밀림 (잘고라 · 바실)
+    road(V, at('SOUTH_FORD'));
+    road(at('SOUTH_FORD'), BOSSES.ZALGORA);
+    road(BOSSES.ZALGORA, BOSSES.BASIL);
+    // 먼 남동쪽 (이그나르) — 두 갈래로 들어갈 수 있다
+    road(BOSSES.GLACIA, at('FAR_FORD'));
+    road(at('FAR_FORD'), BOSSES.IGNAR);
+    road(BOSSES.BASIL, at('LOWER_FORD'));
+    road(at('LOWER_FORD'), BOSSES.IGNAR);
 }
 
 /** 격자점마다 고정된 난수를 부드럽게 이은 값 (-0.5 ~ 0.5) */

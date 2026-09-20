@@ -1,7 +1,8 @@
 import { state } from '../core/state.js';
 import { worldToScreen } from '../core/camera.js';
 import { WORLD_SIZE, NEST_POS } from '../core/config.js';
-import { BIOMES, getBiome } from '../world/biomes.js';
+import { BIOMES, getBiome, REGIONS, getRegion } from '../world/biomes.js';
+import { WAYSTONES, isAwake } from '../systems/travel.js';
 import { getMinimapBase } from '../world/terrain.js';
 import { SKILLS } from '../data/skills.js';
 import { toggleKidsPanel } from './kidsPanel.js';
@@ -57,7 +58,7 @@ export function updateHud() {
     if (!p) return;
     const biome = getBiome(p.x, p.y);
     if (biome !== lastBiome) { lastBiome = biome; notify('visit', biome); }
-    el.biome.textContent = `${BIOMES[biome].name} · ${eventName() || dayPhaseName()} · ${weatherName()}`;
+    el.biome.textContent = `${REGIONS[getRegion(p.x, p.y)].name} › ${BIOMES[biome].name} · ${eventName() || dayPhaseName()} · ${weatherName()}`;
     el.name.textContent = p.config.name || 'Player';
     el.lvl.textContent = p.level;
     el.stage.textContent = p.stage.name;
@@ -118,6 +119,7 @@ function drawMinimap() {
     const c = el.minimap, g = c.getContext('2d'), k = c.width / WORLD_SIZE;
     g.drawImage(minimapBase, 0, 0);
     const dot = (x, y, r, color) => { g.fillStyle = color; g.beginPath(); g.arc(x * k, y * k, r, 0, Math.PI * 2); g.fill(); };
+    for (const w of WAYSTONES) dot(w.x, w.y, isAwake(w.id) ? 2.5 : 1.5, isAwake(w.id) ? '#7fd4ff' : 'rgba(127,212,255,0.35)');
     dot(NEST_POS.x, NEST_POS.y, 3, '#ffd84a');
     for (const b of state.entities.bosses) dot(b.x, b.y, 4, '#ff4d4d');
     for (const h of state.entities.humans) dot(h.x, h.y, 2, '#ff9a9a');

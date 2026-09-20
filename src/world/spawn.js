@@ -3,6 +3,8 @@ import { WORLD_SIZE, VILLAGE_CENTER, PLAYER_SPAWN, NEST_POS, HOMES, TRAINING, MA
 import { rand, dist, pick, mulberry32 } from '../core/utils.js';
 import { getBiome } from './biomes.js';
 import { groundAt } from './terrain.js';
+import { buildPropGrid, solidAt } from './collision.js';
+import { WAYSTONES } from '../systems/travel.js';
 import { Dragon } from '../entities/Dragon.js';
 import { Enemy } from '../entities/Enemy.js';
 import { Boss } from '../entities/Boss.js';
@@ -27,6 +29,7 @@ export function spawnEnemy() {
         if (!types || dist({ x, y }, VILLAGE_CENTER) < 700) continue;
         if ([...Object.values(BOSSES), TRAINING].some(b => dist({ x, y }, b) < 480)) continue; // 결투장·수련장은 비워 둔다
         if (dist({ x, y }, NEST_POS) < 420) continue;                                          // 아지트도
+        if (solidAt(x, y, 20)) continue;                                                       // 나무·바위·물 속은 안 된다
         const type = pick(types);
         state.entities.enemies.push(new Enemy(x, y, type, type !== 'PREY' && Math.random() < ELITE_CHANCE));
         return;
@@ -34,9 +37,9 @@ export function spawnEnemy() {
 }
 
 export function spawnWanderingNPC() {
-    let x, y;
-    do { x = rand(300, 3200); y = rand(300, 3200); }
-    while (getBiome(x, y) === 'VILLAGE');
+    let x, y, tries = 0;
+    do { x = rand(300, 3200); y = rand(300, 3200); tries++; }
+    while ((getBiome(x, y) === 'VILLAGE' || solidAt(x, y, 20)) && tries < 40);
     // 떠돌이는 대부분 한 장짜리 새 외형, 가끔 옛 종족
     const species = Math.random() < 0.8 ? 'LOOK' : pick(WANDER_SPECIES);
     state.entities.npcs.push(new Dragon(x, y, {
@@ -114,7 +117,14 @@ export function buildWorld(config) {
     for (const b of Object.values(BOSSES)) {
         E.props.push(new Prop(b.x - 260, b.y + 200, 'CAMPFIRE'), new Prop(b.x + 260, b.y + 200, 'CAMPFIRE'));
     }
+    // 이동 석비 (systems/travel.js). 길목마다 하나씩 서 있다
+    for (const w of WAYSTONES) {
+        const stone = new Prop(w.x, w.y, 'WAYSTONE');
+        stone.stoneId = w.id;
+        E.props.push(stone);
+    }
     E.nests.push(new Nest(NEST_POS.x, NEST_POS.y));
+    buildPropGrid(E.props);   // 소품 충돌 격자는 소품을 다 놓은 뒤에 한 번 만든다
 
     for (const def of FIXED_NPCS) E.npcs.push(new Dragon(def.x, def.y, { ...def, fixed: true }));
     for (let i = 0; i < 4; i++) spawnWanderingNPC();

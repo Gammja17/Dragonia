@@ -41,7 +41,7 @@ export function saveGame() {
         raidCount: state.raid.count, upgrades: state.upgrades, openedChests: state.openedChests, blessingDay: state.blessingDay,
         companion: state.companion ? state.companion.config.name : null,
         den: state.den, ult: p.ult,
-        relics: state.relics, stats: state.stats, event: state.event, story: state.story,
+        relics: state.relics, waystones: state.waystones, stats: state.stats, event: state.event, story: state.story,
         npcs: Object.fromEntries(state.entities.npcs.filter(n => n.config.fixed)
             .map(n => [n.config.name, { relation: n.relation, lastGiftDay: n.lastGiftDay ?? null, lastTalkDay: n.lastTalkDay ?? null, lastPresentDay: n.lastPresentDay ?? null, lastPlayDay: n.lastPlayDay ?? null, dates: n.dates || 0, lastDateDay: n.lastDateDay ?? null, lastEggDay: n.lastEggDay ?? null, lastMeditateDay: n.lastMeditateDay ?? null }])),
         partner: state.partner ? state.partner.config.name : null,
@@ -77,6 +77,7 @@ export function applySave(data) {
     state.openedChests = data.openedChests || {};
     state.blessingDay = data.blessingDay || 0;
     state.relics = data.relics || [];
+    state.waystones = data.waystones || [];
     state.den = data.den || { built: state.kids.length > 0 || !!data.nest.hasEgg, twigs: 0 };   // 옛 세이브: 이미 알·아이가 있으면 지은 걸로 친다
     p.ult = data.ult || 0;
     state.story = data.story || { scenes: [], lessons: [], lessonDay: 0 };

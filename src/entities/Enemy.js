@@ -6,6 +6,7 @@ import { isOnScreen } from '../core/camera.js';
 import { dist } from '../core/utils.js';
 import { ENEMIES } from '../data/enemies.js';
 import { getTileImage } from '../world/terrain.js';
+import { slideMove } from '../world/collision.js';
 import { drawPixelSprite, whiteCopy, drawGlow } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
 import { updateStatus, statusTint } from '../systems/status.js';
@@ -38,21 +39,23 @@ export class Enemy extends Entity {
         if (this.remove) return;
         const player = state.player;
         const d = dist(this, player);
+        // 날개 달린 놈은 나무 위로 날아간다. 땅을 걷는 놈은 물·나무에 걸린다
+        const step = this.def.flying
+            ? (vx, vy) => { this.x += vx; this.y += vy; }
+            : (vx, vy) => slideMove(this, this.x + vx, this.y + vy, 14);
         if (this.def.move === 'none') return;   // 수련용 허수아비
         if (this.def.move === 'flee') {          // 사냥감: 가까이 오면 달아나고, 아니면 어슬렁거린다
             if (d < 300) this.angle = Math.atan2(this.y - player.y, this.x - player.x) + Math.sin(state.gameTime * 3 + this.phase) * 0.6;
             else if (Math.random() < dt * 0.5) this.angle = Math.random() * 6.28;
             const v = d < 300 ? speed : speed * 0.25;
-            this.x += Math.cos(this.angle) * v * dt;
-            this.y += Math.sin(this.angle) * v * dt;
+            step(Math.cos(this.angle) * v * dt, Math.sin(this.angle) * v * dt);
             return;
         }
         if (this.def.move === 'ranged') {        // 거리를 두고 구슬을 쏜다
             this.angle = Math.atan2(player.y - this.y, player.x - this.x);
             if (d < 520) {
                 const a = d > 330 ? this.angle : d < 230 ? this.angle + Math.PI : this.angle + Math.PI / 2;
-                this.x += Math.cos(a) * speed * dt;
-                this.y += Math.sin(a) * speed * dt;
+                step(Math.cos(a) * speed * dt, Math.sin(a) * speed * dt);
                 this.shotTimer -= dt * (speed > 0 ? 1 : 0);
                 if (this.shotTimer <= 0) {
                     this.shotTimer = 2.4;
@@ -66,8 +69,7 @@ export class Enemy extends Entity {
             this.angle = Math.atan2(player.y - this.y, player.x - this.x);
             // erratic: 곧장 오지 않고 좌우로 흔들리며 다가온다
             const a = this.def.move === 'erratic' ? this.angle + Math.sin(state.gameTime * 4 + this.phase) * 1.1 : this.angle;
-            this.x += Math.cos(a) * speed * dt;
-            this.y += Math.sin(a) * speed * dt;
+            step(Math.cos(a) * speed * dt, Math.sin(a) * speed * dt);
         }
         if (d < 40 && speed > 0) player.takeDamage(this.def.damage * (this.elite ? 1.6 : 1) * dt);
     }

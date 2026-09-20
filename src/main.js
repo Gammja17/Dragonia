@@ -16,6 +16,7 @@ import { preloadDragonSprites } from './render/dragonSprites.js';
 import { preloadVfx } from './render/vfx.js';
 import { updateLighting, drawLighting } from './render/lighting.js';
 import { drawCrosshair } from './render/cursor.js';
+import { initWaystones, updateTravel } from './systems/travel.js';
 import { updateEvents, drawEvents } from './systems/events.js';
 import { initAudio } from './systems/audio.js';
 import { initJournal } from './ui/journal.js';
@@ -62,6 +63,7 @@ async function startGame(config, loadSave = false) {
     resetState();
     const elder = buildWorld(save ? save.player.config : config);
     if (save) applySave(save);
+    initWaystones();
     state.gameActive = true;
     cam.x = state.player.x - cam.w / 2;
     cam.y = state.player.y - cam.h / 2;
@@ -116,6 +118,7 @@ function update(dt) {
     resolveCombat();
     pruneEntities();
     updateSpawns();
+    updateTravel();
 }
 
 function render() {

@@ -113,6 +113,25 @@ const ICONS = {
     HAT:    { palette: { o: '#4a3418', Y: '#d8b25a', y: '#b08a3a' }, rows: ['....oo....', '...oYYo...', '..oYYYYo..', '.oyYYYYyo.', 'oyyyyyyyyo', '.oooooooo.'] },
     LEAF:   { palette: { o: '#1f4a1a', G: '#5ac24a', g: '#3a8a2f' }, rows: ['...oo', '.oGGo', 'oGgGo', 'oGGo.', '.oo..'] },
     SHELL:  { palette: { o: '#4a3f35', W: '#f4efe1', s: '#cfc4a8' }, rows: ['.o.o.o.', 'oWoWoWo', 'oWWWWWo', 'osWWWso', '.ooooo.'] },
+    WAYSTONE: {
+        palette: { o: '#241f18', S: '#8d8474', s: '#67604f', h: '#bab2a0', R: '#4fb8ff', r: '#bfe9ff' },
+        rows: [
+            '..oooo..',
+            '.oShhSo.',
+            'oSShhSSo',
+            'oSShhSSo',
+            'oSSRRSSo',
+            'oSSrrSSo',
+            'oSSRRSSo',
+            'oSShhSSo',
+            'oSSshSSo',
+            'oSSssSSo',
+            '.oSssSo.',
+            '.oSsSSo.',
+            '..oooo..',
+            '.ooSSoo.',
+        ],
+    },
     LOGS: {
         palette: { o: '#2a1a12', B: '#6b4226', b: '#8a5a34', e: '#c9a06a' },
         rows: [
