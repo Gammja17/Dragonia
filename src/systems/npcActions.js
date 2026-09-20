@@ -1,6 +1,6 @@
 import { state } from '../core/state.js';
 import { clamp, dist, pick, rand } from '../core/utils.js';
-import { NPC_TALK, SHOP, TIER_NAMES, SITUATION_LINES, DATES, CONFESSION, FAMILY_TALK, BOND_SCENES, ROMANCE_GATES, relationTier } from '../data/npcTalk.js';
+import { NPC_TALK, TIER_NAMES, SITUATION_LINES, DATES, CONFESSION, FAMILY_TALK, BOND_SCENES, ROMANCE_GATES, relationTier } from '../data/npcTalk.js';
 import { NEST_POS, MAX_KIDS } from '../core/config.js';
 import { fadeScreen } from '../ui/hud.js';
 import { Projectile, addBullet } from '../entities/Projectile.js';
@@ -12,6 +12,7 @@ import { setBossBar } from '../ui/hud.js';
 import { notify, offerFor, activeFor, isComplete, acceptQuest, turnInQuest, goalText, questProgress } from './quests.js';
 import { masterOptions, updateDrill, isDrill } from './story.js';
 import { learnSkill } from './skills.js';
+import { RECIPES, GOODS, MATERIALS, costOf, costText, canAfford, forge, buy, matCount } from './smithing.js';
 
 // 마을 고정 NPC와의 고유 상호작용: 이야기, 선물, 동료, 대련(티아맷), 술래잡기(포코), 상점(그론), 축복(엘더).
 // 진행 중인 놀이는 state.activity = { type: 'SPAR' | 'TAG', npc, hp, max, time } 에 담는다.
@@ -99,7 +100,7 @@ function ownMenu(npc, name) {
     if (name === 'Kairon') return { label: '🎓 가르침을 청한다', onSelect: () => show(npc, '무엇을 배우러 왔느냐.', [...masterOptions(npc), { label: '돌아간다', onSelect: back }]) };
     if (name === 'Tiamat') sub.push({ label: '⚔️ 대련을 신청한다', onSelect: () => startSpar(npc) });
     if (name === 'Poco') sub.push({ label: '🎾 술래잡기 하자!', onSelect: () => startTag(npc) });
-    if (name === 'Gron') sub.push({ label: `🔨 물건을 본다 (소지금 ${state.player.gold}G)`, onSelect: () => openShop(npc) });
+    if (name === 'Gron') sub.push({ label: '🔨 모루 앞에 선다', onSelect: () => openForge(npc) });
     // 동행 (짝은 늘 따라다니므로 제외)
     if (npc !== state.partner) {
         if (state.companion === npc) sub.push({ label: '이제 마을로 돌아가도 돼', onSelect: () => setCompanion(npc, false) });
@@ -295,29 +296,49 @@ function blessing(npc) {
     show(npc, '고대의 바람이 네 날개를 밀어 주기를.', [{ label: '감사합니다.', onSelect: close }]);
 }
 
-// ---------- 그론: 상점 ----------
-export function shopCost(item) { return item.flat ? item.cost : Math.round(item.cost * Math.pow(1.6, state.upgrades[item.id] || 0)); }
+// ---------- 그론: 대장간 ----------
+// 골드로 비늘을 사던 것을 접었다. 이제는 잡은 것에서 나온 소재를 모아 직접 두드린다.
+// 골드는 고기와, 급할 때 소재를 비싸게 사는 데만 쓴다.
 
-function openShop(npc) {
+function matLine() {
+    return Object.keys(MATERIALS).map(k => `${MATERIALS[k].name} ${matCount(k)}`).join(' · ');
+}
+
+function openForge(npc) {
+    const opts = RECIPES.map(r => {
+        const cost = costOf(r), times = state.upgrades[r.id] || 0;
+        const ok = canAfford(cost);
+        return {
+            label: `${ok ? '🔨' : '🔒'} ${r.name} (${times}단 → ${times + 1}단) — ${r.effect}`,
+            onSelect: () => forgeOne(npc, r),
+        };
+    });
+    opts.push({ label: `💰 골드로 산다 (소지금 ${state.player.gold}G)`, onSelect: () => openGoods(npc) });
+    opts.push({ label: '돌아간다', onSelect: () => openNpcHub(npc) });
+    show(npc, `모루는 달궈 뒀다. 재료는 네가 가져와라.\n\n[가진 소재] ${matLine()}`, opts);
+}
+
+function forgeOne(npc, recipe) {
+    const cost = costOf(recipe);
+    if (!canAfford(cost)) {
+        show(npc, `재료가 모자라다. ${recipe.name}에는 이만큼 든다.\n\n${costText(cost)}\n\n(앞의 숫자가 가진 것, 뒤가 드는 것이다)`,
+            [{ label: '모아 오겠다', onSelect: () => openForge(npc) }]);
+        return;
+    }
+    show(npc, `${recipe.flavor}\n\n드는 재료: ${costText(cost)}`, [
+        { label: `🔨 두드린다 — ${recipe.effect}`, onSelect: () => { forge(recipe); openForge(npc); } },
+        { label: '아직 아껴 두겠다', onSelect: () => openForge(npc) },
+    ]);
+}
+
+function openGoods(npc) {
     const p = state.player;
-    const opts = SHOP.map(item => ({
-        label: `${item.name} — ${item.desc} (${shopCost(item)}G)` + (item.flat ? '' : ` [${state.upgrades[item.id] || 0}강]`),
-        onSelect: () => {
-            const cost = shopCost(item);
-            if (p.gold < cost) { showToast('골드가 모자랍니다.', '💰'); return; }
-            p.gold -= cost;
-            if (item.id === 'meat') p.inventory.meat++;
-            else {
-                state.upgrades[item.id] = (state.upgrades[item.id] || 0) + 1;
-                if (item.id === 'hp') { p.maxHp += 25; p.hp += 25; }
-                notify('upgrade');
-            }
-            showToast(`${item.name} 구입!`, '🛒');
-            openShop(npc);
-        },
+    const opts = GOODS.map(item => ({
+        label: `${item.name} — ${item.desc} (${item.cost}G)`,
+        onSelect: () => { buy(item); openGoods(npc); },
     }));
-    opts.push({ label: '돌아가기', onSelect: () => openNpcHub(npc) });
-    show(npc, `골라 봐라. (소지금 ${p.gold}G)`, opts);
+    opts.push({ label: '돌아간다', onSelect: () => openForge(npc) });
+    show(npc, `돈으로 사겠다면 말리진 않는다. 비싸게 받을 뿐이지. (소지금 ${p.gold}G)`, opts);
 }
 
 // ---------- 티아맷: 대련 ----------

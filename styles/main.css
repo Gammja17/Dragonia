@@ -365,6 +365,26 @@ button.start-btn:hover { transform: scale(1.05); }
     font-family: 'Noto Sans KR', sans-serif; color: #ecf0f1;
     background: rgba(255,255,255,0.07); border: 1px solid rgba(216,178,90,0.4); border-radius: 3px;
 }
+/* 유물 장착 */
+.relic-note { color: #9aa4b2; font-size: 0.72rem; line-height: 1.5; margin: -2px 0 6px; }
+.relic-slots { display: flex; gap: 6px; margin-bottom: 10px; }
+.relic-slot {
+    flex: 1; text-align: center; padding: 10px 4px; font-size: 0.74rem; color: #6b7686;
+    border: 1px dashed rgba(216,178,90,0.45); border-radius: 3px; background: rgba(255,255,255,0.03);
+}
+.relic-slot.filled { color: #ffd84a; border-style: solid; border-color: #ffd84a; background: rgba(255,216,74,0.12); cursor: pointer; }
+.relic-row {
+    display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left; cursor: pointer;
+    background: rgba(255,255,255,0.04); border: 0; border-left: 3px solid transparent; color: #ecf0f1;
+    padding: 6px 9px; margin-bottom: 3px; font-family: 'Noto Sans KR', sans-serif; font-size: 0.78rem;
+}
+.relic-row:hover { background: rgba(255,255,255,0.09); }
+.relic-row.on { border-left-color: #ffd84a; background: rgba(255,216,74,0.1); }
+.relic-row b { flex: none; min-width: 108px; }
+.relic-row i { flex: 1; font-style: normal; color: #aeb6c2; font-size: 0.72rem; }
+.relic-row em { flex: none; font-style: normal; font-size: 0.7rem; color: #7f8896; }
+.relic-row.on em { color: #ffd84a; }
+
 .q-track.on { background: rgba(255,216,74,0.2); border-color: #ffd84a; color: #ffd84a; }
 
 .d-btn.selected { background: rgba(255, 215, 0, 0.22); border-color: #ffd700; box-shadow: 0 0 10px rgba(255,215,0,0.35); }

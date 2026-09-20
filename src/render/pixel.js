@@ -113,6 +113,47 @@ const ICONS = {
     HAT:    { palette: { o: '#4a3418', Y: '#d8b25a', y: '#b08a3a' }, rows: ['....oo....', '...oYYo...', '..oYYYYo..', '.oyYYYYyo.', 'oyyyyyyyyo', '.oooooooo.'] },
     LEAF:   { palette: { o: '#1f4a1a', G: '#5ac24a', g: '#3a8a2f' }, rows: ['...oo', '.oGGo', 'oGgGo', 'oGGo.', '.oo..'] },
     SHELL:  { palette: { o: '#4a3f35', W: '#f4efe1', s: '#cfc4a8' }, rows: ['.o.o.o.', 'oWoWoWo', 'oWWWWWo', 'osWWWso', '.ooooo.'] },
+    HIDE: {
+        palette: { o: '#3b2a1a', L: '#a9784a', l: '#c99a66', h: '#e0bd90' },
+        rows: [
+            '..oooooo..',
+            '.oLLllLLo.',
+            'oLllhhllLo',
+            'oLlhhhhlLo',
+            'oLllhhllLo',
+            'oLLllllLLo',
+            '.oLLllLLo.',
+            '..oooooo..',
+        ],
+    },
+    FANG: {
+        palette: { o: '#2a2418', W: '#f2ead8', h: '#ffffff', s: '#c8bfa8' },
+        rows: [
+            '..oooo..',
+            '.oWhhWo.',
+            'oWWhhWWo',
+            'oWWWWWWo',
+            'oWWWWWWo',
+            '.oWWWWo.',
+            '.oWssWo.',
+            '..oWWo..',
+            '..oWo...',
+            '...o....',
+        ],
+    },
+    ORE: {
+        palette: { o: '#1e2228', S: '#7f8896', s: '#5b6472', h: '#b8c2cf' },
+        rows: [
+            '...oooo...',
+            '..oShhSo..',
+            '.oSShhSSo.',
+            'oSShhhhSSo',
+            'oSsShhSsSo',
+            'oSssSSssSo',
+            '.oSssssSo.',
+            '..oooooo..',
+        ],
+    },
     CAVE: {
         palette: { o: '#181410', R: '#6b6153', r: '#8d8474', d: '#0a0a10', g: '#2a2a3a' },
         rows: [

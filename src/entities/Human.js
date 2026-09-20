@@ -88,6 +88,9 @@ export class Human extends Entity {
         const items = state.entities.items;
         items.push(new Item(this.x, this.y, 'GOLD', this.def.gold));
         if (Math.random() < 0.6) items.push(new Item(this.x + 20, this.y, 'MEAT'));
+        // 사냥꾼의 갑옷 조각 — 대장간 소재 중 가장 귀한 것 (systems/smithing.js)
+        const ore = this.type === 'CAPTAIN' ? 4 : Math.random() < 0.55 ? 1 : 0;
+        for (let i = 0; i < ore; i++) items.push(new Item(this.x - 18 - i * 26, this.y + 12, 'MAT', 'ORE'));
         if (this.type === 'CAPTAIN') {
             showToast('사냥꾼 대장을 쓰러뜨렸습니다!', '🏆');
             spawnText(this.x, this.y - 80, '대장 처치!', '#ffd84a', 22);

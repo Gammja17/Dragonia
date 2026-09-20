@@ -15,6 +15,7 @@ import { play } from '../systems/audio.js';
 import { Projectile, addBullet } from './Projectile.js';
 import { xpMult } from '../systems/events.js';
 import { grantRelic, randomRelic } from '../systems/relics.js';
+import { materialFor } from '../data/materials.js';
 import { onGuardianDown } from '../systems/delve.js';
 
 export class Enemy extends Entity {
@@ -93,6 +94,9 @@ export class Enemy extends Entity {
         const meat = this.def.meat ?? (Math.random() < 0.45 ? 1 : 0);
         for (let i = 0; i < meat; i++) state.entities.items.push(new Item(this.x + i * 22, this.y, 'MEAT'));
         if (Math.random() < 0.7) state.entities.items.push(new Item(this.x - 16, this.y, 'GOLD', Math.max(2, Math.round(this.def.xp / 7)) * bonus));
+        // 대장간 소재 (systems/smithing.js). 정예는 확실히, 보통은 절반쯤 떨어뜨린다
+        const mats = this.elite ? 2 : Math.random() < 0.5 ? 1 : 0;
+        for (let i = 0; i < mats; i++) state.entities.items.push(new Item(this.x + 20 - i * 30, this.y + 14, 'MAT', materialFor(this.type)));
         notify('kill', this.type);
         if (this.def.move !== 'flee') notify('killAny');
         if (this.elite) notify('elite');

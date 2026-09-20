@@ -22,6 +22,8 @@ export const state = {
     talkTarget: null,    // 지금 T·클릭으로 말을 걸 수 있는 상대
     fadeTargets: [],     // 이번 프레임에 나무 뒤로 숨으면 안 되는 것들
     relics: [],          // 가진 유물 id (systems/relics.js)
+    relicSlots: [],      // 실제로 끼운 유물. 앞쪽 몇 칸을 쓸 수 있는지는 성장 단계가 정한다
+    materials: {},       // 대장간 소재 (systems/smithing.js)
     waystones: [],       // 깨운 이동 석비 id (systems/travel.js)
     dungeon: null,       // 굴에 들어가 있으면 { id, depth, ... } (systems/delve.js)
     event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
@@ -60,6 +62,8 @@ export function resetState() {
         rally: 0,             // 용의 함성: 남은 시간 동안 아군 공격력 +50%
         story: { scenes: [], lessons: [], lessonDay: 0, events: [], bonds: [] },   // systems/story.js
         relics: [],          // 가진 유물 id (systems/relics.js)
+        relicSlots: [],
+        materials: {},
         waystones: [],       // 깨운 이동 석비 id (systems/travel.js)
         dungeon: null,       // 굴에 들어가 있으면 { id, depth, ... } (systems/delve.js)
         event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)

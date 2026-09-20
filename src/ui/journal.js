@@ -1,7 +1,9 @@
 import { state } from '../core/state.js';
 import { CHEST_COUNT } from '../core/config.js';
 import { ENEMIES, BOSSES } from '../data/enemies.js';
-import { RELICS } from '../systems/relics.js';
+import { RELICS, ownsRelic, hasRelic, toggleRelic, slotCount } from '../systems/relics.js';
+import { MATERIALS } from '../data/materials.js';
+import { matCount } from '../systems/smithing.js';
 import { isMuted } from '../systems/audio.js';
 import { questLog, setTracked } from '../systems/quests.js';
 import { play } from '../systems/audio.js';
@@ -133,10 +135,63 @@ function renderRecord(body) {
     ]));
 }
 
+/** 유물 탭: 가진 것 중 골라 끼운다. 칸 수는 몸이 자랄수록 는다 */
 function renderRelics(body) {
-    body.appendChild(section(`유물 ${state.relics.length} / ${Object.keys(RELICS).length}`,
-        Object.entries(RELICS).map(([id, r]) => state.relics.includes(id) ? [r.name, r.desc]
-            : ['???', r.boss ? '강대한 용이 지니고 있다' : '상자나 정예 몬스터에게서', true])));
+    const max = slotCount(), worn = Object.keys(RELICS).filter(hasRelic);
+
+    const head = document.createElement('div');
+    head.className = 'journal-title';
+    head.textContent = `장착 ${worn.length} / ${max}칸`;
+    body.appendChild(head);
+
+    const note = document.createElement('div');
+    note.className = 'relic-note';
+    note.textContent = max < 3
+        ? '가진 유물을 눌러 끼우고 뺀다. 몸이 자라면 끼울 수 있는 칸이 늘어난다 (성체 2칸 · 고룡 3칸).'
+        : '가진 유물을 눌러 끼우고 뺀다. 끼운 것만 힘이 된다.';
+    body.appendChild(note);
+
+    const row = document.createElement('div');
+    row.className = 'relic-slots';
+    for (let i = 0; i < max; i++) {
+        const id = (state.relicSlots || [])[i];
+        const cell = document.createElement('div');
+        cell.className = 'relic-slot' + (id ? ' filled' : '');
+        cell.textContent = id ? RELICS[id].name : '빈 칸';
+        if (id) cell.addEventListener('click', () => { toggleRelic(id); render(); });
+        row.appendChild(cell);
+    }
+    body.appendChild(row);
+
+    const owned = Object.keys(RELICS).filter(ownsRelic);
+    const list = document.createElement('div');
+    const title = document.createElement('div');
+    title.className = 'journal-title';
+    title.textContent = `모은 유물 ${owned.length} / ${Object.keys(RELICS).length}`;
+    list.appendChild(title);
+    for (const [id, r] of Object.entries(RELICS)) {
+        if (!ownsRelic(id)) {
+            const dim = document.createElement('div');
+            dim.className = 'journal-row dim';
+            dim.innerHTML = '<span>???</span><span></span>';
+            dim.lastElementChild.textContent = r.boss ? '강대한 용이 지니고 있다' : '상자·정예 몬스터·굴 깊은 곳에서';
+            list.appendChild(dim);
+            continue;
+        }
+        const on = hasRelic(id);
+        const btn = document.createElement('button');
+        btn.className = 'relic-row' + (on ? ' on' : '');
+        btn.innerHTML = '<b></b><i></i><em></em>';
+        btn.querySelector('b').textContent = r.name;
+        btn.querySelector('i').textContent = r.desc;
+        btn.querySelector('em').textContent = on ? '장착 중' : '끼우기';
+        btn.addEventListener('click', () => { toggleRelic(id); render(); });
+        list.appendChild(btn);
+    }
+    body.appendChild(list);
+
+    body.appendChild(section('대장간 소재',
+        Object.entries(MATERIALS).map(([k, m]) => [m.name, `${matCount(k)}개 — ${m.desc}`])));
 }
 
 function renderCodex(body) {
