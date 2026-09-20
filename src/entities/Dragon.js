@@ -25,7 +25,8 @@ import { play, toggleMute } from '../systems/audio.js';
 import { toggleJournal } from '../ui/journal.js';
 import { openKidHub } from '../systems/kidActions.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
-import { Animator, drawFrame } from '../render/spritesheet.js';
+import { Animator, drawFrame, averageColor } from '../render/spritesheet.js';
+import { rgbToHsl, hslToRgb } from '../render/tint.js';
 import { drawIcon, drawGlow } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
 import { showToast } from '../ui/toast.js';
@@ -67,6 +68,21 @@ export function drawAccessory(ctx, sheet, accessory, facing, x, y, scale) {
 // 지금 보고 있는 축(가로/세로)을 조금 우대한다. 정확히 대각선으로 움직일 때
 // |dx| 와 |dy| 가 엎치락뒤치락하면서 매 프레임 방향이 갈리던 것을 막는다
 const FACE_BIAS = 1.2;
+
+/** 어떤 색의 '진한 형제' 색. 색조는 그대로 두고 채도를 올리고 밝기를 낮춘다 (테두리용) */
+function deepen([r0, g0, b0], l, s, alpha) {
+    const [h, s0] = rgbToHsl(r0, g0, b0);
+    const [r, g, b] = hslToRgb(h, Math.max(s, s0 * 0.8), l);
+    return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${alpha})`;
+}
+
+/** 그 용이 실제로 띠는 색에서 뽑은 테두리. 용마다 한 번만 계산한다 (f: 지금 그리는 칸) */
+export function outlineFor(f, isPlayer) {
+    const rgb = averageColor(f.img, f.sx, f.sy, f.sw, f.sh);
+    return isPlayer
+        ? { color: deepen(rgb, 0.23, 0.7, 0.92), width: 2.2 }
+        : { color: deepen(rgb, 0.18, 0.55, 0.78), width: 1.5 };
+}
 
 /** 이동 벡터 → 4방향. fallback 은 지금 보고 있는 방향 */
 export function facingFromVector(dx, dy, fallback = 'down') {
@@ -352,11 +368,18 @@ export class Dragon extends Entity {
         if (input.pressed('growthTab')) toggleJournal('growth');   // 성장 나무
         if (input.pressed('mute')) showToast(toggleMute() ? '효과음 끔' : '효과음 켬', '🔊');
 
-        // 보는 방향은 프레임 끝에 딱 한 번 정한다. 마우스를 쓰는 중이면 커서 쪽, 아니면 가는 쪽.
+        // 보는 방향은 프레임 끝에 딱 한 번, 아래 순서대로 정한다.
+        //   1) 쏘는 중이면 겨눈 쪽   — 숨결이 엉뚱한 쪽에서 나가지 않게
+        //   2) 걷는 중이면 가는 쪽   — 방향키로도 자연스럽게 몸을 튼다
+        //   3) 가만히 서 있으면 커서 쪽
+        // '쏘는 중'은 버튼을 누르고 있는 동안 계속 참이라 한 번 정해지면 흔들리지 않는다.
         // 예전엔 moveBy 가 매 프레임 '가는 쪽'으로, attack 이 쏠 때마다 '겨눈 쪽'으로 따로 돌려놔서
         // 왼쪽으로 달리며 오른쪽을 쏘면 스프라이트가 좌우로 튀었다
         if (!locked) {
-            const look = mouse.inside ? this.aimAngle().angle : (dx || dy) ? Math.atan2(dy, dx) : null;
+            const firing = input.down('attack') || mouse.down;
+            const look = firing ? this.aimAngle().angle
+                : (dx || dy) ? Math.atan2(dy, dx)
+                : mouse.inside ? this.aimAngle().angle : null;
             if (look !== null) this.facing = facingFromVector(Math.cos(look), Math.sin(look), this.facing);
         }
 
@@ -713,6 +736,8 @@ export class Dragon extends Entity {
             ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + Math.cos(b.angle) * 950, oy + Math.sin(b.angle) * 950); ctx.stroke();
             ctx.restore();
         }
+        // 내 용은 발밑에 은은한 빛을 깔아, 용이 여럿 뒤엉켜 있어도 어느 쪽이 나인지 바로 보이게 한다
+        if (this.isPlayer) drawGlow(ctx, this.x, this.y - 6, 86 * this.stage.scale, '#ffe6a8', 0.17);
         if (this.fury > 0) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 90, '#ff5a3c', 0.35 + Math.sin(state.gameTime * 12) * 0.1);
         if (this.guard > 0) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 100, '#cfd8e6', 0.45);
         if (this.channels.some(c => c.id === 'STORM')) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 110, '#ffe27a', 0.3);
@@ -726,7 +751,9 @@ export class Dragon extends Entity {
         if (this.animator) {
             const f = this.animator.frame(this.facing);
             if (this.downTimer > 0) ctx.globalAlpha = 0.55;
-            drawFrame(ctx, this.sheet, f, this.x, this.y + (this.downTimer > 0 ? 18 : this.hoverY) - this.diveHeight, sc, { t: state.gameTime + this.animPhase, moving: this.moving, attacking: this.animator.name === 'attack' && !this.animator.done });
+            drawFrame(ctx, this.sheet, f, this.x, this.y + (this.downTimer > 0 ? 18 : this.hoverY) - this.diveHeight, sc,
+                { t: state.gameTime + this.animPhase, moving: this.moving, attacking: this.animator.name === 'attack' && !this.animator.done },
+                (this._outline || (this._outline = outlineFor(f, this.isPlayer))));
             ctx.globalAlpha = 1;
             drawAccessory(ctx, this.sheet, this.config.accessory, this.facing, this.x, this.y + this.hoverY - this.diveHeight, sc);
         } else {
