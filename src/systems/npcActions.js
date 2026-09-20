@@ -48,7 +48,8 @@ function addRelation(npc, amount) {
 function show(npc, text, options) {
     state.isDialogueOpen = true;
     state.currentNpc = npc;
-    dialogueUI.show({ name: `${npcName(npc.config.name)} · ${TIER_NAMES[relationTier(npc.relation)]}`, text, sheet: npc.sheet, onClose: close, options });
+    // 사이와 맡은 일은 이름 옆이 아니라 머리 칸에서 보여 준다 (ui/dialogueUI.js)
+    dialogueUI.show({ name: npcName(npc.config.name), text, sheet: npc.sheet, npc, onClose: close, options });
 }
 
 /**

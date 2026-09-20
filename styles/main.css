@@ -68,7 +68,7 @@ body {
     border-image: url('../assets/ui/frame.png') 32 / 18px stretch;
     image-rendering: pixelated;
     border-radius: 0;
-    background-color: rgba(19, 18, 29, 0.93);
+    background-color: rgba(16, 15, 24, 0.985);   /* 판이 커진 뒤로는 거의 불투명해야 글이 읽힌다 */
 }
 
 /* 판 공통: 일지 · 가족 · 도움말.
@@ -360,11 +360,21 @@ body {
 }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-#d-header { display: flex; align-items: center; gap: 12px; margin-bottom: 7px; }
-#d-portrait.portrait { width: 58px; height: 58px; }
-#d-name {
-    color: var(--gold-lit); font-size: 1.12rem; font-weight: 700; letter-spacing: 0.3px;
+#d-header { display: flex; align-items: center; gap: 14px; margin-bottom: 9px; }
+#d-portrait.portrait {
+    width: 84px; height: 84px; flex: none;
+    background: rgba(0, 0, 0, 0.35); border: 1px solid var(--gold-dim);
 }
+#d-who { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+#d-name {
+    color: var(--gold-lit); font-size: 1.18rem; font-weight: 700; letter-spacing: 0.3px;
+}
+#d-meta { display: flex; gap: 8px; font-size: 0.72rem; color: var(--parch-dim); }
+#d-meta #d-tier { color: var(--parch-mid); }
+/* 사이가 얼마나 깊은지 한 줄로. 숫자를 보여 주는 대신 눈으로 보이게 */
+#d-rel { width: 168px; height: 5px; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--gold-dim); display: none; }
+#d-rel.show { display: block; }
+#d-rel i { display: block; height: 100%; background: linear-gradient(90deg, #d86a8a, #ff9ab4); }
 #d-text {
     color: var(--parch); font-size: 1rem; line-height: 1.62;
     margin-bottom: 11px; min-height: 2.9em; white-space: pre-wrap;
@@ -395,10 +405,29 @@ body {
 /* ==========================================================================
    모험 일지
    ========================================================================== */
-#journal-panel {
-    top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: min(460px, 92vw); max-height: 78vh;
+/* 가운데에 뜨는 판은 모두 같은 크기다. 창마다 크기가 달라 열 때마다
+   눈이 다시 자리를 잡아야 하던 것을, 제일 큰 스킬 나무에 맞춰 통일했다 */
+#journal-panel, #help-panel, #den-panel, #kids-panel {
+    top: 50%; left: 50%; bottom: auto; right: auto;
+    transform: translate(-50%, -50%);
+    width: min(1040px, 95vw);
+    height: min(760px, 88vh);
+    max-height: 88vh;
 }
+/* 판 안쪽 내용은 위에서부터 채우고, 넘치면 그 안에서만 구른다 */
+#journal-panel .panel-body, #help-panel .panel-body,
+#den-panel .panel-body, #kids-panel .panel-body {
+    flex: 1 1 auto; overflow-y: auto; min-height: 0;
+}
+/* 나무(성장·스킬)만 판 전체를 쓴다. 나머지 글줄은 가운데로 모아
+   1040px 폭에 한 줄씩 늘어져 읽기 힘들어지는 것을 막는다 */
+#journal-panel:not(.wide) .panel-body,
+#den-panel .panel-body, #kids-panel .panel-body {
+    width: min(760px, 100%); margin: 0 auto;
+}
+#help-panel .panel-body { width: min(860px, 100%); margin: 0 auto; }
+#help-panel .panel-body { columns: 2; column-gap: 34px; }
+#help-panel .help-row, #help-panel .help-sep { break-inside: avoid; }
 #journal-tabs { display: flex; gap: 4px; margin-bottom: 9px; }
 .journal-tab {
     /* 탭이 여덟 칸이라 좁다. 글자는 한 줄로 두고 칸만 줄어들게 한다 */
@@ -470,9 +499,7 @@ body {
 /* ==========================================================================
    가족 패널
    ========================================================================== */
-#kids-panel {
-    bottom: 18px; right: 18px; width: 320px; max-height: 58vh;
-}
+
 .kids-meta { font-size: 0.72rem; color: var(--parch-dim); margin-bottom: 7px; }
 .kids-empty { color: var(--parch-dim); font-size: 0.78rem; line-height: 1.7; padding: 14px 4px; text-align: center; }
 .kid-row {
@@ -498,10 +525,7 @@ body {
     background: rgba(14, 13, 22, 0.8); border: 1px solid var(--gold-dim);
     padding: 5px 11px; font-family: var(--font-ko);
 }
-#help-panel {
-    top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: min(420px, 92vw); max-height: 82vh;
-}
+
 .help-row {
     display: grid; grid-template-columns: 74px 1fr; gap: 10px;
     font-size: 0.77rem; line-height: 1.5; padding: 3px 0;
@@ -649,7 +673,7 @@ body.touch #toast-box { top: 96px; }
     #d-options { grid-template-columns: 1fr 1fr; }
     #boss-bar { top: 44px; }
     #toast-box { top: 88px; width: 86vw; }
-    #kids-panel, #help-panel { width: min(320px, 92vw); }
+
 }
 
 /* ── 컷씬 ────────────────────────────────────────────────────────────────
@@ -717,10 +741,7 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 .folk-doing { color: var(--parch); font-size: 0.78rem; margin-top: 2px; line-height: 1.45; }
 
 /* ── 굴 꾸미기 판 ───────────────────────────────────────────────────────── */
-#den-panel {
-    top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: min(480px, 92vw); max-height: 80vh;
-}
+
 .den-meta {
     display: flex; align-items: baseline; gap: 10px;
     margin-bottom: 8px; padding-bottom: 7px;
@@ -762,7 +783,7 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 /* 패널이 열리면 바깥 세상이 어두워진다. 그림자 하나로 덮으므로 따로 DOM 이 필요 없다 */
 .panel { box-shadow: 0 0 0 100vmax rgba(3, 4, 9, 0.72); }
 
-#journal-panel.wide { width: min(1040px, 95vw); max-height: 88vh; }
+
 #journal-points { font-size: 0.74rem; color: var(--gold-lit); font-family: var(--font-num); white-space: nowrap; }
 
 .tree-note { background: var(--ink-raise); border-left: 3px solid var(--gold); padding: 7px 12px; margin-bottom: 4px; }
@@ -872,7 +893,7 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 .slot-rank { position: absolute; top: 2px; right: 4px; font-size: 0.55rem; color: var(--gold-lit); letter-spacing: -1px; }
 
 @media (max-width: 900px), (max-height: 620px) {
-    #journal-panel.wide { width: 97vw; max-height: 92vh; }
+    #journal-panel, #help-panel, #den-panel, #kids-panel { width: 97vw; height: 92vh; max-height: 92vh; }
     .tree-canopy { gap: 2px; }
     .tnode { width: 62px; }
     .tnode-gem { width: 38px; height: 38px; border-width: 2px; }

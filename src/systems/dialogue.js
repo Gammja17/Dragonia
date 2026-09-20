@@ -60,6 +60,7 @@ function renderNode(group, key, npc) {
         ],
         onClose: closeDialogue,
         sheet: npc.sheet,
+        npc,
     });
 }
 

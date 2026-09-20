@@ -3,6 +3,8 @@ import { drawPortrait } from '../render/spritesheet.js';
 import { play } from '../systems/audio.js';
 
 const $ = (id) => document.getElementById(id);
+const TIERS = ['낯선 사이', '아는 사이', '친구', '절친'];
+const tierOf = (r) => (r >= 75 ? 3 : r >= 50 ? 2 : r >= 25 ? 1 : 0);
 
 let selected = 0;
 let typer = null;
@@ -27,10 +29,18 @@ function highlight() {
 
 export const dialogueUI = {
     /** options: [{ label, onSelect }]. 비어 있으면 '닫기' 버튼만 표시 */
-    show({ name, text, options, onClose, sheet }) {
+    /** npc 를 넘기면 머리에 맡은 일·사이·호감도 막대를 함께 보여 준다 */
+    show({ name, text, options, onClose, sheet, npc }) {
         drawPortrait($('d-portrait'), sheet);
         $('dialogue-overlay').style.display = 'flex';
         $('d-name').textContent = name;
+        const job = npc && npc.job ? npc.job : '';
+        const rel = npc && npc.config && npc.config.fixed ? (npc.relation || 0) : null;
+        $('d-job').textContent = job;
+        $('d-tier').textContent = rel === null ? '' : (job ? '· ' : '') + TIERS[tierOf(rel)];
+        const bar = $('d-rel');
+        bar.classList.toggle('show', rel !== null);
+        if (rel !== null) $('d-rel-fill').style.width = Math.min(100, rel) + '%';
         typeText(text);
         const box = $('d-options');
         box.innerHTML = '';
