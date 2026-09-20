@@ -2,12 +2,14 @@
 //   giver    의뢰인(고정 NPC 이름, data/npcs.js)
 //   act      퀘스트 로그에서 묶이는 장 ('main' 은 본 이야기, 나머지는 그 인물의 이야기)
 //   requires 먼저 끝내야 하는 퀘스트 id
+//   auto     NPC가 주지 않는다. 돌아다니다 사건이 터지면서 저절로 맡게 된다 (data/chronicle.js)
 //   summary  왜 이 일을 맡았는지 (로그에서 읽는 배경)
 //   hint     지금 뭘 해야 하는지 (로그의 '해야 할 일')
 //   goal.type: 'kill'(target = 적 종류 | 'HUNTER') | 'stage'(index 이상으로 성장) | 'boss'(id)
 //              | 'collect'(고기 count개를 건넨다) | 'killAny'(아무 적) | 'elite'(정예 처치)
 //              | 'visit'(target 바이옴에 가 보기) | 'hatch' | 'raid'(습격 격퇴) | 'spar'(대련 승리)
 //              | 'tag'(술래잡기 승리) | 'upgrade'(비늘 단련) | 'chest'(상자 열기)
+//              | 'delve'(굴의 지하 N층까지 내려가기)
 export const QUESTS = [
     // ---- 본 이야기: 촌장 엘더 ----
     {
@@ -35,7 +37,7 @@ export const QUESTS = [
         goal: { type: 'kill', target: 'HUNTER', count: 4 }, reward: { xp: 200, meat: 2 },
     },
     {
-        id: 'm4', giver: 'Elder', act: 'main', requires: 'm3', title: '달빛 골짜기의 뼈용',
+        id: 'm4', auto: true, giver: 'Elder', act: 'main', requires: 'm3', title: '달빛 골짜기의 뼈용',
         offer: "마을에서 [동쪽 길]을 따라가면 달빛 골짜기가 나온다. 그곳에 죽지 못한 용, [모르가스]가 잠들어 있지. 놈을 쓰러뜨리면 [냉기]의 숨결을 얻을 게다.",
         summary: "모르가스는 원래 이 마을의 수호룡이었다. 이그나르에게 당한 뒤로도 마을을 떠나지 못하고, 뼈만 남은 채 골짜기를 맴돈다. 보내 주는 것도 예의다.",
         hint: "마을 동쪽, 달빛 골짜기의 결투장으로 간다.",
@@ -43,7 +45,7 @@ export const QUESTS = [
         goal: { type: 'boss', id: 'MORGATH' }, reward: { xp: 300, meat: 3 },
     },
     {
-        id: 'm5', giver: 'Elder', act: 'main', requires: 'm4', title: '환영의 밀림',
+        id: 'm5', auto: true, giver: 'Elder', act: 'main', requires: 'm4', title: '환영의 밀림',
         offer: "[남쪽 길] 끝 환영의 밀림에는 쌍두룡 [잘고라]가 산다. 두 머리가 서로 다투느라 늘 화가 나 있지. 놈에게서 [번개]의 숨결을 빼앗아 오너라.",
         summary: "잘고라는 원래 형제였다. 이그나르의 저주로 한 몸이 되어, 서로가 왕이 되겠다고 다투다 미쳤다. 둘 다 불쌍한 용이다.",
         hint: "마을 남쪽 끝, 환영의 밀림으로 간다.",
@@ -51,7 +53,7 @@ export const QUESTS = [
         goal: { type: 'boss', id: 'ZALGORA' }, reward: { xp: 400, meat: 3 },
     },
     {
-        id: 'm5a', giver: 'Elder', act: 'main', requires: 'm5', title: '얼어붙은 봉우리',
+        id: 'm5a', auto: true, giver: 'Elder', act: 'main', requires: 'm5', title: '얼어붙은 봉우리',
         offer: "이그나르에게 가려면 아직 이르다. 먼저 [북동쪽 끝] 서리 봉우리의 여왕 [글라시아]를 넘어서거라. 놈의 얼음 탄막을 피하지 못하면 이그나르 앞에선 숨도 못 쉰다.",
         summary: "글라시아는 이그나르를 피해 봉우리로 숨은 용이다. 숨다 못해 봉우리째로 얼려 버렸다. 그 탄막을 피할 수 있어야 이그나르 앞에 설 수 있다.",
         hint: "북동쪽 끝, 서리 봉우리의 결투장으로 간다. 탄막은 [Shift] 대시로 피한다.",
@@ -59,7 +61,7 @@ export const QUESTS = [
         goal: { type: 'boss', id: 'GLACIA' }, reward: { xp: 700, meat: 4 },
     },
     {
-        id: 'm5b', giver: 'Elder', act: 'main', requires: 'm5a', title: '죽은 사구의 폭군',
+        id: 'm5b', auto: true, giver: 'Elder', act: 'main', requires: 'm5a', title: '죽은 사구의 폭군',
         offer: "[남서쪽 끝] 사막에는 모래 폭군 [바실]이 산다. 그론의 무릎을 앗아간 놈이지. 돌진을 조심하거라. 붉은 선이 보이면 [Shift]로 몸을 날려라.",
         summary: "그론이 모험을 접은 이유. 젊은 그론은 바실의 돌진을 한 번 피하지 못했고, 그 뒤로 대장간 밖을 나가지 않는다.",
         hint: "남서쪽 끝, 죽은 사구의 결투장으로 간다. 붉은 예고선이 보이면 대시로 피한다.",
@@ -67,7 +69,7 @@ export const QUESTS = [
         goal: { type: 'boss', id: 'BASIL' }, reward: { xp: 900, meat: 4 },
     },
     {
-        id: 'm6', giver: 'Elder', act: 'main', requires: 'm5b', title: '하늘에서 떨어진 재앙',
+        id: 'm6', auto: true, giver: 'Elder', act: 'main', requires: 'm5b', title: '하늘에서 떨어진 재앙',
         offer: "이제 말해 주마. 네가 하늘에서 떨어지던 날, 너를 떨어뜨린 것은 고룡 [이그나르]다. 놈은 [남동쪽 끝] 잿빛 화산 지대에서 다음 먹잇감을 기다리고 있다. 끝을 내고 오너라.",
         summary: "나를 떨어뜨린 것도, 이 숲에 사냥꾼을 불러들인 것도, 모르가스와 잘고라를 저렇게 만든 것도 전부 한 용이었다. 카이론의 형, 이그나르.",
         hint: "남동쪽 끝, 잿빛 화산의 결투장으로 간다. 준비를 단단히 하고 간다.",
@@ -153,6 +155,32 @@ export const QUESTS = [
         goal: { type: 'chest', count: 5 }, reward: { xp: 350, relation: 10 },
     },
 
+    // ---- 나라의 이야기 ----
+    {
+        id: 'n1', giver: 'Nara', act: 'Nara', title: '같은 수만큼',
+        offer: "오늘 나 열다섯 마리 잡았어. 너도 열다섯. 그래야 내일 같은 자리에서 시작하지.",
+        summary: "나라는 늘 숫자로 말한다. 허수아비 서른 번, 열다섯 마리. 그게 뒤처지지 않으려고 붙잡은 유일한 손잡이다.",
+        hint: "숲에서 아무 적이나 열다섯 마리를 쓰러뜨린다.",
+        done: "…진짜 다 채웠네. 좋아. 내일은 스무 마리다.",
+        goal: { type: 'killAny', count: 15 }, reward: { xp: 200, relation: 15 },
+    },
+    {
+        id: 'n2', giver: 'Nara', act: 'Nara', requires: 'n1', title: '허수아비는 반격하지 않는다',
+        offer: "수련장 밖으로 나가자. 금빛으로 빛나는 놈 둘. 그 정도는 잡아야 우리가 컸다고 할 수 있어.",
+        summary: "나라는 허수아비를 믿지 않는다. 부모를 앗아간 것은 반격하는 쪽이었으니까.",
+        hint: "정예 몬스터 둘을 쓰러뜨린다. 금빛으로 빛나는 놈이다.",
+        done: "둘 다…? 하. 역시 너랑 다니면 무서운 게 줄어들어.",
+        goal: { type: 'elite', count: 2 }, reward: { xp: 400, gold: 80, relation: 20 },
+    },
+    {
+        id: 'n3', giver: 'Nara', act: 'Nara', requires: 'n2', title: '땅 밑까지',
+        offer: "옛 용들이 파 둔 굴 있잖아. 지하 세 층까지 내려가 봐. 나는… 아직 무서워서 못 가. 대신 네 이야기를 들을래.",
+        summary: "밖에서는 누구보다 앞서 가는 나라가, 어두운 곳만은 못 간다. 숨어 있던 그날의 나무 뒤가 어두웠기 때문이다.",
+        hint: "굴에 들어가 지하 3층까지 내려간다. 각 층의 파수꾼을 잡아야 아래로 갈 수 있다.",
+        done: "세 층이나…? 무섭지 않았어? …아니다, 대답하지 마. 다음엔 나도 갈게. 같이.",
+        goal: { type: 'delve', count: 3 }, reward: { xp: 600, gold: 120, relation: 25 },
+    },
+
     // ---- 스승 카이론의 이야기 ----
     {
         id: 'k1', giver: 'Kairon', act: 'Kairon', title: '기초 체력',
@@ -192,6 +220,7 @@ export const QUESTS = [
 export const ACT_NAMES = {
     main: '본 이야기',
     Kairon: '스승 카이론',
+    Nara: '또래 나라',
     Tiamat: '티아맷',
     Poco: '포코',
     Gron: '그론',

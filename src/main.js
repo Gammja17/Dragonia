@@ -18,6 +18,7 @@ import { updateLighting, drawLighting } from './render/lighting.js';
 import { drawCrosshair } from './render/cursor.js';
 import { initWaystones, updateTravel } from './systems/travel.js';
 import { inDungeon } from './systems/delve.js';
+import { updateChronicle } from './systems/chronicle.js';
 import { updateEvents, drawEvents } from './systems/events.js';
 import { initAudio } from './systems/audio.js';
 import { initJournal } from './ui/journal.js';
@@ -119,7 +120,7 @@ function update(dt) {
 
     resolveCombat();
     pruneEntities();
-    if (outside) { updateSpawns(); updateTravel(); }
+    if (outside) { updateSpawns(); updateTravel(); updateChronicle(dt); }
 }
 
 function render() {

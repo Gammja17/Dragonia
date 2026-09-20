@@ -1,6 +1,6 @@
 import { state } from '../core/state.js';
 import { clamp, dist, pick, rand } from '../core/utils.js';
-import { NPC_TALK, SHOP, TIER_NAMES, SITUATION_LINES, DATES, CONFESSION, FAMILY_TALK, relationTier } from '../data/npcTalk.js';
+import { NPC_TALK, SHOP, TIER_NAMES, SITUATION_LINES, DATES, CONFESSION, FAMILY_TALK, BOND_SCENES, ROMANCE_GATES, relationTier } from '../data/npcTalk.js';
 import { NEST_POS, MAX_KIDS } from '../core/config.js';
 import { fadeScreen } from '../ui/hud.js';
 import { Projectile, addBullet } from '../entities/Projectile.js';
@@ -25,7 +25,22 @@ function close() {
     dialogueUI.hide();
 }
 
-function addRelation(npc, amount) { npc.relation = clamp((npc.relation || 0) + amount, 0, 100); }
+/**
+ * 호감도를 올린다. 단계가 올라가면 그 인물의 장면을 하나 예약한다.
+ * 장면은 지금 대화가 끝난 뒤에 재생된다 (systems/chronicle.js 가 꺼내 준다).
+ */
+function addRelation(npc, amount) {
+    const before = relationTier(npc.relation || 0);
+    npc.relation = clamp((npc.relation || 0) + amount, 0, 100);
+    const after = relationTier(npc.relation);
+    const name = npc.config.name;
+    if (after <= before || !BOND_SCENES[name] || !BOND_SCENES[name][after]) return;
+    const key = `${name}:${after}`;
+    if (!state.story.bonds) state.story.bonds = [];
+    if (state.story.bonds.includes(key)) return;
+    state.story.bonds.push(key);
+    state.pendingBond = { name, tier: after };
+}
 
 function show(npc, text, options) {
     state.isDialogueOpen = true;
@@ -99,7 +114,7 @@ function ownMenu(npc, name) {
 function talkMenu(npc) {
     const p = state.player, name = npc.config.name;
     const sub = [{ label: '요즘 어때?', onSelect: () => chat(npc) }];
-    if (name !== 'Elder' && name !== 'Kairon' && p.inventory.meat > 0 && npc.lastGiftDay !== state.day) {
+    if (p.inventory.meat > 0 && npc.lastGiftDay !== state.day) {
         sub.push({ label: '🎁 고기를 선물한다 (고기 -1)', onSelect: () => giveGift(npc) });
     }
     if (relationTier(npc.relation) >= 2 && npc.lastPresentDay !== state.day) {
@@ -110,12 +125,20 @@ function talkMenu(npc) {
     show(npc, '무슨 얘기를 할까?', sub);
 }
 
+/** 데이트를 청할 수 있는 호감도. 스승·촌장·그론은 좀 더 높다 (data/npcTalk.js) */
+function dateThreshold(npc) {
+    const gate = ROMANCE_GATES[npc.config.name];
+    return gate ? gate.dateAt : 40;
+}
+
 /** 연애 묶음에 붙는 꼬리표 (없으면 null = 아직 아무것도 못 한다) */
 function heartCount(npc) {
     const dates = npc.dates || 0;
     if (npc === state.partner) return '';
+    const gate = ROMANCE_GATES[npc.config.name];
+    if (gate && !gate.gate(state)) return null;   // 아직 때가 아니다
     if (dates >= 3 && npc.relation >= 80) return ' — 고백할 수 있다';
-    if (npc.relation >= 40) return ` (데이트 ${dates}/3)`;
+    if (npc.relation >= dateThreshold(npc)) return ` (데이트 ${dates}/3)`;
     return null;
 }
 
@@ -126,9 +149,11 @@ function heartMenu(npc) {
         sub.push({ label: '우리… 아이를 가질까?', onSelect: () => familyTalk(npc) });
     } else if (dates >= 3 && npc.relation >= 80) {
         sub.push({ label: '♥ 마음을 고백한다', onSelect: () => confess(npc) });
-    } else if (npc.relation >= 40 && dates < 3) {
+    } else if (npc.relation >= dateThreshold(npc) && dates < 3) {
         if (npc.lastDateDay === state.day) sub.push({ label: `(오늘은 이미 함께 있었다 — ${dates}/3)`, onSelect: () => openNpcHub(npc) });
         else sub.push({ label: `♥ 데이트를 신청한다 (${dates}/3)`, onSelect: () => goOnDate(npc) });
+    } else if (dates >= 3) {
+        sub.push({ label: '(마음은 통한 것 같은데, 아직 한마디가 모자라다)', onSelect: () => openNpcHub(npc) });
     }
     sub.push({ label: '돌아간다', onSelect: () => openNpcHub(npc) });
     if (sub.length === 2) { sub[0].onSelect(); return; }

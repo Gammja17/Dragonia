@@ -1,7 +1,9 @@
 import { state } from '../core/state.js';
-import { dist, rand } from '../core/utils.js';
+import { playScene } from './chronicle.js';
+import { dist, rand, pick } from '../core/utils.js';
 import { TRAINING as DOJO } from '../core/config.js';
 import { LESSONS, TRIALS, SCENES } from '../data/story.js';
+import { NPC_TALK } from '../data/npcTalk.js';
 import { STAGES } from '../data/elements.js';
 import { SKILLS } from '../data/skills.js';
 import { Enemy } from '../entities/Enemy.js';
@@ -116,6 +118,9 @@ function endDrill(win) {
         state.story.lessons.push(a.lesson.id);
         state.story.lessonDay = state.day;
         a.npc.say('잘했다. 오늘은 여기까지.');
+        // 같이 구르는 또래가 곁에 있으면 한마디 거든다
+        const nara = state.entities.npcs.find(n => n.config.name === 'Nara');
+        if (nara && dist(nara, p) < 900) nara.say(pick(NPC_TALK.Nara.trainingLines));
         learnSkill(a.lesson.skill);
         p.gainXp(40 + a.lesson.level * 25);
         showToast(`${a.lesson.title} 완료! 둥지에서 자고 나면 다음 수련을 받을 수 있습니다.`, '🎓');
@@ -221,24 +226,10 @@ function sleep() {
     }, playMorningScene);
 }
 
-/** 아직 안 본 장면 중 조건이 맞는 첫 번째를 재생 */
+/** 아직 안 본 장면 중 조건이 맞는 첫 번째를 재생 (아침에 눈뜰 때) */
 export function playMorningScene() {
     const scene = SCENES.find(sc => !state.story.scenes.includes(sc.id) && sc.when(state));
     if (!scene) return;
     state.story.scenes.push(scene.id);
-    showToast(scene.title, '📖');
-    let i = 0;
-    const next = () => {
-        if (i >= scene.lines.length) { close(); saveGame(); return; }
-        const line = scene.lines[i++];
-        const npc = state.entities.npcs.find(n => n.config.name === line.who);
-        state.isDialogueOpen = true;
-        dialogueUI.show({
-            name: line.who === '나' ? state.player.config.name : line.who, text: line.text,
-            sheet: line.who === '나' ? state.player.sheet : npc ? npc.sheet : null, onClose: next,
-            options: [{ label: i < scene.lines.length ? '▶ 다음' : '▶ 끝', onSelect: next }],
-        });
-        play('talk');
-    };
-    next();
+    playScene(scene.title, scene.lines, saveGame);
 }

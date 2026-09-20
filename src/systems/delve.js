@@ -14,6 +14,7 @@ import { spawnEffect } from '../render/vfx.js';
 import { grantRelic, randomRelic } from './relics.js';
 import { play } from './audio.js';
 import { saveGame } from './save.js';
+import { notify } from './quests.js';
 
 // 굴 탐험. 바깥 세상은 늘 같아서 이야기를 심을 수 있고, 굴은 들어갈 때마다 새로 그려진다.
 //
@@ -111,6 +112,7 @@ function buildFloor(depth) {
     pools.enemies.push(guard);
 
     buildPropGrid(pools.props);
+    notify('delve', depth);   // 나라의 부탁처럼 '몇 층까지 내려갔나'를 보는 퀘스트용
 }
 
 // ---------- 오르내리기 ----------

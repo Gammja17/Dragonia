@@ -39,6 +39,7 @@ export function goalText(q) {
         case 'tag': return `술래잡기 ${n}회 승리`;
         case 'upgrade': return `비늘 단련 ${n}회`;
         case 'chest': return `보물상자 ${n}개 개봉`;
+        case 'delve': return `굴의 지하 ${n}층까지 내려가기`;
         default: return '목표';
     }
 }
@@ -69,15 +70,18 @@ export function notify(type, target) {
         if ((type === 'kill' || type === 'visit') && g.target !== target) continue;
         if (type === 'boss' && g.id !== target) continue;
         if (type === 'stage' && target < g.index) continue;
-        state.quests.active[q.id]++;
+        // 'delve' 는 쌓이는 게 아니라 "가장 깊이 내려간 층"이다
+        if (type === 'delve') state.quests.active[q.id] = Math.max(state.quests.active[q.id] || 0, target);
+        else state.quests.active[q.id]++;
         if (isComplete(q)) showToast(`[${q.title}] 목표 달성! ${q.giver}에게 돌아가자`, '📜');
     }
     onChange();
 }
 
+/** NPC가 직접 건네줄 수 있는 부탁. auto 퀘스트는 사건으로만 열리므로 뺀다 */
 export function offerFor(npc) {
     const Q = state.quests;
-    return QUESTS.find(q => q.giver === npc.config.name && !(q.id in Q.active) && !Q.done.includes(q.id)
+    return QUESTS.find(q => !q.auto && q.giver === npc.config.name && !(q.id in Q.active) && !Q.done.includes(q.id)
         && (!q.requires || Q.done.includes(q.requires)));
 }
 export function activeFor(npc) { return activeQuests().find(q => q.giver === npc.config.name); }
@@ -161,7 +165,10 @@ export function questLog() {
     for (const g of groups) {
         const next = QUESTS.find(q => (ACT_NAMES[q.act] || q.act) === g.name && !(q.id in Q.active) && !Q.done.includes(q.id)
             && (!q.requires || Q.done.includes(q.requires)));
-        if (next) g.rows.push({ id: next.id, title: '???', giver: next.giver, upcoming: true, hint: `${next.giver}에게 말을 걸어 보자.` });
+        if (next) g.rows.push({
+            id: next.id, title: '???', giver: next.giver, upcoming: true,
+            hint: next.auto ? '아직 때가 아니다. 세상을 더 돌아다녀 보자.' : `${next.giver}에게 말을 걸어 보자.`,
+        });
     }
     return groups;
 }
