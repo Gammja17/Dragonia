@@ -36,26 +36,31 @@ export const BIOME_ENEMIES = {
 // 보스. 드래곤 시트를 크게 그려 쓴다. unlock: 처치 시 해금되는 속성
 export const BOSSES = {
     MORGATH: {
+        needs: 'ev_morgath',   // 이 사건을 겪기 전에는 둥지가 비어 있다
         name: '뼈용 모르가스', title: '달빛 골짜기의 주인', species: 'BONE', colors: { body: '#ffffff', wing: '#ffffff' },
         x: 4400, y: 1500, scale: 2.0, hp: 1100, speed: 120, contact: 18, xp: 600,
         element: 'ICE', unlock: 'ICE', revive: true, patterns: ['RING', 'SUMMON', 'AIMED', 'BONE_RAIN'],
     },
     ZALGORA: {
+        needs: 'ev_zalgora',   // 이 사건을 겪기 전에는 둥지가 비어 있다
         name: '쌍두룡 잘고라', title: '환영의 밀림의 폭군', species: 'HYDRA', colors: { body: '#a3262b', wing: '#e0a020' },
         x: 1500, y: 4400, scale: 1.9, hp: 1700, speed: 150, contact: 22, xp: 900,
         element: 'THUNDER', unlock: 'THUNDER', twin: true, patterns: ['TWIN_BEAM', 'AIMED', 'SPIRAL', 'AIMED', 'CHARGE'],
     },
     GLACIA: {
+        needs: 'ev_glacia',   // 이 사건을 겪기 전에는 둥지가 비어 있다
         name: '서리 여왕 글라시아', title: '얼어붙은 봉우리의 지배자', species: 'WYVERN', colors: { body: '#cfeaff', wing: '#7fb8ff' },
         x: 6800, y: 1600, scale: 2.1, hp: 2600, speed: 165, contact: 24, xp: 1300,
         element: 'ICE', unlock: null, patterns: ['HOMING', 'ICE_FIELD', 'BLIZZARD', 'RING', 'HOMING'],
     },
     BASIL: {
+        needs: 'ev_basil',   // 이 사건을 겪기 전에는 둥지가 비어 있다
         name: '모래 폭군 바실', title: '죽은 사구의 포식자', species: 'BEHEMOTH', colors: { body: '#c9a24a', wing: '#8a5a2a' },
         x: 2000, y: 6800, scale: 2.1, hp: 3200, speed: 140, contact: 30, xp: 1600,
         element: 'FIRE', unlock: null, chargeChain: true, patterns: ['BURROW', 'CHARGE', 'QUAKE', 'AIMED', 'BURROW'],
     },
     IGNAR: {
+        needs: 'ev_ignar',   // 이 사건을 겪기 전에는 둥지가 비어 있다
         name: '고룡 이그나르', title: '하늘에서 떨어진 재앙', species: 'SHADOW', colors: { body: '#3a2a4a', wing: '#ff5a1f' },
         x: 6700, y: 6700, scale: 2.0, hp: 4500, speed: 175, contact: 32, xp: 3000,
         element: 'FIRE', unlock: null, phase2: true, patterns: ['METEOR_RAIN', 'AIMED', 'FLAME_WALL', 'CHARGE', 'SPIRAL'],

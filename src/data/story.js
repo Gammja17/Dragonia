@@ -23,10 +23,33 @@ export const LESSONS = [
 
 // 승급 시험: 레벨이 차도 스승과 겨뤄 이겨야 다음 단계로 자란다. stage: 도달할 단계 번호
 export const TRIALS = [
-    { stage: 1, hp: 160, intro: "날개가 근질근질하구나? 좋다. [어린 용]이 될 자격이 있는지 보자." },
-    { stage: 2, hp: 300, intro: "[성체]의 문턱이다. 어른의 싸움은 봐주는 법이 없다. 오너라." },
-    { stage: 3, hp: 480, intro: "[고룡]… 나도 밟아 보지 못한 경지다. 나를 넘어서라, 제자야." },
-    { stage: 4, hp: 700, intro: "불과 얼음과 번개를 한 몸에… 전설로만 듣던 [삼원룡]의 문이다. 내 전부를 걸고 막아 보마. 넘어서라!" },
+    // 몸이 자라는 건 레벨만으로 되지 않는다. 스승에게 배운 만큼, 마을에서 겪은 만큼 자란다.
+    //   needs(s)  이게 참이어야 시험을 청할 수 있다
+    //   why       아직 안 될 때 스승이 하는 말
+    {
+        stage: 1, hp: 160,
+        needs: (s) => s.story.lessons.length >= 1,
+        why: '아직 한 수도 배우지 않았잖느냐. 수련부터 하고 오너라.',
+        intro: "날개가 근질근질하구나? 좋다. [어린 용]이 될 자격이 있는지 보자.",
+    },
+    {
+        stage: 2, hp: 300,
+        needs: (s) => s.story.lessons.length >= 3 && s.quests.done.includes('m3'),
+        why: '몸만 커서는 어른이 아니다. 수련을 셋은 마치고, 마을 일도 네 손으로 끝내 보고 오너라.',
+        intro: "[성체]의 문턱이다. 어른의 싸움은 봐주는 법이 없다. 오너라.",
+    },
+    {
+        stage: 3, hp: 480,
+        needs: (s) => s.story.lessons.length >= 6 && Object.keys(s.bossesDefeated).length >= 1,
+        why: '고룡은 마을 안에서 나오지 않는다. 바깥의 큰 것을 하나는 넘어 보고 오너라.',
+        intro: "[고룡]… 나도 밟아 보지 못한 경지다. 나를 넘어서라, 제자야.",
+    },
+    {
+        stage: 4, hp: 700,
+        needs: (s) => s.story.lessons.length >= 8 && Object.keys(s.bossesDefeated).length >= 3,
+        why: '셋을 하나로 엮는 일이다. 세상의 큰 것들을 더 겪고 오너라.',
+        intro: "불과 얼음과 번개를 한 몸에… 전설로만 듣던 [삼원룡]의 문이다. 내 전부를 걸고 막아 보마. 넘어서라!",
+    },
 ];
 
 // 아침에 깰 때 재생되는 장면. when(state) 가 참이고 아직 안 본 첫 장면 하나가 나온다.

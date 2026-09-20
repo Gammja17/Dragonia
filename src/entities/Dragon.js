@@ -838,10 +838,7 @@ export class Dragon extends Entity {
         ctx.textBaseline = 'alphabetic';
 
         // 이름
-        // 의식에서 칭호를 받았으면 이름 뒤에 붙는다 (systems/story.js)
-        const name = this.isPlayer
-            ? (this.config.name || '용') + (state.story.title ? ` · ${state.story.title}` : '')
-            : npcName(this.config.name);
+        const name = this.isPlayer ? (this.config.name || '용') : npcName(this.config.name);
         ctx.font = '600 13px "Noto Sans KR"';
         const nw = Math.ceil(ctx.measureText(name).width) + 16;
         ctx.fillStyle = 'rgba(10, 9, 16, 0.78)';

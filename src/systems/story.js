@@ -29,12 +29,26 @@ function close() { state.isDialogueOpen = false; state.currentNpc = null; dialog
 
 // ---------- 스승과의 대화에 끼워 넣는 선택지 (systems/npcActions.js 가 호출) ----------
 export function nextLesson() { return LESSONS.find(l => !state.story.lessons.includes(l.id)); }
+/** 지금 청할 수 있는 승급 시험 (없으면 null) */
 export function pendingTrial() {
+    const t = nextTrial();
+    return t && !t.blocked ? t : null;
+}
+
+/**
+ * 다음 승급 시험과, 아직 안 되는 이유.
+ *   { ...trial, blocked: '레벨이 모자라다' | '아직 배운 게 적다' | null }
+ * 레벨만 채우면 이틀 만에 성체가 되던 것을, 배운 것·겪은 것에도 묶었다.
+ */
+export function nextTrial() {
     const p = state.player;
     const t = TRIALS.find(tr => tr.stage === p.stageIndex + 1);
-    if (!t || p.level < STAGES[t.stage].minLevel) return null;
-    if (STAGES[t.stage].needsAllElements && p.elements.length < 3) return null;   // 숨겨진 단계는 세 숨결이 모두 있어야
-    return t;
+    if (!t) return null;
+    const st = STAGES[t.stage];
+    if (p.level < st.minLevel) return { ...t, blocked: `아직 이르다. 레벨 ${st.minLevel}은 되어야 몸이 버틴다. (지금 ${p.level})` };
+    if (st.needsAllElements && p.elements.length < 3) return { ...t, blocked: '세 숨결을 모두 제 것으로 만든 뒤의 이야기다.' };
+    if (t.needs && !t.needs(state)) return { ...t, blocked: t.why };
+    return { ...t, blocked: null };
 }
 
 export function masterOptions(npc) {
@@ -43,8 +57,12 @@ export function masterOptions(npc) {
     if (!state.story.scenes.includes('ch1')) {
         return [{ label: '[수련] 가르침을 청한다', onSelect: () => say(npc, "엘더 영감한테 아직 얘기를 못 들었나 보군. 오늘은 마을을 둘러보고, 둥지에서 하룻밤 자고 오너라.") }];
     }
-    const trial = pendingTrial();
-    if (trial) opts.push({ label: `[승급 시험] ${STAGES[trial.stage].name}(으)로 자란다`, onSelect: () => startDrill(npc, { type: 'DUEL', hp: trial.hp }, { trial }) });
+    const trial = nextTrial();
+    if (trial && !trial.blocked) {
+        opts.push({ label: `[승급 시험] ${STAGES[trial.stage].name}(으)로 자란다`, onSelect: () => startDrill(npc, { type: 'DUEL', hp: trial.hp }, { trial }) });
+    } else if (trial) {
+        opts.push({ label: `[승급 시험] ${STAGES[trial.stage].name} — 아직 이르다`, onSelect: () => say(npc, trial.blocked) });
+    }
     opts.push({ label: '연습 대련을 청한다 (보상 없음)', onSelect: () => startDrill(npc, { type: 'DUEL', hp: 220 + p.level * 12 }, { practice: true }) });
     if (npc.lastMeditateDay !== state.day) opts.push({ label: '함께 명상한다 (하루 한 번)', onSelect: () => meditate(npc) });
     const lesson = nextLesson();
@@ -146,21 +164,13 @@ export function playRite(stage) {
         element: p.element || 'FIRE',
         cloudtop: (state.story.events || []).includes('ev_gathering'),
     };
-    const title = rite.title(ctx);
-    state.story.titles = state.story.titles || [];
-    if (!state.story.titles.includes(title)) state.story.titles.push(title);
-    state.story.title = title;
-    playScene('이름을 얻는 의식', rite.lines(ctx), () => {
-        showToast(`이제 [${title}] 라 불립니다.`, '🏅');
+    state.story.rites = state.story.rites || [];
+    if (!state.story.rites.includes(stage)) state.story.rites.push(stage);
+    playScene(rite.title, rite.lines(ctx), () => {
+        if (rite.toast) showToast(rite.toast, '🏅');
         play('evolve');
         saveGame();
     });
-}
-
-/** 지금 불리는 이름 ("바하무트 · 하늘에서 떨어진 자") */
-export function fullName() {
-    const n = state.player ? state.player.config.name : '';
-    return state.story && state.story.title ? `${n} · ${state.story.title}` : n;
 }
 
 /** 수련 중 스승의 움직임과 판정. Dragon.updateNpc 가 호출 */
