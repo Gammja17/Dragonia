@@ -31,13 +31,13 @@ let virtualAxis = { dx: 0, dy: 0 };   // 터치 스틱
 //  down    왼쪽 버튼을 누르고 있다 → 브레스 연사
 //  clicked 이번 프레임에 눌렀다 (터치 탭 포함)
 //  right   이번 프레임에 오른쪽 버튼을 눌렀다
-export const mouse = { x: 0, y: 0, clicked: false, down: false, right: false, inside: false };
+export const mouse = { x: 0, y: 0, clicked: false, down: false, right: false, inside: false, wheel: 0 };
 
 export const input = {
     down(action) { return !!held[action]; },
     pressed(action) { return !!held[action] && !prev[action]; },
     /** 매 프레임 끝에 호출해 '이번 프레임에 눌림' 판정을 갱신 */
-    endFrame() { for (const k in held) prev[k] = held[k]; mouse.clicked = false; mouse.right = false; },
+    endFrame() { for (const k in held) prev[k] = held[k]; mouse.clicked = false; mouse.right = false; mouse.wheel = 0; },
     /** 터치 버튼이 키보드처럼 동작을 누르고 뗀다 */
     setVirtual(action, down) { held[action] = down; },
     setAxis(dx, dy) { virtualAxis = { dx, dy }; },
@@ -73,6 +73,8 @@ export function initInput() {
     });
     window.addEventListener('mouseup', (e) => { if (e.button === 0) mouse.down = false; });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());   // 오른쪽 버튼을 게임에 쓴다
+    // 휠: 위로 굴리면 확대, 아래로 굴리면 축소 (main.js 가 읽어 카메라에 넘긴다)
+    canvas.addEventListener('wheel', (e) => { e.preventDefault(); mouse.wheel += e.deltaY < 0 ? 1 : -1; }, { passive: false });
     // 터치는 inside 를 false 로 둔다. 조준은 자동으로, 공격은 화면 버튼으로 한다 (ui/touch.js)
     canvas.addEventListener('touchstart', (e) => { const t = e.changedTouches[0]; mouse.x = t.clientX; mouse.y = t.clientY; mouse.clicked = true; mouse.inside = false; }, { passive: true });
 }

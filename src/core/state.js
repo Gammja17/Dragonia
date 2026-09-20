@@ -30,6 +30,7 @@ export const state = {
     stats: { kills: {} },
     raidTimer: RAID_FIRST_DELAY,
     elderTutorialDone: false,
+    tutorial: { moved: false, journal: false, ate: false, finished: false },   // systems/tutorial.js
     player: null,
     partner: null,
     currentNpc: null,
@@ -70,6 +71,7 @@ export function resetState() {
         stats: { kills: {} },
         raidTimer: RAID_FIRST_DELAY,
         elderTutorialDone: false,
+        tutorial: { moved: false, journal: false, ate: false, finished: false },
         player: null,
         partner: null,
         currentNpc: null,

@@ -3,7 +3,7 @@ import { Projectile, addBullet } from './Projectile.js';
 import { burst } from './Particle.js';
 import { state } from '../core/state.js';
 import { slideMove } from '../world/collision.js';
-import { isOnScreen } from '../core/camera.js';
+import { isOnScreen, cam } from '../core/camera.js';
 import { dist, rand, pick, roundRect } from '../core/utils.js';
 import { setKidStage, addAffection, findKid } from '../systems/kids.js';
 import { showToast } from '../ui/toast.js';
@@ -142,23 +142,34 @@ export class BabyDragon extends Entity {
         drawFrame(ctx, this.sheet, this.animator.frame(this.facing), this.x, this.y + hover, s, { t: state.gameTime + this.followGap, moving: this.animator.name === 'move', attacking: this.animator.name === 'attack' && !this.animator.done });
         if (this.stage === 'BABY') drawAccessory(ctx, this.sheet, 'SHELL', this.facing, this.x, this.y + hover, s * 1.6);
 
-        // 이름표와 말풍선
+        // 이름표와 말풍선. 줌을 되돌려 그려서 멀리 당겨 봐도 같은 크기로 또렷하다
         const kid = findKid(this);
         const top = this.y - this.sheet.fh * this.sheet.scale * s * this.sheet.anchor.y - 6;
+        const k = 1 / cam.zoom;
+        ctx.save();
+        ctx.translate(Math.round(this.x), Math.round(top));
+        ctx.scale(k, k);
         ctx.textAlign = 'center';
         if (kid) {
-            ctx.font = '600 11px "Noto Sans KR"';
-            ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.strokeText(kid.name, this.x, top);
-            ctx.fillStyle = '#ffe9a0'; ctx.fillText(kid.name, this.x, top);
+            ctx.font = '600 12px "Noto Sans KR"';
+            const w = Math.ceil(ctx.measureText(kid.name).width) + 14;
+            ctx.fillStyle = 'rgba(10, 9, 16, 0.78)';
+            ctx.fillRect(-w / 2, -14, w, 19);
+            ctx.fillStyle = '#ffe9a0';
+            ctx.fillText(kid.name, 0, 0);
         }
         if (this.chatFade > 0 && this.chat) {
             ctx.globalAlpha = Math.min(1, this.chatFade);
-            ctx.font = '11px "Noto Sans KR"';
-            const w = ctx.measureText(this.chat).width + 20;
-            ctx.fillStyle = '#fff';
-            roundRect(ctx, this.x - w / 2, top - 38, w, 24, 9);
-            ctx.fillStyle = '#333'; ctx.fillText(this.chat, this.x, top - 22);
+            ctx.font = '12px "Noto Sans KR"';
+            const w = Math.ceil(ctx.measureText(this.chat).width) + 22;
+            ctx.fillStyle = 'rgba(10, 9, 16, 0.92)';
+            ctx.fillRect(-w / 2, -44, w, 24);
+            ctx.fillStyle = 'rgba(216, 178, 90, 0.7)';
+            ctx.fillRect(-w / 2, -44, w, 2);
+            ctx.fillStyle = '#ece3cf';
+            ctx.fillText(this.chat, 0, -27);
             ctx.globalAlpha = 1;
         }
+        ctx.restore();
     }
 }

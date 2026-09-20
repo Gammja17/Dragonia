@@ -48,8 +48,16 @@ export const NPC_SCRIPTS = {
             options: [{ t: "감사합니다. (고기 받기)", next: 'meat', eff: 5 }],
         },
         meat: {
-            text: "조작법을 알려주지. [WASD]로 움직이고, [Space]로 불꽃을 뿜을 수 있다. [E]키로 물건을 줍거나 먹을 수 있지.",
-            options: [{ t: "알겠습니다!", next: 'warn', eff: 0 }],
+            text: "조작법을 알려주지. [WASD]로 움직이고, 마우스로 겨눈 뒤 왼쪽 버튼을 꾹 누르면 숨결이 나간다.",
+            options: [{ t: "몸이 기억할 것 같아요.", next: 'keys', eff: 0 }],
+        },
+        keys: {
+            text: "[E]로 물건을 줍거나 먹고, [Space]로 말을 건다. 맡은 일은 [J] 일지에 적힌다. 헷갈리면 [H]를 누르거라.",
+            options: [{ t: "알겠습니다!", next: 'hunger', eff: 0 }],
+        },
+        hunger: {
+            text: "그리고 배를 곯지 마라. 고기를 먹지 않으면 몸이 무거워져 날갯짓이 굼떠진다. 죽지는 않지만, 싸울 땐 그게 목숨이지.",
+            options: [{ t: "명심할게요.", next: 'warn', eff: 0 }],
         },
         warn: {
             text: "하지만 조심해라. 숲 밖에는 [인간 사냥꾼]들이 우리 알을 노리고 있다. 우리와 함께 마을을 지켜다오.",

@@ -1,6 +1,6 @@
 import { state, resetState } from './core/state.js';
-import { input, initInput } from './core/input.js';
-import { cam, followCamera, isOnScreen, resizeCamera, cycleZoom } from './core/camera.js';
+import { input, initInput, mouse } from './core/input.js';
+import { cam, followCamera, isOnScreen, resizeCamera, cycleZoom, stepZoom } from './core/camera.js';
 import { clamp } from './core/utils.js';
 import { preloadTerrain, drawTerrain } from './world/terrain.js';
 import { buildWorld, updateSpawns } from './world/spawn.js';
@@ -83,6 +83,7 @@ function loop(now) {
     lastTime = now;
 
     if (input.pressed('zoom')) showToast(`시점: ${cycleZoom(canvas.width, canvas.height)}`, '🔍');
+    if (mouse.wheel) showToast(`시점: ${stepZoom(mouse.wheel, canvas.width, canvas.height)}`, '🔍');
     if (state.isDialogueOpen) {
         if (input.pressed('cancel')) closeDialogue();
         else dialogueUI.handleKeys(input);   // 숫자키 / 방향키 + Enter 로 선택

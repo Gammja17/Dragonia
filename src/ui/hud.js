@@ -1,10 +1,12 @@
 import { state } from '../core/state.js';
+import { showToast } from './toast.js';
 import { npcName } from '../data/npcs.js';
 import { worldToScreen } from '../core/camera.js';
 import { WORLD_SIZE, NEST_POS } from '../core/config.js';
 import { BIOMES, getBiome, REGIONS, getRegion } from '../world/biomes.js';
 import { WAYSTONES, isAwake } from '../systems/travel.js';
 import { inDungeon, dungeonName } from '../systems/delve.js';
+import { tutorialView, updateTutorial } from '../systems/tutorial.js';
 import { getMinimapBase, currentMapSize } from '../world/terrain.js';
 import { SKILLS } from '../data/skills.js';
 import { toggleKidsPanel } from './kidsPanel.js';
@@ -31,7 +33,7 @@ export function initHud() {
         xpText: $('ui-xp-text'), hpText: $('ui-hp-text'), meat: $('ui-meat'), gold: $('ui-gold'), raidInfo: $('raid-info'),
         barXp: $('bar-xp'), barHp: $('bar-hp'), barHunger: $('bar-hunger'),
         biome: $('biome-text'), tip: $('interact-tip'), raid: $('raid-warning'),
-        minimap: $('minimap'), tracker: $('quest-tracker'), questMore: $('quest-more'),
+        minimap: $('minimap'), tracker: $('quest-tracker'), questMore: $('quest-more'), tutorial: $('tutorial-box'),
         bossBar: $('boss-bar'), bossName: $('boss-name'), bossFill: $('boss-fill'),
         elSlots: [...document.querySelectorAll('#skill-bar .slot.el')],
         skillSlots: [...document.querySelectorAll('#skill-bar .slot.skill')],
@@ -125,7 +127,29 @@ export function updateHud() {
         row.innerHTML = '';
         for (const [name, bad] of buffs) { const s = document.createElement('span'); s.className = 'buff' + (bad ? ' bad' : ''); s.textContent = name; row.appendChild(s); }
     }
+    drawTutorial();
     drawMinimap();
+}
+
+/** 처음 며칠 동안만 뜨는 '지금 할 일' */
+function drawTutorial() {
+    updateTutorial(() => showToast('안내가 끝났습니다. 이제 마음대로 돌아다녀 보세요! ([H] 도움말)', '🎓'));
+    const view = tutorialView();
+    const key = view ? view.index + ':' + view.steps.map(s => s.text).join('|') : '';
+    if (el.tutorial.dataset.key === key) return;
+    el.tutorial.dataset.key = key;
+    el.tutorial.innerHTML = '';
+    if (!view) return;
+    const head = document.createElement('div');
+    head.className = 'tut-head';
+    head.textContent = `길잡이 ${view.index} / ${view.total}`;
+    el.tutorial.appendChild(head);
+    for (const step of view.steps) {
+        const d = document.createElement('div');
+        d.className = 'tut-step' + (step.now ? ' now' : '');
+        d.textContent = step.text;
+        el.tutorial.appendChild(d);
+    }
 }
 
 export function toggleHelp() {

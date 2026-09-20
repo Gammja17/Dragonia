@@ -35,7 +35,7 @@ export function saveGame() {
             stageIndex: p.stageIndex, elements: p.elements, element: p.element, skills: p.skills, slots: p.slots,
         },
         gameTime: state.gameTime, dayTime: state.dayTime, day: state.day, raidTimer: state.raidTimer,
-        elderTutorialDone: state.elderTutorialDone,
+        elderTutorialDone: state.elderTutorialDone, tutorial: state.tutorial,
         weather: state.weather.type,
         quests: state.quests,
         bossesDefeated: state.bossesDefeated,
@@ -77,6 +77,7 @@ export function applySave(data) {
     state.upgrades = data.upgrades || {};
     state.openedChests = data.openedChests || {};
     state.blessingDay = data.blessingDay || 0;
+    state.tutorial = data.tutorial || { moved: true, journal: true, ate: true, finished: true };   // 예전 세이브는 안내를 건너뛴다
     state.relics = data.relics || [];
     // 예전 세이브에는 장착 칸이 없다. 가진 유물 앞쪽 몇 개를 자동으로 끼워 준다
     state.relicSlots = data.relicSlots || state.relics.slice(0, 3);

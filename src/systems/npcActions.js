@@ -55,20 +55,22 @@ function show(npc, text, options) {
  * 선택지는 늘 네댓 개를 넘지 않게 묶는다: [용건] · [이야기] · [함께] · [마음] · [닫기].
  * 자잘한 것들(잡담·선물·대련·상점·데이트)은 각 묶음 안에 들어간다.
  */
-export function openNpcHub(npc) {
+export function openNpcHub(npc, skipErrand = false) {
     const talk = NPC_TALK[npc.config.name];
     if (!npc.config.fixed || !talk) return false;
     const tier = relationTier(npc.relation);
     const name = npc.config.name;
     const opts = [];
 
-    // 1) 용건 — 새 부탁이 있거나, 끝낸 일을 보고할 때만 나온다
+    // 1) 용건이 있으면 메뉴를 거치지 않고 바로 그 이야기부터 한다.
+    //    (메뉴를 먼저 보여 주면 정작 하려던 일이 한 겹 뒤로 밀려 번잡해진다)
     const running = activeFor(npc);
-    if (running && isComplete(running)) {
-        opts.push({ label: `📜 [${running.title}] 끝냈다고 알린다`, onSelect: () => reportQuest(npc, running) });
-    } else if (!running) {
-        const offer = offerFor(npc);
-        if (offer) opts.push({ label: '📜 부탁이 있다는 눈치다', onSelect: () => hearQuest(npc, offer) });
+    if (!skipErrand) {
+        if (running && isComplete(running)) { reportQuest(npc, running); return true; }
+        if (!running) {
+            const offer = offerFor(npc);
+            if (offer) { hearQuest(npc, offer); return true; }
+        }
     }
 
     // 2) 이야기 — 잡담·선물·받을 것
@@ -162,16 +164,25 @@ function heartMenu(npc) {
     show(npc, '……', sub);
 }
 
-/** 부탁을 듣는다: 배경을 읽고 수락 여부를 고른다 */
+/** 부탁을 듣는다: 배경을 읽고 수락 여부를 고른다. 맡으면 그대로 대화를 끝낸다 */
 function hearQuest(npc, q) {
     show(npc, q.offer, [
-        { label: `📜 맡는다 — ${q.title}`, onSelect: () => { acceptQuest(q); openNpcHub(npc); } },
-        { label: '지금은 어렵겠어', onSelect: () => openNpcHub(npc) },
+        { label: `📜 맡는다 — ${q.title}`, onSelect: () => { close(); acceptQuest(q); } },
+        { label: '지금은 어렵겠어', onSelect: close },
+        { label: '다른 얘기를 한다', onSelect: () => openNpcHub(npc, true) },
     ]);
 }
 
+/** 끝낸 일을 보고한다. 이어지는 부탁이 있으면 바로 들려주고, 없으면 끝낸다 */
 function reportQuest(npc, q) {
-    show(npc, q.done, [{ label: `보상을 받는다 (${q.title})`, onSelect: () => { turnInQuest(q, npc); openNpcHub(npc); } }]);
+    show(npc, q.done, [{
+        label: `보상을 받는다 (${q.title})`,
+        onSelect: () => {
+            turnInQuest(q, npc);
+            const next = offerFor(npc);
+            if (next) hearQuest(npc, next); else close();
+        },
+    }]);
 }
 
 /** 인사말: 가끔은 지금 상황(날씨, 밤, 습격, 가족…)에 맞는 한마디 */

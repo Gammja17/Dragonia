@@ -4,7 +4,7 @@ import { burst } from './Particle.js';
 import { state } from '../core/state.js';
 import { npcName } from '../data/npcs.js';
 import { input, mouse } from '../core/input.js';
-import { isOnScreen, screenToWorld } from '../core/camera.js';
+import { isOnScreen, screenToWorld, cam } from '../core/camera.js';
 import { WORLD_SIZE, MAX_KIDS, PLAYER_SPAWN, VILLAGE_CENTER } from '../core/config.js';
 import { rand, dist, clamp, pick, roundRect } from '../core/utils.js';
 import { IDLE_LINES } from '../data/dialogues.js';
@@ -33,6 +33,7 @@ import { groundAt, currentMapSize } from '../world/terrain.js';
 import { slideMove } from '../world/collision.js';
 import { nearbyWaystone, openTravelMenu } from '../systems/travel.js';
 import { tryDelveInteract } from '../systems/delve.js';
+import { markTutorial } from '../systems/tutorial.js';
 import { getBiome } from '../world/biomes.js';
 import { toggleKidsPanel } from '../ui/kidsPanel.js';
 import { startDialogue } from '../systems/dialogue.js';
@@ -264,6 +265,7 @@ export class Dragon extends Entity {
         } else if (dx || dy) {
             this.moveBy(dx, dy, baseSpeed * (input.down('sprint') ? SPRINT_MULT : 1), dt);
             this.hunger -= 0.35 * dt * (hasRelic('IRON_STOMACH') ? 0.5 : 1);
+            markTutorial('moved');
         } else {
             this.hunger -= 0.08 * dt * (hasRelic('IRON_STOMACH') ? 0.5 : 1);
         }
@@ -496,6 +498,7 @@ export class Dragon extends Entity {
                 this.inventory.meat--;
                 this.hunger += 40;
                 this.hp = Math.min(this.maxHp, this.hp + 30);
+                markTutorial('ate');
                 showToast("고기를 먹었습니다.", "😋");
                 play('eat');
                 return;
@@ -686,39 +689,82 @@ export class Dragon extends Entity {
         }
     }
 
+    /**
+     * 이름표 · 말풍선 · 퀘스트 표시.
+     * 월드 좌표계 안이지만 1/zoom 으로 되돌려 그린다. 그래야 멀리 당겨 봐도
+     * 글씨가 같은 크기로 또렷하게 남는다 (예전엔 10px 글씨가 줌 아웃하면 6px이 됐다).
+     */
     drawNameplate(ctx) {
         const top = this.sheet ? this.sheet.fh * this.sheet.scale * this.sheet.anchor.y : 90;
+        const k = 1 / cam.zoom;
         ctx.save();
-        ctx.translate(this.x, this.y - top - 14 + this.hoverY);
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(-45, -15, 90, 20);
-        ctx.fillStyle = '#fff';
-        ctx.font = '10px Fredoka';
+        ctx.translate(Math.round(this.x), Math.round(this.y - top - 14 + this.hoverY));
+        ctx.scale(k, k);            // 여기서부터는 화면 픽셀 단위로 생각한다
         ctx.textAlign = 'center';
-        ctx.fillText(this.isPlayer ? (this.config.name || '용') : npcName(this.config.name), 0, 0);
+        ctx.textBaseline = 'alphabetic';
+
+        // 이름
+        const name = this.isPlayer ? (this.config.name || '용') : npcName(this.config.name);
+        ctx.font = '600 13px "Noto Sans KR"';
+        const nw = Math.ceil(ctx.measureText(name).width) + 16;
+        ctx.fillStyle = 'rgba(10, 9, 16, 0.78)';
+        ctx.fillRect(-nw / 2, -16, nw, 21);
+        ctx.fillStyle = 'rgba(216, 178, 90, 0.55)';
+        ctx.fillRect(-nw / 2, 4, nw, 1);
+        ctx.fillStyle = '#ece3cf';
+        ctx.fillText(name, 0, 0);
+
+        // 호감도 하트
+        if (this.relation > 0) {
+            ctx.font = '11px "Noto Sans KR"';
+            ctx.fillStyle = '#ff7aa8';
+            ctx.fillText('♥'.repeat(Math.min(3, Math.max(1, Math.ceil(this.relation / 30)))), 0, -20);
+        }
+
+        // 퀘스트 표시 (! 새 부탁 / ? 보고할 것)
         const mark = questMarker(this);
         if (mark) {
-            ctx.font = '900 26px Fredoka';
-            ctx.fillStyle = mark === '?' ? '#7dff9a' : '#ffd84a';
-            ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.lineWidth = 4;
-            const my = -36 + Math.sin(state.gameTime * 4) * 3;
+            ctx.font = '900 30px Fredoka';
+            ctx.fillStyle = mark === '?' ? '#7dd36a' : '#ffd84a';
+            ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 5;
+            const my = (this.relation > 0 ? -42 : -26) + Math.sin(state.gameTime * 4) * 3;
             ctx.strokeText(mark, 0, my); ctx.fillText(mark, 0, my);
-            ctx.font = '10px Fredoka';
         }
-        if (this.relation > 0) {
-            ctx.fillStyle = '#e74c3c';
-            ctx.fillText('♥'.repeat(Math.min(3, Math.max(1, Math.ceil(this.relation / 30)))), 0, -18);
-        }
+
+        // 말풍선. 길면 줄을 나눈다
         if (this.chatFade > 0 && this.currentChat) {
             ctx.globalAlpha = Math.min(1, this.chatFade);
-            ctx.translate(0, -30);
-            ctx.font = '11px "Noto Sans KR"';
-            const w = ctx.measureText(this.currentChat).width + 24;
-            ctx.fillStyle = '#fff';
-            roundRect(ctx, -w / 2, -13, w, 26, 10);
-            ctx.fillStyle = '#333';
-            ctx.fillText(this.currentChat, 0, 4);
+            ctx.font = '13px "Noto Sans KR"';
+            const lines = wrapText(ctx, this.currentChat, 230);
+            const lh = 19, padX = 12, padY = 9;
+            const w = Math.max(...lines.map(l => ctx.measureText(l).width)) + padX * 2;
+            const h = lines.length * lh + padY * 2 - 4;
+            const bottom = (this.relation > 0 ? -44 : -28) - (mark ? 30 : 0);
+            const topY = bottom - h;
+            ctx.fillStyle = 'rgba(10, 9, 16, 0.92)';
+            ctx.fillRect(-w / 2, topY, w, h);
+            ctx.fillStyle = 'rgba(216, 178, 90, 0.75)';
+            ctx.fillRect(-w / 2, topY, w, 2);
+            ctx.fillRect(-w / 2, topY + h - 2, w, 2);
+            ctx.beginPath();                              // 아래를 가리키는 꼬리
+            ctx.moveTo(-6, bottom); ctx.lineTo(6, bottom); ctx.lineTo(0, bottom + 7);
+            ctx.fillStyle = 'rgba(10, 9, 16, 0.92)'; ctx.fill();
+            ctx.fillStyle = '#ece3cf';
+            lines.forEach((line, i) => ctx.fillText(line, 0, topY + padY + lh * i + 11));
         }
         ctx.restore();
     }
+}
+
+/** 글상자 너비에 맞춰 줄을 나눈다 (한국어라 글자 단위로 끊는다) */
+function wrapText(ctx, text, maxWidth) {
+    if (ctx.measureText(text).width <= maxWidth) return [text];
+    const lines = [];
+    let line = '';
+    for (const ch of text) {
+        if (ctx.measureText(line + ch).width > maxWidth && line) { lines.push(line); line = ''; }
+        line += ch;
+    }
+    if (line) lines.push(line);
+    return lines.slice(0, 3);
 }

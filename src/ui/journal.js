@@ -7,6 +7,7 @@ import { matCount } from '../systems/smithing.js';
 import { isMuted } from '../systems/audio.js';
 import { questLog, setTracked } from '../systems/quests.js';
 import { play } from '../systems/audio.js';
+import { markTutorial } from '../systems/tutorial.js';
 
 // 모험 일지: [퀘스트] [기록] [유물] [도감] 탭. J 키로 연다.
 // 퀘스트 탭이 첫 화면이다. 줄을 누르면 펼쳐져 배경·목표·힌트·보상을 읽을 수 있고,
@@ -220,6 +221,7 @@ export function toggleJournal(tabId) {
     const panel = $('journal-panel');
     if (panel.style.display === 'flex' && (!tabId || tabId === tab)) { panel.style.display = 'none'; return; }
     if (tabId) tab = tabId;
+    markTutorial('journal');
     render();
     panel.style.display = 'flex';
 }
