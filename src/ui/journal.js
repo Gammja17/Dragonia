@@ -18,6 +18,7 @@ import { play } from '../systems/audio.js';
 import { markTutorial } from '../systems/tutorial.js';
 import { roster } from '../systems/routine.js';
 import { dayPhaseName } from '../render/lighting.js';
+import { isGatherNow, isGatherDay, daysToGather, knowsCloudtop } from '../systems/gathering.js';
 
 // 모험 일지: [성장] [스킬] [퀘스트] [기록] [유물] [도감] 탭. J 키로 연다 ([G] 성장 · [B] 스킬).
 // 퀘스트 탭은 줄을 누르면 펼쳐져 배경·목표·힌트·보상을 읽을 수 있고,
@@ -434,8 +435,20 @@ function renderFolk(body) {
     head.textContent = `${state.day}일째 ${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')} · ${dayPhaseName()}`;
     body.appendChild(head);
 
+    // 달 밝은 밤의 모임 (systems/gathering.js)
+    const moon = document.createElement('div');
+    moon.className = 'folk-moon' + (isGatherNow() ? ' now' : '');
+    const left = daysToGather();
+    moon.textContent = isGatherNow()
+        ? '🌕 지금 구름 폭포에서 모임이 서 있다. 두 마을이 모두 내려와 있다.'
+        : isGatherDay()
+            ? '🌕 오늘 밤이 모임이다. 해가 지면 구름 폭포로.'
+            : `🌘 다음 모임까지 ${left}일. 달이 가장 밝은 밤, 구름 폭포에서.`;
+    body.appendChild(moon);
+
     const TIERS = [[75, '연인'], [50, '절친'], [25, '친구'], [10, '아는 사이'], [0, '낯선 사이']];
     for (const r of roster()) {
+        if (r.east && !knowsCloudtop()) continue;   // 아직 만나지 않은 마을의 용은 적지 않는다
         const card = document.createElement('div');
         card.className = 'folk-card' + (r.near ? ' here' : '');
         const tier = TIERS.find(t => r.relation >= t[0])[1];

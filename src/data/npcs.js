@@ -2,6 +2,7 @@
 // 보여 줄 때만 npcName() 을 거친다.
 export const NPC_NAMES_KO = {
     Elder: '엘더', Tiamat: '티아맷', Poco: '포코', Gron: '그론', Nara: '나라', Kairon: '카이론',
+    Riun: '리운', Seiran: '세이란', Haru: '하루', Yuan: '유안',
     Kirin: '키린', Raze: '레이즈', Mira: '미라', Dusk: '더스크',
     Iro: '이로', Sora: '소라', Flint: '플린트', Ember: '엠버',
 };
@@ -49,10 +50,39 @@ export const FIXED_NPCS = [
         species: 'LOOK', look: 22, accessory: 'HAT', colors: { body: '#8a2f2a', belly: '#d8a24a', wing: '#3a2a2a' }, element: 'FIRE', maxHp: 600, power: 16, scale: 1.18,
         x: 2448, y: 1000,   // 수련장
     },
+
+    // ---- 구름마루 마을. 폭포 위에 사는 동양용들 ----
+    // 우리 마을과는 오래 서로를 모른 척해 왔다. 몸이 길고, 날개보다 물을 탄다.
+    {
+        // 리운: 구름마루의 어른. 물이 하는 말을 듣는다는 소문이 있다
+        name: 'Riun', personality: 'WISE', role: 'ELDER_EAST', canPartner: true, east: true,
+        species: 'LOOK', look: 3, accessory: null, scale: 1.22, colors: { body: '#2a5f8f', belly: '#7fc4e8', wing: '#d8b25a' }, element: 'ICE', maxHp: 440, power: 15,
+        x: 0, y: 0,
+    },
+    {
+        // 세이란: 물을 읽는 자. 폭포에 비친 것으로 앞일을 점친다
+        name: 'Seiran', personality: 'WISE', role: 'SEER', canPartner: true, east: true,
+        species: 'LOOK', look: 16, accessory: 'FLOWER', scale: 1.0, colors: { body: '#2f8f6f', belly: '#9fe0c4', wing: '#e8d7a8' }, element: 'ICE', maxHp: 300, power: 11,
+        x: 0, y: 0,
+    },
+    {
+        // 하루: 구름마루의 또래 수련생. 바깥 이야기를 제일 궁금해한다
+        name: 'Haru', personality: 'PLAYFUL', canPartner: true, east: true,
+        species: 'LOOK', look: 8, accessory: 'LEAF', scale: 0.88, colors: { body: '#7f5fc0', belly: '#c9a8f0', wing: '#f0d890' }, element: 'THUNDER', maxHp: 250, power: 10,
+        x: 0, y: 0,
+    },
+    {
+        // 유안: 경계를 도는 자. 폭포 아래로 내려오는 것을 가장 싫어한다
+        name: 'Yuan', personality: 'GRUMPY', canPartner: true, east: true,
+        species: 'LOOK', look: 14, accessory: 'HELM', scale: 1.06, colors: { body: '#1f6f9f', belly: '#6fc0e0', wing: '#b8c8d0' }, element: 'ICE', maxHp: 360, power: 13,
+        x: 0, y: 0,
+    },
 ];
 
-export const WANDER_NAMES = ['Kirin', 'Raze', 'Mira', 'Dusk', 'Iro', 'Sora', 'Flint', 'Ember'];   // 나라는 고정 NPC라 뺀다
-export const WANDER_LOOKS = [0, 1, 2, 3, 5, 7, 8, 10, 11, 13, 14, 15, 16, 19];   // 9는 나라 것
+export const WANDER_NAMES = ['Kirin', 'Raze', 'Mira', 'Dusk', 'Iro', 'Sora', 'Flint', 'Ember'];   // 나라·구름마루 용들은 고정 NPC라 뺀다
+// 몸이 긴 동양용 외형(3 · 8 · 12 · 14 · 16)은 떠돌이에게 주지 않는다.
+// 12는 엘더, 나머지는 구름마루 용들 것이고, 9는 나라 것이다
+export const WANDER_LOOKS = [0, 1, 2, 5, 7, 10, 11, 13, 15, 19];
 export const WANDER_ACCESSORIES = [null, null, 'LEAF', 'FLOWER', 'PLUME'];
 export const WANDER_PERSONALITIES = ['WISE', 'BRAVE', 'PLAYFUL', 'GRUMPY'];
 // 'RIVAL' 은 나라 전용 성격이라 떠돌이에게는 주지 않는다

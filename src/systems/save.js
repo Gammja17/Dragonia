@@ -100,6 +100,7 @@ export function applySave(data) {
     state.denNest = data.nest || { hasEgg: false, progress: 0, genes: null };
     p.ult = data.ult || 0;
     state.story = data.story || { scenes: [], lessons: [], lessonDay: 0 };
+    state.story.titles = state.story.titles || [];
     state.stats = data.stats || { kills: {} };
     if (state.stats.brinks === undefined) state.stats.brinks = 0;
     state.event = data.event || null;

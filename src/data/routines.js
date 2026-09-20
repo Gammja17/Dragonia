@@ -107,6 +107,57 @@ export const ROUTINES = {
         rain: { map: 'VILLAGE', spot: [12, 7], doing: '비 오는 게 신나서 웅덩이를 밟고 다닌다' },
         raid: { map: 'VILLAGE', spot: [9, 11], doing: '어른들 뒤에 숨어 덜덜 떨고 있다' },
     },
+
+    // ── 구름마루 마을. 폭포 위에 사는 동양용들 ──────────────────────────
+    // 아래 마을 용들과 달리 물을 따라 움직인다. 폭포 아래로는 좀처럼 내려오지 않는다.
+    Riun: {
+        job: '구름마루의 어른',
+        day: [
+            { h: 0,  map: 'DEN_RIUN',  spot: [7, 6],  doing: '제 굴에서 물소리를 들으며 자고 있다' },
+            { h: 6,  map: 'CLOUDTOP',  spot: [11, 8], doing: '샘 앞에서 물이 하는 말을 듣는다' },
+            { h: 10, map: 'CLOUDTOP',  spot: [11, 6], doing: '마을 일을 보며 오가는 이를 맞는다' },
+            { h: 15, map: 'CLOUDTOP',  spot: [18, 12], doing: '물가에 앉아 오래된 것들을 헤아린다' },
+            { h: 19, map: 'CLOUDTOP',  spot: [11, 11], doing: '모닥불 앞에서 옛이야기를 들려준다' },
+            { h: 23, map: 'DEN_RIUN',  spot: [7, 6],  doing: '제 굴로 들어간다' },
+        ],
+        rain: { map: 'CLOUDTOP', spot: [11, 8], doing: '비 오는 날의 물소리가 제일 맑다며 샘 앞에 서 있다' },
+    },
+    Seiran: {
+        job: '물을 읽는 자',
+        day: [
+            { h: 0,  map: 'DEN_SEIRAN', spot: [6, 6], doing: '제 굴에서 자고 있다' },
+            { h: 5,  map: 'FALLS',      spot: [13, 6], doing: '폭포에 비친 것을 읽고 있다' },
+            { h: 9,  map: 'CLOUDTOP',   spot: [8, 11], doing: '이끼와 약초를 말리고 있다' },
+            { h: 14, map: 'FALLS',      spot: [13, 6], doing: '고인 물을 들여다보며 무언가를 세고 있다' },
+            { h: 18, map: 'CLOUDTOP',   spot: [11, 11], doing: '모닥불 곁에서 오늘 본 것을 적는다' },
+            { h: 22, map: 'DEN_SEIRAN', spot: [6, 6], doing: '제 굴로 돌아간다' },
+        ],
+        rain: { map: 'FALLS', spot: [13, 6], doing: '비 오는 날엔 물이 말이 많다며 폭포 앞에 서 있다' },
+    },
+    Haru: {
+        job: '구름마루의 수련생',
+        day: [
+            { h: 0,  map: 'DEN_HARU', spot: [5, 5],  doing: '제 굴에 웅크려 자고 있다' },
+            { h: 6,  map: 'CLOUDTOP', spot: [15, 8], doing: '혼자 물수제비를 뜨고 있다' },
+            { h: 10, map: 'CLOUDTOP', spot: [4, 12],  doing: '물속에 들어가 숨 참기를 연습한다' },
+            { h: 14, map: 'FALLS',    spot: [10, 5],  doing: '폭포 끝까지 내려와 아래를 기웃거린다' },
+            { h: 18, map: 'CLOUDTOP', spot: [11, 11], doing: '모닥불 앞에서 바깥 이야기를 조른다' },
+            { h: 22, map: 'DEN_HARU', spot: [5, 5],  doing: '제 굴로 들어가 눕는다' },
+        ],
+        rain: { map: 'CLOUDTOP', spot: [11, 13], doing: '비가 오면 물이 불어서 더 재밌다며 뛰어다닌다' },
+    },
+    Yuan: {
+        job: '경계를 도는 자',
+        day: [
+            { h: 0,  map: 'CLOUDTOP', spot: [11, 3], doing: '마을 초입에서 밤을 지새운다' },
+            { h: 7,  map: 'FALLS',    spot: [10, 4], doing: '폭포 위 경계를 돌고 있다' },
+            { h: 12, map: 'CLOUDTOP', spot: [11, 3], doing: '마을로 들어오는 길목을 지킨다' },
+            { h: 16, map: 'FALLS',    spot: [10, 8], doing: '경계 아래쪽까지 내려와 발자국을 세고 있다' },
+            { h: 20, map: 'DEN_YUAN', spot: [6, 6],  doing: '제 굴에서 창을 손질한다' },
+            { h: 23, map: 'CLOUDTOP', spot: [11, 3], doing: '다시 초입으로 나선다' },
+        ],
+        rain: { map: 'CLOUDTOP', spot: [11, 3], doing: '비를 맞으며 길목에 버티고 서 있다' },
+    },
 };
 
 /** 시(0~24) 로 지금 칸을 고른다. 하루의 마지막 칸이 자정을 넘어 이어진다 */

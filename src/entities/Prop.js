@@ -52,6 +52,7 @@ export class Prop extends Entity {
             case 'DEN_MOUTH': return { r: 190, color: '#ffc87a', intensity: 0.75, dy: -34, emissive: true };
             case 'FURNITURE': return furnitureLight(this);
             case 'PORTAL': return { r: 150, color: '#9fe3ff', intensity: 0.7, dy: -40, emissive: true };
+            case 'WATERFALL': return { r: 260, color: '#bfe9ff', intensity: 0.45, dy: -160 };
             default: return null;
         }
     }
@@ -102,6 +103,7 @@ export class Prop extends Entity {
 
     draw(ctx) {
         if (!isOnScreen(this, 300)) return; // 큰 나무(높이 288px)가 화면 아래에서 툭 튀어나오지 않게
+        if (this.type === 'WATERFALL') { this.drawWaterfall(ctx); return; }
         if (this.type === 'FURNITURE') { this.drawFurniture(ctx); return; }
         if (this.type === 'PORTAL') { this.drawPortal(ctx); return; }
         if (this.type === 'WAYSTONE') { this.drawWaystone(ctx); return; }
@@ -115,6 +117,50 @@ export class Prop extends Entity {
         ctx.globalCompositeOperation = 'lighter';
         ctx.drawImage(fire, (f % 10) * 64, Math.floor(f / 10) * 64, 64, 64, this.x - 48, this.y - 112, 96, 96);
         ctx.globalCompositeOperation = 'source-over';
+    }
+
+    /**
+     * 폭포. 코드로 그린다 — 떨어지는 물줄기 여러 가닥과 아래쪽 물보라.
+     * 위로 길게 솟아 지도 북쪽 벽을 이룬다. 바닥은 물이라 지나갈 수 없다.
+     */
+    drawWaterfall(ctx) {
+        const t = state.gameTime;
+        const W = 150, H = 340;                 // 폭 · 높이
+        const top = this.y - H;
+        ctx.save();
+        ctx.translate(Math.round(this.x), 0);
+
+        // 뒤쪽 어두운 바위 틈
+        ctx.fillStyle = '#10202e';
+        ctx.fillRect(-W / 2 - 8, top - 18, W + 16, H + 18);
+
+        // 물줄기: 굵기와 속도가 조금씩 다른 가닥들
+        for (let i = 0; i < 11; i++) {
+            const k = (i / 10 - 0.5);
+            const x = k * (W - 22);
+            const speed = 210 + ((i * 37) % 90);
+            const wobble = Math.sin(t * 1.4 + i) * 3;
+            ctx.globalAlpha = 0.34 + ((i * 7) % 5) * 0.06;
+            ctx.fillStyle = i % 3 === 0 ? '#eaf8ff' : '#9fd8f5';
+            ctx.fillRect(Math.round(x + wobble - 5), top, 10, H);
+            // 흘러내리는 밝은 마디
+            ctx.globalAlpha = 0.5;
+            ctx.fillStyle = '#ffffff';
+            for (let n = 0; n < 4; n++) {
+                const y = top + ((t * speed + i * 120 + n * (H / 4)) % H);
+                ctx.fillRect(Math.round(x + wobble - 4), Math.round(y), 8, 26);
+            }
+        }
+
+        // 떨어지는 자리의 물보라
+        ctx.globalAlpha = 0.42 + Math.sin(t * 5) * 0.06;
+        ctx.fillStyle = '#dff2ff';
+        ctx.beginPath();
+        ctx.ellipse(0, this.y - 6, W * 0.62, 26, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+        drawGlow(ctx, this.x, this.y - 16, 120, '#bfe9ff', 0.22 + Math.sin(t * 3 + this.seed * 6) * 0.05);
     }
 
     /** 굴에 놓은 살림살이. assets/tiles/dungeon.png 에서 칸 하나를 떠 온다 */

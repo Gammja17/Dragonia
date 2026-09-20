@@ -1,5 +1,6 @@
 import { state } from '../core/state.js';
 import { cozyRest } from './den.js';
+import { RITES } from '../data/ceremony.js';
 import { npcName } from '../data/npcs.js';
 import { playScene } from './chronicle.js';
 import { dist, rand, pick } from '../core/utils.js';
@@ -115,8 +116,8 @@ function endDrill(win) {
         return;
     }
     if (a.trial) {
-        a.npc.say('…훌륭하다.');
         p.evolve(a.trial.stage);
+        playRite(a.trial.stage);        // 마을이 모여 새 이름을 불러 준다
     } else {
         state.story.lessons.push(a.lesson.id);
         state.story.lessonDay = state.day;
@@ -129,6 +130,36 @@ function endDrill(win) {
         showToast(`${a.lesson.title} 완료! 둥지에서 자고 나면 다음 수련을 받을 수 있습니다.`, '🎓');
     }
     saveGame();
+}
+
+/**
+ * 이름을 얻는 의식. 승급 시험을 넘으면 마을이 모여 칭호를 불러 준다.
+ * (고양이전사들의 전사 이름 수여식에서 가져왔다)
+ */
+export function playRite(stage) {
+    const rite = RITES[stage];
+    if (!rite) return;
+    const p = state.player;
+    const ctx = {
+        name: p.config.name,
+        element: p.element || 'FIRE',
+        cloudtop: (state.story.events || []).includes('ev_gathering'),
+    };
+    const title = rite.title(ctx);
+    state.story.titles = state.story.titles || [];
+    if (!state.story.titles.includes(title)) state.story.titles.push(title);
+    state.story.title = title;
+    playScene('이름을 얻는 의식', rite.lines(ctx), () => {
+        showToast(`이제 [${title}] 라 불립니다.`, '🏅');
+        play('evolve');
+        saveGame();
+    });
+}
+
+/** 지금 불리는 이름 ("바하무트 · 하늘에서 떨어진 자") */
+export function fullName() {
+    const n = state.player ? state.player.config.name : '';
+    return state.story && state.story.title ? `${n} · ${state.story.title}` : n;
 }
 
 /** 수련 중 스승의 움직임과 판정. Dragon.updateNpc 가 호출 */

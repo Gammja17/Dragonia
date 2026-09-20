@@ -863,3 +863,11 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
     #journal-detail { flex-direction: column; align-items: stretch; gap: 8px; }
     .detail-actions { justify-content: flex-start; }
 }
+
+/* 달 밝은 밤의 모임 안내 (일지 [마을 용들] 탭) */
+.folk-moon {
+    color: var(--parch-mid); font-size: 0.74rem; line-height: 1.5;
+    background: var(--ink-raise); border: 1px solid var(--gold-dim);
+    padding: 6px 10px; margin-bottom: 8px;
+}
+.folk-moon.now { color: var(--gold-lit); border-color: var(--gold); }

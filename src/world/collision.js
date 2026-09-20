@@ -18,6 +18,7 @@ const FOOTPRINT = {
     FOUNTAIN: [42, 24],
     CRATE: [15, 10],
     BARREL: [15, 10],
+    WATERFALL: [76, 26],
 };
 
 const CELL = 160;                   // 공간 해시 칸 크기
