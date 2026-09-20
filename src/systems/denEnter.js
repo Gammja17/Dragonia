@@ -5,6 +5,7 @@ import { denLocked, cozyOf, inMyDen } from './den.js';
 import { nearbyDenMouth, travelTo } from './world.js';
 import { openDecorPanel } from '../ui/denPanel.js';
 import { npcName } from '../data/npcs.js';
+import { openNestMenu } from './story.js';
 import { showToast } from '../ui/toast.js';
 
 // 굴 입구 앞에서 [E] 를 눌렀을 때, 그리고 굴 안에서 [E] 를 눌렀을 때.
@@ -18,8 +19,13 @@ function ask(name, text, options) {
 
 /** 처리했으면 true */
 export function tryDenInteract() {
-    // 1) 굴 안 — 꾸미기
-    if (inMyDen()) { openDecorPanel(); return true; }
+    // 1) 굴 안 — 둥지 곁이면 잠자기가 먼저다. 그 밖에서는 꾸미기
+    if (inMyDen()) {
+        const nest = state.entities.nests[0];
+        if (nest && Math.hypot(nest.x - state.player.x, nest.y - state.player.y) < 110) { openNestMenu(); return true; }
+        openDecorPanel();
+        return true;
+    }
 
     // 2) 굴 입구
     const mouth = nearbyDenMouth();

@@ -1,5 +1,6 @@
 import { state } from '../core/state.js';
-import { cozyRest } from './den.js';
+import { cozyRest, inMyDen } from './den.js';
+import { openDecorPanel } from '../ui/denPanel.js';
 import { RITES } from '../data/ceremony.js';
 import { npcName } from '../data/npcs.js';
 import { playScene } from './chronicle.js';
@@ -223,6 +224,7 @@ export function openNestMenu() {
         options: busy ? [{ label: '나중에', onSelect: close }] : [
             { label: '잠을 잔다 (다음 날 아침까지)', onSelect: sleep },
             ...(state.den.built ? [] : [{ label: `둥지를 짓는다 (나뭇가지 ${state.den.twigs}/8, 30G)`, onSelect: buildNest }]),
+            ...(inMyDen() ? [{ label: '🪑 굴을 꾸민다', onSelect: () => { close(); openDecorPanel(); } }] : []),
             { label: '아직 안 졸려', onSelect: close },
         ],
     });

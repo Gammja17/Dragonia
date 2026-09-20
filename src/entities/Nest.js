@@ -27,7 +27,9 @@ export class Nest extends Entity {
         this.genes = mixGenes(a, b);
     }
     get light() {
-        return this.hasEgg ? { r: 150, color: '#fff2c8', intensity: 0.8 } : null;
+        if (this.hasEgg) return { r: 150, color: '#fff2c8', intensity: 0.8 };
+        // 알이 없어도, 지어 둔 둥지는 굴 안에서 은은히 빛난다 (깜깜한 데서 찾지 못하면 소용없다)
+        return state.den.built ? { r: 120, color: '#ffd89a', intensity: 0.45 } : null;
     }
     /** 사냥꾼이 알을 노린다. 부화 진행도가 깎이고, 바닥나면 알을 빼앗긴다 */
     attackEgg(amount) {
@@ -65,6 +67,17 @@ export class Nest extends Entity {
             ctx.fillStyle = '#d8b25a'; ctx.beginPath(); ctx.ellipse(this.x, this.y, 25, 13, 0, 0, TAU); ctx.fill();
             ctx.strokeStyle = '#a07a30'; ctx.lineWidth = 2;
             for (let i = 0; i < 7; i++) { const a = i * 0.9; ctx.beginPath(); ctx.moveTo(this.x + Math.cos(a) * 8, this.y + Math.sin(a) * 4); ctx.lineTo(this.x + Math.cos(a) * 26, this.y + Math.sin(a) * 13); ctx.stroke(); }
+            // 깜깜한 굴에서도 눈에 띄도록. 알이 없으면 "여기서 잘 수 있다"는 표시를 띄운다
+            drawGlow(ctx, this.x, this.y - 4, 44, '#ffd89a', 0.24);
+            if (!this.hasEgg) {
+                const bob = Math.sin(state.gameTime * 2.2) * 3;
+                ctx.save();
+                ctx.font = '600 20px "Noto Sans KR"';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = 'rgba(255, 226, 170, 0.9)';
+                ctx.fillText('💤', this.x, this.y - 30 + bob);
+                ctx.restore();
+            }
         }
         if (!this.hasEgg) return;
         const wobble = this.progress > 80 ? Math.sin(state.gameTime * 25) * 2 : 0;

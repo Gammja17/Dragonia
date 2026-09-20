@@ -85,7 +85,8 @@ function populateDen(id) {
 
     // 내 굴에는 둥지가 있다. 자고 일어나는 곳이자 알을 품는 곳
     if (spec.mine) {
-        const nest = new Nest(map.center.x, map.floorRect.y + TILE * 1.6);
+        // 들어서자마자 눈에 들어오도록 방 가운데 위쪽에 둔다 (벽에 붙이면 찾지 못한다)
+        const nest = new Nest(map.center.x, map.floorRect.y + map.floorRect.h * 0.34);
         if (state.denNest) Object.assign(nest, state.denNest);
         pools.nests.push(nest);
     }
@@ -326,9 +327,11 @@ export function enterMap(id, { from = null, spot = null } = {}) {
         x = s.x + push[0] * COARSE_PX * 1.3;
         y = s.y + push[1] * COARSE_PX * 1.3;
     } else {
-        // 석비를 타고 왔거나 그냥 떨어뜨릴 때. 석비 옆 → 없으면 한복판
+        // 굴에 들어설 때는 문 안쪽에 선다 (한복판에 떨어뜨리면 둥지 위에 겹친다)
         const stone = pools.props.find(pr => pr.type === 'WAYSTONE');
-        ({ x, y } = stone ? { x: stone.x, y: stone.y + 70 } : { x: map.w / 2, y: map.h / 2 });
+        // 문에 너무 붙으면 그대로 도로 밖으로 튕겨 나간다 (PORTAL_RANGE). 안쪽으로 밀어 둔다
+        if (map.room) ({ x, y } = { x: map.center.x, y: map.floorRect.y + map.floorRect.h - TILE * 2.8 });
+        else ({ x, y } = stone ? { x: stone.x, y: stone.y + 70 } : { x: map.w / 2, y: map.h / 2 });
     }
     ({ x, y } = clearSpot(x, y, map));
     state.player.x = x; state.player.y = y;
