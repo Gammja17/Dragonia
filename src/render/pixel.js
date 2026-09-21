@@ -14,20 +14,26 @@ export function drawPixelSprite(ctx, img, r, x, y, { scale = 3, flip = false, ax
     ctx.imageSmoothingEnabled = true;
 }
 
-const whiteCache = new WeakMap();
-/** 같은 모양의 흰색 실루엣 시트 (피격 번쩍임용) */
-export function whiteCopy(img) {
-    if (whiteCache.has(img)) return whiteCache.get(img);
-    const c = document.createElement('canvas');
+const silCache = new WeakMap();
+/** 같은 모양을 한 가지 색으로 칠한 사본. 시트·색 조합마다 한 번만 만든다 */
+export function coloredCopy(img, color) {
+    let byColor = silCache.get(img);
+    if (!byColor) silCache.set(img, byColor = new Map());
+    let c = byColor.get(color);
+    if (c) return c;
+    c = document.createElement('canvas');
     c.width = img.width; c.height = img.height;
     const g = c.getContext('2d');
     g.drawImage(img, 0, 0);
     g.globalCompositeOperation = 'source-in';
-    g.fillStyle = '#fff';
+    g.fillStyle = color;
     g.fillRect(0, 0, c.width, c.height);
-    whiteCache.set(img, c);
+    byColor.set(color, c);
     return c;
 }
+
+/** 같은 모양의 흰색 실루엣 시트 (피격 번쩍임용) */
+export function whiteCopy(img) { return coloredCopy(img, '#fff'); }
 
 const glowCache = new Map();
 /** 가운데가 밝고 가장자리로 사라지는 원형 빛. 색마다 한 번만 만든다 */

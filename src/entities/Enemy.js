@@ -8,7 +8,7 @@ import { dist } from '../core/utils.js';
 import { ENEMIES } from '../data/enemies.js';
 import { getTileImage } from '../world/terrain.js';
 import { slideMove } from '../world/collision.js';
-import { drawPixelSprite, whiteCopy, drawGlow } from '../render/pixel.js';
+import { drawPixelSprite, whiteCopy, coloredCopy, drawGlow } from '../render/pixel.js';
 import { updateStatus, statusTint } from '../systems/status.js';
 import { notify } from '../systems/quests.js';
 import { play } from '../systems/audio.js';
@@ -20,7 +20,7 @@ import { onGuardianDown } from '../systems/delve.js';
 import { updateAI, initAI, drawTell, alert } from './enemyAI.js';
 import { AFFIXES, rollAffix } from '../data/affixes.js';
 import { noteDealt } from '../render/debugOverlay.js';
-import { spawnEffect, spawnText } from '../render/vfx.js';
+import { spawnEffect, spawnText, spawnShatter } from '../render/vfx.js';
 import { applyStatus } from '../systems/status.js';
 
 export class Enemy extends Entity {
@@ -110,6 +110,13 @@ export class Enemy extends Entity {
                 burst(c.x, c.y, this.def.color, 0.6, 6);
             }
         }
+        // 몸이 가로 띠로 쪼개져 흩날린다. 그냥 사라지면 "없어졌다"지만 조각이 날면 "부쉈다"가 된다
+        const deadSheet = getTileImage('dungeon');
+        if (deadSheet) {
+            const [dtx, dty] = this.def.sprite;
+            spawnShatter(this.x, this.y - (this.def.flying ? 22 : 4), deadSheet, { sx: dtx * 16, sy: dty * 16, sw: 16, sh: 16 },
+                { scale: this.elite ? 4.5 : 3, flip: Math.cos(this.angle) < 0, color: this.def.color });
+        }
         const bonus = this.elite ? 3 : 1;
         state.player.gainXp(this.def.xp * bonus * xpMult());
         state.stats.kills[this.type] = (state.stats.kills[this.type] || 0) + 1;
@@ -182,14 +189,29 @@ export class Enemy extends Entity {
         }
         const hop = this.def.hop ? Math.abs(Math.sin(state.gameTime * 5 + this.phase)) * 10 : Math.abs(Math.sin(state.gameTime * 10 + this.phase)) * 4;
         const [tx, ty] = this.def.sprite;
-        if (this.def.filter && !(this.hitFlash > 0)) ctx.filter = this.def.filter;
         const kx = this.knock && this.knock.t > 0 ? this.knock.x * this.knock.t : 0;
         const ky = this.knock && this.knock.t > 0 ? this.knock.y * this.knock.t : 0;
         const telling = this.ai && (this.ai.s === 'tell' || this.ai.s === 'tell2');
         const sc = (this.elite ? 4.5 : 3) * (telling ? 0.86 : 1);
         // 눌림: 맞는 순간 가로 1.28 · 세로 0.74 로 찌그러졌다가 되돌아온다
         const q = this.squash > 0 ? Math.sin(this.squash * Math.PI) : 0;
-        drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, { sx: tx * 16, sy: ty * 16, sw: 16, sh: 16 }, this.x + kx, this.y + 4 - (telling ? 0 : hop) - lift + ky, { flip: Math.cos(this.angle) < 0, scale: sc, stretchX: 1 + 0.28 * q, stretchY: 1 - 0.26 * q });
+        // 예고 중엔 몸이 부르르 떤다. 바닥 표시(drawTell)만으로는 부족하다 —
+        // 싸울 땐 시선이 적의 몸에 가 있지 바닥에 가 있지 않다
+        const shiver = telling ? (Math.random() - 0.5) * 3.5 : 0;
+        const rect = { sx: tx * 16, sy: ty * 16, sw: 16, sh: 16 };
+        const px = this.x + kx + shiver, py = this.y + 4 - (telling ? 0 : hop) - lift + ky;
+        const opts = { flip: Math.cos(this.angle) < 0, scale: sc, stretchX: 1 + 0.28 * q, stretchY: 1 - 0.26 * q };
+
+        // 덤비기 직전엔 몸이 경고색으로 달아오른다 (후처리의 번짐이 이 빛을 받아 준다)
+        if (telling) drawGlow(ctx, px, py - 14, 46, '#ff6b3c', 0.45 + Math.sin(state.gameTime * 24) * 0.35);
+
+        // 16px 그림이라 풀숲에 묻힌다. 제 색으로 테를 둘러 배경에서 떼어 놓는다.
+        // 같은 그림을 filter 로 돌려 쓰는 변종(서리·용암·모래 …)도 이 테 색으로 구별된다
+        const sil = coloredCopy(sheet, this.def.color);
+        for (const [ox, oy] of [[-3, 0], [3, 0], [0, -3], [0, 3]]) drawPixelSprite(ctx, sil, rect, px + ox, py + oy, opts);
+
+        if (this.def.filter && !(this.hitFlash > 0)) ctx.filter = this.def.filter;
+        drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, rect, px, py, opts);
         ctx.filter = 'none';
         this.drawHpBar(ctx, this.hp / this.maxHp, (this.elite ? 82 : 58) + lift, this.elite ? 50 : 34);
         this.drawName(ctx, lift);

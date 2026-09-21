@@ -1,6 +1,7 @@
 import { loadImages } from './assets.js';
 import { state } from '../core/state.js';
 import { isOnScreen } from '../core/camera.js';
+import { coloredCopy } from './pixel.js';
 
 // 출처는 CREDITS.md 참고
 const VFX_IMAGES = {
@@ -126,6 +127,55 @@ function tinted(key, color) {
 export function spawnEffect(name, x, y, { angle = 0, size = 1, color = null } = {}) {
     if (!images) return;
     state.entities.effects.push(new Effect(x, y, EFFECTS[name], angle, size, color));
+}
+
+/**
+ * 쓰러질 때 몸이 가로 띠로 쪼개져 흩날린다.
+ * 적이 그냥 사라지면 "없어졌다"로 끝나는데, 조각이 날아가면 "부쉈다"가 된다.
+ * 죽는 순간의 그림을 그대로 띠로 잘라 쓰므로 적마다 따로 그림을 준비할 필요가 없다.
+ */
+class Shatter {
+    constructor(x, y, img, rect, { scale = 3, flip = false, color = '#fff', bands = 6 } = {}) {
+        this.x = x; this.y = y;
+        this.img = img; this.rect = rect;
+        this.scale = scale; this.flip = flip; this.color = color;
+        this.t = 0; this.life = 0.34; this.remove = false;
+        // 띠마다 날아가는 방향이 다르다. 위쪽 띠가 더 멀리 튄다
+        this.bits = Array.from({ length: bands }, (_, i) => ({
+            i,
+            vx: (Math.random() - 0.5) * 210,
+            vy: -60 - (bands - i) * 26 - Math.random() * 50,
+            spin: (Math.random() - 0.5) * 7,
+        }));
+    }
+    get light() { return { r: 90, color: this.color, intensity: (1 - this.t / this.life) * 0.7, emissive: true }; }
+    update(dt) { this.t += dt; if (this.t >= this.life) this.remove = true; }
+    draw(ctx) {
+        if (this.remove || !isOnScreen(this, 200)) return;
+        const k = this.t / this.life;
+        const r = this.rect, n = this.bits.length;
+        const sh = r.sh / n, w = r.sw * this.scale, bh = sh * this.scale;
+        // 처음엔 하얗게 타다가 제 색으로 식으며 사라진다
+        const img = k < 0.45 ? coloredCopy(this.img, '#fff') : this.img;
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        ctx.globalAlpha = 1 - k * k;
+        for (const b of this.bits) {
+            ctx.save();
+            ctx.translate(this.x + b.vx * k, this.y - r.sh * this.scale * 0.5 + b.i * bh + b.vy * k + 340 * k * k);
+            ctx.rotate(b.spin * k);
+            if (this.flip) ctx.scale(-1, 1);
+            ctx.drawImage(img, r.sx, r.sy + sh * b.i, r.sw, sh, -w / 2, -bh / 2, w, bh + 1);
+            ctx.restore();
+        }
+        ctx.restore();
+        ctx.imageSmoothingEnabled = true;
+        ctx.globalAlpha = 1;
+    }
+}
+
+export function spawnShatter(x, y, img, rect, opts) {
+    state.entities.effects.push(new Shatter(x, y, img, rect, opts));
 }
 
 /** 번개가 튈 때 두 점을 잇는 지그재그 섬광 */
