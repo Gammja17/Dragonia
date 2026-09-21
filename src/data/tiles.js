@@ -10,6 +10,7 @@ export const TILE_IMAGES = {
     props: 'assets/tiles/forest_props.png', props2: 'assets/tiles/forest_props2.png', props3: 'assets/tiles/forest_props3.png',
     village: 'assets/tiles/village.png',   // Zelda-like tilesets (CC0)
     dungeon: 'assets/tiles/dungeon.png',   // Kenney Tiny Dungeon (CC0): 적, 사냥꾼, 화살
+    cave: 'assets/tiles/cave.png',         // Zelda-like tilesets (CC0): 굴 속 바위 바닥과 검은 구멍
     waterfall: 'assets/tiles/waterfall.png',  // Gentle Forest 의 폭포 애니메이션 (안 쓰고 있던 것)
     sparkle: 'assets/tiles/sparkle.png',      // 물 위에 흐르는 물비늘
 };

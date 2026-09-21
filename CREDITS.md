@@ -24,6 +24,7 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 | `waterfall.png`, `sparkle.png` | 같은 "Gentle Forest" 팩의 `gentle animations` (v01). 폭포 6프레임 × 10행, 물비늘 3프레임 × 3행 | 〃 |
 | `village.png` (집, 분수, 상자, 통, 표지판) | "Zelda-like tilesets and sprites" by ArMM1998 (CC0) | OpenGameArt |
 | `dungeon.png` (적, 사냥꾼, 화살) | "Tiny Dungeon" by Kenney (CC0) | https://kenney.nl/assets/tiny-dungeon |
+| `cave.png` (굴 속 바위 바닥·검은 구멍·돌덩이) | 같은 "Zelda-like tilesets and sprites" by ArMM1998 (CC0) | OpenGameArt |
 
 ## 효과 (`assets/vfx/`)
 
