@@ -19,6 +19,7 @@ export const RELICS = {
     BASIL_FANG:    { name: '바실의 독니',     desc: '치명타 피해가 3배가 된다',     boss: 'BASIL', kin: 'fang' },    // entities/Projectile.js
     IGNAR_HEART:   { name: '이그나르의 심장', desc: '화상 피해가 2배가 된다',       boss: 'IGNAR', kin: 'flame' },    // systems/status.js
     // 이야기에서 받는 것 (상자에서는 나오지 않는다)
+    VOW_RING:      { name: '언약의 고리',     desc: '평생을 약속한 짝이 곁에 있으면 체력이 천천히 돌아오고, 짝의 숨결이 +30% 세진다', gift: true },   // entities/Dragon.js
     GRON_PLATE:    { name: '그론의 비늘갑',   desc: '받는 피해 -15%. 이음매가 조금 삐뚤다', gift: true, kin: 'scale' },   // entities/Dragon.js
     // 상자·정예 몬스터·굴에서
     OLD_FANG:      { name: '고대의 송곳니',   desc: '브레스 피해 +15%', kin: 'fang' },           // entities/Dragon.js

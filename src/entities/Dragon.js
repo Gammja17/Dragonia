@@ -450,6 +450,7 @@ export class Dragon extends Entity {
         if (input.pressed('fly')) this.toggleFlight();
         if (this.flying && this.hunger <= 0 && this.canLand()) this.land('배가 꺼져서 내려앉았다.');
         if (hasRelic('LIFE_STONE')) this.hp = Math.min(this.maxHp, this.hp + 1.5 * dt);
+        if (hasRelic('VOW_RING') && state.partner && state.partner.state !== 'WANDER' && dist(this, state.partner) < 420) this.hp = Math.min(this.maxHp, this.hp + 2 * dt);
         this.hunger = Math.max(0, this.hunger);
 
         // 말 걸 상대: 마우스(또는 터치)로 가리킨 용이 우선, 없으면 가장 가까운 용. 둥지는 그 다음
@@ -854,7 +855,7 @@ export class Dragon extends Entity {
         if (this.atkTimer <= 0 && best < 400) {
             const element = this.config.element || 'FIRE';
             const aim = Math.atan2(foe.y - 20 - (this.y - 40), foe.x - this.x);
-            addBullet(new Projectile(this.x, this.y - 40, aim, { faction: 'ALLY', element, damage: (this.config.power || 8) * (state.rally > 0 ? 1.5 : 1) * (hasRelic('TWIN_SOUL') && (this === state.partner || this === state.companion) ? 1.5 : 1) }));
+            addBullet(new Projectile(this.x, this.y - 40, aim, { faction: 'ALLY', element, damage: (this.config.power || 8) * (state.rally > 0 ? 1.5 : 1) * (hasRelic('TWIN_SOUL') && (this === state.partner || this === state.companion) ? 1.5 : 1) * (hasRelic('VOW_RING') && this === state.partner ? 1.3 : 1) }));
             if (this.animator) this.animator.play('attack');
             this.atkTimer = 1.25;
             const talk = NPC_TALK[this.config.name];

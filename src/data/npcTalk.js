@@ -327,6 +327,13 @@ export const SITUATION_LINES = [
     { when: s => s.raid.active, lines: { Elder: "사냥꾼이다! 이야기는 나중에 하자!", Tiamat: "지금 수다 떨 때야? 놈들부터 처리해!", Poco: "으아아 사냥꾼이야! 나 좀 지켜 줘!", Gron: "가게 부서지면 네가 물어내라. 어서 막아!" } },
     { when: s => s.raid.count >= 3 && !s.raid.active, lines: { Elder: "습격을 여러 번 막았다지. 마을이 네 덕을 본다.", Tiamat: "요즘 네 덕에 습격 막기가 수월해.", Gron: "사냥꾼 놈들 갑옷, 녹이면 쓸 만하더라." } },
     { when: s => s.kids.length > 0, lines: { Elder: "네 아이들은 잘 크느냐. 마을에 애 울음소리가 나니 좋구나.", Poco: "네 아기 용이랑 놀아도 돼? 응? 응?", Tiamat: "네 새끼들, 눈빛이 제법이더라. 널 닮았어.", Gron: "애 키우려면 돈이 많이 든다. 많이 벌어라." } },
+    // 짝이 토라져서 굴을 나갔을 때, 마을은 다 안다
+    { when: s => s.partner && s.story.love && s.story.love.mood[s.partner.config.name] && s.story.love.mood[s.partner.config.name].kind === 'SULK', lines: {
+        Poco: "너네 싸웠지? 온 마을이 다 알아. …내가 소문낸 건 아니야, 진짜야.",
+        Nara: "야, 너 짝을 울렸다며? 와, 너 진짜 간도 크다. 빨리 가서 빌어.",
+        Ember: "요즘 너희 굴에서 저녁 연기가 안 올라오더라. 싸웠으면 고기라도 들고 가 봐. 우리 아저씨도 그건 통했어.",
+        Tiamat: "남의 집 일에 끼어들 생각은 없는데, 짝을 혼자 밤길 걷게 하는 건 아니지.",
+    } },
     // 촌장과 짝이 된 뒤의 나라
     { when: s => s.partner && s.partner.config.name === 'Elder', lines: { Nara: "너를 뭐라고 부를지는 아직도 못 정했어. 일단은 계속 야라고 부를 거니까 그런 줄 알아." } },
     { when: s => s.partner, lines: { Poco: "너네 둘이 같이 다니는 거 보기 좋아! 에헤헤.", Elder: "짝을 맺었다지. 잘 살아라. 싸우면 나한테 오지 말고.", Gron: "결혼 축하한다. 선물은 없다." } },

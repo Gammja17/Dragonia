@@ -17,6 +17,7 @@ import { offerFor, heldOffer, runningFor, reportableFor, talkQuestFor, bringQues
          notify } from './quests.js';
 import { playScene } from './chronicle.js';
 import { isDead } from './routine.js';
+import { loveIntercept, moodGreeting, heartClosed, isSulking, onDate, onPartnered, apologize, breakUp, canVow, vowHint, vowed, makeVow } from './romance.js';
 import { ownsRelic, grantRelic } from './relics.js';
 import { masterOptions, updateDrill, isDrill } from './story.js';
 import { trainingPending, openTraining } from './training.js';
@@ -75,6 +76,8 @@ export function openNpcHub(npc, skipErrand = false) {
     //    (메뉴를 먼저 보여 주면 정작 하려던 일이 한 겹 뒤로 밀려 번잡해진다)
     //    순서: 보고 → 물어보려던 것 → 건네주려던 것 → 새 부탁
     const running = runningFor(npc);
+    // 질투 · 떠남 · 기념일은 다른 용건보다 먼저 나온다 (systems/romance.js)
+    if (!skipErrand && loveIntercept(npc, loveUi)) return true;
     if (!skipErrand) {
         const report = reportableFor(npc);
         if (report) { reportQuest(npc, report); return true; }
@@ -85,7 +88,8 @@ export function openNpcHub(npc, skipErrand = false) {
         // 스승은 오늘 할 일부터 말한다. 다만 물어보러 온 이야기(퀘스트)가 있으면 그게 먼저다 (systems/training.js)
         if (name === 'Kairon' && trainingPending()) { openTraining(npc, () => openNpcHub(npc, true)); return true; }
         const offer = offerFor(npc);
-        if (offer) { hearQuest(npc, offer); return true; }
+        // 토라졌거나 서먹한 용은 곁가지 부탁을 꺼내지 않는다 (삐진 얼굴로 같이 망루에 서자고 하던 것)
+        if (offer && !(moodGreeting(npc) && offer.act !== 'main')) { hearQuest(npc, offer); return true; }
     }
 
     // 2) 이야기 — 잡담·선물·받을 것
@@ -173,7 +177,8 @@ function dateThreshold(npc) {
 /** 연애 묶음에 붙는 꼬리표 (없으면 null = 아직 아무것도 못 한다) */
 function heartCount(npc) {
     const dates = npc.dates || 0;
-    if (npc === state.partner) return '';
+    if (npc === state.partner) return isSulking(npc) ? ' (토라져 있다)' : '';
+    if (heartClosed(npc)) return null;   // 헤어졌거나 마음을 접게 한 뒤로 한동안은 말을 꺼낼 수 없다
     const gate = ROMANCE_GATES[npc.config.name];
     if (gate && !gate.gate(state)) return null;   // 아직 때가 아니다
     if (dates >= 3 && npc.relation >= 80) return ' (고백할 수 있다)';
@@ -184,8 +189,16 @@ function heartCount(npc) {
 function heartMenu(npc) {
     const dates = npc.dates || 0;
     const sub = [];
-    if (npc === state.partner) {
+    if (npc === state.partner && isSulking(npc)) {
+        sub.push({ label: '🍖 고기 3개를 건네며 사과한다', onSelect: () => apologize(npc, loveUi) });
+        sub.push({ label: '…우리 그만하자', onSelect: () => breakUp(npc, loveUi) });
+    } else if (npc === state.partner) {
         sub.push({ label: '우리… 아이를 가질까?', onSelect: () => familyTalk(npc) });
+        const hint = vowHint(npc);
+        if (canVow(npc)) sub.push({ label: '💍 평생을 약속한다', onSelect: () => makeVow(npc, loveUi) });
+        else if (hint) sub.push({ label: hint, onSelect: () => openNpcHub(npc) });
+        else if (vowed(npc)) sub.push({ label: '(평생을 약속한 사이다)', onSelect: () => openNpcHub(npc) });
+        sub.push({ label: '…우리 그만하자', onSelect: () => breakUp(npc, loveUi) });
     } else if (dates >= 3 && npc.relation >= 80) {
         sub.push({ label: '♥ 마음을 고백한다', onSelect: () => confess(npc) });
     } else if (npc.relation >= dateThreshold(npc) && dates < 3) {
@@ -272,6 +285,8 @@ function reportQuest(npc, q) {
 
 /** 인사말: 가끔은 지금 상황(날씨, 밤, 습격, 가족…)에 맞는 한마디 */
 function greeting(npc, talk, tier) {
+    const mood = moodGreeting(npc);   // 토라졌거나 헤어진 뒤에는 평소 인사가 나오지 않는다
+    if (mood) return mood;
     const fits = SITUATION_LINES.filter(s => s.lines[npc.config.name] && s.when(state, npc));
     const must = fits.find(s => s.always);
     if (must) return pick([must.lines[npc.config.name]].flat());
@@ -308,6 +323,9 @@ function receivePresent(npc) {
     show(npc, '오다가 주웠는데 너 주려고 가져왔어. 별건 아니야.', [{ label: '고마워!', onSelect: () => openNpcHub(npc) }]);
 }
 
+// systems/romance.js 에 넘겨 주는 대화 도구 (서로 불러들이지 않게 이쪽 것을 건넨다)
+const loveUi = { show: (...a) => show(...a), close: () => close(), playLines: (...a) => playLines(...a), hub: (npc) => openNpcHub(npc) };
+
 /** 여러 줄짜리 장면을 차례로 보여 주고 끝나면 then */
 function playLines(npc, lines, then) {
     let i = 0;
@@ -325,6 +343,7 @@ function goOnDate(npc) {
     fadeScreen('♥', () => { state.dayTime = Math.min(0.78, state.dayTime + 0.12); }, () => playLines(npc, lines, () => {
         npc.dates = (npc.dates || 0) + 1;
         addRelation(npc, 12);
+        onDate(npc);   // 다른 용이 봤을 수도 있다 (systems/romance.js)
         spawnEffect('HEART', npc.x, npc.y - 80, { color: '#ff7aa8', size: 1.4 });
         showToast(`${npcName(npc.config.name)}와(과) 데이트했습니다. (${npc.dates}/3, 호감 ↑)`, '💕');
     }));
@@ -332,11 +351,14 @@ function goOnDate(npc) {
 
 function confess(npc) {
     if (state.player.stageIndex < 2) { show(npc, '(아직 너무 어리다. [성체]가 되면 마음을 전하자.)', [{ label: '조금만 더 크자.', onSelect: () => openNpcHub(npc) }]); return; }
+    // 예전엔 짝이 있어도 고백하면 말없이 짝이 바뀌었다. 이제는 지금 짝과의 일을 먼저 매듭지어야 한다
+    if (state.partner && state.partner !== npc) { show(npc, `(지금은 ${npcName(state.partner.config.name)}(이)가 짝이다. 이 말을 꺼내려면 그쪽과의 일을 먼저 매듭지어야 한다.)`, [{ label: '…그래.', onSelect: () => openNpcHub(npc) }]); return; }
     playLines(npc, CONFESSION[npc.config.name], () => {
         if (state.partner) { state.partner.state = 'WANDER'; moveHome(state.partner, false); }
         if (state.companion === npc) state.companion = null;
         state.partner = npc;
         npc.state = 'PARTNER_FOLLOW';
+        onPartnered(npc);
         moveHome(npc, true);
         for (let i = 0; i < 6; i++) spawnEffect('HEART', npc.x + rand(-60, 60), npc.y - 60 - rand(0, 60), { color: '#ff7aa8', size: 1.2 });
         showToast(`${npcName(npc.config.name)}(이)가 짝이 되었습니다! 이제 아지트에서 함께 삽니다.`, '💞');
