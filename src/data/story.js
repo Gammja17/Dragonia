@@ -140,14 +140,14 @@ export const SCENES = [
         ],
     },
     {
-        id: 'ch6', title: '6장. 떠나기 전날 밤', when: s => s.bossesDefeated.GLACIA && s.bossesDefeated.BASIL,
+        id: 'ch6', title: '8장. 떠나기 전날 밤', when: s => s.quests.done.includes('m5c'),
         lines: [
             { who: 'Kairon', text: "(어젯밤 스승이 화톳불 앞에 오래 앉아 있었다.)" },
-            { who: 'Kairon', text: "형과 나는 같은 둥지에서 났다. 늘 형이 앞서 날고 내가 뒤를 쫓았지." },
+            { who: 'Kairon', text: "형이랑은 늘 그랬다. 형이 앞서 날고 내가 뒤를 쫓고. 따라잡은 적은 한 번도 없었지." },
             { who: 'Kairon', text: "어느 날 형이 그러더군. 뒤에서 보는 하늘은 좁지 않으냐고. 그게 마지막으로 나눈 말이다." },
-            { who: 'Kairon', text: "나는 삼백 년을 못 갔다. 너한테 떠넘기는 거다. 미안하다." },
+            { who: 'Kairon', text: "나는 예순 해를 못 갔다. 가서 무슨 말을 할지 몰라서. 그걸 너한테 떠넘기는 거다. 미안하다." },
             { who: 'Nara', text: "(수련장 밖에서 나라가 기다리고 있었다.) 갈 거지. 알아." },
-            { who: 'Nara', text: "돌아와. 세어 놓은 게 있단 말이야. 네가 없으면 숫자가 안 맞아." },
+            { who: 'Nara', text: "돌아와. 나 아직 너한테 한 번도 못 이겼단 말이야. 이기고 도망가는 게 어딨어." },
         ],
     },
     {

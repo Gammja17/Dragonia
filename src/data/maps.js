@@ -243,10 +243,24 @@ export const MAPS = {
         name: '모래 폭군의 둥지', biome: 'DESERT', cw: 18, ch: 13, seed: 114, trees: 0.1,
         clearings: [[9, 7, 5]],
         roads: [[[9, 1], [9, 7]]],
-        portals: [{ side: 'N', to: 'DESERT', name: '죽은 사구' }],
+        portals: [{ side: 'N', to: 'DESERT', name: '죽은 사구' }, { side: 'S', to: 'ASH_CITY', name: '불탄 도시' }],
         fixtures: [
             { t: 'BOSS', id: 'BASIL', at: [9, 7] },
             { t: 'PROP', type: 'CAMPFIRE', at: [5, 10] }, { t: 'PROP', type: 'CAMPFIRE', at: [13, 10] },
+        ],
+    },
+
+    // 사막 너머. 예순 해 전 이그나르가 통째로 태운 인간의 도시 (7장). 아무도 살지 않는다
+    ASH_CITY: {
+        name: '불탄 도시', biome: 'VOLCANO', cw: 20, ch: 14, seed: 131, trees: 0.03, safe: true, wanderer: false,
+        roads: [[[10, 1], [10, 12]], [[3, 7], [17, 7]]],
+        portals: [{ side: 'N', to: 'BASIL_LAIR', name: '모래 폭군의 둥지' }],
+        fixtures: [
+            { t: 'PROP', type: 'HOUSE', at: [6, 4] }, { t: 'PROP', type: 'HOUSE', at: [14, 4] },
+            { t: 'PROP', type: 'HOUSE', at: [5, 10] }, { t: 'PROP', type: 'HOUSE', at: [15, 10] },
+            { t: 'PROP', type: 'ROCK', at: [8, 6] }, { t: 'PROP', type: 'ROCK', at: [12, 9] }, { t: 'PROP', type: 'ROCK', at: [16, 7] },
+            { t: 'PROP', type: 'CRATE', at: [9, 9] }, { t: 'PROP', type: 'BARREL', at: [11, 5] },
+            { t: 'WAYSTONE', at: [10, 3] },
         ],
     },
 

@@ -51,8 +51,8 @@ export const CHAPTERS = [
         blocked: "지금 마을을 멀리 떠날 수는 없다.",
     },
     {
-        id: 'c7', title: '7장', name: '사막 길', done: done('m5b'),
-        maps: ['DESERT', 'BASIL_LAIR', 'AUTUMN'],
+        id: 'c7', title: '7장', name: '사막 길', done: done('m5c'),
+        maps: ['DESERT', 'BASIL_LAIR', 'ASH_CITY', 'AUTUMN'],
         blocked: "화산 쪽은 아직 아무도 보내 주지 않는다.",
     },
     {
