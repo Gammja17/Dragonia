@@ -63,7 +63,7 @@ body {
    ========================================================================== */
 
 /* 픽셀 금테 (Kenney Fantasy UI Borders, CC0) */
-.hud-panel, #kids-panel, #journal-panel, #den-panel, #help-panel, .card, #dialogue-overlay {
+.hud-panel, #kids-panel, #journal-panel, #den-panel, #help-panel, #settings-panel, .card, #dialogue-overlay {
     border: 18px solid transparent;
     border-image: url('../assets/ui/frame.png') 32 / 18px stretch;
     image-rendering: pixelated;
