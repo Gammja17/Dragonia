@@ -46,7 +46,7 @@ export function enterDungeon(id) {
     saved = { mapId: state.mapId, x: p.x, y: p.y };
     state.dungeon = { id, depth: 1, seed: (Math.random() * 1e9) | 0, entryPos: { x: p.x, y: p.y }, best: 0 };
     play('evolve');
-    fadeScreen(`${def.name} — 지하 1층`, () => buildFloor(1), () => {
+    fadeScreen(`${def.name} 지하 1층`, () => buildFloor(1), () => {
         showToast(`${def.name}에 들어섰다. 더 깊이 내려갈수록 보상이 커진다. [E] 구멍으로 오르내린다.`, '🕯️');
     });
 }
@@ -124,7 +124,7 @@ export function descend() {
     const def = DUNGEONS[d.id];
     const next = d.depth + 1;
     play('warn');
-    fadeScreen(`${def.name} — 지하 ${next}층`, () => buildFloor(next), () => {
+    fadeScreen(`${def.name} 지하 ${next}층`, () => buildFloor(next), () => {
         showToast(`지하 ${next}층. 공기가 더 무거워졌다.`, '🕯️');
     });
 }

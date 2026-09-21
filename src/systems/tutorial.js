@@ -9,15 +9,15 @@ import { state } from '../core/state.js';
 const kills = (s) => Object.values(s.stats.kills || {}).reduce((a, b) => a + b, 0);
 
 export const TUTORIAL_STEPS = [
-    { id: 'move',    text: '[WASD]로 마을을 걸어 본다',                          done: s => s.tutorial.moved },
-    { id: 'talk',    text: '촌장 엘더에게 [Space]로 말을 건다',                   done: s => s.elderTutorialDone },
-    { id: 'quest',   text: '엘더의 첫 부탁을 맡는다',                             done: s => Object.keys(s.quests.active).length > 0 || s.quests.done.length > 0 },
-    { id: 'journal', text: '[J] 일지를 열어 맡은 일을 읽어 본다',                  done: s => s.tutorial.journal },
-    { id: 'fight',   text: '마을 밖으로 나가, 마우스로 겨눠 적을 쓰러뜨린다',        done: s => kills(s) >= 1 },
-    { id: 'eat',     text: '[C]로 고기를 먹어 허기를 채운다',                      done: s => s.tutorial.ate },
-    { id: 'report',  text: '엘더에게 돌아가 끝낸 일을 보고한다',                    done: s => s.quests.done.length >= 1 },
-    { id: 'dojo',    text: '마을 동쪽 수련장에서 카이론에게 수련을 받는다',          done: s => s.story.lessons.length >= 1 },
-    { id: 'sleep',   text: '아지트의 굴에 들어가 둥지에서 [Space]로 잠든다',          done: s => s.day >= 2 },
+    { id: 'move',    text: '[WASD]로 걸어 본다',                                   done: s => s.tutorial.moved },
+    { id: 'talk',    text: '촌장 엘더에게 [Space]로 말을 건다',                    done: s => s.elderTutorialDone },
+    { id: 'tour',    text: '엘더를 따라 마을을 둘러본다',                           done: s => s.tutorial.toured },
+    { id: 'journal', text: '[J] 일지를 열어 맡은 일을 읽어 본다',                   done: s => s.tutorial.journal },
+    { id: 'fight',   text: '동쪽 숲길로 나가, 마우스로 겨눠 슬라임을 쓰러뜨린다',     done: s => kills(s) >= 1 },
+    { id: 'eat',     text: '[C]로 고기를 먹어 허기를 채운다',                       done: s => s.tutorial.ate },
+    { id: 'report',  text: '엘더에게 돌아가 끝낸 일을 보고한다',                     done: s => s.quests.done.length >= 1 },
+    { id: 'sleep',   text: '마을 서쪽 내 굴에 들어가 둥지에서 [Space]로 잠든다',       done: s => s.day >= 2 },
+    { id: 'dojo',    text: '동쪽 숲 너머 수련장에서 카이론에게 첫 수련을 받는다',      done: s => s.story.lessons.length >= 1 },
 ];
 
 /** 아직 못 끝낸 첫 단계의 번호. 다 끝냈으면 -1 */

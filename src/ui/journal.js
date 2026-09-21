@@ -1,11 +1,12 @@
 import { state } from '../core/state.js';
-import { MAPS } from '../data/maps.js';
+import { MAPS, MAP_POS } from '../data/maps.js';
 
 // 지도마다 놓이는 상자 수의 합 (systems/world.js 의 spec.chests ?? 3)
 const CHEST_COUNT = Object.values(MAPS).reduce((n, m) => n + (m.chests ?? 3), 0);
 import { ENEMIES, BOSSES } from '../data/enemies.js';
 import { RELICS, ownsRelic, hasRelic, toggleRelic, slotCount } from '../systems/relics.js';
 import { MATERIALS } from '../data/materials.js';
+import { FURNITURE } from '../data/furniture.js';
 import { matCount } from '../systems/smithing.js';
 import { isMuted, sfxVolume, setSfxVolume } from '../systems/audio.js';
 import { musicVolume, setMusicVolume } from '../systems/music.js';
@@ -27,7 +28,7 @@ import { isGatherNow, isGatherDay, daysToGather, knowsCloudtop } from '../system
 // 성장·스킬 탭은 뿌리 하나에서 세 갈래가 뻗는 나무로 그린다 (systems/growth.js 가 값을 갖고 있다).
 
 const $ = (id) => document.getElementById(id);
-const TABS = [['growth', '성장'], ['skills', '스킬'], ['quests', '퀘스트'], ['folk', '마을 용들'], ['record', '기록'], ['relics', '유물'], ['codex', '도감'], ['sound', '소리']];
+const TABS = [['quests', '퀘스트'], ['map', '지도'], ['bag', '소지품'], ['folk', '마을 용들'], ['skills', '스킬'], ['growth', '성장'], ['relics', '유물'], ['codex', '도감'], ['record', '기록'], ['sound', '소리']];
 let tab = 'quests';
 let openRow = null;   // 펼쳐 놓은 퀘스트 id
 let picked = null;    // 나무에서 고른 마디 { kind: 'node' | 'skill', id }
@@ -242,7 +243,7 @@ function renderRelics(body) {
     body.appendChild(list);
 
     body.appendChild(section('대장간 소재',
-        Object.entries(MATERIALS).map(([k, m]) => [m.name, `${matCount(k)}개 — ${m.desc}`])));
+        Object.entries(MATERIALS).map(([k, m]) => [m.name, `${matCount(k)}개. ${m.desc}`])));
 }
 
 // ---------- 성장 · 스킬 나무 ----------
@@ -334,7 +335,7 @@ function pickNode(kind, id) { picked = { kind, id }; play('ui'); render(); }
 function renderGrowth(body) {
     const p = state.player;
     body.appendChild(treeNote(`레벨 ${p.level} · ${p.stage.name}`,
-        '레벨업마다 포인트 2, 승급 시험마다 3. 위로 갈수록 자란 몸이라야 버틴다 — 마디를 눌러 조건과 효과를 본다.'));
+        '레벨업마다 포인트 2, 승급 시험마다 3. 위로 갈수록 자란 몸이라야 버틴다. 마디를 눌러 조건과 효과를 본다.'));
     const branches = Object.entries(BRANCHES).map(([key, b]) => ({
         key, title: b.name, sub: b.sub, color: b.color,
         tiers: [0, 1, 2, 3].map(t => GROWTH_NODES.filter(n => n.branch === key && n.tier === t)),
@@ -360,17 +361,17 @@ function sourceText(id) {
     const s = SKILLS[id].source;
     if (s.type === 'MASTER') {
         const lesson = LESSONS.find(l => l.skill === id);
-        return lesson ? `스승 카이론 — ${lesson.title} (레벨 ${lesson.level})` : '스승 카이론의 수련';
+        return lesson ? `스승 카이론: ${lesson.title} (레벨 ${lesson.level})` : '스승 카이론의 수련';
     }
     if (s.type === 'BOSS') return `${(BOSSES[s.id] || {}).name || s.id}를 쓰러뜨리면`;
-    if (s.type === 'AWAKEN') return `${s.hint} — ${s.need.map(([i, r]) => `${SKILLS[i].name} ${r}단`).join(' + ')}`;
+    if (s.type === 'AWAKEN') return `${s.hint}: ${s.need.map(([i, r]) => `${SKILLS[i].name} ${r}단`).join(' + ')}`;
     return s.hint;
 }
 
 function renderSkills(body) {
     const p = state.player, total = Object.keys(SKILLS).length;
     body.appendChild(treeNote(`배운 스킬 ${p.skills.length} / ${total}`,
-        `장착 ${SKILL_SLOTS.map(s => `[${s}] ${p.slots[s] ? SKILLS[p.slots[s]].name : '─'}`).join('  ')} — 마디를 눌러 장착하고 강화한다.`));
+        `장착 ${SKILL_SLOTS.map(s => `[${s}] ${p.slots[s] ? SKILLS[p.slots[s]].name : '─'}`).join('  ')}. 마디를 눌러 장착하고 강화한다.`));
     const branches = Object.entries(SKILL_BRANCHES).map(([key, b]) => ({
         key, title: b.name, sub: '', color: b.color,
         tiers: [0, 1, 2, 3].map(t => Object.keys(SKILLS).filter(id => SKILLS[id].branch === key && SKILLS[id].tier === t)).filter(r => r.length),
@@ -413,7 +414,7 @@ function renderPicked() {
 
     if (picked.kind === 'node') {
         const node = NODES_BY_ID[picked.id], st = nodeStatus(node), rank = nodeRank(node.id);
-        info.append(el('div', 'detail-name', `${node.name} — ${rank} / ${node.max}단`),
+        info.append(el('div', 'detail-name', `${node.name}  ${rank} / ${node.max}단`),
             el('div', 'detail-text', rank >= node.max ? node.desc(rank)
                 : `지금 ${rank ? node.desc(rank) : '아직 찍지 않았다'} → 다음 단계 ${node.desc(rank + 1)}`));
         if (rank < node.max) {
@@ -423,7 +424,7 @@ function renderPicked() {
         }
     } else {
         const def = SKILLS[picked.id], rank = skillRank(picked.id), cost = skillUpgradeCost(picked.id);
-        info.append(el('div', 'detail-name', rank ? `${def.name} — ${rank} / ${MAX_SKILL_RANK}단` : `${def.name} (아직 못 배움)`),
+        info.append(el('div', 'detail-name', rank ? `${def.name}  ${rank} / ${MAX_SKILL_RANK}단` : `${def.name} (아직 못 배움)`),
             el('div', 'detail-text', rank ? `${def.desc} · 대기 ${skillCooldown(picked.id).toFixed(1)}초` : sourceText(picked.id)));
         if (rank) {
             for (const s of SKILL_SLOTS) {
@@ -457,6 +458,63 @@ function renderCodex(body) {
         ...Object.keys(names).filter(id => !names[id].noLoot).map(id => kills[id] ? [names[id].name, `${kills[id]}마리`] : ['???', '아직 만나지 못함', true]),
         ...Object.entries(BOSSES).map(([id, b]) => state.bossesDefeated[id] ? [b.name, '처치'] : ['???', b.title, true]),
     ]));
+}
+
+/**
+ * 지도. 지도 19장을 이어진 대로 그린다 — 가 본 곳은 밝게, 석비를 깨운 곳은 표시,
+ * 지금 있는 곳은 테두리. 자리는 data/maps.js 의 MAP_POS 를 쓴다.
+ */
+function renderMap(body) {
+    const c = document.createElement('canvas');
+    const W = 900, H = 470;
+    c.width = W; c.height = H;
+    c.className = 'world-map';
+    const g = c.getContext('2d');
+    g.fillStyle = '#100f18'; g.fillRect(0, 0, W, H);
+    const pos = (id) => { const p = MAP_POS[id] || [0.5, 0.5]; return { x: 60 + p[0] * (W - 120), y: 40 + p[1] * (H - 80) }; };
+    // 길
+    g.strokeStyle = 'rgba(216,178,90,0.35)'; g.lineWidth = 3;
+    for (const [id, spec] of Object.entries(MAPS)) for (const pt of spec.portals || []) {
+        if (!MAPS[pt.to] || id > pt.to) continue;
+        const a = pos(id), b = pos(pt.to);
+        g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke();
+    }
+    // 마디
+    g.font = '600 12px "Noto Sans KR"'; g.textAlign = 'center';
+    for (const [id, spec] of Object.entries(MAPS)) {
+        const { x, y } = pos(id);
+        const seen = state.visited.includes(id), here = state.mapId === id;
+        const stone = state.waystones.includes(id);
+        const boss = (spec.fixtures || []).some(f => f.t === 'BOSS');
+        g.beginPath(); g.arc(x, y, here ? 13 : 10, 0, Math.PI * 2);
+        g.fillStyle = !seen ? '#2a2836' : boss ? '#7a2f2f' : spec.biome === 'VILLAGE' || spec.biome === 'CLOUDTOP' ? '#d8b25a' : '#4f6b45';
+        g.fill();
+        if (here) { g.strokeStyle = '#ffd84a'; g.lineWidth = 3; g.stroke(); }
+        if (stone) { g.fillStyle = '#7fd4ff'; g.beginPath(); g.arc(x + 9, y - 9, 4, 0, Math.PI * 2); g.fill(); }
+        g.fillStyle = seen ? '#ece3cf' : '#6a6478';
+        g.fillText(seen ? spec.name : '???', x, y + 26);
+    }
+    body.appendChild(c);
+    const note = document.createElement('div');
+    note.className = 'q-empty';
+    note.textContent = '● 가 본 곳   ● 보스의 둥지   ● 마을   ◦ 석비를 깨운 곳 (석비에서 건너뛸 수 있다)';
+    body.appendChild(note);
+}
+
+/** 소지품. 흩어져 있던 것들을 한 곳에 */
+function renderBag(body) {
+    const p = state.player;
+    body.appendChild(section('가진 것', [
+        ['고기', `${p.inventory.meat}개`],
+        ['골드', `${p.gold}G`],
+        ...(state.den.built ? [] : [['나뭇가지', `${state.den.twigs} / 8 (둥지 재료)`]]),
+    ]));
+    const mats = Object.entries(MATERIALS).map(([id, m]) => [m.name, `${matCount(id)}개`, matCount(id) === 0]);
+    body.appendChild(section('대장간 소재', mats));
+    const furn = Object.keys(FURNITURE).filter(id => (state.furniture || {})[id] > 0).map(id => [FURNITURE[id].name, `${state.furniture[id]}개`]);
+    body.appendChild(section('굴 살림살이 (안 놓은 것)', furn.length ? furn : [['', '없다', true]]));
+    const worn = Object.keys(RELICS).filter(hasRelic).map(id => [RELICS[id].name, '끼움']);
+    body.appendChild(section('끼운 유물', worn.length ? worn : [['', '없다 (유물 탭에서 끼운다)', true]]));
 }
 
 /** 마을 용들: 지금 누가 어디서 무엇을 하는지 */
@@ -503,11 +561,13 @@ function renderFolk(body) {
 function render() {
     for (const b of document.querySelectorAll('.journal-tab')) b.classList.toggle('on', b.dataset.tab === tab);
     // 나무는 세 갈래를 나란히 놓아야 해서 창을 넓게 쓴다
-    $('journal-panel').classList.toggle('wide', tab === 'growth' || tab === 'skills');
+    $('journal-panel').classList.toggle('wide', tab === 'growth' || tab === 'skills' || tab === 'map');
     $('journal-points').textContent = points() > 0 ? `성장 포인트 ${points()}` : '';
     const body = $('journal-body');
     body.innerHTML = '';
-    if (tab === 'growth') renderGrowth(body);
+    if (tab === 'map') renderMap(body);
+    else if (tab === 'bag') renderBag(body);
+    else if (tab === 'growth') renderGrowth(body);
     else if (tab === 'skills') renderSkills(body);
     else if (tab === 'quests') renderQuests(body);
     else if (tab === 'folk') renderFolk(body);

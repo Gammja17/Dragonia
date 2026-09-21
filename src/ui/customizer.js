@@ -51,7 +51,7 @@ export function initCustomizer(onStart) {
     const save = readSave();
     if (save) {
         const btn = $('continue-btn');
-        btn.textContent = `이어하기 — ${save.player.config.name} · LV.${save.player.level} ${STAGES[save.player.stageIndex].name}`;
+        btn.textContent = `이어하기: ${save.player.config.name} · LV.${save.player.level} ${STAGES[save.player.stageIndex].name}`;
         btn.style.display = 'block';
         btn.addEventListener('click', () => onStart(null, true));
     }

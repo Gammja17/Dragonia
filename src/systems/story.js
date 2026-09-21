@@ -61,7 +61,7 @@ export function masterOptions(npc) {
     if (trial && !trial.blocked) {
         opts.push({ label: `[승급 시험] ${STAGES[trial.stage].name}(으)로 자란다`, onSelect: () => startDrill(npc, { type: 'DUEL', hp: trial.hp }, { trial }) });
     } else if (trial) {
-        opts.push({ label: `[승급 시험] ${STAGES[trial.stage].name} — 아직 이르다`, onSelect: () => say(npc, trial.blocked) });
+        opts.push({ label: `[승급 시험] ${STAGES[trial.stage].name} (아직 이르다)`, onSelect: () => say(npc, trial.blocked) });
     }
     opts.push({ label: '연습 대련을 청한다 (보상 없음)', onSelect: () => startDrill(npc, { type: 'DUEL', hp: 220 + p.level * 12 }, { practice: true }) });
     if (npc.lastMeditateDay !== state.day) opts.push({ label: '함께 명상한다 (하루 한 번)', onSelect: () => meditate(npc) });
@@ -170,7 +170,7 @@ export function playRite(stage) {
         if (rite.toast) showToast(rite.toast, '🏅');
         play('evolve');
         saveGame();
-    });
+    }, { place: rite.place });
 }
 
 /** 수련 중 스승의 움직임과 판정. Dragon.updateNpc 가 호출 */
@@ -204,7 +204,7 @@ export function updateDrill(npc, dt) {
         return;
     }
     // DUEL: 스승과 대련 (수련·승급 시험 공용). 기력(a.hp)은 Dragon.takeDamage 가 깎는다
-    setBossBar(a.trial ? `승급 시험 — 스승 카이론` : '스승과의 대련', a.hp / a.max);
+    setBossBar(a.trial ? `승급 시험: 스승 카이론` : '스승과의 대련', a.hp / a.max);
     const move = d > 320 ? toPlayer : d < 200 ? toPlayer + Math.PI : toPlayer + Math.PI / 2;
     npc.moveBy(Math.cos(move), Math.sin(move), 185, dt);
     a.timer -= dt;
@@ -230,7 +230,7 @@ export function openNestMenu() {
     dialogueUI.show({
         name: '둥지', text: busy
             ? '지금은 잠들 수 없다. 주변이 너무 소란스럽다.'
-            : `${state.day}일째. 자고 일어나면 다음 날 아침이 된다.\n(굴: ${cozyRest().tier.name} — ${cozyRest().tier.note})`, onClose: close,
+            : `${state.day}일째. 자고 일어나면 다음 날 아침이 된다.\n(굴: ${cozyRest().tier.name}. ${cozyRest().tier.note})`, onClose: close,
         options: busy ? [{ label: '나중에', onSelect: close }] : [
             { label: '잠을 잔다 (다음 날 아침까지)', onSelect: sleep },
             ...(state.den.built ? [] : [{ label: `둥지를 짓는다 (나뭇가지 ${state.den.twigs}/8, 30G)`, onSelect: buildNest }]),
@@ -281,5 +281,5 @@ export function playMorningScene() {
     const scene = SCENES.find(sc => !state.story.scenes.includes(sc.id) && sc.when(state));
     if (!scene) return;
     state.story.scenes.push(scene.id);
-    playScene(scene.title, scene.lines, saveGame);
+    playScene(scene.title, scene.lines, saveGame, { place: scene.place });
 }

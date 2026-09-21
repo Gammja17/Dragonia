@@ -10,12 +10,15 @@ const KEYMAP = {
     KeyC: 'eat',           // 고기 먹기. 상호작용과 섞이면 상자를 열려다 고기를 먹는다
     KeyT: 'talk',
     KeyL: 'flirt',
-    KeyK: 'kids',
-    KeyJ: 'journal',
-    KeyM: 'mute',
+    KeyJ: 'journal',       // 일지 (퀘스트)
+    KeyM: 'worldmap',      // 지도
+    KeyK: 'skillbook',     // 스킬
+    KeyI: 'inventory',     // 소지품
+    KeyG: 'growthTab',     // 성장
+    KeyP: 'kids',          // 가족
+    KeyO: 'mute',          // 소리
     KeyQ: 'skillQ', KeyF: 'skillF', KeyR: 'skillR',
-    KeyB: 'skillbook',
-    KeyG: 'growthTab',
+    KeyB: 'skillbook',     // K 와 같다 (손에 익은 사람용)
     KeyX: 'ultimate',
     KeyH: 'help',
     Digit1: 'num1', Digit2: 'num2', Digit3: 'num3', Digit4: 'num4', Digit5: 'num5', Digit6: 'num6', Digit7: 'num7', Digit8: 'num8', Digit9: 'num9',

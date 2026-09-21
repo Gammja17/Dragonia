@@ -84,12 +84,13 @@ export function notify(type, target) {
 export function offerFor(npc) {
     const Q = state.quests;
     return QUESTS.find(q => !q.auto && q.giver === npc.config.name && !(q.id in Q.active) && !Q.done.includes(q.id)
-        && (!q.requires || Q.done.includes(q.requires)));
+        && (!q.requires || Q.done.includes(q.requires))
+        && (!q.needs || q.needs(state)));      // 스승의 부탁은 수련 진도를 따라 열린다
 }
 /** 의뢰인 이름과, 일과를 아는 용이라면 지금 어디 있는지까지 */
 function giverLine(name) {
     const plan = planFor(name);
-    return plan ? `${npcName(name)} — 지금 ${plan.mapName}` : npcName(name);
+    return plan ? `${npcName(name)} (지금 ${plan.mapName})` : npcName(name);
 }
 
 export function activeFor(npc) { return activeQuests().find(q => q.giver === npc.config.name); }
@@ -120,7 +121,7 @@ export function acceptQuest(q) {
     if (q.id in state.quests.active || state.quests.done.includes(q.id)) return;
     state.quests.active[q.id] = presetProgress(q);
     if (!state.quests.tracked) state.quests.tracked = q.id;
-    showToast(`퀘스트 수락: ${q.title}  —  [J] 일지에서 내용을 볼 수 있습니다`, '📜');
+    showToast(`퀘스트 수락: ${q.title}. [J] 일지에서 볼 수 있습니다`, '📜');
     onChange();
 }
 

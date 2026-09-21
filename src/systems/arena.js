@@ -8,16 +8,16 @@ import { dist } from '../core/utils.js';
 // 수치를 만질 때, 매번 숲을 헤매며 그 적을 찾지 않아도 되게.
 
 const MENU = [
-    { label: '덤빔 — 슬라임 ×3',           units: [['SLIME', 3]] },
-    { label: '돌진 — 붉은 게 ×2',          units: [['CRAB', 2]] },
-    { label: '포위 — 고블린 ×4',           units: [['GOBLIN', 4]] },
-    { label: '사수 — 광신도 ×2',           units: [['CULTIST', 2]] },
-    { label: '잠복 — 독거미 ×2',           units: [['SPIDER', 2]] },
-    { label: '방패 — 방패 고블린 ×2',      units: [['WARDEN', 2]] },
-    { label: '소환 — 서리 주술사 ×1',      units: [['ICE_MAGE', 1]] },
-    { label: '떼 — 박쥐 ×6',               units: [['BAT', 6]] },
+    { label: '덤빔: 슬라임 ×3',           units: [['SLIME', 3]] },
+    { label: '돌진: 붉은 게 ×2',          units: [['CRAB', 2]] },
+    { label: '포위: 고블린 ×4',           units: [['GOBLIN', 4]] },
+    { label: '사수: 광신도 ×2',           units: [['CULTIST', 2]] },
+    { label: '잠복: 독거미 ×2',           units: [['SPIDER', 2]] },
+    { label: '방패: 방패 고블린 ×2',      units: [['WARDEN', 2]] },
+    { label: '소환: 서리 주술사 ×1',      units: [['ICE_MAGE', 1]] },
+    { label: '떼: 박쥐 ×6',               units: [['BAT', 6]] },
     { label: '정예 대장 + 졸개',           units: [['GOBLIN', 1, true], ['GOBLIN', 3]] },
-    { label: '섞어서 — 사수 2 + 방패 1 + 떼 4', units: [['CULTIST', 2], ['WARDEN', 1], ['BAT', 4]] },
+    { label: '섞어서: 사수 2 + 방패 1 + 떼 4', units: [['CULTIST', 2], ['WARDEN', 1], ['BAT', 4]] },
 ];
 
 const close = () => { state.isDialogueOpen = false; dialogueUI.hide(); };
@@ -37,7 +37,7 @@ export function openArena() {
                 const a = (i / 8) * Math.PI * 2, r = 160 + (i % 3) * 40;
                 state.entities.enemies.push(new Enemy(spot.x + Math.cos(a) * r, spot.y + 60 + Math.sin(a) * r * 0.6, type, !!elite));
             }
-            showToast(`${m.label} — 시험 시작`, '⚔️');
+            showToast(`${m.label}. 시험 시작`, '⚔️');
         },
     }));
     options.push({ label: '싸움터를 비운다', onSelect: () => { close(); for (const e of state.entities.enemies) if (e.type !== 'DUMMY') e.remove = true; } });

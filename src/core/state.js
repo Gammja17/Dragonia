@@ -37,7 +37,7 @@ export const state = {
     revivedDay: 0,       // '불사의 심장'으로 버틴 날 (하루 한 번)
     raidTimer: RAID_FIRST_DELAY,
     elderTutorialDone: false,
-    tutorial: { moved: false, journal: false, ate: false, finished: false },   // systems/tutorial.js
+    tutorial: { moved: false, journal: false, ate: false, toured: false, finished: false },   // systems/tutorial.js
     furniture: {},          // 가진 살림살이 { 가구id: 개수 }   systems/den.js
     denDecor: [],           // 내 굴에 놓아 둔 것 [{ id, tx, ty }]
     densSeen: [],           // 들어가 본 굴
@@ -93,7 +93,8 @@ export function resetState() {
         revivedDay: 0,
         raidTimer: RAID_FIRST_DELAY,
         elderTutorialDone: false,
-        tutorial: { moved: false, journal: false, ate: false, finished: false },
+        tutorial: { moved: false, journal: false, ate: false, toured: false, finished: false },
+        tour: null,
         player: null,
         partner: null,
         currentNpc: null,

@@ -95,7 +95,7 @@ export function openNpcHub(npc, skipErrand = false) {
     let text = greeting(npc, talk, tier);
     if (inMyDen()) text = `${visitLine()}\n\n` + text;
     else if (npc.doing) text = `(${npc.doing}.)\n\n` + text;
-    if (running && !isComplete(running)) text += `\n\n(${running.title} — ${goalText(running)}: ${questProgress(running)}/${running.goal.count || 1})`;
+    if (running && !isComplete(running)) text += `\n\n(${running.title}: ${goalText(running)} ${questProgress(running)}/${running.goal.count || 1})`;
     show(npc, text, opts);
     return true;
 }
@@ -146,7 +146,7 @@ function heartCount(npc) {
     if (npc === state.partner) return '';
     const gate = ROMANCE_GATES[npc.config.name];
     if (gate && !gate.gate(state)) return null;   // 아직 때가 아니다
-    if (dates >= 3 && npc.relation >= 80) return ' — 고백할 수 있다';
+    if (dates >= 3 && npc.relation >= 80) return ' (고백할 수 있다)';
     if (npc.relation >= dateThreshold(npc)) return ` (데이트 ${dates}/3)`;
     return null;
 }
@@ -159,7 +159,7 @@ function heartMenu(npc) {
     } else if (dates >= 3 && npc.relation >= 80) {
         sub.push({ label: '♥ 마음을 고백한다', onSelect: () => confess(npc) });
     } else if (npc.relation >= dateThreshold(npc) && dates < 3) {
-        if (npc.lastDateDay === state.day) sub.push({ label: `(오늘은 이미 함께 있었다 — ${dates}/3)`, onSelect: () => openNpcHub(npc) });
+        if (npc.lastDateDay === state.day) sub.push({ label: `(오늘은 이미 함께 있었다. ${dates}/3)`, onSelect: () => openNpcHub(npc) });
         else sub.push({ label: `♥ 데이트를 신청한다 (${dates}/3)`, onSelect: () => goOnDate(npc) });
     } else if (dates >= 3) {
         sub.push({ label: '(마음은 통한 것 같은데, 아직 한마디가 모자라다)', onSelect: () => openNpcHub(npc) });
@@ -172,7 +172,7 @@ function heartMenu(npc) {
 /** 부탁을 듣는다: 배경을 읽고 수락 여부를 고른다. 맡으면 그대로 대화를 끝낸다 */
 function hearQuest(npc, q) {
     show(npc, q.offer, [
-        { label: `📜 맡는다 — ${q.title}`, onSelect: () => { close(); acceptQuest(q); } },
+        { label: `📜 맡는다: ${q.title}`, onSelect: () => { close(); acceptQuest(q); } },
         { label: '지금은 어렵겠어', onSelect: close },
         { label: '다른 얘기를 한다', onSelect: () => openNpcHub(npc, true) },
     ]);
@@ -214,7 +214,7 @@ function giveGift(npc) {
     addRelation(npc, 8);
     burst(npc.x, npc.y - 60, '#ff7aa8', 1, 10);
     showToast(`${npcName(npc.config.name)}에게 고기를 선물했습니다. (호감 ↑)`, '🎁');
-    show(npc, '…이걸 나한테? 고마워. 잘 먹을게.', [{ label: '별말씀을.', onSelect: () => openNpcHub(npc) }]);
+    show(npc, '이걸 나한테? 고마워. 잘 먹을게.', [{ label: '별말씀을.', onSelect: () => openNpcHub(npc) }]);
 }
 
 function receivePresent(npc) {
@@ -249,7 +249,7 @@ function goOnDate(npc) {
 }
 
 function confess(npc) {
-    if (state.player.stageIndex < 2) { show(npc, '(아직 너무 어리다. [성체]가 되면 마음을 전하자.)', [{ label: '…조금만 더 크자.', onSelect: () => openNpcHub(npc) }]); return; }
+    if (state.player.stageIndex < 2) { show(npc, '(아직 너무 어리다. [성체]가 되면 마음을 전하자.)', [{ label: '조금만 더 크자.', onSelect: () => openNpcHub(npc) }]); return; }
     playLines(npc, CONFESSION[npc.config.name], () => {
         if (state.partner) { state.partner.state = 'WANDER'; moveHome(state.partner, false); }
         if (state.companion === npc) state.companion = null;
@@ -270,7 +270,7 @@ function moveHome() { /* 지도별로 다시 놓이므로 할 일이 없다 */ }
 function familyTalk(npc) {
     const nest = state.entities.nests[0];
     const back = [{ label: '그래.', onSelect: () => openNpcHub(npc) }];
-    if (!state.den.built) { show(npc, '아직 둥지가 없잖아. 아지트에 둥지부터 짓자. (둥지에서 [T] — 나뭇가지 8, 30G)', back); return; }
+    if (!state.den.built) { show(npc, '아직 둥지가 없잖아. 아지트에 둥지부터 짓자. (둥지에서 [T]. 나뭇가지 8, 30G)', back); return; }
     if (nest.hasEgg) { show(npc, '둥지에 이미 알이 있어. 저 아이부터 잘 품어 주자.', back); return; }
     if (state.kids.length >= MAX_KIDS) { show(npc, '우리 집, 이미 북적북적해. 이 아이들부터 잘 키우자.', back); return; }
     if (npc.lastEggDay && state.day - npc.lastEggDay < 3) { show(npc, '조금만 더 있다가. 몸을 추슬러야 해. (사흘에 한 번)', back); return; }
@@ -326,7 +326,7 @@ function openForge(npc) {
         const cost = costOf(r), times = state.upgrades[r.id] || 0;
         const ok = canAfford(cost);
         return {
-            label: `${ok ? '🔨' : '🔒'} ${r.name} (${times}단 → ${times + 1}단) — ${r.effect}`,
+            label: `${ok ? '🔨' : '🔒'} ${r.name} (${times}단 → ${times + 1}단) ${r.effect}`,
             onSelect: () => forgeOne(npc, r),
         };
     });
@@ -343,7 +343,7 @@ function forgeOne(npc, recipe) {
         return;
     }
     show(npc, `${recipe.flavor}\n\n드는 재료: ${costText(cost)}`, [
-        { label: `🔨 두드린다 — ${recipe.effect}`, onSelect: () => { forge(recipe); openForge(npc); } },
+        { label: `🔨 두드린다: ${recipe.effect}`, onSelect: () => { forge(recipe); openForge(npc); } },
         { label: '아직 아껴 두겠다', onSelect: () => openForge(npc) },
     ]);
 }
@@ -351,7 +351,7 @@ function forgeOne(npc, recipe) {
 function openGoods(npc) {
     const p = state.player;
     const opts = GOODS.map(item => ({
-        label: `${item.name} — ${item.desc} (${item.cost}G)`,
+        label: `${item.name}: ${item.desc} (${item.cost}G)`,
         onSelect: () => { buy(item); openGoods(npc); },
     }));
     opts.push({ label: '돌아간다', onSelect: () => openForge(npc) });
@@ -385,7 +385,7 @@ function endActivity(win) {
             addRelation(npc, first ? 10 : 2);
             p.gold += first ? 40 : 10;
             p.gainXp(first ? 180 : 50);
-            npc.say('…졌다. 인정할게.');
+            npc.say('졌다. 인정할게.');
             showToast('대련 승리!' + (first ? ' (40G, 호감 ↑)' : ' (10G)'), '🏆');
             notify('spar');
             learnSkill('BLINK');   // 첫 승리 때 티아맷의 기술을 배운다

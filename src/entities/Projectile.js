@@ -80,7 +80,8 @@ export class Projectile extends Entity {
             return;
         }
         target.takeDamage(dmg, false, this);   // 맞은 쪽을 넘겨 주면 그쪽으로 밀린다
-        spawnEffect(crit ? 'CRIT_FLASH' : 'HIT_SPARK', target.x, target.y - 24, { size: crit ? 1 : 0.8, color: crit ? null : el.color });
+        spawnEffect(crit ? 'CRIT_FLASH' : 'HIT_SPARK', target.x, target.y - 24, { size: crit ? 1.2 : 1, color: crit ? null : el.color });
+        shake(crit ? 3 : 1.2);
         spawnText(target.x, target.y - 50, crit ? `${Math.round(dmg)}!` : `${Math.round(dmg)}`, crit ? '#ffd84a' : '#fff', crit ? 22 : 15);
         if (crit) { hitStop(0.05); shake(4); }   // 치명타는 한 박자 멈춘다
         if (this.kind !== 'BREATH') return;

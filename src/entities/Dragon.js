@@ -21,7 +21,7 @@ import { NPC_TALK } from '../data/npcTalk.js';
 import { spawnText, spawnBolt } from '../render/vfx.js';
 import { hitStop, flash } from '../render/feedback.js';
 import { noteTaken } from '../render/debugOverlay.js';
-import { shake } from '../core/camera.js';
+import { shake, kick } from '../core/camera.js';
 import { hasRelic } from '../systems/relics.js';
 import { play, toggleMute } from '../systems/audio.js';
 import { toggleJournal } from '../ui/journal.js';
@@ -189,7 +189,7 @@ export class Dragon extends Entity {
         this.maxHp += 40;
         this.hp = this.maxHp;
         grantPoints(POINTS_PER_STAGE, `${this.stage.name}(으)로 진화`);
-        showToast(`진화! [${this.stage.name}](이)가 되었습니다` + (this.stage.unlock ? ` — ${this.stage.unlock}` : ''), '🐲');
+        showToast(`진화! [${this.stage.name}](이)가 되었습니다` + (this.stage.unlock ? `. ${this.stage.unlock}` : ''), '🐲');
         spawnEffect('SHOCKWAVE', this.x, this.y, { size: 3, color: '#ffe9a0' });
         spawnEffect('RING', this.x, this.y - 40, { size: 2.6 });
         burst(this.x, this.y - 30, () => `hsl(${40 + Math.floor(Math.random() * 3) * 10},100%,65%)`, 1.4, 40);
@@ -201,7 +201,7 @@ export class Dragon extends Entity {
         if (this.elements.includes(id)) return;
         this.elements.push(id);
         this.element = id;
-        showToast(`새 숨결 [${ELEMENTS[id].name}] 획득! — ${ELEMENTS[id].desc} ([${ELEMENTS[id].key}]번 키)`, '✨');
+        showToast(`새 숨결 [${ELEMENTS[id].name}] 획득! ${ELEMENTS[id].desc} ([${ELEMENTS[id].key}]번 키)`, '✨');
     }
 
     takeDamage(dmg) {
@@ -383,6 +383,8 @@ export class Dragon extends Entity {
         if (input.pressed('journal')) toggleJournal();
         if (input.pressed('skillbook')) toggleJournal('skills');   // 스킬 나무
         if (input.pressed('growthTab')) toggleJournal('growth');   // 성장 나무
+        if (input.pressed('worldmap')) toggleJournal('map');       // 지도
+        if (input.pressed('inventory')) toggleJournal('bag');      // 소지품
         if (input.pressed('mute')) showToast(toggleMute() ? '소리 끔' : '소리 켬', '🔊');
 
         // 보는 방향은 프레임 끝에 딱 한 번, 아래 순서대로 정한다.
@@ -476,7 +478,8 @@ export class Dragon extends Entity {
         const pellets = el.pelletsByStage ? el.pelletsByStage[st] : el.pellets;
         for (let i = 0; i < pellets; i++) this.breathe(angle + (i - (pellets - 1) / 2) * el.spread);
         const sc = this.stage.scale;
-        spawnEffect('MUZZLE', this.x + Math.cos(angle) * 50 * sc, this.y - 40 * sc + Math.sin(angle) * 50 * sc, { angle: angle + Math.PI / 2, size: 0.5 + sc * 0.3, color: el.color });
+        spawnEffect('MUZZLE', this.x + Math.cos(angle) * 50 * sc, this.y - 40 * sc + Math.sin(angle) * 50 * sc, { angle: angle + Math.PI / 2, size: 0.7 + sc * 0.4, color: el.color });
+        kick(angle, el.pellets > 1 ? 3.5 : 2);   // 쏘는 반대쪽으로 화면이 살짝 밀린다
         play(el.sound);
     }
 
@@ -494,7 +497,7 @@ export class Dragon extends Entity {
     /** 필살기: 삼원 융합 브레스. 세 숨결을 하나로 뭉쳐 2.6초 동안 앞을 쓸어버린다 (삼원룡 전용) */
     useUltimate() {
         if (this.stageIndex < 4) return;
-        if (this.ult < 100) { showToast(`필살기 게이지 ${Math.floor(this.ult)}% — 적을 맞혀 채우세요.`, '🌈'); return; }
+        if (this.ult < 100) { showToast(`필살기 게이지 ${Math.floor(this.ult)}%. 적을 맞혀 채우세요.`, '🌈'); return; }
         this.ult = 0;
         this.beam = { time: 2.6, angle: this.aimAngle().angle, tick: 0 };
         this.invuln = Math.max(this.invuln, 0.6);
@@ -775,6 +778,11 @@ export class Dragon extends Entity {
         ctx.save();
         ctx.translate(this.x, this.y);
         const sc = this.isPlayer ? this.stage.scale : 0.92 * (this.config.scale || 1);
+        // 마을 용은 발밑에 은은한 테를 늘 둔다 — 나무·풀 사이에서 사람이 어디 있는지 보이게
+        if (!this.isPlayer && this.config.fixed && state.talkTarget !== this) {
+            ctx.strokeStyle = 'rgba(216,178,90,0.45)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.ellipse(0, 0, 40 * sc, 15 * sc, 0, 0, Math.PI * 2); ctx.stroke();
+        }
         if (state.talkTarget === this) { ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 3; ctx.globalAlpha = 0.6 + Math.sin(state.gameTime * 6) * 0.3; ctx.beginPath(); ctx.ellipse(0, 0, 46 * sc, 18 * sc, 0, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1; }
         this.drawShadow(ctx, (this.sheet && !this.sheet.flying ? 26 : 34) * sc);
         ctx.restore();

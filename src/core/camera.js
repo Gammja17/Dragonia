@@ -59,6 +59,12 @@ export function stepZoom(dir, screenW, screenH) {
 /** 화면 흔들림 (세게 맞았을 때, 운석 등) */
 export function shake(power) { shakePower = Math.max(shakePower, power); }
 
+/** 쏠 때의 반동. 겨눈 반대쪽으로 화면을 살짝 밀면 손맛이 난다 (따라가기가 곧 되돌린다) */
+export function kick(angle, px = 3) {
+    cam.x -= Math.cos(angle) * px;
+    cam.y -= Math.sin(angle) * px;
+}
+
 export function followCamera(target, smooth = 0.1) {
     // 컷씬이면 둘 사이를 천천히 본다
     const shot = cutsceneTarget();

@@ -72,7 +72,7 @@ export class Boss extends Entity {
         if (!this.awake) {
             if (d < WAKE_RANGE) {
                 this.awake = true;
-                showToast(`${this.def.name} — ${this.def.title}`, '⚔️');
+                showToast(`${this.def.name}, ${this.def.title}`, '⚔️');
                 spawnEffect('SHOCKWAVE', this.x, this.y, { size: 3, color: ELEMENTS[this.def.element].color });
                 shake(10); play('dieBig');
             }
@@ -108,7 +108,7 @@ export class Boss extends Entity {
 
         this.animator.playBase(moving ? 'move' : 'idle');
         this.animator.update(dt);
-        setBossBar(this.def.name + (this.phase2 ? ' — 분노' : ''), this.hp / this.def.hp);
+        setBossBar(this.def.name + (this.phase2 ? ' (분노)' : ''), this.hp / this.def.hp);
     }
 
     reset() {

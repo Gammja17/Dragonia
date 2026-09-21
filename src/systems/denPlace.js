@@ -50,8 +50,8 @@ export function updateDenPlace() {
         lastValid = !!t && canPlace(state.holding, t.tx, t.ty, map);
         const f = FURNITURE[state.holding];
         hint(lastValid
-            ? `${f.name} — 왼쪽 클릭으로 놓는다 (오른쪽 클릭: 그만)`
-            : `${f.name} — ${f.wall ? '벽에 거는 것은 맨 윗줄에만 걸 수 있다' : '여기에는 놓을 수 없다'}`);
+            ? `${f.name}: 왼쪽 클릭으로 놓는다 (오른쪽 클릭: 그만)`
+            : `${f.name}: ${f.wall ? '벽에 거는 것은 맨 윗줄에만 걸 수 있다' : '여기에는 놓을 수 없다'}`);
 
         if (mouse.right) { cancelPlacing(); play('ui'); openDecorPanel(); return; }
         if (mouse.clicked && lastValid) {

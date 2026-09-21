@@ -4,6 +4,7 @@ import { state } from '../core/state.js';
 import { inCutscene } from '../systems/cutscene.js';
 import { PROP_SPRITES, TILE_SCALE, TILE, TILE_SRC } from '../data/tiles.js';
 import { FURNITURE } from '../data/furniture.js';
+import { DUNGEONS } from '../data/dungeons.js';
 import { getTileImage, activeBiome } from '../world/terrain.js';
 import { BIOMES } from '../world/biomes.js';
 import { drawIcon, drawGlow } from '../render/pixel.js';
@@ -25,7 +26,7 @@ function furnitureLight(prop) {
 }
 
 // 코드로 찍은 픽셀 아이콘으로 그리는 소품: [배율, 발에서 위로 올릴 px]
-const ICON_PROPS = { CAVE: [6, 36], DEN_MOUTH: [8, 48], STAIRS_DOWN: [5, 24], STAIRS_UP: [5, 24], ARENA: [4, 26] };
+const ICON_PROPS = { CAVE: [8, 48], DEN_MOUTH: [8, 48], STAIRS_DOWN: [5, 24], STAIRS_UP: [5, 24], ARENA: [4, 26] };
 
 export class Prop extends Entity {
     constructor(x, y, type) {
@@ -48,7 +49,7 @@ export class Prop extends Entity {
             case 'CHEST': return this.opened ? null : { r: 110, color: '#ffd84a', intensity: 0.7, dy: -16 };
             case 'WAYSTONE': return { r: 130, color: '#7fd4ff', intensity: this.awake ? 0.85 : 0.35, dy: -40 };
             case 'STAIRS_UP': return { r: 200, color: '#ffe9b0', intensity: 0.9, dy: -20, emissive: true };
-            case 'CAVE': return { r: 90, color: '#9fb4ff', intensity: 0.3, dy: -30 };
+            case 'CAVE': return { r: 170, color: '#c58aff', intensity: 0.6, dy: -34, emissive: true };
             case 'DEN_MOUTH': return { r: 190, color: '#ffc87a', intensity: 0.75, dy: -34, emissive: true };
             case 'FURNITURE': return furnitureLight(this);
             case 'PORTAL': return { r: 150, color: '#9fe3ff', intensity: 0.7, dy: -40, emissive: true };
@@ -107,6 +108,7 @@ export class Prop extends Entity {
         if (this.type === 'FURNITURE') { this.drawFurniture(ctx); return; }
         if (this.type === 'PORTAL') { this.drawPortal(ctx); return; }
         if (this.type === 'WAYSTONE') { this.drawWaystone(ctx); return; }
+        if (this.type === 'CAVE') { this.drawCave(ctx); return; }
         if (ICON_PROPS[this.type]) { drawIcon(ctx, this.type, this.x, this.y - ICON_PROPS[this.type][1], ICON_PROPS[this.type][0]); return; }
         if (this.sprite) { this.drawSprite(ctx); return; }
         // 모닥불: 장작(코드로 찍은 픽셀) + 불꽃 애니메이션
@@ -204,6 +206,33 @@ export class Prop extends Entity {
         ctx.fillRect(-w / 2, -146, w, 19);
         ctx.fillStyle = '#9fe3ff';
         ctx.fillText(label, 0, -132);
+        ctx.restore();
+    }
+
+    /**
+     * 굴 입구. 잿빛 바위가 초록 바닥에 묻혀 안 보인다는 말이 많아서,
+     * 밤낮 없이 안쪽에서 보랏빛이 새어 나오고 위에 이름표를 단다 (포탈과 같은 방식).
+     */
+    drawCave(ctx) {
+        const t = state.gameTime * 1.6 + this.seed * 6;
+        drawGlow(ctx, this.x, this.y - 30, 70 + Math.sin(t) * 6, '#c58aff', 0.42 + Math.sin(t) * 0.08);
+        drawIcon(ctx, 'CAVE', this.x, this.y - 48, 8);
+        // 어두운 입 안쪽에 불빛 한 점
+        ctx.fillStyle = `rgba(210, 160, 255, ${0.55 + Math.sin(t * 2) * 0.2})`;
+        ctx.fillRect(Math.round(this.x) - 3, Math.round(this.y) - 34, 6, 6);
+        if (inCutscene()) return;
+        const label = (DUNGEONS[this.caveId] || {}).name || '굴';
+        ctx.save();
+        ctx.translate(Math.round(this.x), Math.round(this.y));
+        const k = 1 / cam.zoom;
+        ctx.scale(k, k);
+        ctx.textAlign = 'center';
+        ctx.font = '600 12px "Noto Sans KR"';
+        const w = Math.ceil(ctx.measureText(label).width) + 16;
+        ctx.fillStyle = 'rgba(10, 9, 16, 0.85)';
+        ctx.fillRect(-w / 2, -126, w, 19);
+        ctx.fillStyle = '#d9b8ff';
+        ctx.fillText(label, 0, -112);
         ctx.restore();
     }
 

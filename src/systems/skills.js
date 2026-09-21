@@ -34,7 +34,7 @@ export function learnSkill(id, silent = false) {
     const free = SKILL_SLOTS.find(s => !p.slots[s]);
     if (free) p.slots[free] = id;   // 빈 칸이 있으면 바로 장착
     if (!silent) {
-        showToast(`새 스킬 [${SKILLS[id].name}] 습득!` + (free ? ` — [${free}] 칸에 장착` : ' — [B] 스킬 나무에서 장착'), '📖');
+        showToast(`새 스킬 [${SKILLS[id].name}] 습득!` + (free ? ` ([${free}] 칸에 장착)` : ' ([K] 스킬 나무에서 장착)'), '📖');
         play('quest');
     }
     checkSkillUnlocks(true);   // 이 스킬이 다른 각성 스킬의 조건이었을 수도 있다

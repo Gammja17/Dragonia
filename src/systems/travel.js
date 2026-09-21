@@ -21,7 +21,7 @@ export function isAwake(id) { return state.waystones.includes(id); }
 
 /** 처음부터 켜 두는 석비 (마을과 아지트) */
 export function initWaystones() {
-    for (const id of ['VILLAGE', 'DEN']) {
+    for (const id of ['VILLAGE']) {
         if (STONE_MAPS.includes(id) && !isAwake(id)) state.waystones.push(id);
     }
 }

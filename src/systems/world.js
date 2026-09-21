@@ -118,6 +118,10 @@ function edgeWalls(map, props, rng, portals) {
     for (let cy = 0; cy < ch; cy++) for (let cx = 0; cx < cw; cx++) {
         const edge = cx < EDGE_WALL || cy < EDGE_WALL || cx >= cw - EDGE_WALL || cy >= ch - EDGE_WALL;
         if (!edge) continue;
+        // 바깥 줄은 빈틈없이, 안쪽 줄은 셋 중 하나만. 두 줄을 다 채우면 캐노피(240px)가
+        // 겹쳐 화면 한쪽이 통째로 초록 벽이 되고, 길이며 굴 입구가 그 뒤에 묻힌다
+        const outer = cx === 0 || cy === 0 || cx === cw - 1 || cy === ch - 1;
+        if (outer ? (cx + cy) % 2 === 1 : rng() > 0.34) continue;
         const p = at([cx, cy]);
         if (openAt(p.x, p.y)) continue;
         if (map.groundAt(p.x, p.y) === 'WATER') continue;
@@ -154,7 +158,9 @@ function populate(id) {
             i++;
         }
     };
-    scatter(Math.round(area * trees * 0.18), (x, y) => pools.props.push(new Prop(x, y, 'TREE')), 165);
+    // 나무는 길에서 떨어져 선다 — 캐노피(240px)가 길을 덮으면 어디가 길인지 안 보인다
+    const nearRoad = (x, y) => [[0, 0], [95, 0], [-95, 0], [0, 80], [0, -80]].some(([dx, dy]) => map.groundAt(x + dx, y + dy) === 'DIRT');
+    scatter(Math.round(area * trees * 0.11), (x, y) => { if (!nearRoad(x, y)) pools.props.push(new Prop(x, y, 'TREE')); }, 220);
     scatter(Math.round(area * 0.22), (x, y) => pools.props.push(new Prop(x, y, pick(['BUSH', 'BUSH', 'FERN', 'ROCK', 'STUMP']))), 70);
     scatter(Math.round(area * 0.06), (x, y) => pools.props.push(new Prop(x, y, 'BERRY')), 90);
 

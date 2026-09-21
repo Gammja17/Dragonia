@@ -56,7 +56,7 @@ export function investNode(id) {
         state.player.maxHp += node.per;
         state.player.hp += node.per;
     }
-    showToast(`[${node.name}] ${g.nodes[id]}단 — ${node.desc(g.nodes[id])}`, '🌱');
+    showToast(`[${node.name}] ${g.nodes[id]}단. ${node.desc(g.nodes[id])}`, '🌱');
     play('level');
     return true;
 }
@@ -81,7 +81,7 @@ export function upgradeSkill(id) {
     if (g.points < cost) { showToast(`성장 포인트가 ${cost} 필요합니다.`, '📖'); return false; }
     g.points -= cost;
     g.ranks[id] = skillRank(id) + 1;
-    showToast(`[${SKILLS[id].name}] ${g.ranks[id]}단 — 위력 ↑ 대기 시간 ↓`, '📖');
+    showToast(`[${SKILLS[id].name}] ${g.ranks[id]}단. 위력 ↑ 대기 시간 ↓`, '📖');
     play('level');
     return true;
 }
@@ -91,7 +91,7 @@ export function points() { return G().points; }
 
 export function grantPoints(n, why) {
     G().points += n;
-    if (why) showToast(`${why} — 성장 포인트 +${n} ([G] 성장)`, '🌟');
+    if (why) showToast(`${why}. 성장 포인트 +${n} ([G] 성장)`, '🌟');
 }
 
 /** 이미 쓴 포인트의 합. 옛 세이브를 불러올 때 남은 포인트를 되짚는 데 쓴다 */

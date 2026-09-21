@@ -74,7 +74,7 @@ export function grantRelic(id, x, y) {
     const list = slots();
     let free = -1;                                   // 빈 칸이 있으면 바로 끼워 준다
     for (let i = 0; i < slotCount(); i++) if (!list[i]) { list[i] = id; free = i; break; }
-    showToast(`유물 획득: [${r.name}] — ${r.desc}` + (free >= 0 ? ' (바로 장착)' : ' — [J] 일지 유물 탭에서 끼울 수 있습니다'), '💎');
+    showToast(`유물 획득: [${r.name}]. ${r.desc}` + (free >= 0 ? ' (바로 장착)' : ' ([J] 일지 유물 탭에서 끼울 수 있습니다)'), '💎');
     spawnEffect('RING', x, y - 30, { size: 1.6 });
     play('relic');
     return true;

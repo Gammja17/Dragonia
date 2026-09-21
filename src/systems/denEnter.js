@@ -39,7 +39,7 @@ export function tryDenInteract() {
     const owner = spec.owner ? state.entities.npcs.find(n => n.config.name === spec.owner) : null;
     const home = owner && Math.hypot(owner.x - mouth.x, owner.y - mouth.y) < 400;
     const line = spec.mine
-        ? `내 굴이다. ${cozyOf(mouth.denId).name} — ${cozyOf(mouth.denId).note}`
+        ? `내 굴이다. ${cozyOf(mouth.denId).name}. ${cozyOf(mouth.denId).note}`
         : home
             ? `${npcName(spec.owner)}의 굴이다. 주인이 근처에 있다.`
             : `${npcName(spec.owner)}의 굴이다. 지금은 비어 있는 것 같다.`;

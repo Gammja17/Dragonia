@@ -21,7 +21,7 @@ export function blockAtBorder() {
     const when = isGatherDay() ? '오늘 밤이 그날이다. 해가 지거든 다시 오너라.' : `${left}일 뒤 밤이 그날이다.`;
     dialogueUI.show({
         name: npcName('Yuan'),
-        text: `거기까지다. 이 위는 구름마루의 땅이다.\n\n…달이 가장 밝은 밤에는 폭포 아래에서 모임이 선다. 그날은 누구도 이빨을 드러내지 않기로 했지. 올라오고 싶거든 그날 여기로 와라.\n\n(${when})`,
+        text: `거기까지다. 이 위는 구름마루의 땅이다.\n\n달이 가장 밝은 밤에는 폭포 아래에서 모임이 선다. 그날은 누구도 이빨을 드러내지 않기로 했지. 올라오고 싶거든 그날 여기로 와라.\n\n(${when})`,
         sheet: yuan ? yuan.sheet : null,
         onClose: close,
         options: [{ label: '알겠다', onSelect: close }],

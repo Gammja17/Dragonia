@@ -83,7 +83,9 @@ export function applySave(data) {
     state.upgrades = data.upgrades || {};
     state.openedChests = data.openedChests || {};
     state.blessingDay = data.blessingDay || 0;
-    state.tutorial = data.tutorial || { moved: true, journal: true, ate: true, finished: true };   // 예전 세이브는 안내를 건너뛴다
+    state.tutorial = data.tutorial || { moved: true, journal: true, ate: true, toured: true, finished: true };   // 예전 세이브는 안내를 건너뛴다
+    if (state.tutorial.toured === undefined) state.tutorial.toured = true;   // 마을 돌기가 생기기 전 세이브
+    state.tour = null;
     state.relics = data.relics || [];
     // 예전 세이브에는 장착 칸이 없다. 가진 유물 앞쪽 몇 개를 자동으로 끼워 준다
     state.relicSlots = data.relicSlots || state.relics.slice(0, 3);

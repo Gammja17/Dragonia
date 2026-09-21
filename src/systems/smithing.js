@@ -39,7 +39,7 @@ export function costText(cost) {
 export function forge(recipe) {
     const cost = costOf(recipe);
     if (!canAfford(cost)) {
-        showToast(`재료가 모자랍니다 — ${costText(cost)}`, '🔨');
+        showToast(`재료가 모자랍니다. ${costText(cost)}`, '🔨');
         return false;
     }
     for (const [k, n] of Object.entries(cost)) state.materials[k] = matCount(k) - n;

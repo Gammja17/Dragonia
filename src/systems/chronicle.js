@@ -12,7 +12,7 @@ import { activeBiome } from '../world/terrain.js';
 import { inDungeon } from './delve.js';
 import { isGatherNow } from './gathering.js';
 import { beginCutscene, focusOn, endCutscene } from './cutscene.js';
-import { anyNpc } from './world.js';
+import { anyNpc, travelTo } from './world.js';
 
 // 사건. "가서 잡아라" 대신, 돌아다니다 보면 일이 벌어지고 그 자리에서 이야기가 열린다.
 //
@@ -64,7 +64,7 @@ export function updateChronicle(dt) {
         const lines = (BOND_SCENES[bond.name] || {})[bond.tier];
         if (lines) {
             playing = true;
-            playScene(`${bond.name} — ${['', '아는 사이', '친구', '절친'][bond.tier]}가 되었다`, lines, () => { playing = false; saveGame(); });
+            playScene(`${bond.name}와(과) ${['', '아는 사이', '친구', '절친'][bond.tier]}가 되었다`, lines, () => { playing = false; saveGame(); });
             return;
         }
     }
@@ -91,7 +91,9 @@ function fire(ev) {
  * 여러 줄짜리 장면을 차례로 보여 준다. 아침 장면(systems/story.js)도 이걸 쓴다.
  * line = { who: NPC 이름 | '나' | '???', text }
  */
-export function playScene(title, lines, then, { cinematic = true } = {}) {
+export function playScene(title, lines, then, { cinematic = true, place = null } = {}) {
+    // 장면이 벌어질 곳이 따로 있으면 먼저 그리로 간다. 그 자리에서 촌장이 튀어나오는 것보다 낫다
+    if (place && place !== state.mapId && !state.dungeon) travelTo(place);
     if (cinematic) beginCutscene(title || '');
     else if (title) showToast(title, '📖');
 

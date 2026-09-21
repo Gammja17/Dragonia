@@ -24,6 +24,7 @@ import { inDungeon } from './systems/delve.js';
 import { updateChronicle } from './systems/chronicle.js';
 import { updateCutscene, drawCutscene } from './systems/cutscene.js';
 import { updateRoutine } from './systems/routine.js';
+import { updateTour } from './systems/tour.js';
 import { updateDenPlace, drawDenGhost, isPlacing, cancelPlacing, setDenRebuilder } from './systems/denPlace.js';
 import { initDenPanel, isDecorPanelOpen, closeDecorPanel } from './ui/denPanel.js';
 import { inMyDen } from './systems/den.js';
@@ -145,7 +146,7 @@ function update(dt) {
     if (outside) {
         if (inMyDen()) updateDenPlace();                      // 굴 안: 살림살이 놓기
         else updateSpawns();
-        updateTravel(); updatePortals(); updateRoutine(dt, getNpc); updateChronicle(dt);
+        updateTravel(); updatePortals(); updateRoutine(dt, getNpc); updateTour(dt); updateChronicle(dt);
     }
 }
 

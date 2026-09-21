@@ -27,7 +27,6 @@ export const MAPS = {
         plaza: [6, 5, 12, 8],
         roads: [[[12, 1], [12, 15]], [[1, 8], [22, 8]]],
         portals: [
-            { side: 'N', to: 'DEN', name: '나의 아지트' },
             { side: 'E', to: 'EAST_ROAD', name: '동쪽 숲길' },
             { side: 'S', to: 'SOUTH_ROAD', name: '남쪽 숲길' },
             { side: 'W', to: 'LAKE', name: '신비의 호수' },
@@ -43,20 +42,6 @@ export const MAPS = {
             { t: 'PROP', type: 'CAMPFIRE', at: [12, 10] },
             { t: 'PROP', type: 'BARREL', at: [14, 6] }, { t: 'PROP', type: 'CRATE', at: [15, 11] },
             { t: 'WAYSTONE', at: [12, 12] },
-        ],
-    },
-    DEN: {
-        name: '나의 아지트', biome: 'FOREST', cw: 15, ch: 12, seed: 102, trees: 0.35,
-        clearings: [[7, 6, 3]],
-        roads: [[[7, 11], [7, 6]]],
-        portals: [{ side: 'S', to: 'VILLAGE', name: '드래곤 빌리지' }],
-        fixtures: [
-            // 둥지는 굴 안으로 들어갔다 (data/dens.js 의 DEN_MINE).
-            // 굴 입구는 예전에 둥지가 있던 그 자리에 둔다 — 돌아온 용이 헤매지 않게
-            { t: 'PROP', type: 'SIGN', at: [8, 5] },
-            { t: 'PROP', type: 'CAMPFIRE', at: [9, 7] },
-            { t: 'PROP', type: 'BARREL', at: [5, 5] },
-            { t: 'WAYSTONE', at: [9, 5] },
         ],
     },
     LAKE: {
@@ -282,10 +267,19 @@ export const MAPS = {
 
 /** 이야기가 흐르는 차례. 미니맵의 '가 볼 곳' 과 빠른 이동 목록을 이 순서로 보여 준다 */
 export const MAP_ORDER = [
-    'VILLAGE', 'DEN', 'LAKE', 'FALLS', 'CLOUDTOP', 'EAST_ROAD', 'DOJO', 'HOLLOW', 'MORGATH_LAIR',
+    'VILLAGE', 'LAKE', 'FALLS', 'CLOUDTOP', 'EAST_ROAD', 'DOJO', 'HOLLOW', 'MORGATH_LAIR',
     'SNOW_ROAD', 'GLACIA_LAIR', 'SOUTH_ROAD', 'JUNGLE', 'ZALGORA_LAIR',
     'DESERT', 'BASIL_LAIR', 'AUTUMN', 'VOLCANO', 'IGNAR_LAIR',
 ];
+
+// 일지 [지도] 탭에 그릴 자리 (0~1). 이어진 모양이 손에 잡히게만 잡았다
+export const MAP_POS = {
+    CLOUDTOP: [0.12, 0.10], FALLS: [0.12, 0.32], LAKE: [0.12, 0.55], VILLAGE: [0.32, 0.55],
+    EAST_ROAD: [0.52, 0.55], DOJO: [0.52, 0.30], HOLLOW: [0.72, 0.55], MORGATH_LAIR: [0.92, 0.55],
+    SNOW_ROAD: [0.72, 0.30], GLACIA_LAIR: [0.72, 0.08],
+    SOUTH_ROAD: [0.32, 0.78], DESERT: [0.12, 0.90], BASIL_LAIR: [0.12, 0.99 - 0.02],
+    JUNGLE: [0.52, 0.78], ZALGORA_LAIR: [0.72, 0.78], AUTUMN: [0.52, 0.97], VOLCANO: [0.72, 0.97], IGNAR_LAIR: [0.92, 0.97],
+};
 
 // 굴(data/dens.js)도 지도 하나로 친다. 이름은 여기서 함께 풀어 준다
 let denNames = {};
