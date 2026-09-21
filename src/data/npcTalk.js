@@ -327,6 +327,8 @@ export const SITUATION_LINES = [
     { when: s => s.raid.active, lines: { Elder: "사냥꾼이다! 이야기는 나중에 하자!", Tiamat: "지금 수다 떨 때야? 놈들부터 처리해!", Poco: "으아아 사냥꾼이야! 나 좀 지켜 줘!", Gron: "가게 부서지면 네가 물어내라. 어서 막아!" } },
     { when: s => s.raid.count >= 3 && !s.raid.active, lines: { Elder: "습격을 여러 번 막았다지. 마을이 네 덕을 본다.", Tiamat: "요즘 네 덕에 습격 막기가 수월해.", Gron: "사냥꾼 놈들 갑옷, 녹이면 쓸 만하더라." } },
     { when: s => s.kids.length > 0, lines: { Elder: "네 아이들은 잘 크느냐. 마을에 애 울음소리가 나니 좋구나.", Poco: "네 아기 용이랑 놀아도 돼? 응? 응?", Tiamat: "네 새끼들, 눈빛이 제법이더라. 널 닮았어.", Gron: "애 키우려면 돈이 많이 든다. 많이 벌어라." } },
+    // 촌장과 짝이 된 뒤의 나라
+    { when: s => s.partner && s.partner.config.name === 'Elder', lines: { Nara: "너를 뭐라고 부를지는 아직도 못 정했어. 일단은 계속 야라고 부를 거니까 그런 줄 알아." } },
     { when: s => s.partner, lines: { Poco: "너네 둘이 같이 다니는 거 보기 좋아! 에헤헤.", Elder: "짝을 맺었다지. 잘 살아라. 싸우면 나한테 오지 말고.", Gron: "결혼 축하한다. 선물은 없다." } },
     { when: s => s.bossesDefeated.MORGATH, lines: { Elder: "모르가스를 보내 주었구나. 고맙다. 오랜 친구였다.", Tiamat: "뼈용을 잡았다고? 다시 봤어." } },
     { when: s => s.bossesDefeated.ZALGORA, lines: { Poco: "머리 둘 달린 용을 이겼다고?! 너 진짜 영웅이다!", Gron: "쌍두룡 비늘, 남는 거 있으면 팔아라. 비싸게 쳐준다." } },
