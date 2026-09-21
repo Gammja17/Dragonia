@@ -5,7 +5,7 @@ import { CLUES } from '../data/chronicle.js';
 // 지도마다 놓이는 상자 수의 합 (systems/world.js 의 spec.chests ?? 3)
 const CHEST_COUNT = Object.values(MAPS).reduce((n, m) => n + (m.chests ?? 3), 0);
 import { ENEMIES, BOSSES } from '../data/enemies.js';
-import { RELICS, ownsRelic, hasRelic, toggleRelic, slotCount } from '../systems/relics.js';
+import { RELICS, KINS, resonates, ownsRelic, hasRelic, toggleRelic, slotCount } from '../systems/relics.js';
 import { MATERIALS } from '../data/materials.js';
 import { FURNITURE } from '../data/furniture.js';
 import { matCount } from '../systems/smithing.js';
@@ -205,10 +205,16 @@ function renderRelics(body) {
 
     const note = document.createElement('div');
     note.className = 'relic-note';
-    note.textContent = max < 3
-        ? '가진 유물을 눌러 끼우고 뺀다. 몸이 자라면 끼울 수 있는 칸이 늘어난다 (성체 2칸 · 고룡 3칸).'
+    note.textContent = max < 4
+        ? '가진 유물을 눌러 끼우고 뺀다. 몸이 자라면 끼울 수 있는 칸이 늘어난다 (어린 용 2칸 · 성체 3칸 · 고룡 4칸).'
         : '가진 유물을 눌러 끼우고 뺀다. 끼운 것만 힘이 된다.';
     body.appendChild(note);
+
+    // 공명: 같은 갈래를 둘 이상 끼우면 덤이 붙는다
+    const kinNote = document.createElement('div');
+    kinNote.className = 'relic-note';
+    kinNote.textContent = '공명 — 같은 갈래를 둘 끼우면: ' + Object.keys(KINS).map(k => `${resonates(k) ? '◆' : '◇'} ${KINS[k].name} (${KINS[k].bonus})`).join(' · ');
+    body.appendChild(kinNote);
 
     const row = document.createElement('div');
     row.className = 'relic-slots';
@@ -243,7 +249,7 @@ function renderRelics(body) {
         const btn = document.createElement('button');
         btn.className = 'relic-row' + (on ? ' on' : '');
         btn.innerHTML = '<b></b><i></i><em></em>';
-        btn.querySelector('b').textContent = r.name;
+        btn.querySelector('b').textContent = r.kin ? `${r.name} · ${KINS[r.kin].name}` : r.name;
         btn.querySelector('i').textContent = r.desc;
         btn.querySelector('em').textContent = on ? '장착 중' : '끼우기';
         btn.addEventListener('click', () => { toggleRelic(id); render(); });

@@ -9,6 +9,8 @@ import { getTileImage } from '../world/terrain.js';
 import { drawPixelSprite } from '../render/pixel.js';
 import { getVfxImage, spawnEffect, spawnBolt, spawnText } from '../render/vfx.js';
 import { hitStop } from '../render/feedback.js';
+import { resonates } from '../systems/relics.js';
+import { onPlayerHitEnemy } from '../systems/flow.js';
 import { blocksFrom } from './enemyAI.js';
 import { showToast } from '../ui/toast.js';
 import { applyStatus } from '../systems/status.js';
@@ -101,7 +103,16 @@ export class Projectile extends Entity {
             return;
         }
         if (this.fromPlayer && canFuse(state.player)) state.player.ult = Math.min(100, state.player.ult + 1.5);
-        const crit = Math.random() < CRIT_CHANCE + (hasRelic('HUNTER_CHARM') ? 0.1 : 0);
+        if (this.fromPlayer) onPlayerHitEnemy();
+        // 유물 '갈라진 비늘': 숨결이 맞은 자리에서 작은 조각 둘로 갈라져 나간다 (조각은 다시 갈라지지 않는다)
+        if (this.fromPlayer && this.kind === 'BREATH' && !this.shard && hasRelic('SPLIT_SCALE')) {
+            for (const side of [-1, 1]) {
+                const c = new Projectile(this.x, this.y, this.angle + side * 0.7, { faction: 'ALLY', element: this.element, damage: this.damage * 0.4, scale: this.scale * 0.6, fromPlayer: true });
+                c.shard = true; c.hitSet.add(target); c.life = Math.min(c.life, 0.35);
+                addBullet(c);
+            }
+        }
+        const crit = Math.random() < CRIT_CHANCE + (hasRelic('HUNTER_CHARM') ? 0.1 : 0) + (this.fromPlayer && resonates('fang') ? 0.08 : 0);
         play(crit ? 'crit' : 'hit');
         // 속성 연계: 이미 걸려 있는 상태에 이 숨결이 닿으면 반응이 난다 (data/elements.js 의 REACTIONS)
         const react = this.kind === 'BREATH' ? this.reaction(target) : null;

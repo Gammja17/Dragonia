@@ -19,6 +19,7 @@ import { preloadVfx } from './render/vfx.js';
 import { updateLighting, drawLighting } from './render/lighting.js';
 import { drawCrosshair } from './render/cursor.js';
 import { applyHitStop, updateFeedback, drawFeedback, flashAmount } from './render/feedback.js';
+import { updateFlow, worldTimeScale } from './systems/flow.js';
 import { initPostFx, resizePostFx, renderPostFx } from './render/postfx.js';
 import { setCrispLayer, beginCrispWorld, endCrispWorld } from './render/overlay.js';
 import { toggleDebug, updateDebug, drawDebug } from './render/debugOverlay.js';
@@ -162,9 +163,12 @@ function update(dt) {
     updateWeather(dt);
     if (state.rally > 0) state.rally -= dt;
 
+    updateFlow(dt);
     state.player.update(dt);
+    // 간발 직후에는 나만 빼고 세상이 느려진다 (systems/flow.js). 내 숨결도 제 빠르기로 나간다
+    const wdt = dt * worldTimeScale();
     for (const group of [E.nests, E.babies, E.items, E.npcs, E.enemies, E.humans, E.bosses, E.hazards, E.bullets, E.effects, E.particles]) {
-        for (const e of group) e.update(dt);
+        for (const e of group) e.update(group === E.bullets && e.faction === 'ALLY' ? dt : wdt);
     }
 
     resolveCombat();

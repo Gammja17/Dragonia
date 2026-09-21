@@ -3,6 +3,7 @@ import { Item } from './Item.js';
 import { burst } from './Particle.js';
 import { state } from '../core/state.js';
 import { hitStop } from '../render/feedback.js';
+import { onKill } from '../systems/flow.js';
 import { isOnScreen, cam, shake } from '../core/camera.js';
 import { dist } from '../core/utils.js';
 import { ENEMIES } from '../data/enemies.js';
@@ -101,6 +102,7 @@ export class Enemy extends Entity {
     }
     die() {
         this.remove = true;
+        if (!this.def.noLoot) onKill(this.elite);
         if (this.def.noLoot) { spawnEffect('PUFF', this.x, this.y - 16); play('die'); return; }
         if (this.affix && this.affix.id === 'SPLIT' && !this.splitChild) {   // 둘로 갈라진다 (한 번만)
             for (const side of [-1, 1]) {

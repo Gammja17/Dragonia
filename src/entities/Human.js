@@ -14,6 +14,7 @@ import { allies } from '../systems/combat.js';
 import { notify } from '../systems/quests.js';
 import { xpMult } from '../systems/events.js';
 import { showToast } from '../ui/toast.js';
+import { onKill } from '../systems/flow.js';
 
 /** 마을을 습격하는 사냥꾼. type: data/enemies.js 의 HUNTERS 키 */
 export class Human extends Entity {
@@ -52,11 +53,20 @@ export class Human extends Entity {
         const d = dist(this, target);
         this.angle = Math.atan2(target.y - this.y, target.x - this.x);
 
+        // 내려치기 예고. 0.45초 동안 칼을 치켜들고, 그때도 닿는 거리에 있어야 맞는다 (대시로 빠져나갈 수 있다)
+        if (this.swing > 0) {
+            this.swing -= dt;
+            if (this.swing <= 0) {
+                if (dist(this, this.swingAt) < this.def.range + 34) this.attack(this.swingAt);
+                this.cooldown = this.def.cooldown;
+            }
+            return;
+        }
         if (d > this.def.range) {
             slideMove(this, this.x + Math.cos(this.angle) * speed * dt, this.y + Math.sin(this.angle) * speed * dt, 14);
         } else if (this.cooldown <= 0) {
-            this.attack(target);
-            this.cooldown = this.def.cooldown;
+            if (this.def.attack === 'MELEE' && target !== state.entities.nests[0]) { this.swing = 0.45; this.swingAt = target; }
+            else { this.attack(target); this.cooldown = this.def.cooldown; }
         }
     }
 
@@ -85,6 +95,7 @@ export class Human extends Entity {
 
     die() {
         this.remove = true;
+        onKill(this.type === 'CAPTAIN');
         if (this.type === 'CAPTAIN') state.raid.captainFell = true;   // 남은 사냥꾼이 흔들린다 (systems/raid.js)
         state.player.gainXp(this.def.xp * xpMult());
         state.stats.kills.HUNTER = (state.stats.kills.HUNTER || 0) + 1;
@@ -114,6 +125,13 @@ export class Human extends Entity {
         if (!sheet) return;
         const tint = statusTint(this);
         if (tint) drawGlow(ctx, this.x, this.y - 18, 34 * scale / 3, tint, 0.55);
+        if (this.swing > 0) {   // 치켜든 칼: 닿는 범위가 붉게 차오른다
+            const k = 1 - this.swing / 0.45;
+            ctx.save();
+            ctx.fillStyle = `rgba(255,70,50,${(0.12 + k * 0.25).toFixed(2)})`;
+            ctx.beginPath(); ctx.ellipse(this.x, this.y, (this.def.range + 20) * k, (this.def.range + 20) * k * 0.55, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        }
         const bob = Math.abs(Math.sin(state.gameTime * 9 + this.x)) * 3;
         const [tx, ty] = this.def.sprite;
         drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, { sx: tx * 16, sy: ty * 16, sw: 16, sh: 16 }, this.x, this.y + 4 - bob, { scale, flip: Math.cos(this.angle) < 0 });

@@ -20,6 +20,7 @@ import { refreshJournal, toggleJournal } from './journal.js';
 import { points, skillRank } from '../systems/growth.js';
 import { raidStatusText } from '../systems/raid.js';
 import { eventName } from '../systems/events.js';
+import { momentum, momentumTier, momentumName, TIER_COLORS } from '../systems/flow.js';
 
 const $ = (id) => document.getElementById(id);
 const strong = (text) => { const e = document.createElement('b'); e.textContent = text; return e; };
@@ -100,6 +101,11 @@ export function updateHud() {
     el.gold.textContent = p.gold;
     $('twig-slot').style.display = state.den.built ? 'none' : '';
     $('ui-twigs').textContent = `${state.den.twigs}/8`;
+    const m = momentum(), tier = momentumTier();
+    $('flow-bar').classList.toggle('on', m > 1);
+    $('flow-fill').style.width = m + '%';
+    $('flow-fill').style.background = TIER_COLORS[tier];
+    $('flow-label').textContent = momentumName();
     const ult = $('ult-slot');
     ult.style.display = canFuse(p) ? '' : 'none';
     ult.classList.toggle('ready', p.ult >= 100);

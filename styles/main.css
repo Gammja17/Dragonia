@@ -275,6 +275,24 @@ body {
 .boss-track { height: 13px; background: rgba(0, 0, 0, 0.7); border: 2px solid var(--gold); overflow: hidden; }
 #boss-fill { height: 100%; width: 100%; background: linear-gradient(180deg, #ff6b5e, #8a1220); transition: width 0.15s; }
 
+/* 기세 게이지: 기술 칸 바로 위의 가는 띠. 차 있을 때만 보인다 */
+#flow-bar {
+    position: absolute; bottom: 86px; left: 50%; transform: translateX(-50%);
+    width: 300px; height: 9px; background: rgba(14, 13, 22, 0.85); border: 1px solid #4b3f26;
+    opacity: 0; transition: opacity 0.3s;
+}
+#flow-bar.on { opacity: 1; }
+#flow-bar::before, #flow-bar::after { content: ''; position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255, 233, 160, 0.45); z-index: 1; }
+#flow-bar::before { left: 30%; }
+#flow-bar::after { left: 60%; }
+#flow-fill { height: 100%; width: 0; background: #ffd07a; transition: width 0.12s, background 0.2s; }
+#flow-label {
+    position: absolute; left: 50%; bottom: 11px; transform: translateX(-50%); white-space: nowrap;
+    font-size: 0.68rem; letter-spacing: 0.08em; color: var(--parch); text-shadow: 0 1px 2px #000;
+}
+body.touch #flow-bar { bottom: auto; top: 40px; width: 200px; }
+body.cutscene #flow-bar { display: none; }
+
 #skill-bar {
     position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
     display: flex; gap: 6px; align-items: flex-end;

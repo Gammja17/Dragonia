@@ -67,6 +67,7 @@ export function useSlot(p, slot) {
     if (!id) { showToast(`[${slot}] 칸이 비어 있습니다. [B] 스킬 나무에서 장착하세요.`, '📖'); return; }
     if ((p.cooldowns[id] || 0) > 0 || p.channels.some(c => c.lock)) return;
     p.cooldowns[id] = p.cdMax[id] = skillCooldown(id);   // 스킬은 대기 시간만 쓴다 (허기는 안 든다)
+    if (hasRelic('ECHO_SHELL') && Math.random() < 0.25) { p.cooldowns[id] = 0.4; showToast('메아리! 기술이 바로 돌아왔다.', '🐚'); }
     if (p.animator) p.animator.play('attack');
     CAST[id](p, castMult(id));
 }

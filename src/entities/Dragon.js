@@ -20,9 +20,11 @@ import { updateActivityNpc } from '../systems/npcActions.js';
 import { NPC_TALK } from '../data/npcTalk.js';
 import { spawnText, spawnBolt } from '../render/vfx.js';
 import { hitStop, flash } from '../render/feedback.js';
+import { flowDamageMult, flowRateMult, flowCooldownRate, onPlayerHurt, tryPerfectDodge, tryBite, momentumTier, TIER_COLORS } from '../systems/flow.js';
+import { addHazard } from './Hazard.js';
 import { noteTaken } from '../render/debugOverlay.js';
 import { shake, kick } from '../core/camera.js';
-import { hasRelic } from '../systems/relics.js';
+import { hasRelic, resonates } from '../systems/relics.js';
 import { play, toggleMute } from '../systems/audio.js';
 import { toggleJournal } from '../ui/journal.js';
 import { openKidHub } from '../systems/kidActions.js';
@@ -267,6 +269,18 @@ export class Dragon extends Entity {
         if (this.isPlayer) dmg *= 1 - Math.min(0.6, stat('armor'));   // 성장 트리 '단단한 등'
         if (this.isPlayer && hasRelic('GRON_PLATE')) dmg *= 0.85;
         if (this.isPlayer) dmg *= 1 - Math.min(0.2, 0.04 * (state.upgrades.def || 0));   // 대장간 '비늘돌 박기'
+        if (this.isPlayer && hasRelic('GLASS_FANG')) dmg *= 1.3;
+        if (this.isPlayer && resonates('scale')) dmg *= 0.92;
+        if (this.isPlayer && dmg >= 3) {
+            onPlayerHurt();   // 기세가 꺾인다 (systems/flow.js)
+            if (hasRelic('THORN_SHELL')) {   // 맞은 만큼 둘레에 되돌려 주고 밀어낸다
+                for (const e of [...state.entities.enemies, ...state.entities.humans]) {
+                    if (e.remove || dist(e, this) > 150) continue;
+                    e.takeDamage(dmg * 1.5 + 6, false, this);
+                }
+                spawnEffect('SHOCKWAVE', this.x, this.y - 20, { size: 1.2, color: '#9fe07a' });
+            }
+        }
         const wasSafe = this.isPlayer && this.hp > this.maxHp * 0.2;
         if (this.isPlayer) noteTaken(dmg);
         this.hp -= dmg;
@@ -292,6 +306,15 @@ export class Dragon extends Entity {
         }
         if (this.hp <= 0 && this.isPlayer) {
             // 성장 트리 '불사의 심장': 하루 한 번은 쓰러지지 않고 버틴다
+            // 유물 '마지막 불씨': 하루 한 번, 쓰러질 일격을 버티고 둘레를 불태운다
+            if (hasRelic('LAST_EMBER') && state.emberDay !== state.day) {
+                state.emberDay = state.day;
+                this.hp = 1;
+                this.invuln = 3;
+                addHazard(this.x, this.y, { faction: 'ALLY', r: 220, delay: 0.1, linger: 0, damage: 60 * this.damageMult, color: '#ff7a2a', effect: 'FIRE_HIT', effectSize: 2.4, sound: 'boom', shake: 10, status: { type: 'BURN', duration: 4 } });
+                showToast('마지막 불씨가 타올랐다! 체력 1로 버텼습니다 (하루 한 번)', '🔥');
+                return;
+            }
             if (hasPerk('UNDYING') && state.revivedDay !== state.day) {
                 state.revivedDay = state.day;
                 this.hp = 1;
@@ -387,6 +410,7 @@ export class Dragon extends Entity {
         if (state.prologue) { this.moving = false; return; }   // 떨어지던 밤엔 아직 내 몸이 아니다
         const { dx, dy } = input.axis();
         if (this.fishing) this.updateFishing(dt, dx || dy);
+        this.feast = (this.feast || 0) - dt;
         this.dashCd -= dt; this.invuln -= dt; this.fury -= dt; this.guard -= dt; this.slowTimer -= dt; this.gale -= dt;
         const baseSpeed = WALK_SPEED * this.stage.speed * (1 + 0.04 * (state.upgrades.spd || 0)) * (1 + stat('speed')) * (hasRelic('WIND_FEATHER') ? 1.08 : 1)
             * (this.slowTimer > 0 ? 0.55 : 1) * [1, 0.86, 0.7][this.hungerLevel];
@@ -397,14 +421,24 @@ export class Dragon extends Entity {
             const len = Math.hypot(dx, dy);
             this.dashDir = { x: dx / len, y: dy / len };
             this.dashTime = DASH_TIME; this.dashCd = DASH_COOLDOWN * (1 - Math.min(0.6, stat('dash'))); this.invuln = DASH_TIME + 0.12;
+            this.dashEdge = false; this.dashTrail = 0;
+            if (resonates('wing')) this.dashCd *= 0.75;
             if (hasPerk('GALE')) this.gale = 3;   // 성장 트리 '질풍'
             play('dash');
             spawnEffect('PUFF', this.x, this.y - 6);
         }
         if (locked) { /* no-op */ }
         else if (this.dashTime > 0) {
+            if (this.dashTime > DASH_TIME - 0.16) tryPerfectDodge(this);   // 대시 첫머리에 스친 것만 간발로 친다 (systems/flow.js)
             this.dashTime -= dt;
             this.moveBy(this.dashDir.x, this.dashDir.y, baseSpeed * DASH_MULT, dt);
+            tryBite(this);
+            // 유물 '불씨 발자국': 대시가 지나간 자리에 불길이 남는다
+            this.dashTrail -= dt;
+            if (hasRelic('EMBER_TRAIL') && this.dashTrail <= 0) {
+                this.dashTrail = 0.06;
+                addHazard(this.x, this.y, { faction: 'ALLY', r: 60, delay: 0.05, linger: 2.2, damage: 4 * this.damageMult, dps: 9 * this.damageMult, color: '#ff7a2a', effect: 'FLAMES', effectSize: 0.9, status: { type: 'BURN', duration: 2 } });
+            }
             burst(this.x, this.y - 30 * this.stage.scale, this.colors.body, 0.35);
         } else if (dx || dy) {
             this.moveBy(dx, dy, baseSpeed * (input.down('sprint') ? SPRINT_MULT : 1) * (this.flying ? 1.45 : 1), dt);
@@ -452,7 +486,7 @@ export class Dragon extends Entity {
         else if (wantTalk && nestNear) openNestMenu();
         else if (input.pressed('confirm') && !this.flying) this.interact();   // 말 걸 상대가 없으면 눈앞의 것을 집는다
 
-        for (const k in this.cooldowns) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt);
+        for (const k in this.cooldowns) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt * flowCooldownRate());   // 기세가 절정이면 기술이 빨리 돌아온다
         updateChannels(this, dt);
         Object.keys(ELEMENTS).forEach((el, i) => {
             if (input.pressed('num' + (i + 1)) && this.elements.includes(el)) this.element = el;
@@ -555,14 +589,15 @@ export class Dragon extends Entity {
     get damageMult() {
         const scorn = hasPerk('SCORN') && this.hp <= this.maxHp * 0.35 ? 1.45 : 1;   // 성장 트리 '역린'
         return this.stage.damage * (1 + 0.08 * (state.upgrades.dmg || 0)) * (1 + stat('dmg')) * scorn
-            * (hasRelic('OLD_FANG') ? 1.15 : 1) * (this.fury > 0 ? 1.3 : 1);
+            * (hasRelic('OLD_FANG') ? 1.15 : 1) * (this.fury > 0 ? 1.3 : 1)
+            * (this.isPlayer ? flowDamageMult() * (hasRelic('GLASS_FANG') ? 1.4 : 1) * (this.feast > 0 ? 1.25 : 1) : 1);
     }
 
     attack() {
         const el = ELEMENTS[this.element];
         const st = this.stageIndex;
         const slug = [1, 1.25, 1.5][this.hungerLevel];   // 배가 고프면 숨결이 굼떠진다
-        this.fireTimer = (el.rateByStage ? el.rateByStage[st] : el.rate) * (this.fury > 0 ? 0.75 : 1) * slug * (this.gale > 0 ? 0.65 : 1);
+        this.fireTimer = (el.rateByStage ? el.rateByStage[st] : el.rate) * (this.fury > 0 ? 0.75 : 1) * slug * (this.gale > 0 ? 0.65 : 1) * flowRateMult();
         if (this.animator) this.animator.play('attack');
         const { angle } = this.aimAngle();
         const pellets = el.pelletsByStage ? el.pelletsByStage[st] : el.pellets;
@@ -751,6 +786,7 @@ export class Dragon extends Entity {
         this.hp = Math.min(this.maxHp, this.hp + 30);
         markTutorial('ate');
         spawnText(this.x, this.y - 90 * this.stage.scale, '+40', '#9fe08a', 15);
+        if (hasRelic('GREEDY_MAW')) { this.feast = 12; spawnText(this.x, this.y - 112 * this.stage.scale, '포식!', '#ffb347', 15); }
         showToast('고기를 먹었습니다.', '😋');
         play('eat');
     }
@@ -818,7 +854,7 @@ export class Dragon extends Entity {
         if (this.atkTimer <= 0 && best < 400) {
             const element = this.config.element || 'FIRE';
             const aim = Math.atan2(foe.y - 20 - (this.y - 40), foe.x - this.x);
-            addBullet(new Projectile(this.x, this.y - 40, aim, { faction: 'ALLY', element, damage: (this.config.power || 8) * (state.rally > 0 ? 1.5 : 1) }));
+            addBullet(new Projectile(this.x, this.y - 40, aim, { faction: 'ALLY', element, damage: (this.config.power || 8) * (state.rally > 0 ? 1.5 : 1) * (hasRelic('TWIN_SOUL') && (this === state.partner || this === state.companion) ? 1.5 : 1) }));
             if (this.animator) this.animator.play('attack');
             this.atkTimer = 1.25;
             const talk = NPC_TALK[this.config.name];
@@ -885,6 +921,7 @@ export class Dragon extends Entity {
         }
         // 내 용은 발밑에 은은한 빛을 깔아, 용이 여럿 뒤엉켜 있어도 어느 쪽이 나인지 바로 보이게 한다
         if (this.isPlayer) drawGlow(ctx, this.x, this.y - 6, 86 * this.stage.scale, '#ffe6a8', 0.17);
+        if (this.isPlayer && momentumTier() > 0) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 60 + momentumTier() * 18, TIER_COLORS[momentumTier()], 0.07 + momentumTier() * 0.04 + Math.sin(state.gameTime * 9) * 0.03);
         if (this.fury > 0) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 90, '#ff5a3c', 0.35 + Math.sin(state.gameTime * 12) * 0.1);
         if (this.guard > 0) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 100, '#cfd8e6', 0.45);
         if (this.channels.some(c => c.id === 'STORM')) drawGlow(ctx, this.x, this.y - 40 * this.stage.scale, 110, '#ffe27a', 0.3);
