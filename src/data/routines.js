@@ -11,6 +11,8 @@
 //   raid     사냥꾼이 쳐들어오면 이 칸으로 바꾼다 (하던 일을 내던진다)
 //
 // spot 은 그 지도의 '큰 칸' 좌표. 용은 그 자리를 중심으로 어슬렁거린다.
+// 집(HOUSE)이 선 칸과 그 바로 위 칸에는 자리를 잡지 않는다 — 집 그림(240px)에 몸이 통째로 가려진다.
+// 집에 있는 용은 집 한 칸 아래(문 앞)에 세운다
 
 export const ROUTINES = {
     // ── 엘더: 촌장. 마을을 뜨는 일이 거의 없다 ──────────────────────────
@@ -25,7 +27,7 @@ export const ROUTINES = {
             { h: 20, map: 'VILLAGE', spot: [12, 10], doing: '모닥불 앞에서 옛이야기를 들려준다' },
             { h: 23, map: 'DEN_ELDER', spot: [7, 6], doing: '제 굴로 들어간다' },
         ],
-        rain: { map: 'VILLAGE', spot: [9, 12], doing: '처마 밑에서 비를 바라보고 있다' },
+        rain: { map: 'VILLAGE', spot: [9, 13], doing: '처마 밑에서 비를 바라보고 있다' },
         raid: { map: 'VILLAGE', spot: [12, 7], doing: '분수 앞에서 마을을 지휘한다' },
     },
 
@@ -61,11 +63,11 @@ export const ROUTINES = {
         raid: { map: 'VILLAGE', spot: [14, 8], doing: '제일 앞에 나가 사냥꾼과 맞선다' },
         // 어둠의 결말: 마을이 잿마루에 넘어간 다음 날 말없이 떠났다 (data/quests.js 의 m7d)
         variants: [{ when: s => s.story.route === 'dark' && s.quests.done.includes('m7d'), day: [
-            { h: 0,  map: 'CLOUDTOP', spot: [16, 10], doing: '구름마루에서 얻은 잠자리에 누워 있다' },
+            { h: 0,  map: 'CLOUDTOP', spot: [16, 12], doing: '구름마루에서 얻은 잠자리에 누워 있다' },
             { h: 6,  map: 'CLOUDTOP', spot: [15, 12], doing: '물가에서 혼자 자세를 잡고 있다' },
             { h: 13, map: 'FALLS',    spot: [10, 10], doing: '폭포 아래에 서서 마을 쪽을 한참 보고 있다' },
             { h: 17, map: 'CLOUDTOP', spot: [15, 12], doing: '물가에서 해가 질 때까지 수련한다' },
-            { h: 21, map: 'CLOUDTOP', spot: [16, 10], doing: '구름마루에서 얻은 잠자리로 돌아간다' },
+            { h: 21, map: 'CLOUDTOP', spot: [16, 12], doing: '구름마루에서 얻은 잠자리로 돌아간다' },
         ] }],
     },
 
@@ -73,14 +75,14 @@ export const ROUTINES = {
     Tiamat: {
         job: '망루지기',
         day: [
-            { h: 0,  map: 'VILLAGE',   spot: [16, 6],  doing: '망루 위에서 밤을 지새운다' },
+            { h: 0,  map: 'VILLAGE',   spot: [17, 7],  doing: '망루 앞에서 밤을 지새운다' },
             { h: 7,  map: 'VILLAGE',   spot: [17, 10], doing: '교대하고 내려와 날개를 편다' },
             { h: 10, map: 'EAST_ROAD', spot: [6, 7],   doing: '동쪽 길목을 순찰한다' },
             { h: 14, map: 'SOUTH_ROAD', spot: [9, 7],  doing: '남쪽 길목까지 훑고 온다' },
             { h: 18, map: 'VILLAGE',   spot: [12, 10], doing: '모닥불 곁에서 날개를 말린다' },
-            { h: 21, map: 'VILLAGE',   spot: [16, 6],  doing: '망루에 올라 밤을 맡는다' },
+            { h: 21, map: 'VILLAGE',   spot: [17, 7],  doing: '망루 앞에 서서 밤을 맡는다' },
         ],
-        rain: { map: 'VILLAGE', spot: [16, 6], doing: '비를 맞으며 망루를 지키고 있다' },
+        rain: { map: 'VILLAGE', spot: [17, 7], doing: '비를 맞으며 망루를 지키고 있다' },
         raid: { map: 'VILLAGE', spot: [12, 7], doing: '하늘로 올라 사냥꾼의 수를 세고 있다' },
     },
 
@@ -148,15 +150,15 @@ export const ROUTINES = {
     Mira: {
         job: '약초꾼',
         day: [
-            { h: 0,  map: 'VILLAGE', spot: [8, 5],   doing: '약초 말리는 시렁 옆에서 자고 있다' },
-            { h: 7,  map: 'VILLAGE', spot: [8, 5],   doing: '말린 약초를 하나하나 뒤집고 있다' },
+            { h: 0,  map: 'VILLAGE', spot: [8, 7],   doing: '약초 말리는 시렁 옆에서 자고 있다' },
+            { h: 7,  map: 'VILLAGE', spot: [8, 7],   doing: '말린 약초를 하나하나 뒤집고 있다' },
             { h: 10, map: 'LAKE',    spot: [12, 9],  doing: '물가에서 약초를 캐고 있다' },
             { h: 14, map: 'VILLAGE', spot: [9, 7],   doing: '엘더의 무릎약을 달이고 있다' },
             { h: 17, map: 'FALLS',   spot: [9, 10],  doing: '약초를 캔다며 폭포 쪽을 서성이고 있다' },
             { h: 21, map: 'VILLAGE', spot: [11, 11], doing: '모닥불 곁에서 말없이 웃고 있다' },
-            { h: 23, map: 'VILLAGE', spot: [8, 5],   doing: '시렁 옆 잠자리로 돌아간다' },
+            { h: 23, map: 'VILLAGE', spot: [8, 7],   doing: '시렁 옆 잠자리로 돌아간다' },
         ],
-        rain: { map: 'VILLAGE', spot: [8, 5], doing: '젖기 전에 약초를 걷어 들이고 있다' },
+        rain: { map: 'VILLAGE', spot: [8, 7], doing: '젖기 전에 약초를 걷어 들이고 있다' },
         raid: { map: 'VILLAGE', spot: [9, 9], doing: '다친 용을 뒤로 끌어내고 있다' },
     },
 
@@ -165,7 +167,7 @@ export const ROUTINES = {
         job: '심부름꾼',
         day: [
             { h: 0,  map: 'DEN_POCO', spot: [5, 4],  doing: '배를 하늘로 하고 자고 있다' },
-            { h: 7,  map: 'VILLAGE', spot: [8, 11],  doing: '아침부터 배가 고프다고 돌아다닌다' },
+            { h: 7,  map: 'VILLAGE', spot: [8, 13],  doing: '아침부터 배가 고프다고 돌아다닌다' },
             { h: 10, map: 'VILLAGE', spot: [12, 7],  doing: '분수 가에서 물장난을 치고 있다' },
             { h: 13, map: 'LAKE',    spot: [15, 9],  doing: '호수에서 물고기를 노려보고 있다' },
             { h: 16, map: 'VILLAGE', spot: [5, 11],  doing: '남의 굴 앞에서 마음대로 놀고 있다' },
@@ -173,7 +175,7 @@ export const ROUTINES = {
             { h: 22, map: 'DEN_POCO', spot: [5, 4],  doing: '하품을 하며 제 굴로 간다' },
         ],
         rain: { map: 'VILLAGE', spot: [12, 7], doing: '비 오는 게 신나서 웅덩이를 밟고 다닌다' },
-        raid: { map: 'VILLAGE', spot: [9, 11], doing: '어른들 뒤에 숨어 덜덜 떨고 있다' },
+        raid: { map: 'VILLAGE', spot: [10, 13], doing: '어른들 뒤에 숨어 덜덜 떨고 있다' },
     },
 
     // ── 구름마루 마을. 폭포 위에 사는 동양용들 ──────────────────────────
@@ -195,7 +197,7 @@ export const ROUTINES = {
         day: [
             { h: 0,  map: 'DEN_SEIRAN', spot: [6, 6], doing: '제 굴에서 자고 있다' },
             { h: 5,  map: 'FALLS',      spot: [11, 6], doing: '폭포에 비친 것을 읽고 있다' },
-            { h: 9,  map: 'CLOUDTOP',   spot: [8, 11], doing: '이끼와 약초를 말리고 있다' },
+            { h: 9,  map: 'CLOUDTOP',   spot: [8, 12], doing: '이끼와 약초를 말리고 있다' },
             { h: 14, map: 'FALLS',      spot: [11, 6], doing: '고인 물을 들여다보며 무언가를 세고 있다' },
             { h: 18, map: 'CLOUDTOP',   spot: [11, 11], doing: '모닥불 곁에서 오늘 본 것을 적는다' },
             { h: 22, map: 'DEN_SEIRAN', spot: [6, 6], doing: '제 굴로 돌아간다' },

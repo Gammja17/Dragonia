@@ -135,7 +135,7 @@ export class Enemy extends Entity {
         notify('kill', this.type);
         if (this.def.move !== 'flee') notify('killAny');
         if (this.elite) notify('elite');
-        if (this.isGuardian) onGuardianDown();
+        if (this.isGuardian) onGuardianDown(this);
     }
     /** 바닥 층에 그리는 예고 (main.js 가 개체보다 먼저 부른다) */
     drawGround(ctx) {

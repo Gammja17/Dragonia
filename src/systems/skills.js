@@ -25,7 +25,7 @@ const hurt = (e, dmg, color = '#fff') => { e.takeDamage(dmg); spawnText(e.x, e.y
 /** 강화 단수와 성장 트리를 합친 스킬 위력 배수 */
 export function castMult(id) { return skillPower(id) * (1 + stat('skill')); }
 /** 강화 단수와 성장 트리를 합친 실제 대기 시간 (HUD 와 스킬 나무의 표시에도 쓴다) */
-export function skillCooldown(id) { return SKILLS[id].cooldown * skillCdMult(id) * (hasRelic('GLACIA_TEAR') ? 0.75 : 1); }
+export function skillCooldown(id) { return SKILLS[id].cooldown * skillCdMult(id) * (hasRelic('GLACIA_TEAR') ? 0.75 : 1) * (1 - Math.min(0.25, 0.05 * (state.upgrades.cd || 0))); }   // 끝은 대장간 '숨길 트기'
 
 export function learnSkill(id, silent = false) {
     const p = state.player;

@@ -152,8 +152,9 @@ export class Dragon extends Entity {
         this.species = config.species || 'WESTERN'; // WESTERN | WYVERN | HYDRA | BEHEMOTH | BONE
         this.colors = { ...config.colors };
 
-        this.level = 1; this.xp = 0; this.maxXp = 150;
-        this.hp = 100; this.maxHp = 100; this.hunger = 100;
+        // 성장은 느긋하게: 예전(150, ×1.45)엔 둘째 날이면 어린 용이 됐다. 초반 레벨이 1.5배쯤 더 든다
+        this.level = 1; this.xp = 0; this.maxXp = 240;
+        this.hp = 80; this.maxHp = 80; this.hunger = 100;
         this.angle = 0;         // 마지막 이동/조준 방향 (라디안)
         this.facing = 'down';   // 스프라이트 방향
         this.moving = false;
@@ -209,8 +210,8 @@ export class Dragon extends Entity {
             this.level++;
             levels++;
             this.xp -= this.maxXp;
-            this.maxXp = Math.floor(this.maxXp * 1.45);
-            this.maxHp += 20;
+            this.maxXp = Math.floor(this.maxXp * 1.38);
+            this.maxHp += 12;
         }
         this.hp = this.maxHp;
         if (!this.isPlayer) return;
@@ -232,7 +233,7 @@ export class Dragon extends Entity {
     /** 승급 시험을 통과했을 때 */
     evolve(idx) {
         this.stageIndex = idx;
-        this.maxHp += 40;
+        this.maxHp += 30;
         this.hp = this.maxHp;
         grantPoints(POINTS_PER_STAGE, `${this.stage.name}(으)로 진화`);
         showToast(`진화! [${this.stage.name}](이)가 되었습니다` + (this.stage.unlock ? `. ${this.stage.unlock}` : ''), '🐲');
@@ -265,6 +266,7 @@ export class Dragon extends Entity {
         if (this.isPlayer && this.guard > 0) dmg *= 0.3;   // 강철 비늘
         if (this.isPlayer) dmg *= 1 - Math.min(0.6, stat('armor'));   // 성장 트리 '단단한 등'
         if (this.isPlayer && hasRelic('GRON_PLATE')) dmg *= 0.85;
+        if (this.isPlayer) dmg *= 1 - Math.min(0.2, 0.04 * (state.upgrades.def || 0));   // 대장간 '비늘돌 박기'
         const wasSafe = this.isPlayer && this.hp > this.maxHp * 0.2;
         if (this.isPlayer) noteTaken(dmg);
         this.hp -= dmg;

@@ -36,7 +36,7 @@ export const MAPS = {
         fixtures: [
             { t: 'NPC', name: 'Elder', at: [10, 7] },
             { t: 'NPC', name: 'Gron', at: [15, 7] },
-            { t: 'NPC', name: 'Poco', at: [8, 11] },
+            { t: 'NPC', name: 'Poco', at: [8, 13] },   // 집 바로 뒤 칸(8,11)에 세우면 집 그림에 가려 안 보인다
             { t: 'NPC', name: 'Tiamat', at: [17, 10] },
             { t: 'PROP', type: 'FOUNTAIN', at: [12, 7] },
             { t: 'PROP', type: 'HOUSE', at: [7, 6] }, { t: 'PROP', type: 'HOUSE', at: [16, 6] },

@@ -6,6 +6,8 @@ import { buildPropGrid } from '../world/collision.js';
 import { enterMap } from './world.js';
 import { Enemy } from '../entities/Enemy.js';
 import { Prop } from '../entities/Prop.js';
+import { Item } from '../entities/Item.js';
+import { grantPoints } from './growth.js';
 import { BIOME_ENEMIES } from '../data/enemies.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
@@ -26,6 +28,19 @@ import { notify } from './quests.js';
 // state.dungeon = { id, depth, seed, adapter, floor, entryPos, best } · 굴 밖이면 null
 
 const EXIT_RANGE = 90;
+
+// 굴마다 처음 그 깊이에 닿았을 때 한 번만 받는 것. 나올 때 받는다
+//   state.story.delve = { [굴 id]: { best: 가장 깊이 내려간 층, claimed: [받은 깊이] } }
+const MILESTONES = [
+    { depth: 3, relic: true, text: '유물 하나' },
+    { depth: 5, points: 2, text: '성장 포인트 2' },
+    { depth: 8, points: 3, relic: true, text: '성장 포인트 3과 유물 하나' },
+];
+function record(id) {
+    const all = state.story.delve || (state.story.delve = {});
+    return all[id] || (all[id] = { best: 0, claimed: [] });
+}
+const nextMilestone = (id) => MILESTONES.find(m => !record(id).claimed.includes(m.depth));
 
 let saved = null;   // 굴에 들어가 있는 동안 치워 둔 바깥 세상
 
@@ -107,6 +122,13 @@ function buildFloor(depth) {
             pools.props.push(chest);
         }
     }
+    // 세 층마다 파수꾼이 지키는 방에 상자가 꼭 하나 있다
+    if (depth % 3 === 0) {
+        const s = spotInRoom(floor.exit, rng);
+        const chest = new Prop(s.x, s.y, 'CHEST');
+        chest.chestId = null;
+        pools.props.push(chest);
+    }
     // 마지막 방의 파수꾼
     const guardSpot = spotInRoom(floor.exit, rng);
     const guard = new Enemy(guardSpot.x, guardSpot.y, pick(types.filter(t => t !== 'PREY')) || 'SLIME', true);
@@ -147,6 +169,16 @@ export function leaveDungeon() {
         p.gainXp(xp);
         showToast(`${def.name}에서 지하 ${depth}층까지 내려갔다. (${gold}G, 경험치 ${xp})`, '🕯️');
         if (depth >= 3 && Math.random() < 0.45) { const id = randomRelic(); if (id) grantRelic(id, p.x, p.y); }
+        // 이 굴에서 처음 닿은 깊이의 보상
+        const rec = record(d.id);
+        rec.best = Math.max(rec.best, depth);
+        for (const m of MILESTONES) {
+            if (depth < m.depth || rec.claimed.includes(m.depth)) continue;
+            rec.claimed.push(m.depth);
+            if (m.points) grantPoints(m.points, `${def.name} 지하 ${m.depth}층`);
+            if (m.relic) { const id = randomRelic(); if (id) grantRelic(id, p.x, p.y); }
+            showToast(`${def.name} 지하 ${m.depth}층에 처음 닿았다: ${m.text}`, '🏅');
+        }
         spawnEffect('RING', p.x, p.y - 30, { size: 1.6, color: '#ffd84a' });
         saveGame();
     });
@@ -169,7 +201,11 @@ export function tryDelveInteract() {
         const mouth = E.props.find(x => x.type === 'CAVE' && dist(p, x) < 120);
         if (!mouth) return false;
         const def = DUNGEONS[mouth.caveId];
-        ask(def.name, def.intro, [
+        const rec = record(mouth.caveId), goal = nextMilestone(mouth.caveId);
+        const note = (rec.best ? `\n\n(지금까지 지하 ${rec.best}층까지 내려가 봤다.` : '\n\n(아직 들어가 본 적이 없다.')
+            + (goal ? ` 지하 ${goal.depth}층에 처음 닿으면 ${goal.text}.)` : ' 이 굴에서 처음으로 얻을 것은 다 얻었다.)')
+            + '\n(층마다 파수꾼이 [옛 비늘돌]을 품고 있다. 대장간에서 쓴다.)';
+        ask(def.name, def.intro + note, [
             { label: '🕯️ 들어간다', onSelect: () => enterDungeon(mouth.caveId) },
             { label: '다음에', onSelect: close },
         ]);
@@ -201,8 +237,10 @@ export function tryDelveInteract() {
     return false;
 }
 
-/** 파수꾼을 잡으면 알려 준다 (Enemy.die 에서 호출) */
-export function onGuardianDown() {
+/** 파수꾼을 잡으면 알려 준다 (Enemy.die 에서 호출). 파수꾼은 굴에서만 나오는 옛 비늘돌을 떨군다 — 깊을수록 많이 */
+export function onGuardianDown(e) {
+    const n = 1 + Math.floor(state.dungeon.depth / 3);
+    for (let i = 0; i < n; i++) state.entities.items.push(new Item(e.x - 24 + i * 26, e.y + 30, 'MAT', 'CORE'));
     showToast('파수꾼이 쓰러졌다. 내려가는 구멍이 열렸다.', '🕳️');
     play('quest');
 }

@@ -66,6 +66,11 @@ export function planFor(name, hour = state.dayTime * 24) {
  * 제 일과로 돌아가야 마을에 가만히 굳어 있지 않는다 (systems/npcActions.js 의 setFollowing).
  */
 function tiedToPlayer(npc) {
+    // 수련·대련의 상대이거나 지금 말을 나누는 중이면 일과 시간이 돼도 자리를 뜨지 않는다
+    // (수련 도중에 스승이 제 일과대로 문을 나서 버려서, 끝낼 수 없는 수련에 갇히던 것)
+    const a = state.activity;
+    if (a && (a.npc === npc || a.rival === npc)) return true;
+    if (state.isDialogueOpen && state.currentNpc === npc) return true;
     return npc.state !== 'WANDER';
 }
 
@@ -133,7 +138,7 @@ function nearestPortal(x, y) {
 export function updateRoutine(dt, getNpc) {
     // 걷는 중인 용은 매 프레임 옮긴다
     for (const npc of state.entities.npcs) {
-        if (!npc.walkTo) continue;
+        if (!npc.walkTo || tiedToPlayer(npc)) continue;
         const dx = npc.walkTo.x - npc.x, dy = npc.walkTo.y - npc.y;
         if (Math.hypot(dx, dy) < ARRIVED) {
             if (npc.walkTo.leave) npc.remove = true;      // 문을 나섰다

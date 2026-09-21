@@ -9,12 +9,14 @@ import { groundAt } from './terrain.js';
 //
 // 날아다니는 적(def.flying)과 보스는 아무것도 신경 쓰지 않는다.
 
-// 소품 종류별 밑동 크기 (월드 px, 중심에서 좌우/위아래 반지름)
+// 소품 종류별 밑동 크기 (월드 px, 중심에서 좌우/위아래 반지름, 셋째 값은 상자 중심을 위아래로 옮기는 값)
 const FOOTPRINT = {
     TREE: [17, 11],
     ROCK: [22, 13],
     STUMP: [17, 10],
-    HOUSE: [56, 32],
+    // 집은 그림(240x240)이 밑동보다 훨씬 커서, 밑동만 막으면 집 뒤로 돌아 들어간 용이 그림에 통째로 가려진다
+    // (이름표만 떠 있고 몸이 안 보이던 것). 그림이 가리는 자리까지 막는다
+    HOUSE: [100, 91, -59],
     FOUNTAIN: [42, 24],
     CRATE: [15, 10],
     BARREL: [15, 10],
@@ -51,9 +53,9 @@ export function buildPropGrid(props) {
 export function addProp(p) {
     const f = FOOTPRINT[p.type];
     if (!f) return;
-    const box = { x: p.x, y: p.y, rx: f[0], ry: f[1] };
-    const cx0 = Math.floor((p.x - f[0]) / CELL), cx1 = Math.floor((p.x + f[0]) / CELL);
-    const cy0 = Math.floor((p.y - f[1]) / CELL), cy1 = Math.floor((p.y + f[1]) / CELL);
+    const box = { x: p.x, y: p.y + (f[2] || 0), rx: f[0], ry: f[1] };
+    const cx0 = Math.floor((box.x - f[0]) / CELL), cx1 = Math.floor((box.x + f[0]) / CELL);
+    const cy0 = Math.floor((box.y - f[1]) / CELL), cy1 = Math.floor((box.y + f[1]) / CELL);
     for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
         const k = key(cx, cy);
         if (!grid.has(k)) grid.set(k, []);

@@ -161,6 +161,19 @@ const ICONS = {
             '..oooooo..',
         ],
     },
+    CORE: {
+        palette: { o: '#16202a', S: '#3f9aa8', s: '#2a6f80', h: '#b8f0e8' },
+        rows: [
+            '...oooo...',
+            '..oShhSo..',
+            '.oSShhSSo.',
+            'oSShhhhSSo',
+            'oSsShhSsSo',
+            'oSssSSssSo',
+            '.oSssssSo.',
+            '..oooooo..',
+        ],
+    },
     CAVE: {
         palette: { o: '#181410', R: '#6b6153', r: '#8d8474', d: '#0a0a10', g: '#2a2a3a' },
         rows: [

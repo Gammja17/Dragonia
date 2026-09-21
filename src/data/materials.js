@@ -5,6 +5,8 @@ export const MATERIALS = {
     HIDE: { name: '질긴 가죽', icon: 'HIDE', desc: '슬라임·게·거미처럼 껍질이 두꺼운 놈에게서' },
     FANG: { name: '날카로운 이빨', icon: 'FANG', desc: '고블린·박쥐·도적처럼 물어뜯는 놈에게서' },
     ORE:  { name: '쇳조각', icon: 'ORE', desc: '인간 사냥꾼의 갑옷 조각. 보물상자에서도 나온다' },
+    // 굴에서만 나온다 — 굴에 내려갈 이유 (systems/delve.js)
+    CORE: { name: '옛 비늘돌', icon: 'CORE', desc: '굴 깊은 곳의 파수꾼이 품고 있다. 옛 용의 비늘이 굳어 돌이 된 것' },
 };
 
 // 적 종류별로 나오는 소재. 없으면 HIDE
@@ -36,6 +38,17 @@ export const RECIPES = [
         id: 'spd', name: '날개 손질', effect: '이동 속도 +4%',
         base: { HIDE: 2, FANG: 2 }, step: { HIDE: 1, FANG: 2 },
         flavor: '날개 뼈 사이의 낡은 막을 벗겨 내고 새로 입힌다. 한동안 따끔하다.',
+    },
+    // 아래 둘은 굴에서 나오는 옛 비늘돌이 있어야 한다. max: 이만큼 두드리면 더는 못 두드린다
+    {
+        id: 'def', name: '비늘돌 박기', effect: '받는 피해 -4%', max: 5,
+        base: { CORE: 2, HIDE: 3 }, step: { CORE: 1, HIDE: 2 },
+        flavor: '옛 용의 비늘돌을 얇게 떠서 제 비늘 밑에 끼워 넣는다. 삼백 년을 버틴 돌이라 웬만한 칼은 안 들어간다.',
+    },
+    {
+        id: 'cd', name: '숨길 트기', effect: '기술 재사용 시간 -5%', max: 5,
+        base: { CORE: 2, FANG: 3 }, step: { CORE: 1, FANG: 2 },
+        flavor: '비늘돌 가루를 달여 마신다. 목 안쪽이 넓어지는 느낌이 들고, 숨이 전보다 빨리 돌아온다.',
     },
 ];
 

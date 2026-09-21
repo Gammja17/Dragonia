@@ -32,11 +32,16 @@ const log = () => state.story.planLog || (state.story.planLog = { count: 0, last
 const nextTrip = () => TRIPS.find(t => !log().trips.includes(t.id) && t.when(state) && mapOpen(state, t.map));
 const nextRest = () => RESTS.find(r => !log().rests.includes(r.id) && r.when(state));
 
-/** 오늘의 일과 하나를 고른다. 스킬을 배우는 기본기와 다른 하루가 번갈아 온다 */
+// 여덟 번의 기본기는 스승의 일정 안에 날짜가 박혀 있다: n번째 기본기는 일과를 이만큼 받은 뒤에야 나온다.
+// 그날이 와도 레벨이 모자라면 다른 일과로 넘어가고, 레벨이 차는 대로 바로 다음 날 나온다.
+// (예전엔 매일 "오늘은 기본기를 하겠습니다"를 대신 고를 수 있어서, 일과가 둘 중 하나 고르기가 됐었다)
+const LESSON_DAYS = [0, 2, 4, 6, 9, 12, 15, 18];
+
+/** 오늘의 일과 하나를 고른다. 무엇을 할지는 스승이 정한다 */
 function choose() {
     const p = state.player, L = state.story.lessons.length, last = log().last;
     const lesson = nextLesson();
-    const canDrill = lesson && p.level >= lesson.level;
+    const canDrill = lesson && p.level >= lesson.level && log().count >= (LESSON_DAYS[L] || 0);
     if (L === 0) return canDrill ? 'DRILL' : null;              // 첫 수련은 늘 기본기다
 
     // 어제 습격을 막았거나 날이 궂으면 쉬어 간다
@@ -98,12 +103,7 @@ function ask(npc, text, options) {
 export function openTraining(npc, other) {
     const plan = todaysPlan();
     const lesson = nextLesson();
-    const canDrill = lesson && state.player.level >= lesson.level && state.story.lessonDay !== state.day;
     const options = [{ label: '따라나선다', onSelect: () => { close(); begin(npc, plan); } }];
-    // 기본기는 언제든 대신 청할 수 있다 — 스킬 진도가 일과 순번에 막히지 않게
-    if (plan.kind !== 'DRILL' && canDrill) {
-        options.push({ label: `오늘은 기본기를 하고 싶습니다 (${lesson.title})`, onSelect: () => { close(); plan.kind = 'DRILL'; begin(npc, plan); } });
-    }
     options.push({ label: '조금 이따 오겠습니다', onSelect: close });
     options.push({ label: '다른 얘기를 한다', onSelect: other });
 

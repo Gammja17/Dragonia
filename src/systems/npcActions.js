@@ -216,8 +216,17 @@ function askQuest(npc, q) {
     const st = curStep(q);
     close();
     completeStep(q, { quiet: true });
-    if (st && st.scene) playScene(q.title, st.scene, () => openNpcHub(npc, true));
-    else openNpcHub(npc, true);
+    if (st && st.scene) playScene(q.title, st.scene, () => afterStep(npc));
+    else afterStep(npc);
+}
+
+/**
+ * 말을 걸거나 건네주는 대목이 끝난 뒤. 그게 마지막 대목이고 보고받을 용도 이 용이면 곧바로 마무리 말로 이어진다.
+ * (예전엔 늘 평소 인사 메뉴로 돌아가서, 일을 다 끝내고 말을 걸었는데 딴소리를 하는 것처럼 보였다)
+ */
+function afterStep(npc) {
+    const report = reportableFor(npc);
+    if (report) reportQuest(npc, report); else openNpcHub(npc, true);
 }
 
 /** 건네주려던 대목. 모자라면 얼마나 모자란지 알려 준다 */
@@ -237,8 +246,8 @@ function bringToQuest(npc, q) {
                 close();
                 if (!handOver(q)) return;
                 completeStep(q, { quiet: true });
-                if (st.scene) playScene(q.title, st.scene, () => openNpcHub(npc, true));
-                else openNpcHub(npc, true);
+                if (st.scene) playScene(q.title, st.scene, () => afterStep(npc));
+                else afterStep(npc);
             },
         },
         { label: '아직 안 줄래', onSelect: close },
@@ -450,6 +459,7 @@ function emberForge(npc) {
 function openForge(npc) {
     const opts = RECIPES.map(r => {
         const cost = costOf(r), times = state.upgrades[r.id] || 0;
+        if (r.max && times >= r.max) return { label: `✔ ${r.name} (${times}단, 더는 두드릴 데가 없다)`, onSelect: () => openForge(npc) };
         const ok = canAfford(cost);
         return {
             label: `${ok ? '🔨' : '🔒'} ${r.name} (${times}단 → ${times + 1}단) ${r.effect}`,
