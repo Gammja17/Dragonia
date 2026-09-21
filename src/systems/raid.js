@@ -55,10 +55,16 @@ function roster(count) {
     return list;
 }
 
-export function triggerRaid() {
+/** 6장의 대습격. 싸울 수 있는 용들이 폭포에 가 있는 틈을 알고 온다. 두 방향에서, 대장까지 */
+const WAR_ROSTER = ['KNIGHT', 'KNIGHT', 'KNIGHT', 'ARCHER', 'ARCHER', 'ARCHER', 'MAGE', 'MAGE', 'HEAVY', 'HEAVY', 'CAPTAIN'];
+
+/** kind: 'war' 면 각본 있는 대습격 (data/chronicle.js 의 ev_border 가 부른다) */
+export function triggerRaid(kind = null) {
     const raid = state.raid;
     raid.count++;
     raid.active = true;
+    raid.kind = kind;
+    if (kind === 'war') return spawnWar();
     const side = SIDES[pick(Object.keys(SIDES))];
     showRaidWarning(`${side.name}에서 습격! (${raid.count}차)`);
     play('raid');
@@ -77,9 +83,24 @@ export function triggerRaid() {
     }
 }
 
+function spawnWar() {
+    showRaidWarning('마을이 습격당하고 있다!');
+    play('raid');
+    showToast('사냥꾼들이 두 방향에서 몰려온다. 싸울 수 있는 용들은 전부 폭포에 가 있다!', '⚔️');
+    const b = currentMapBounds(), cx = b.w / 2, cy = b.h / 2;
+    const two = [SIDES.E, SIDES.S];
+    WAR_ROSTER.forEach((type, i) => {
+        const side = two[i % 2], spread = rand(-260, 260);
+        const x = cx + side.dx * (b.w * 0.38) + (side.dx ? rand(-60, 60) : spread);
+        const y = cy + side.dy * (b.h * 0.36) + (side.dy ? rand(-60, 60) : spread);
+        state.entities.humans.push(new Human(x, y, type));
+    });
+}
+
 function endRaid() {
     const raid = state.raid, p = state.player;
     raid.active = false;
+    raid.kind = null;
     state.raidTimer = RAID_INTERVAL;
     const gold = 30 + raid.count * 15;
     p.gold += gold;

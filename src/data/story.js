@@ -110,7 +110,7 @@ export const SCENES = [
     // (예전 ch2 "자라는 날개"는 퀘스트 m2 와 같은 말을 두 번 해서 뺐다)
     {
         // "어제 습격"으로 여는 장면이라, 정말 어제 막아 낸 날 아침에만 나온다
-        id: 'ch3', title: '2장. 다음 날 아침', when: s => s.story.yesterday.raid && s.story.scenes.includes('ch1'), place: 'VILLAGE',
+        id: 'ch3', title: '2장. 다음 날 아침', when: s => s.story.yesterday.raid && s.story.scenes.includes('ch1') && !(s.story.dead || []).length, place: 'VILLAGE',
         lines: [
             { who: 'Poco', text: "(눈 밑이 퀭하다.) …나 한숨도 못 잤어. 모루 밑이 생각보다 좁아." },
             { who: 'Tiamat', text: "다친 용은 없어. 미라가 다 봤대. 너는? 어디 긁힌 데 없어?" },

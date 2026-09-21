@@ -261,6 +261,7 @@ export class Dragon extends Entity {
         if (this.isPlayer && this.invuln > 0) return;
         if (this.isPlayer && this.guard > 0) dmg *= 0.3;   // 강철 비늘
         if (this.isPlayer) dmg *= 1 - Math.min(0.6, stat('armor'));   // 성장 트리 '단단한 등'
+        if (this.isPlayer && hasRelic('GRON_PLATE')) dmg *= 0.85;
         const wasSafe = this.isPlayer && this.hp > this.maxHp * 0.2;
         if (this.isPlayer) noteTaken(dmg);
         this.hp -= dmg;

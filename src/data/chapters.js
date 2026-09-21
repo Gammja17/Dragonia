@@ -46,6 +46,11 @@ export const CHAPTERS = [
         blocked: "거기까지 갈 일은 아직 없다.",
     },
     {
+        id: 'c6', title: '6장', name: '전쟁', done: done('m6w'),
+        maps: [],
+        blocked: "지금 마을을 멀리 떠날 수는 없다.",
+    },
+    {
         id: 'c7', title: '7장', name: '사막 길', done: done('m5b'),
         maps: ['DESERT', 'BASIL_LAIR', 'AUTUMN'],
         blocked: "화산 쪽은 아직 아무도 보내 주지 않는다.",

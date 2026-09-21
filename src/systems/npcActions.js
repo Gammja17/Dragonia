@@ -16,6 +16,8 @@ import { offerFor, heldOffer, runningFor, reportableFor, talkQuestFor, bringQues
          completeStep, handOver, curStep, acceptQuest, turnInQuest, stepGoalText, questProgress, stepTotal,
          notify } from './quests.js';
 import { playScene } from './chronicle.js';
+import { isDead } from './routine.js';
+import { ownsRelic, grantRelic } from './relics.js';
 import { masterOptions, updateDrill, isDrill } from './story.js';
 import { trainingPending, openTraining } from './training.js';
 import { learnSkill } from './skills.js';
@@ -130,6 +132,7 @@ function ownMenu(npc, name) {
     if (name === 'Tiamat') sub.push({ label: '⚔️ 대련을 신청한다', onSelect: () => startSpar(npc) });
     if (name === 'Poco') sub.push({ label: '🎾 술래잡기 하자!', onSelect: () => startTag(npc) });
     if (name === 'Gron') sub.push({ label: '🔨 모루 앞에 선다', onSelect: () => openForge(npc) });
+    if (name === 'Ember' && isDead('Gron')) sub.push({ label: '🔨 모루 앞에 선다', onSelect: () => emberForge(npc) });
     // 동행. 짝도 오늘은 혼자 다녀오겠다고 할 수 있다
     // (예전엔 "짝은 늘 따라다니므로" 하고 아예 빼 놓아, 떼어 놓을 길이 없었다)
     if (npc === state.partner) {
@@ -425,6 +428,23 @@ function matLine() {
     return Object.keys(MATERIALS).map(k => `${MATERIALS[k].name} ${matCount(k)}`).join(' · ');
 }
 
+/** 그론이 떠난 뒤의 대장간. 사흘은 불이 안 붙고, 다시 붙는 날 그론이 만들다 만 것을 엠버가 내민다 */
+function emberForge(npc) {
+    const since = state.day - ((state.story.deathDay || {}).Gron || state.day);
+    if (since < 3) {
+        show(npc, '…불이 안 붙어. 부싯돌은 멀쩡한데. 미안, 며칠만. 며칠만 있다가 와 줘.', [{ label: '기다릴게.', onSelect: () => openNpcHub(npc) }]);
+        return;
+    }
+    if (ownsRelic('GRON_PLATE')) return openForge(npc);
+    playScene('그론이 만들다 만 것', [
+        { who: 'Ember', text: '왔어? 봐 봐, 불 붙었다. 오늘 아침에. 아저씨 하던 대로 풀무를 세 번 밟고 한 번 쉬었더니 붙더라.' },
+        { who: 'Ember', text: '그리고 이거. 아저씨가 너 주려고 만들던 거. 화덕 옆에 진짜 있더라. 반쯤 된 채로.' },
+        { who: 'Ember', text: '나머지 반은 내가 했어. 이음매가 좀 삐뚤어. 아저씨가 봤으면 다시 하라 그랬을 거야. …그래도 받아 줘.' },
+        { who: '나', text: '(가슴에 대 보니 딱 맞는다. 한 달 전 몸집이 아니라, 지금 몸집에.)' },
+        { who: 'Ember', text: '아저씨 그 양반, 네가 얼마나 클지까지 재 놨더라. 무서운 영감탱이.' },
+    ], () => grantRelic('GRON_PLATE', state.player.x, state.player.y));
+}
+
 function openForge(npc) {
     const opts = RECIPES.map(r => {
         const cost = costOf(r), times = state.upgrades[r.id] || 0;
@@ -436,7 +456,8 @@ function openForge(npc) {
     });
     opts.push({ label: `💰 골드로 산다 (소지금 ${state.player.gold}G)`, onSelect: () => openGoods(npc) });
     opts.push({ label: '돌아간다', onSelect: () => openNpcHub(npc) });
-    show(npc, `모루는 달궈 뒀다. 재료는 네가 가져와라.\n\n[가진 소재] ${matLine()}`, opts);
+    const line = npc.config.name === 'Ember' ? '불은 피워 놨어. 아저씨만큼은 못 해도… 재료는 가져와. 내가 해 볼게.' : '모루는 달궈 뒀다. 재료는 네가 가져와라.';
+    show(npc, `${line}\n\n[가진 소재] ${matLine()}`, opts);
 }
 
 function forgeOne(npc, recipe) {

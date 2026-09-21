@@ -15,7 +15,7 @@ import { SKILLS } from '../data/skills.js';
 import { Enemy } from '../entities/Enemy.js';
 import { BabyDragon } from '../entities/BabyDragon.js';
 import { registerKid } from './kids.js';
-import { notify } from './quests.js';
+import { notify, setFlagListener } from './quests.js';
 import { Projectile, addBullet } from '../entities/Projectile.js';
 import { spawnEffect } from '../render/vfx.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
@@ -304,6 +304,24 @@ function hornAtNight() {
         { who: '나', text: '(막 잠이 들려는데 밖이 소란하다. …나팔 소리다.)' },
         { who: 'Tiamat', text: '다들 일어나! 사냥꾼이야!' },
     ], triggerRaid, { place: 'VILLAGE' }));
+}
+
+// ---------- 이야기가 세상을 바꾸는 일 ----------
+setFlagListener((flag) => {
+    if (flag === 'gron_dead') killNpc('Gron');
+});
+
+/** 이야기에서 용이 죽는다. 일과와 명단에서 빠지고 (systems/routine.js 의 isDead), 곁에 있었다면 떠난다 */
+function killNpc(name) {
+    state.story.dead = state.story.dead || [];
+    if (!state.story.dead.includes(name)) state.story.dead.push(name);
+    state.story.deathDay = state.story.deathDay || {};
+    state.story.deathDay[name] = state.day;
+    const is = (n) => n && n.config.name === name;
+    if (is(state.partner)) state.partner = null;
+    if (is(state.companion)) state.companion = null;
+    for (const n of state.entities.npcs) if (is(n)) n.remove = true;
+    saveGame();
 }
 
 // ---------- 장 ----------

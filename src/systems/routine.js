@@ -25,10 +25,16 @@ export function hasRoutine(name) { return !!ROUTINES[name]; }
 export const ROUTINE_NAMES = Object.keys(ROUTINES);
 
 /** 지금 이 용이 어디서 무엇을 하고 있는가 */
+/** 이야기에서 죽은 용 (state.story.dead). 일과도, 일지의 명단도 여기서 걸러진다 */
+export function isDead(name) { return ((state.story && state.story.dead) || []).includes(name); }
+
+// 6장, 마을이 습격당하는 밤에 폭포에서 구름마루와 대치하고 있는 용들
+const WAR_AWAY = ['Tiamat', 'Kairon', 'Nara'];
+
 export function planFor(name, hour = state.dayTime * 24) {
     const r = ROUTINES[name];
-    if (!r) return null;
-    let slot = slotAtHour(r, hour);
+    if (!r || isDead(name)) return null;
+    let slot = slotAtHour(r.after && isDead(r.after.of) ? r.after : r, hour);
     const gather = isGatherNow() && GATHER_SPOTS[name];
     // 길잡이를 마치기 전에는 촌장이 마을을 뜨지 않는다. 처음 온 아이가 헤매지 않게
     // (모임 날 밤만은 예외다 — 촌장이 빠진 모임은 모임이 아니다)
@@ -38,6 +44,7 @@ export function planFor(name, hour = state.dayTime * 24) {
     // 달이 가장 밝은 밤에는 두 마을이 모두 폭포 아래로 내려온다
     if (gather) slot = { map: GATHER_MAP, spot: GATHER_SPOTS[name], doing: '달 밝은 밤의 모임에 나와 있다' };
     if (state.raid.active && r.raid) slot = r.raid;   // 마을이 불타는 것보다 급한 모임은 없다
+    if (state.raid.active && state.raid.kind === 'war' && WAR_AWAY.includes(name)) slot = { map: 'FALLS', spot: [10, 10], doing: '폭포에서 마을로 달려오고 있다' };
     else if (!isGatherNow() && r.rain && (state.weather.type === 'RAIN' || state.weather.type === 'SNOW')) slot = r.rain;
     if (!MAPS[slot.map] && !DENS[slot.map]) return null;
     return {
@@ -70,7 +77,7 @@ export function whoIsOn(mapId, hour = state.dayTime * 24) {
 
 /** 일지에 뿌릴 표: 누가 어디서 무엇을 하는지 */
 export function roster() {
-    return ROUTINE_NAMES.map(name => {
+    return ROUTINE_NAMES.filter(name => !isDead(name)).map(name => {
         const npc = findNpc(name);
         const plan = planFor(name);
         const here = npc && tiedToPlayer(npc);
@@ -142,7 +149,7 @@ export function updateRoutine(dt, getNpc) {
     const here = state.mapId;
     for (const name of ROUTINE_NAMES) {
         const plan = planFor(name);
-        if (!plan) continue;
+        if (!plan) { const gone = isDead(name) && findNpc(name); if (gone) gone.remove = true; continue; }
         const npc = findNpc(name);
 
         if (npc && tiedToPlayer(npc)) { npc.walkTo = null; continue; }   // 나를 따라다니는 중

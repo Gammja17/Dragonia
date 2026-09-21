@@ -105,7 +105,16 @@ export const ROUTINES = {
             { h: 23, map: 'VILLAGE', spot: [16, 8],  doing: '대장간 구석으로 자러 간다' },
         ],
         rain: { map: 'VILLAGE', spot: [16, 8], doing: '비 새는 데를 찾아 양동이를 받치고 있다' },
-        raid: { map: 'VILLAGE', spot: [16, 8], doing: '그론 옆에서 망치를 들고 서 있다' },
+        raid: { map: 'VILLAGE', spot: [16, 8], doing: '망치를 들고 대장간 앞에 서 있다' },
+        // 그론이 떠난 뒤 (6장). systems/routine.js 의 planFor 가 after.of 가 죽었으면 이쪽을 쓴다
+        after: { of: 'Gron', day: [
+            { h: 0,  map: 'VILLAGE', spot: [16, 8],  doing: '대장간 구석 화덕 옆에 웅크려 자고 있다' },
+            { h: 5,  map: 'VILLAGE', spot: [16, 7],  doing: '누가 깨우지 않아도 일어나 화덕에 불을 지피고 있다' },
+            { h: 9,  map: 'VILLAGE', spot: [15, 7],  doing: '그론의 모루 앞에서 혼자 쇠를 두드린다' },
+            { h: 17, map: 'VILLAGE', spot: [16, 7],  doing: '휘어진 못을 펴고 있다. 이제는 몰래가 아니다' },
+            { h: 20, map: 'VILLAGE', spot: [13, 11], doing: '모닥불 앞에 앉아 있다. 예전만큼 떠들지는 않는다' },
+            { h: 23, map: 'VILLAGE', spot: [16, 8],  doing: '대장간 구석으로 자러 간다' },
+        ] },
     },
 
     // ── 미라: 약초꾼. 해 질 녘이면 폭포 쪽에 가 있다 ──────────────────────

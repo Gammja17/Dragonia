@@ -118,7 +118,7 @@ export const CHRONICLE = [
     },
     {
         id: 'ev_basil', title: '모래 속의 발자국', grant: 'm5b',
-        when: c => c.done('m5a') && !c.done('m5b') && !c.active('m5b') && c.map === 'DESERT',
+        when: c => c.done('m5a') && (c.done('m6w') || c.boss('BASIL')) && !c.done('m5b') && !c.active('m5b') && c.map === 'DESERT',
         lines: [
             { who: '나', text: "(모래 위에 깊게 팬 자국이 이어져 있다. 발자국이 아니다. 뭔가 땅속을 헤엄친 자국이다.)" },
             { who: 'Gron', text: "거기 서라. 더 들어가지 마라." },
@@ -207,6 +207,25 @@ export const CHRONICLE = [
             { who: 'Haru', text: "왔다! 여기야 여기! 구경시켜 줄게. 유안한테 걸리기 전에 빨리!" },
         ],
         toast: '구름마루의 용들과 이야기할 수 있습니다.', icon: '🏔️',
+    },
+
+    // ---------- 6장: 폭포의 대치. 끝나자마자 마을에 대습격이 든다 (raid: 'war') ----------
+    {
+        id: 'ev_border', title: '폭포의 두 줄', raid: 'war',
+        when: c => c.map === 'FALLS' && c.active('m6w') && c.s.quests.active.m6w.step >= 1,
+        lines: [
+            { who: '나', text: "(폭포 아래에 용들이 두 줄로 서 있다. 한 줄은 우리 마을, 한 줄은 구름마루. 아무도 말을 안 한다.)" },
+            { who: 'Yuan', text: "한 발만 더 와 봐라." },
+            { who: 'Kairon', text: "유안. 네 자세 누가 잡아 줬는지 잊었냐. 그 자세로는 나 못 문다." },
+            { who: 'Yuan', text: "…스승님은 빠지십시오. 이건 스승님 일이 아닙니다." },
+            { who: 'Kairon', text: "스무 해 전에도 똑같은 소리를 들었다. 그때 빠졌더니 어떻게 됐는지는 너도 알 텐데." },
+            { who: 'Nara', text: "저쪽이 먼저 언니를 물었잖아요!" },
+            { who: 'Haru', text: "아니야! 너희가 먼저 우리 알 탓을—" },
+            { who: '나', text: "(그때, 아래쪽에서 길게 나팔 소리가 올라왔다. 마을 쪽이다.)" },
+            { who: 'Kairon', text: "…나팔? 지금? 마을에 누가 남았지?" },
+            { who: 'Nara', text: "아빠랑… 그론 아저씨랑, 포코랑…" },
+            { who: 'Kairon', text: "전부 뛰어! 너는 먼저 가라, 네가 제일 빠르다!" },
+        ],
     },
 
     // ---------- 밀회: 해 질 녘의 폭포 (text/story-bible.md 7절) ----------

@@ -13,6 +13,7 @@ import { inDungeon } from './delve.js';
 import { isGatherNow } from './gathering.js';
 import { beginCutscene, focusOn, endCutscene } from './cutscene.js';
 import { anyNpc, travelTo } from './world.js';
+import { triggerRaid } from './raid.js';
 
 // 사건. "가서 잡아라" 대신, 돌아다니다 보면 일이 벌어지고 그 자리에서 이야기가 열린다.
 //
@@ -105,6 +106,7 @@ function fire(ev) {
         }
         if (ev.clue) addClue(ev.clue);
         notify('event', ev.id);      // "그 자리에 가 있기"가 목표인 대목
+        if (ev.raid) { if (state.mapId !== 'VILLAGE') travelTo('VILLAGE'); triggerRaid(ev.raid); }   // 6장: 나팔 소리에 마을로 뛰어 돌아온다
         if (ev.toast) showToast(ev.toast, ev.icon || '📖');
         saveGame();
     });

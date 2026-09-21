@@ -133,6 +133,7 @@ export function completeStep(q, { quiet = false } = {}) {
     e.step++;
     e.n = 0;
     if (!quiet && st.scene) queueScene(q.title, st.scene);
+    if (st.flag) onFlag(st.flag);
     if (st.toast) showToast(st.toast, st.icon || '📜');
     if (isComplete(q)) showToast(`[${q.title}] → ${npcName(turnInNpc(q))}에게 돌아가자`, '📜');
     else if (!st.scene || quiet) showToast(`[${q.title}] ${stepGoalText(q)}`, '📜');
@@ -185,6 +186,10 @@ export function notify(type, target) {
 
 // 게시판 잡일도 같은 통지를 듣는다. systems/chores.js 가 시작할 때 자기를 끼워 넣는다
 // (quests → chores 로 거꾸로 import 하면 두 파일이 서로를 물어 버린다)
+// 대목을 끝내며 세상이 바뀌는 일 (st.flag). systems/story.js 가 받아서 처리한다
+let onFlag = () => {};
+export function setFlagListener(fn) { onFlag = fn; }
+
 let choreNotify = () => {};
 export function setChoreNotify(fn) { choreNotify = fn; }
 

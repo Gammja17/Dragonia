@@ -18,6 +18,8 @@ export const RELICS = {
     GLACIA_TEAR:   { name: '글라시아의 눈물', desc: '스킬 재사용 대기 -25%',       boss: 'GLACIA' },   // systems/skills.js
     BASIL_FANG:    { name: '바실의 독니',     desc: '치명타 피해가 3배가 된다',     boss: 'BASIL' },    // entities/Projectile.js
     IGNAR_HEART:   { name: '이그나르의 심장', desc: '화상 피해가 2배가 된다',       boss: 'IGNAR' },    // systems/status.js
+    // 이야기에서 받는 것 (상자에서는 나오지 않는다)
+    GRON_PLATE:    { name: '그론의 비늘갑',   desc: '받는 피해 -15%. 이음매가 조금 삐뚤다', gift: true },   // entities/Dragon.js
     // 상자·정예 몬스터·굴에서
     OLD_FANG:      { name: '고대의 송곳니',   desc: '브레스 피해 +15%' },           // entities/Dragon.js
     HUNTER_CHARM:  { name: '사냥꾼의 부적',   desc: '치명타 확률 +10%' },           // entities/Projectile.js
@@ -82,7 +84,7 @@ export function grantRelic(id, x, y) {
 
 /** 아직 없는 일반 유물 중 하나 (다 모았으면 null) */
 export function randomRelic() {
-    const pool = Object.keys(RELICS).filter(id => !RELICS[id].boss && !ownsRelic(id));
+    const pool = Object.keys(RELICS).filter(id => !RELICS[id].boss && !RELICS[id].gift && !ownsRelic(id));
     return pool.length ? pick(pool) : null;
 }
 
