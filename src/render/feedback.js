@@ -61,3 +61,6 @@ export function drawFeedback(ctx, w, h) {
         ctx.fillRect(0, 0, w, h);
     }
 }
+
+/** 지금 번쩍임 세기 (후처리가 화면을 일렁이게 할 때 쓴다) */
+export function flashAmount() { return flashA; }

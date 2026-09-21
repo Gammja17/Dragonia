@@ -18,7 +18,8 @@ import { preloadDragonSprites } from './render/dragonSprites.js';
 import { preloadVfx } from './render/vfx.js';
 import { updateLighting, drawLighting } from './render/lighting.js';
 import { drawCrosshair } from './render/cursor.js';
-import { applyHitStop, updateFeedback, drawFeedback } from './render/feedback.js';
+import { applyHitStop, updateFeedback, drawFeedback, flashAmount } from './render/feedback.js';
+import { initPostFx, resizePostFx, renderPostFx } from './render/postfx.js';
 import { toggleDebug, updateDebug, drawDebug } from './render/debugOverlay.js';
 import { initWaystones, updateTravel } from './systems/travel.js';
 import { inDungeon } from './systems/delve.js';
@@ -42,11 +43,13 @@ const AUTOSAVE_INTERVAL = 20; // 초
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const usePostFx = initPostFx(canvas);   // WebGL 후처리(번짐·일렁임). 못 켜면 false 라 예전 화면 그대로 간다
 
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     resizeCamera(canvas.width, canvas.height);
+    if (usePostFx) resizePostFx(canvas.width, canvas.height);
 }
 window.addEventListener('resize', resize);
 resize();
@@ -199,4 +202,7 @@ function render() {
     drawFeedback(ctx, canvas.width, canvas.height);   // 피격 번쩍임·위기 비네트
     drawDebug(ctx, canvas.width, canvas.height);
     drawCutscene(ctx, canvas.width, canvas.height);   // 레터박스·스포트라이트는 배율 밖에서
+
+    // 다 그린 화면을 셰이더에 한 번 통과시킨다 (밝은 곳이 번지고, 맞은 순간 일렁인다)
+    if (usePostFx) renderPostFx(flashAmount(), state.gameTime);
 }
