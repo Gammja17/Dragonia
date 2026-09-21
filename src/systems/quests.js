@@ -189,6 +189,8 @@ export function notify(type, target) {
 // 대목을 끝내며 세상이 바뀌는 일 (st.flag). systems/story.js 가 받아서 처리한다
 let onFlag = () => {};
 export function setFlagListener(fn) { onFlag = fn; }
+/** 사건의 선택지도 깃발을 세운다 (systems/chronicle.js) */
+export function raiseFlag(flag) { onFlag(flag); }
 
 let choreNotify = () => {};
 export function setChoreNotify(fn) { choreNotify = fn; }

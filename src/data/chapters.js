@@ -56,7 +56,7 @@ export const CHAPTERS = [
         blocked: "화산 쪽은 아직 아무도 보내 주지 않는다.",
     },
     {
-        id: 'c8', title: '8장', name: '잿마루', done: done('m6'),
+        id: 'c8', title: '8장', name: '잿마루', done: s => s.quests.done.includes('m6') || s.quests.done.includes('m7d'),
         maps: ['VOLCANO', 'IGNAR_LAIR'],
         blocked: '',
     },

@@ -4,7 +4,7 @@ import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
 import { play } from './audio.js';
 import { saveGame } from './save.js';
-import { acceptQuest, takeQuestScene, notify } from './quests.js';
+import { acceptQuest, takeQuestScene, notify, raiseFlag } from './quests.js';
 import { QUESTS } from '../data/quests.js';
 import { CHRONICLE } from '../data/chronicle.js';
 import { BOND_SCENES } from '../data/npcTalk.js';
@@ -36,6 +36,9 @@ function context() {
         map: state.mapId,
         night: t < 0.22 || t > 0.82,
         hour: t * 24,
+        clueCount: (state.story.clues || []).length,
+        flag: (id) => !!(state.story.flags || {})[id],
+        route: state.story.route || null,
         day: state.day,
         done: (id) => state.quests.done.includes(id),
         active: (id) => id in state.quests.active,
@@ -95,21 +98,50 @@ export function updateChronicle(dt) {
     if (ev) fire(ev);
 }
 
+/**
+ * 사건 끝에 고르는 것 (ev.choice = { prompt, options: [{ id, label, when(ctx)?, lines, flag?, grant?, clue? }] }).
+ * 고른 것은 state.story.choices[사건 id] 에 남는다. when 이 거짓인 선택지는 아예 보이지 않는다 — 숨은 길은 그렇게 숨는다
+ */
+function choose(ev, done) {
+    const ctx = context();
+    const options = ev.choice.options.filter(o => !o.when || o.when(ctx));
+    const pickOne = (o) => {
+        state.isDialogueOpen = false;
+        dialogueUI.hide();
+        state.story.choices = state.story.choices || {};
+        state.story.choices[ev.id] = o.id;
+        playScene(ev.title, o.lines || [], () => {
+            if (o.clue) addClue(o.clue);
+            if (o.grant) { const q = QUESTS.find(x => x.id === o.grant); if (q) acceptQuest(q); }
+            if (o.flag) raiseFlag(o.flag);
+            done();
+        });
+    };
+    state.isDialogueOpen = true;
+    dialogueUI.show({ name: '', text: ev.choice.prompt, sheet: null, onClose: () => {}, options: options.map(o => ({ label: o.label, onSelect: () => pickOne(o) })) });
+}
+
 function fire(ev) {
     state.story.events.push(ev.id);
     playing = true;
     playScene(ev.title, ev.lines, () => {
-        playing = false;
-        if (ev.grant) {
-            const q = QUESTS.find(x => x.id === ev.grant);
-            if (q) acceptQuest(q);
-        }
-        if (ev.clue) addClue(ev.clue);
-        notify('event', ev.id);      // "그 자리에 가 있기"가 목표인 대목
-        if (ev.raid) { if (state.mapId !== 'VILLAGE') travelTo('VILLAGE'); triggerRaid(ev.raid); }   // 6장: 나팔 소리에 마을로 뛰어 돌아온다
-        if (ev.toast) showToast(ev.toast, ev.icon || '📖');
-        saveGame();
+        if (ev.choice) return choose(ev, () => finishEvent(ev));
+        finishEvent(ev);
     });
+}
+
+function finishEvent(ev) {
+    playing = false;
+    if (ev.grant) {
+        const q = QUESTS.find(x => x.id === ev.grant);
+        if (q) acceptQuest(q);
+    }
+    if (ev.clue) addClue(ev.clue);
+    notify('event', ev.id);      // "그 자리에 가 있기"가 목표인 대목
+    if (ev.raid) { if (state.mapId !== 'VILLAGE') travelTo('VILLAGE'); triggerRaid(ev.raid); }   // 6장: 나팔 소리에 마을로 뛰어 돌아온다
+    if (ev.flag) raiseFlag(ev.flag);
+    if (ev.toast) showToast(ev.toast, ev.icon || '📖');
+    saveGame();
 }
 
 /**

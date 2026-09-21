@@ -15,7 +15,10 @@ import { SKILLS } from '../data/skills.js';
 import { Enemy } from '../entities/Enemy.js';
 import { BabyDragon } from '../entities/BabyDragon.js';
 import { registerKid } from './kids.js';
-import { notify, setFlagListener } from './quests.js';
+import { notify, setFlagListener, acceptQuest } from './quests.js';
+import { QUESTS } from '../data/quests.js';
+import { DARK_ROUTE } from '../data/story.js';
+import { anyNpc } from './world.js';
 import { Projectile, addBullet } from '../entities/Projectile.js';
 import { spawnEffect } from '../render/vfx.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
@@ -125,7 +128,7 @@ function endDrill(win) {
     p.hp = Math.max(p.hp, p.maxHp * 0.5);
     if (a.onEnd) { a.onEnd(win); return; }
     if (!win) {
-        a.npc.say('아직 멀었다. 다시 오너라.');
+        a.npc.say('아직 멀었으니까 더 구르고 다시 와라.');
         showToast('수련 실패… 다시 도전할 수 있습니다.', '💫');
         return;
     }
@@ -301,15 +304,51 @@ function sleep() {
 /** 잠을 청했는데 습격이 오는 밤. 날은 넘어가지 않고, 한밤의 마을 광장에서 싸움이 시작된다 */
 function hornAtNight() {
     fadeScreen('한밤중', () => { state.dayTime = 0.9; }, () => playScene('나팔 소리', [
-        { who: '나', text: '(막 잠이 들려는데 밖이 소란하다. …나팔 소리다.)' },
+        { who: '나', text: '(막 잠이 들려는데 밖이 소란스럽다 싶더니, 나팔 소리가 길게 울린다.)' },
         { who: 'Tiamat', text: '다들 일어나! 사냥꾼이야!' },
     ], triggerRaid, { place: 'VILLAGE' }));
 }
 
 // ---------- 이야기가 세상을 바꾸는 일 ----------
+// state.story.route: 'guardian'(이그나르를 끝냈다) | 'redeem'(데려왔다) | 'dark'(그의 손을 잡았다)
+// state.story.flags: 그 밖의 한 번 일어난 일들 (사자를 만났다 등)
 setFlagListener((flag) => {
+    state.story.flags = state.story.flags || {};
+    state.story.flags[flag] = true;
     if (flag === 'gron_dead') killNpc('Gron');
+    if (flag === 'ignar_slain') state.story.route = 'guardian';
+    if (flag === 'ignar_spared') state.story.route = 'redeem';
+    if (flag === 'route_dark') {                       // 본 이야기(m6)를 내려놓고 그의 편에 선다
+        state.story.route = 'dark';
+        delete state.quests.active.m6;
+        if (state.quests.tracked === 'm6') state.quests.tracked = null;
+        for (const b of state.entities.bosses) if (b.id === 'IGNAR') b.reset();
+    }
+    if (flag === 'dark_duel') darkDuel();
+    saveGame();
 });
+
+/** 어둠의 길 끝. 마을 어귀를 스승이 막아선다. 이기면 마을이 넘어가고, 지면 스승이 끌고 돌아온다 */
+function darkDuel() {
+    const p = state.player;
+    const k = anyNpc('Kairon');
+    if (!state.entities.npcs.includes(k)) { k.remove = false; state.entities.npcs.push(k); }
+    k.x = p.x + 160; k.y = p.y; k.walkTo = null;
+    startDrill(k, { type: 'DUEL', hp: 700 + p.level * 20 }, {
+        onEnd: (win) => {
+            if (win) { playScene('무너진 문', DARK_ROUTE.win, () => { notify('event', 'dark_win'); saveGame(); }); return; }
+            // 졌다. 스승이 데리고 돌아온다 — 교화. 본 이야기로 되돌아간다
+            playScene('집에 가자', DARK_ROUTE.lose, () => {
+                state.story.route = null;
+                state.story.flags.turned_back = true;
+                delete state.quests.active.m7d;
+                const m6 = QUESTS.find(q => q.id === 'm6');
+                if (m6 && !state.quests.done.includes('m6')) { acceptQuest(m6); if (state.quests.active.m6) state.quests.active.m6.step = Math.max(state.quests.active.m6.step, 2); }
+                saveGame();
+            });
+        },
+    });
+}
 
 /** 이야기에서 용이 죽는다. 일과와 명단에서 빠지고 (systems/routine.js 의 isDead), 곁에 있었다면 떠난다 */
 function killNpc(name) {
@@ -342,8 +381,8 @@ export function updateChapter() {
 const BEDTIME = 0.93, YAWN = 0.88, ADULT = STAGES.findIndex(st => st.id === 'ADULT');
 const BEDTIME_LINES = {
     Elder: "아직도 안 자고 뭐 하느냐. 어린것들은 잘 시간이란다… 어서 들어가거라.",
-    Kairon: "너 아직도 안 잤냐. 용은 자면서 큰다고 몇 번을 말해. 들어가.",
-    Tiamat: "밤은 내가 볼게. 넌 들어가서 자. 눈이 반쯤 감겼어.",
+    Kairon: "너 아직도 안 잤냐. 용은 자면서 큰다고 내가 몇 번을 말했는데. 얼른 들어가서 자라.",
+    Tiamat: "밤에는 내가 보고 있을 테니까 너는 들어가서 자. 눈이 벌써 반쯤 감겼어.",
     Gron: "애가 이 시간까지 뭘 돌아다녀. 가서 자라, 시끄럽다.",
     Nara: "야, 너 졸면서 걷고 있어. …나? 나도 이제 자러 갈 거거든.",
     Poco: "하아암… 나 졸려. 너도 자러 가자, 응?",

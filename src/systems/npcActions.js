@@ -294,7 +294,7 @@ function receivePresent(npc) {
     state.player.gold += gold;
     state.player.inventory.meat += 1;
     showToast(`${npcName(npc.config.name)}의 선물: ${gold}G, 고기 1개`, '🎁');
-    show(npc, '자, 이거. 오다가 주웠어. …별건 아니고.', [{ label: '고마워!', onSelect: () => openNpcHub(npc) }]);
+    show(npc, '오다가 주웠는데 너 주려고 가져왔어. 별건 아니야.', [{ label: '고마워!', onSelect: () => openNpcHub(npc) }]);
 }
 
 /** 여러 줄짜리 장면을 차례로 보여 주고 끝나면 then */
@@ -432,14 +432,14 @@ function matLine() {
 function emberForge(npc) {
     const since = state.day - ((state.story.deathDay || {}).Gron || state.day);
     if (since < 3) {
-        show(npc, '…불이 안 붙어. 부싯돌은 멀쩡한데. 미안, 며칠만. 며칠만 있다가 와 줘.', [{ label: '기다릴게.', onSelect: () => openNpcHub(npc) }]);
+        show(npc, '…부싯돌은 멀쩡한데 불이 안 붙어. 미안한데 며칠만 있다가 다시 와 줄래.', [{ label: '기다릴게.', onSelect: () => openNpcHub(npc) }]);
         return;
     }
     if (ownsRelic('GRON_PLATE')) return openForge(npc);
     playScene('그론이 만들다 만 것', [
-        { who: 'Ember', text: '왔어? 봐 봐, 불 붙었다. 오늘 아침에. 아저씨 하던 대로 풀무를 세 번 밟고 한 번 쉬었더니 붙더라.' },
-        { who: 'Ember', text: '그리고 이거. 아저씨가 너 주려고 만들던 거. 화덕 옆에 진짜 있더라. 반쯤 된 채로.' },
-        { who: 'Ember', text: '나머지 반은 내가 했어. 이음매가 좀 삐뚤어. 아저씨가 봤으면 다시 하라 그랬을 거야. …그래도 받아 줘.' },
+        { who: 'Ember', text: '왔어? 봐 봐, 오늘 아침에 드디어 불이 붙었어. 아저씨가 하던 대로 풀무를 세 번 밟고 한 번 쉬었더니 붙더라.' },
+        { who: 'Ember', text: '그리고 이건 아저씨가 너 주려고 만들던 거야. 화덕 옆에 진짜로 반쯤 된 채로 놓여 있더라.' },
+        { who: 'Ember', text: '나머지 반은 내가 마저 했어. 이음매가 좀 삐뚤어서 아저씨가 봤으면 다시 하라고 했을 텐데… 그래도 받아 줘.' },
         { who: '나', text: '(가슴에 대 보니 딱 맞는다. 한 달 전 몸집이 아니라, 지금 몸집에.)' },
         { who: 'Ember', text: '아저씨 그 양반, 네가 얼마나 클지까지 재 놨더라. 무서운 영감탱이.' },
     ], () => grantRelic('GRON_PLATE', state.player.x, state.player.y));
@@ -456,7 +456,7 @@ function openForge(npc) {
     });
     opts.push({ label: `💰 골드로 산다 (소지금 ${state.player.gold}G)`, onSelect: () => openGoods(npc) });
     opts.push({ label: '돌아간다', onSelect: () => openNpcHub(npc) });
-    const line = npc.config.name === 'Ember' ? '불은 피워 놨어. 아저씨만큼은 못 해도… 재료는 가져와. 내가 해 볼게.' : '모루는 달궈 뒀다. 재료는 네가 가져와라.';
+    const line = npc.config.name === 'Ember' ? '불은 피워 놨으니까 재료만 가져와. 아저씨만큼은 못 해도 내가 해 볼게.' : '모루는 달궈 뒀다. 재료는 네가 가져와라.';
     show(npc, `${line}\n\n[가진 소재] ${matLine()}`, opts);
 }
 

@@ -71,7 +71,10 @@ export class Boss extends Entity {
         const d = dist(this, player);
 
         if (!this.awake) {
-            if (d < WAKE_RANGE) {
+            // 이그나르는 먼저 말을 건다. 대면(ev_ignar_meet)에서 무엇을 고를지 정하기 전에는 깨어나지 않고, 손을 잡았다면 끝내 싸우지 않는다
+            const held = this.id === 'IGNAR' && (state.story.route === 'dark'
+                || ('m6' in state.quests.active && !(state.story.choices || {}).ev_ignar_meet));
+            if (d < WAKE_RANGE && !held) {
                 this.awake = true;
                 showToast(`${this.def.name}, ${this.def.title}`, '⚔️');
                 spawnEffect('SHOCKWAVE', this.x, this.y, { size: 3, color: ELEMENTS[this.def.element].color });

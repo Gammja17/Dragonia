@@ -276,7 +276,7 @@ export const MAPS = {
         fixtures: [{ t: 'WAYSTONE', at: [9, 8] }],
     },
     VOLCANO: {
-        name: '잿빛 화산', biome: 'VOLCANO', cw: 22, ch: 16, seed: 116, trees: 0.25,
+        name: '잿빛 화산', biome: 'VOLCANO', cw: 22, ch: 16, seed: 116, trees: 0.15, safe: true, wanderer: false,   // 기슭에 잿마루가 있다. 예순 해 동안 아무것도 이 마을을 건드리지 못했다
         roads: [[[1, 8], [20, 8]]],
         portals: [
             { side: 'W', to: 'AUTUMN', name: '단풍 골' },
@@ -286,6 +286,11 @@ export const MAPS = {
             { t: 'CAVE', id: 'EMBER_SHAFT', at: [6, 12] },
             { t: 'WAYSTONE', at: [11, 9] },
             { t: 'PROP', type: 'ROCK', at: [15, 5] },
+            // 잿마루: 같은 크기의 집이 같은 간격으로 늘어서 있다
+            { t: 'NPC', name: 'Vesna', at: [5, 8] },
+            { t: 'PROP', type: 'HOUSE', at: [8, 5] }, { t: 'PROP', type: 'HOUSE', at: [12, 5] }, { t: 'PROP', type: 'HOUSE', at: [16, 5] },
+            { t: 'PROP', type: 'HOUSE', at: [8, 12] }, { t: 'PROP', type: 'HOUSE', at: [12, 12] }, { t: 'PROP', type: 'HOUSE', at: [16, 12] },
+            { t: 'PROP', type: 'CAMPFIRE', at: [10, 8] }, { t: 'PROP', type: 'CAMPFIRE', at: [14, 8] },
         ],
     },
     IGNAR_LAIR: {

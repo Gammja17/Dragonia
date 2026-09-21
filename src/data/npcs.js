@@ -5,6 +5,7 @@ export const NPC_NAMES_KO = {
     Riun: '리운', Seiran: '세이란', Haru: '하루', Yuan: '유안',
     Kirin: '키린', Raze: '레이즈', Mira: '미라', Dusk: '더스크',
     Iro: '이로', Sora: '소라', Flint: '플린트', Ember: '엠버',
+    Vesna: '베스나', IGNAR: '이그나르',
 };
 export const npcName = (id) => NPC_NAMES_KO[id] || id || '???';
 
@@ -62,6 +63,12 @@ export const FIXED_NPCS = [
         species: 'LOOK', look: 7, accessory: 'LEAF', scale: 0.95, colors: { body: '#4f7f4a', belly: '#b8d89a', wing: '#8a6a3a' }, element: 'ICE', maxHp: 240, power: 8,
         x: 900, y: 900,
     },
+    {
+        // 베스나: 잿마루의 문지기이자 이그나르의 사자. 웨스턴에서 났고, 예순 해 전에 그를 따라 나갔다
+        name: 'Vesna', personality: 'WISE', canPartner: false,
+        species: 'LOOK', look: 20, accessory: null, scale: 1.08, colors: { body: '#2a2630', belly: '#5a4a5a', wing: '#8a3a2a' }, element: 'FIRE', maxHp: 420, power: 14,
+        x: 0, y: 0,
+    },
 
     // ---- 구름마루 마을. 폭포 위에 사는 동양용들 ----
     // 우리 마을과는 오래 서로를 모른 척해 왔다. 몸이 길고, 날개보다 물을 탄다.
@@ -94,7 +101,7 @@ export const FIXED_NPCS = [
 export const WANDER_NAMES = ['Kirin', 'Raze', 'Dusk', 'Iro', 'Sora', 'Flint'];   // 나라·엠버·미라·구름마루 용들은 고정 NPC라 뺀다
 // 몸이 긴 동양용 외형(3 · 8 · 12 · 14 · 16)은 떠돌이에게 주지 않는다.
 // 12는 엘더, 나머지는 구름마루 용들 것이고, 9는 나라 것이다
-export const WANDER_LOOKS = [0, 1, 2, 5, 10, 13, 15, 19];   // 7은 미라, 11은 엠버
+export const WANDER_LOOKS = [0, 1, 2, 5, 10, 13, 15, 19];   // 7은 미라, 11은 엠버, 20은 베스나
 export const WANDER_ACCESSORIES = [null, null, 'LEAF', 'FLOWER', 'PLUME'];
 export const WANDER_PERSONALITIES = ['WISE', 'BRAVE', 'PLAYFUL', 'GRUMPY'];
 // 'RIVAL' 은 나라 전용 성격이라 떠돌이에게는 주지 않는다
