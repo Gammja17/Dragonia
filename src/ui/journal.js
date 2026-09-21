@@ -12,6 +12,7 @@ import { matCount } from '../systems/smithing.js';
 import { isMuted, sfxVolume, setSfxVolume } from '../systems/audio.js';
 import { musicVolume, setMusicVolume } from '../systems/music.js';
 import { questLog, setTracked } from '../systems/quests.js';
+import { takenChores } from '../systems/chores.js';
 import { BRANCHES, GROWTH_NODES, NODES_BY_ID } from '../data/growth.js';
 import { SKILLS, SKILL_BRANCHES, SKILL_SLOTS, MAX_SKILL_RANK } from '../data/skills.js';
 import { LESSONS } from '../data/story.js';
@@ -108,6 +109,7 @@ function questRow(r) {
         s.textContent = r.summary;
         body.appendChild(s);
     }
+    if (r.chapter) line('진행', r.chapter);
     line('목표', r.goal);
     if (!r.done) line('해야 할 일', r.hint);
     line('보상', r.reward);
@@ -129,7 +131,6 @@ function renderQuests(body) {
         empty.className = 'q-empty';
         empty.textContent = '아직 맡은 일이 없다. 마을 용들에게 말을 걸어 보자.';
         body.appendChild(empty);
-        return;
     }
     for (const g of groups) {
         const h = document.createElement('div');
@@ -138,6 +139,10 @@ function renderQuests(body) {
         body.appendChild(h);
         for (const r of g.rows) body.appendChild(questRow(r));
     }
+    // 게시판에서 떼어 온 잡일. 이야기와 섞이지 않게 맨 아래에 따로 둔다
+    const chores = takenChores();
+    if (chores.length) body.appendChild(section('게시판 잡일',
+        chores.map(c => [`${c.title} — ${c.goal}`, c.complete ? '완료 · 게시판으로' : c.text])));
 }
 
 function renderRecord(body) {

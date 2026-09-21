@@ -419,5 +419,5 @@ export const ROMANCE_GATES = {
     Haru:   { dateAt: 45, gate: s => (s.story.events || []).includes('ev_gathering'), locked: '(경계 너머의 또래다. 먼저 그 경계를 한 번은 넘어야 한다.)' },
     Yuan:   { dateAt: 65, gate: s => (s.story.events || []).includes('ev_gathering'), locked: '(경계를 도는 용에게 건넬 말은 아니다. 아직은.)' },
     Elder:  { dateAt: 60, gate: s => s.quests.done.includes('m3'), locked: '(촌장님이다. 마을을 지켜 내기 전에는 꺼낼 말이 아니다.)' },
-    Gron:   { dateAt: 50, gate: s => s.quests.done.includes('s2'), locked: '(아직 이 영감의 속을 하나도 모른다.)' },
+    Gron:   { dateAt: 50, gate: s => s.quests.done.includes('g1'), locked: '(아직 이 영감의 속을 하나도 모른다.)' },
 };

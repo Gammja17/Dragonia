@@ -12,7 +12,10 @@ import { spawnEffect } from '../render/vfx.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
 import { setBossBar } from '../ui/hud.js';
-import { notify, offerFor, activeFor, isComplete, acceptQuest, turnInQuest, goalText, questProgress } from './quests.js';
+import { offerFor, heldOffer, runningFor, reportableFor, talkQuestFor, bringQuestFor,
+         completeStep, handOver, curStep, acceptQuest, turnInQuest, stepGoalText, questProgress, stepTotal,
+         notify } from './quests.js';
+import { playScene } from './chronicle.js';
 import { masterOptions, updateDrill, isDrill } from './story.js';
 import { learnSkill } from './skills.js';
 import { RECIPES, GOODS, MATERIALS, costOf, costText, canAfford, forge, buy, matCount } from './smithing.js';
@@ -67,13 +70,17 @@ export function openNpcHub(npc, skipErrand = false) {
 
     // 1) 용건이 있으면 메뉴를 거치지 않고 바로 그 이야기부터 한다.
     //    (메뉴를 먼저 보여 주면 정작 하려던 일이 한 겹 뒤로 밀려 번잡해진다)
-    const running = activeFor(npc);
+    //    순서: 보고 → 물어보려던 것 → 건네주려던 것 → 새 부탁
+    const running = runningFor(npc);
     if (!skipErrand) {
-        if (running && isComplete(running)) { reportQuest(npc, running); return true; }
-        if (!running) {
-            const offer = offerFor(npc);
-            if (offer) { hearQuest(npc, offer); return true; }
-        }
+        const report = reportableFor(npc);
+        if (report) { reportQuest(npc, report); return true; }
+        const ask = talkQuestFor(npc);
+        if (ask) { askQuest(npc, ask); return true; }
+        const bring = bringQuestFor(npc);
+        if (bring) { bringToQuest(npc, bring); return true; }
+        const offer = offerFor(npc);
+        if (offer) { hearQuest(npc, offer); return true; }
     }
 
     // 2) 이야기 — 잡담·선물·받을 것
@@ -104,7 +111,9 @@ export function openNpcHub(npc, skipErrand = false) {
     let text = greeting(npc, talk, tier);
     if (inMyDen()) text = `${visitLine()}\n\n` + text;
     else if (npc.doing) text = `(${npc.doing}.)\n\n` + text;
-    if (running && !isComplete(running)) text += `\n\n(${running.title}: ${goalText(running)} ${questProgress(running)}/${running.goal.count || 1})`;
+    if (running) text += `\n\n(${running.title}: ${stepGoalText(running)} ${questProgress(running)}/${stepTotal(running)})`;
+    // 곁가지 부탁은 본 이야기가 끝나야 나온다. 왜 안 꺼내는지는 한 줄로 알려 준다
+    else if (!skipErrand && heldOffer(npc)) text += '\n\n(하던 일부터 끝내고 오라는 눈치다.)';
     show(npc, text, opts);
     return true;
 }
@@ -193,16 +202,57 @@ function hearQuest(npc, q) {
     ]);
 }
 
-/** 끝낸 일을 보고한다. 이어지는 부탁이 있으면 바로 들려주고, 없으면 끝낸다 */
-function reportQuest(npc, q) {
-    show(npc, q.done, [{
-        label: `보상을 받는다 (${q.title})`,
-        onSelect: () => {
-            turnInQuest(q, npc);
-            const next = offerFor(npc);
-            if (next) hearQuest(npc, next); else close();
+/**
+ * 물어보려던 대목. 말을 거는 순간 대목이 넘어가고 그 자리에서 장면이 난다.
+ * 장면이 끝나면 대화창을 다시 열어 준다 — 이어서 [승급 시험]을 청하는 식이 되게.
+ */
+function askQuest(npc, q) {
+    const st = curStep(q);
+    close();
+    completeStep(q, { quiet: true });
+    if (st && st.scene) playScene(q.title, st.scene, () => openNpcHub(npc, true));
+    else openNpcHub(npc, true);
+}
+
+/** 건네주려던 대목. 모자라면 얼마나 모자란지 알려 준다 */
+function bringToQuest(npc, q) {
+    const st = curStep(q), need = st.goal.count || 1, have = state.player.inventory.meat;
+    if (have < need) {
+        show(npc, `${st.hint || ''}\n\n(지금 가진 고기 ${have}개. ${need - have}개가 더 필요하다.)`, [
+            { label: '더 모아 온다', onSelect: close },
+            { label: '다른 얘기를 한다', onSelect: () => openNpcHub(npc, true) },
+        ]);
+        return;
+    }
+    show(npc, st.hint || '건넬 것이 있다.', [
+        {
+            label: `🍖 고기 ${need}개를 건넨다`,
+            onSelect: () => {
+                close();
+                if (!handOver(q)) return;
+                completeStep(q, { quiet: true });
+                if (st.scene) playScene(q.title, st.scene, () => openNpcHub(npc, true));
+                else openNpcHub(npc, true);
+            },
         },
-    }]);
+        { label: '아직 안 줄래', onSelect: close },
+    ]);
+}
+
+/** 끝낸 일을 보고한다. 마무리에 고를 것이 있으면 그것부터 묻는다 */
+function reportQuest(npc, q) {
+    const finish = (choiceId) => {
+        close();
+        turnInQuest(q, npc, choiceId);
+        const next = offerFor(npc);
+        if (next) hearQuest(npc, next);
+    };
+    if (!q.choice) {
+        show(npc, q.done, [{ label: `보상을 받는다 (${q.title})`, onSelect: () => finish(null) }]);
+        return;
+    }
+    // 마무리는 한 화면에서. 보고를 받은 말 아래에 고를 것을 바로 붙인다
+    show(npc, `${q.done}\n\n${q.choice.prompt}`, q.choice.options.map(o => ({ label: o.label, onSelect: () => finish(o.id) })));
 }
 
 /** 인사말: 가끔은 지금 상황(날씨, 밤, 습격, 가족…)에 맞는 한마디 */

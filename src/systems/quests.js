@@ -8,33 +8,76 @@ import { mapName } from '../data/maps.js';
 import { STAGES } from '../data/elements.js';
 import { showToast } from '../ui/toast.js';
 
-// state.quests = { active: { [id]: 진행도 }, done: [id, ...], tracked: id|null }
-// 추적창(화면 오른쪽)에는 tracked 한 개만 뜬다. 나머지는 퀘스트 로그([J] 첫 번째 탭)에서 본다.
+// 퀘스트 하나는 여러 '대목'으로 이어진다.
+//
+//   숫자 하나를 채우면 끝나는 부탁은 이제 퀘스트가 아니다. 그건 마을 게시판의 잡일로 나갔다
+//   (data/chores.js). 퀘스트는 대목을 하나씩 넘기며 이야기가 굴러가는 것만 남긴다.
+//
+//   대목을 끝내면 그 자리에서 장면이 재생되고(step.scene) 다음 대목이 열린다.
+//   추적창과 일지에는 지금 대목 하나만 보인다. 그래서 여러 개를 동시에 떠안은 느낌이 안 난다.
+//
+// state.quests = {
+//   active:  { [퀘스트 id]: { step: 지금 몇 번째 대목, n: 그 대목의 진행도 } }
+//   done:    [끝낸 id]
+//   tracked: 추적창에 띄울 id | null
+//   choices: { [퀘스트 id]: 고른 선택지 id }   — 나중 대사·사건이 이걸 읽는다
+// }
+
 let onChange = () => {};
 /** 퀘스트 상태가 바뀔 때 호출될 함수 (추적창·로그 갱신용) */
 export function setQuestListener(fn) { onChange = fn; }
 
-function goalCount(q) { return q.goal.count || 1; }
+/** 한 번에 떠안을 수 있는 퀘스트 수. 이야기 하나에 집중하게 하는 문턱 */
+const MAX_ACTIVE = 2;
 
-/** 현재 진행도. collect 는 가방 속 고기 수로 계산 */
-export function questProgress(q) {
-    if (q.goal.type === 'collect') return Math.min(goalCount(q), state.player.inventory.meat);
-    return Math.min(goalCount(q), state.quests.active[q.id] || 0);
-}
-export function isComplete(q) { return questProgress(q) >= goalCount(q); }
+// ---------- 대목 ----------
+
+/** 대목 목록. steps 가 없는 옛 모양(goal 하나)도 그대로 돈다 */
+export function steps(q) { return q.steps || [q]; }
+function entry(q) { return state.quests.active[q.id]; }
+export function stepIndex(q) { const e = entry(q); return e ? e.step : 0; }
+/** 지금 해야 할 대목 (다 끝냈으면 null) */
+export function curStep(q) { return steps(q)[stepIndex(q)] || null; }
+/** 대목을 다 끝내서 보고만 남은 상태 */
+export function isComplete(q) { return !!entry(q) && stepIndex(q) >= steps(q).length; }
 export function activeQuests() { return QUESTS.filter(q => q.id in state.quests.active); }
 
-/** 목표 한 줄 ("슬라임 3마리 처치" 처럼) */
-export function goalText(q) {
-    const g = q.goal, n = goalCount(q);
+function goalCount(g) { return (g && g.count) || 1; }
+
+/** 가방을 세는 목표 — 건네주는 것은 진행도가 아니라 지금 가진 수를 본다 */
+function fromBag(g) { return g.type === 'collect' || g.type === 'bring'; }
+
+/** 지금 대목의 진행도 */
+export function questProgress(q) {
+    const st = curStep(q);
+    if (!st) return 0;
+    if (fromBag(st.goal)) return Math.min(goalCount(st.goal), state.player.inventory.meat);
+    return Math.min(goalCount(st.goal), (entry(q) || {}).n || 0);
+}
+/** 지금 대목의 목표 수 */
+export function stepTotal(q) { const st = curStep(q); return st ? goalCount(st.goal) : 1; }
+/** 지금 대목까지 다 채웠나 (보고 대기와는 다르다) */
+function stepFilled(q) { return questProgress(q) >= stepTotal(q); }
+
+/** 보고하러 갈 용. 따로 적지 않으면 의뢰인이다 */
+export function turnInNpc(q) { return q.turnIn || q.giver; }
+
+// ---------- 목표를 한 줄로 ----------
+
+/** 목표 한 줄 ("슬라임 3마리 처치" 처럼). 게시판 잡일도 이걸 쓴다 */
+export function goalText(g) {
+    const n = goalCount(g);
     switch (g.type) {
         case 'kill': return `${g.target === 'HUNTER' ? '인간 사냥꾼' : (ENEMIES[g.target] || {}).name || g.target} ${n}마리 처치`;
         case 'killAny': return `아무 적이나 ${n}마리 처치`;
         case 'elite': return `정예 몬스터 ${n}마리 처치`;
         case 'boss': return `${BOSSES[g.id].name} 처치`;
         case 'stage': return `[${STAGES[g.index].name}](으)로 성장`;
-        case 'collect': return `고기 ${n}개 전달`;
+        case 'collect': return `고기 ${n}개 모으기`;
+        case 'bring': return `${npcName(g.target)}에게 고기 ${n}개 건네기`;
+        case 'talk': return `${npcName(g.target)}에게 말 걸기`;
         case 'visit': return `${mapName(g.target)} 방문`;
+        case 'sleep': return n > 1 ? `${n}밤 자고 나기` : '하룻밤 자고 나기';
         case 'hatch': return `알 ${n}개 부화`;
         case 'raid': return `마을 습격 ${n}회 격퇴`;
         case 'spar': return `대련 ${n}회 승리`;
@@ -45,10 +88,12 @@ export function goalText(q) {
         default: return '목표';
     }
 }
+/** 지금 대목의 목표 한 줄 */
+export function stepGoalText(q) { const st = curStep(q); return st ? goalText(st.goal) : '보고하러 간다'; }
 
 /** 보상 한 줄 */
 export function rewardText(q) {
-    const r = q.reward, parts = [];
+    const r = q.reward || {}, parts = [];
     if (r.xp) parts.push(`경험치 ${r.xp}`);
     if (r.gold) parts.push(`${r.gold}G`);
     if (r.meat) parts.push(`고기 ${r.meat}`);
@@ -56,50 +101,144 @@ export function rewardText(q) {
     return parts.join(' · ') || '-';
 }
 
-/** 이미 이룬 목표(성장 단계, 죽은 보스)는 받자마자 채운다 */
-function presetProgress(q) {
-    const g = q.goal;
-    if (g.type === 'stage' && state.player.stageIndex >= g.index) return 1;
-    if (g.type === 'boss' && state.bossesDefeated[g.id]) return 1;
-    return 0;
+// ---------- 장면 대기줄 ----------
+// 대목을 끝낸 자리가 싸움 한복판일 수 있다. 장면은 대기줄에 넣어 두고,
+// systems/chronicle.js 가 조용해진 틈에 꺼내 재생한다 (사건 장면과 같은 문턱을 쓴다).
+
+function queueScene(title, lines) {
+    if (!state.questScenes) state.questScenes = [];
+    state.questScenes.push({ title, lines });
+}
+/** 재생할 장면이 있으면 하나 꺼낸다 (systems/chronicle.js 가 호출) */
+export function takeQuestScene() {
+    const q = state.questScenes;
+    return q && q.length ? q.shift() : null;
 }
 
-/** 게임 곳곳에서 호출: notify('kill', 'SLIME') / ('stage', 1) / ('boss', 'MORGATH') / ('hatch' | 'raid' | 'spar' | 'tag' | 'upgrade' | 'chest') */
+// ---------- 대목 넘기기 ----------
+
+/**
+ * 지금 대목을 끝내고 다음으로 넘긴다.
+ *   quiet: 장면을 부르는 쪽이 직접 재생한다 (대화 중에 끝낸 대목)
+ */
+export function completeStep(q, { quiet = false } = {}) {
+    const e = entry(q);
+    if (!e) return null;
+    const st = steps(q)[e.step];
+    if (!st) return null;
+    e.step++;
+    e.n = 0;
+    if (!quiet && st.scene) queueScene(q.title, st.scene);
+    if (st.toast) showToast(st.toast, st.icon || '📜');
+    if (isComplete(q)) showToast(`[${q.title}] → ${npcName(turnInNpc(q))}에게 돌아가자`, '📜');
+    else if (!st.scene || quiet) showToast(`[${q.title}] ${stepGoalText(q)}`, '📜');
+    catchUp(q);
+    onChange();
+    return st;
+}
+
+/** 이미 이룬 목표(잡아 둔 보스, 다 자란 몸, 가 본 곳)는 받자마자 넘긴다 */
+function catchUp(q) {
+    for (let guard = 0; guard < steps(q).length; guard++) {
+        const st = curStep(q);
+        if (!st) return;
+        const g = st.goal;
+        const already = (g.type === 'boss' && state.bossesDefeated[g.id])
+            || (g.type === 'stage' && state.player.stageIndex >= g.index)
+            || (g.type === 'visit' && (state.visited || []).includes(g.target));
+        if (!already) return;
+        const e = entry(q);
+        e.step++; e.n = 0;
+        if (st.scene) queueScene(q.title, st.scene);
+    }
+}
+
+/**
+ * 게임 곳곳에서 호출. 지금 대목의 목표와 맞으면 진행도가 오른다.
+ *   notify('kill', 'SLIME') / ('stage', 1) / ('boss', 'MORGATH') / ('visit', 'DESERT')
+ *   ('talk', 'Gron') / ('sleep') / ('hatch' | 'raid' | 'spar' | 'tag' | 'upgrade' | 'chest' | 'delve')
+ * 건네주는 목표(collect·bring)는 여기가 아니라 handOver() 로 끝낸다.
+ */
 export function notify(type, target) {
     for (const q of activeQuests()) {
-        const g = q.goal;
-        if (g.type !== type || isComplete(q)) continue;
-        if ((type === 'kill' || type === 'visit') && g.target !== target) continue;
+        const st = curStep(q);
+        if (!st || fromBag(st.goal)) continue;
+        const g = st.goal;
+        if (g.type !== type) continue;
+        if ((type === 'kill' || type === 'visit' || type === 'talk') && g.target !== target) continue;
         if (type === 'boss' && g.id !== target) continue;
         if (type === 'stage' && target < g.index) continue;
+        const e = entry(q);
         // 'delve' 는 쌓이는 게 아니라 "가장 깊이 내려간 층"이다
-        if (type === 'delve') state.quests.active[q.id] = Math.max(state.quests.active[q.id] || 0, target);
-        else state.quests.active[q.id]++;
-        if (isComplete(q)) showToast(`[${q.title}] 목표 달성! ${npcName(q.giver)}에게 돌아가자`, '📜');
+        if (type === 'delve') e.n = Math.max(e.n || 0, target);
+        else e.n = (e.n || 0) + 1;
+        if (stepFilled(q)) completeStep(q);
     }
+    choreNotify(type, target);
     onChange();
 }
 
-/** NPC가 직접 건네줄 수 있는 부탁. auto 퀘스트는 사건으로만 열리므로 뺀다 */
+// 게시판 잡일도 같은 통지를 듣는다. systems/chores.js 가 시작할 때 자기를 끼워 넣는다
+// (quests → chores 로 거꾸로 import 하면 두 파일이 서로를 물어 버린다)
+let choreNotify = () => {};
+export function setChoreNotify(fn) { choreNotify = fn; }
+
+// ---------- 말을 걸어서 넘기는 대목 ----------
+
+/** 이 용에게 물어보려던 대목이 있으면 그 퀘스트 (systems/npcActions.js) */
+export function talkQuestFor(npc) {
+    const name = npc.config.name;
+    return activeQuests().find(q => { const st = curStep(q); return st && st.goal.type === 'talk' && st.goal.target === name; });
+}
+/** 이 용에게 건네주려던 대목이 있으면 그 퀘스트 */
+export function bringQuestFor(npc) {
+    const name = npc.config.name;
+    return activeQuests().find(q => { const st = curStep(q); return st && st.goal.type === 'bring' && st.goal.target === name; });
+}
+/** 고기를 건네고 대목을 넘긴다. 모자라면 false */
+export function handOver(q) {
+    const st = curStep(q);
+    if (!st || !fromBag(st.goal) || !stepFilled(q)) return false;
+    state.player.inventory.meat -= goalCount(st.goal);
+    return true;
+}
+
+// ---------- 받고, 보고하고 ----------
+
+/** 지금 이 NPC가 건넬 수 있는 부탁. 없으면 null */
 export function offerFor(npc) {
+    const cand = findOffer(npc);
+    if (!cand) return null;
+    if (activeQuests().length >= MAX_ACTIVE) return null;
+    // 본 이야기가 굴러가는 동안 곁가지는 기다린다. 다섯 용이 한꺼번에 부탁하면 정신이 없다
+    if (cand.act !== 'main' && activeQuests().some(q => q.act === 'main')) return null;
+    return cand;
+}
+/** 문턱에 걸려 아직 안 꺼내는 부탁 (NPC가 "그 일이 먼저지" 하고 한마디 한다) */
+export function heldOffer(npc) { return offerFor(npc) ? null : findOffer(npc); }
+
+function findOffer(npc) {
     const Q = state.quests;
     return QUESTS.find(q => !q.auto && q.giver === npc.config.name && !(q.id in Q.active) && !Q.done.includes(q.id)
         && (!q.requires || Q.done.includes(q.requires))
         && (!q.needs || q.needs(state)));      // 스승의 부탁은 수련 진도를 따라 열린다
 }
+
 /** 의뢰인 이름과, 일과를 아는 용이라면 지금 어디 있는지까지 */
 function giverLine(name) {
     const plan = planFor(name);
     return plan ? `${npcName(name)} (지금 ${plan.mapName})` : npcName(name);
 }
 
-export function activeFor(npc) { return activeQuests().find(q => q.giver === npc.config.name); }
+/** 이 NPC가 준 진행 중인 퀘스트 (대화창에 진행도를 한 줄 깔아 준다) */
+export function runningFor(npc) { return activeQuests().find(q => q.giver === npc.config.name && !isComplete(q)); }
+/** 이 NPC에게 보고할 수 있는 퀘스트 */
+export function reportableFor(npc) { return activeQuests().find(q => isComplete(q) && turnInNpc(q) === npc.config.name); }
 
-/** NPC 머리 위 표시: '?' 완료 보고 가능, '!' 새 퀘스트, 없으면 null */
+/** NPC 머리 위 표시: '?' 지금 찾아갈 곳, '!' 새 부탁, 없으면 null */
 export function questMarker(npc) {
     if (!npc.config.name || !state.quests) return null;
-    const a = activeFor(npc);
-    if (a) return isComplete(a) ? '?' : null;
+    if (reportableFor(npc) || talkQuestFor(npc) || bringQuestFor(npc)) return '?';
     return offerFor(npc) ? '!' : null;
 }
 
@@ -119,23 +258,41 @@ export function trackedQuest() {
 
 export function acceptQuest(q) {
     if (q.id in state.quests.active || state.quests.done.includes(q.id)) return;
-    state.quests.active[q.id] = presetProgress(q);
+    state.quests.active[q.id] = { step: 0, n: 0 };
+    catchUp(q);
     if (!state.quests.tracked) state.quests.tracked = q.id;
     showToast(`퀘스트 수락: ${q.title}. [J] 일지에서 볼 수 있습니다`, '📜');
     onChange();
 }
 
-export function turnInQuest(q, npc) {
-    const p = state.player, r = q.reward;
-    if (q.goal.type === 'collect') p.inventory.meat -= q.goal.count;
+/** 정체의 단서를 적어 둔다 (일지 [기록]). chronicle.js 의 것과 같은 자리 */
+function addClue(id) {
+    if (!state.story.clues) state.story.clues = [];
+    if (!state.story.clues.includes(id)) state.story.clues.push(id);
+}
+
+/**
+ * 보고하고 보상을 받는다.
+ *   choiceId: 마무리에서 고른 선택지 (q.choice). state.quests.choices 에 남아
+ *             나중 대사·사건이 읽는다
+ */
+export function turnInQuest(q, npc, choiceId = null) {
+    const p = state.player, r = q.reward || {};
+    if (!state.quests.choices) state.quests.choices = {};
+    if (choiceId) state.quests.choices[q.id] = choiceId;
     delete state.quests.active[q.id];
     state.quests.done.push(q.id);
     if (state.quests.tracked === q.id) state.quests.tracked = null;
     if (r.meat) p.inventory.meat += r.meat;
     if (r.gold) p.gold += r.gold;
     if (r.relation && npc) npc.relation = clamp((npc.relation || 0) + r.relation, 0, 100);
+    if (r.clue) addClue(r.clue);
     showToast(`퀘스트 완료: ${q.title} (${rewardText(q)})`, '🎉');
     if (r.xp) p.gainXp(r.xp);
+    // 고른 선택지에 딸린 장면이 먼저, 그다음이 퀘스트 마무리 장면
+    const opt = (q.choice && (q.choice.options || []).find(o => o.id === choiceId)) || null;
+    if (opt && opt.scene) queueScene(q.title, opt.scene);
+    if (r.scene) queueScene(q.title, r.scene);
     onChange();
 }
 
@@ -143,11 +300,13 @@ export function turnInQuest(q, npc) {
 export function trackedLine() {
     const q = trackedQuest();
     if (!q) return null;
+    const total = steps(q).length;
+    const done = isComplete(q);
     return {
-        title: q.title,
-        goal: goalText(q),
-        text: isComplete(q) ? `완료! → ${npcName(q.giver)}에게 보고` : `${questProgress(q)} / ${goalCount(q)}`,
-        complete: isComplete(q),
+        title: total > 1 ? `${q.title} (${Math.min(stepIndex(q) + 1, total)}/${total})` : q.title,
+        goal: done ? `${npcName(turnInNpc(q))}에게 돌아간다` : (curStep(q).hint || stepGoalText(q)),
+        text: done ? `완료! → ${npcName(turnInNpc(q))}에게 보고` : `${questProgress(q)} / ${stepTotal(q)}`,
+        complete: done,
         more: activeQuests().length - 1,
     };
 }
@@ -162,11 +321,17 @@ export function questLog() {
         // 아직 받지도 않았고 앞선 퀘스트도 안 끝냈으면 로그에 나오지 않는다
         if (!active && !done) continue;
         if (!seen.has(q.act)) { seen.add(q.act); groups.push({ act: q.act, name: ACT_NAMES[q.act] || q.act, rows: [] }); }
+        const total = steps(q).length;
+        const complete = active && isComplete(q);
         groups.find(g => g.act === q.act).rows.push({
             id: q.id, title: q.title, giver: giverLine(q.giver),
-            summary: q.summary || '', hint: q.hint || '', goal: goalText(q), reward: rewardText(q),
-            progress: active ? `${questProgress(q)} / ${goalCount(q)}` : '완료',
-            done, complete: active && isComplete(q),
+            summary: q.summary || '',
+            hint: complete ? `${npcName(turnInNpc(q))}에게 돌아가 보고한다.` : active ? (curStep(q).hint || stepGoalText(q)) : '',
+            goal: active && !complete ? stepGoalText(q) : '-',
+            reward: rewardText(q),
+            progress: done ? '완료' : complete ? '보고 대기' : `${questProgress(q)} / ${stepTotal(q)}`,
+            chapter: total > 1 && active ? `대목 ${Math.min(stepIndex(q) + 1, total)} / ${total}` : '',
+            done, complete,
             tracked: Q.tracked === q.id,
         });
     }
@@ -180,6 +345,19 @@ export function questLog() {
         });
     }
     return groups;
+}
+
+/** 옛 세이브 손보기: 진행도가 숫자 하나였고, 선택지 기록이 없었다 */
+export function migrateQuests(Q) {
+    const out = { active: {}, done: Q.done || [], tracked: Q.tracked || null, choices: Q.choices || {} };
+    for (const id in (Q.active || {})) {
+        const v = Q.active[id];
+        out.active[id] = typeof v === 'number' ? { step: 0, n: v } : v;
+    }
+    // 이야기가 다시 쓰이면서 사라진 id 는 조용히 버린다 (일지에 빈 줄이 남지 않게)
+    for (const id in out.active) if (!questById(id)) delete out.active[id];
+    if (out.tracked && !out.active[out.tracked]) out.tracked = null;
+    return out;
 }
 
 export { questById };

@@ -276,6 +276,7 @@ function sleep() {
         p.hunger = Math.max(30, p.hunger - Math.round(25 * (1 - rest.heal)));
         for (const n of state.entities.npcs) if (n.config.fixed) { n.x = n.homeX; n.y = n.homeY; n.hp = n.maxHp; n.downTimer = 0; }
         for (const n of [state.partner, state.companion]) if (n && n.state !== 'WANDER') { n.x = p.x + 70; n.y = p.y + 20; }
+        notify('sleep');           // "하룻밤 자고 나서" 로 이어지는 대목
         saveGame();
     }, playMorningScene);
 }

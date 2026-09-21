@@ -4,7 +4,7 @@ import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
 import { play } from './audio.js';
 import { saveGame } from './save.js';
-import { acceptQuest } from './quests.js';
+import { acceptQuest, takeQuestScene } from './quests.js';
 import { QUESTS } from '../data/quests.js';
 import { CHRONICLE } from '../data/chronicle.js';
 import { BOND_SCENES } from '../data/npcTalk.js';
@@ -40,6 +40,8 @@ function context() {
         lessons: state.story.lessons.length,
         gathering: isGatherNow(),
         boss: (id) => !!state.bossesDefeated[id],
+        // 퀘스트 마무리에서 무엇을 골랐는지. 사건이 그 선택을 기억한다
+        chose: (questId, optionId) => (state.quests.choices || {})[questId] === optionId,
         relationOf: (name) => {
             const n = state.entities.npcs.find(x => x.config.name === name);
             return n ? (n.relation || 0) : 0;
@@ -63,6 +65,15 @@ export function updateChronicle(dt) {
     if (checkTimer > 0) return;
     checkTimer = 0.8;
     if (!state.story.events) state.story.events = [];
+
+    // 퀘스트 대목을 끝내며 밀어 둔 장면이 먼저다. 싸움 한복판에서 대목이 끝났을 수 있으므로
+    // 그 자리에서 바로 틀지 않고, 조용해진 지금 꺼내 재생한다 (systems/quests.js)
+    const qs = takeQuestScene();
+    if (qs) {
+        playing = true;
+        playScene(qs.title, qs.lines, () => { playing = false; saveGame(); });
+        return;
+    }
 
     // 대화 중에 사이가 깊어졌으면, 대화가 끝난 지금 그 장면을 보여 준다
     const bond = state.pendingBond;

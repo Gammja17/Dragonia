@@ -6,6 +6,7 @@ import { BOSS_SKILLS } from '../data/skills.js';
 import { fixedNpcs, enterMap } from './world.js';
 import { START_MAP, MAPS } from '../data/maps.js';
 import { reconcilePoints } from './growth.js';
+import { migrateQuests } from './quests.js';
 
 
 // localStorage 세이브. 월드(지형·소품)는 시드 고정이라 저장하지 않는다. 떠돌이 NPC·적·아이템도 저장 안 함.
@@ -41,7 +42,7 @@ export function saveGame() {
         mapId: state.mapId, visited: state.visited,
         elderTutorialDone: state.elderTutorialDone, tutorial: state.tutorial,
         weather: state.weather.type,
-        quests: state.quests,
+        quests: state.quests, chores: state.chores,
         bossesDefeated: state.bossesDefeated,
         raidCount: state.raid.count, upgrades: state.upgrades, openedChests: state.openedChests, blessingDay: state.blessingDay,
         companion: state.companion ? state.companion.config.name : null,
@@ -78,8 +79,12 @@ export function applySave(data) {
 
     Object.assign(state, {
         gameTime: data.gameTime, dayTime: data.dayTime, day: data.day, raidTimer: data.raidTimer,
-        elderTutorialDone: data.elderTutorialDone, quests: data.quests, bossesDefeated: data.bossesDefeated,
+        elderTutorialDone: data.elderTutorialDone, bossesDefeated: data.bossesDefeated,
     });
+    // 퀘스트가 대목 단위로 바뀌기 전 세이브는 진행도가 숫자 하나였다
+    state.quests = migrateQuests(data.quests || {});
+    state.chores = data.chores || { day: 0, offers: [], taken: {}, done: [] };
+    state.questScenes = [];
     state.weather.type = data.weather;
     state.raid.count = data.raidCount || 0;
     state.upgrades = data.upgrades || {};

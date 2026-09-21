@@ -54,6 +54,7 @@ export const PROP_SPRITES = {
     CRATE:  [{ sheet: 'village', sx: 480, sy: 2, sw: 16, sh: 24, ax: 0.5, ay: 0.9 }],
     BARREL: [{ sheet: 'village', sx: 528, sy: 4, sw: 16, sh: 24, ax: 0.5, ay: 0.9 }],
     SIGN:   [{ sheet: 'village', sx: 544, sy: 32, sw: 16, sh: 16, ax: 0.5, ay: 0.95 }],
+    BOARD:  [{ sheet: 'village', sx: 544, sy: 32, sw: 16, sh: 16, ax: 0.5, ay: 0.95 }],   // 잡일 게시판
     CHEST:  [{ sheet: 'dungeon', sx: 80, sy: 112, sw: 16, sh: 16, ax: 0.5, ay: 0.9 }],
     CHEST_OPEN: [{ sheet: 'dungeon', sx: 112, sy: 112, sw: 16, sh: 16, ax: 0.5, ay: 0.9 }],
 };

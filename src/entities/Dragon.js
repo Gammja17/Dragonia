@@ -37,6 +37,7 @@ import { groundAt, currentMapBounds, activeBiome } from '../world/terrain.js';
 import { DENS } from '../data/dens.js';
 import { slideMove, solidAt } from '../world/collision.js';
 import { nearbyWaystone, openTravelMenu } from '../systems/travel.js';
+import { openChoreBoard } from '../systems/chores.js';
 import { tryDelveInteract } from '../systems/delve.js';
 import { tryDenInteract } from '../systems/denEnter.js';
 import { nearbyArena, openArena } from '../systems/arena.js';
@@ -665,6 +666,12 @@ export class Dragon extends Entity {
         if (!this.fishing && !this.carrying) {
             const stone = nearbyWaystone();
             if (stone) { openTravelMenu(stone); return; }
+        }
+
+        // 0) 마을 게시판 — 숫자를 채우는 일거리는 여기에만 붙는다 (systems/chores.js)
+        if (!this.fishing && !this.carrying) {
+            const board = E.props.find(b => b.type === 'BOARD' && dist(this, b) < 90);
+            if (board) { openChoreBoard(); return; }
         }
 
         // 0) 낚시 중: 입질이 왔을 때 E 를 누르면 낚는다

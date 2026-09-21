@@ -8,7 +8,9 @@ export const state = {
     dayTime: 0.27,     // 0~1, 하루 중 시각 (조명용). 새벽에서 시작
     day: 1,
     weather: { type: 'CLEAR', timer: 70, intensity: 0, flash: 0 },
-    quests: { active: {}, done: [], tracked: null },
+    quests: { active: {}, done: [], tracked: null, choices: {} },
+    chores: { day: 0, offers: [], taken: {}, done: [] },   // 마을 게시판의 잡일 (systems/chores.js)
+    questScenes: [],     // 대목을 끝내며 밀린 장면. 조용해지면 chronicle 이 하나씩 꺼내 재생한다
     bossesDefeated: {},
     raid: { count: 0, active: false },
     upgrades: {},        // 그론 상점 강화 횟수 { hp, dmg, spd }
@@ -63,7 +65,9 @@ export function resetState() {
         dayTime: 0.27,
         day: 1,
         weather: { type: 'CLEAR', timer: 70, intensity: 0, flash: 0 },
-        quests: { active: {}, done: [], tracked: null },
+        quests: { active: {}, done: [], tracked: null, choices: {} },
+    chores: { day: 0, offers: [], taken: {}, done: [] },   // 마을 게시판의 잡일 (systems/chores.js)
+    questScenes: [],     // 대목을 끝내며 밀린 장면. 조용해지면 chronicle 이 하나씩 꺼내 재생한다
         bossesDefeated: {},
         raid: { count: 0, active: false },
         upgrades: {},        // 그론 상점 강화 횟수 { hp, dmg, spd }
