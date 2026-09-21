@@ -140,6 +140,7 @@ export const MAPS = {
             { t: 'PROP', type: 'CRATE', at: [13, 4] },
             { t: 'WAYSTONE', at: [7, 9] },
             { t: 'DUMMY_SPOT', at: [9, 7] },
+            { t: 'PROP', type: 'ARENA', at: [12, 7] },
         ],
     },
     HOLLOW: {

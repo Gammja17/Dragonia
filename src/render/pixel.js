@@ -189,6 +189,23 @@ const ICONS = {
             '..oooooooo..',
         ],
     },
+    // 수련장 시험 표지 — 창 두 자루를 엇갈려 꽂은 팻말
+    ARENA: {
+        palette: { w: '#7a5b3a', W: '#a0793a', s: '#b8c8d8', r: '#c0392b', o: '#181410' },
+        rows: [
+            '..s......s..',
+            '..s......s..',
+            '.WWWWWWWWWW.',
+            '.WrrrrrrrrW.',
+            '.WrWWWWWWrW.',
+            '.WrrrrrrrrW.',
+            '.WWWWWWWWWW.',
+            '....ww......',
+            '....ww......',
+            '....ww......',
+            '...oooo.....',
+        ],
+    },
     STAIRS_DOWN: {
         palette: { o: '#181410', S: '#6b6153', s: '#4a453a', d: '#05050a' },
         rows: [

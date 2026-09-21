@@ -3,7 +3,7 @@ import { Item } from './Item.js';
 import { burst } from './Particle.js';
 import { state } from '../core/state.js';
 import { hitStop } from '../render/feedback.js';
-import { isOnScreen } from '../core/camera.js';
+import { isOnScreen, cam } from '../core/camera.js';
 import { dist } from '../core/utils.js';
 import { ENEMIES } from '../data/enemies.js';
 import { getTileImage } from '../world/terrain.js';
@@ -19,6 +19,7 @@ import { materialFor } from '../data/materials.js';
 import { onGuardianDown } from '../systems/delve.js';
 import { updateAI, initAI, drawTell } from './enemyAI.js';
 import { AFFIXES, rollAffix } from '../data/affixes.js';
+import { noteDealt } from '../render/debugOverlay.js';
 import { spawnEffect, spawnText } from '../render/vfx.js';
 import { applyStatus } from '../systems/status.js';
 
@@ -77,6 +78,7 @@ export class Enemy extends Entity {
             }
         }
         this.hp -= dmg;
+        noteDealt(dmg);
         if (!silent) {
             this.hitFlash = 1;
             // 맞은 쪽으로 밀린다. 맞은 티가 나야 때린 맛이 난다
@@ -123,6 +125,36 @@ export class Enemy extends Entity {
         if (!isOnScreen(this)) return;
         drawTell(ctx, this);
     }
+    /**
+     * 머리 위 이름표. 줌과 무관하게 같은 크기로 (용 이름표와 같은 방식).
+     * 정예는 접사를 작게 한 줄 덧붙인다. 무엇과 싸우는지 알아야 싸움이 된다.
+     */
+    drawName(ctx, lift) {
+        const k = 1 / cam.zoom;
+        const top = (this.elite ? 96 : 66) + lift;
+        ctx.save();
+        ctx.translate(Math.round(this.x), Math.round(this.y - top));
+        ctx.scale(k, k);
+        ctx.textAlign = 'center';
+        ctx.font = `600 ${this.elite ? 13 : 12}px "Noto Sans KR"`;
+        const name = (this.elite ? '★ ' : '') + this.def.name;
+        const w = Math.ceil(ctx.measureText(name).width) + 12;
+        ctx.fillStyle = 'rgba(8,7,14,0.72)';
+        ctx.fillRect(-w / 2, -14, w, 18);
+        ctx.fillStyle = this.elite ? '#ffd84a' : '#e8dcc4';
+        ctx.fillText(name, 0, 0);
+        if (this.affix) {
+            const ax = AFFIXES[this.affix.id];
+            const tag = ax.name + (this.affix.element ? `·${{ FIRE: '불', ICE: '얼음', THUNDER: '번개' }[this.affix.element]}` : '');
+            ctx.font = '600 10px "Noto Sans KR"';
+            const tw = Math.ceil(ctx.measureText(tag).width) + 10;
+            ctx.fillStyle = 'rgba(8,7,14,0.72)';
+            ctx.fillRect(-tw / 2, -30, tw, 14);
+            ctx.fillStyle = ax.color;
+            ctx.fillText(tag, 0, -19);
+        }
+        ctx.restore();
+    }
     draw(ctx) {
         if (!isOnScreen(this)) return;
         if (this.hidden) return;                 // 땅속 — 흙더미만 보인다 (drawGround)
@@ -149,18 +181,6 @@ export class Enemy extends Entity {
         drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, { sx: tx * 16, sy: ty * 16, sw: 16, sh: 16 }, this.x + kx, this.y + 4 - (telling ? 0 : hop) - lift + ky, { flip: Math.cos(this.angle) < 0, scale: sc });
         ctx.filter = 'none';
         this.drawHpBar(ctx, this.hp / this.maxHp, (this.elite ? 82 : 58) + lift, this.elite ? 50 : 34);
-        if (this.affix) {
-            // 접사 이름표 — 무엇이 다른지 보고 싸우게
-            const label = AFFIXES[this.affix.id].name + (this.affix.element ? ` · ${{ FIRE: '불', ICE: '얼음', THUNDER: '번개' }[this.affix.element]} 면역` : '');
-            ctx.save();
-            ctx.font = '600 11px "Noto Sans KR"';
-            ctx.textAlign = 'center';
-            ctx.fillStyle = 'rgba(8,7,14,0.8)';
-            const w = ctx.measureText(label).width + 10;
-            ctx.fillRect(this.x - w / 2, this.y - 100 - lift, w, 15);
-            ctx.fillStyle = AFFIXES[this.affix.id].color;
-            ctx.fillText(label, this.x, this.y - 89 - lift);
-            ctx.restore();
-        }
+        this.drawName(ctx, lift);
     }
 }

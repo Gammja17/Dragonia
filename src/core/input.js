@@ -21,6 +21,7 @@ const KEYMAP = {
     Digit1: 'num1', Digit2: 'num2', Digit3: 'num3', Digit4: 'num4', Digit5: 'num5', Digit6: 'num6', Digit7: 'num7', Digit8: 'num8', Digit9: 'num9',
     Enter: 'confirm', NumpadEnter: 'confirm',
     KeyV: 'zoom',
+    F3: 'debug',           // 밸런스 오버레이 (render/debugOverlay.js)
     Escape: 'cancel',
 };
 

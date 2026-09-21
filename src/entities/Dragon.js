@@ -20,6 +20,7 @@ import { updateActivityNpc } from '../systems/npcActions.js';
 import { NPC_TALK } from '../data/npcTalk.js';
 import { spawnText, spawnBolt } from '../render/vfx.js';
 import { hitStop, flash } from '../render/feedback.js';
+import { noteTaken } from '../render/debugOverlay.js';
 import { shake } from '../core/camera.js';
 import { hasRelic } from '../systems/relics.js';
 import { play, toggleMute } from '../systems/audio.js';
@@ -37,6 +38,7 @@ import { slideMove } from '../world/collision.js';
 import { nearbyWaystone, openTravelMenu } from '../systems/travel.js';
 import { tryDelveInteract } from '../systems/delve.js';
 import { tryDenInteract } from '../systems/denEnter.js';
+import { nearbyArena, openArena } from '../systems/arena.js';
 import { inMyDen } from '../systems/den.js';
 import { reviveInVillage } from '../systems/world.js';
 import { markTutorial } from '../systems/tutorial.js';
@@ -214,6 +216,7 @@ export class Dragon extends Entity {
         if (this.isPlayer && this.guard > 0) dmg *= 0.3;   // 강철 비늘
         if (this.isPlayer) dmg *= 1 - Math.min(0.6, stat('armor'));   // 성장 트리 '단단한 등'
         const wasSafe = this.isPlayer && this.hp > this.maxHp * 0.2;
+        if (this.isPlayer) noteTaken(dmg);
         this.hp -= dmg;
         // 위기를 몇 번 넘겼는지는 '허물 벗기'를 스스로 깨우치는 조건이 된다
         if (wasSafe && this.hp > 0 && this.hp <= this.maxHp * 0.2) state.stats.brinks = (state.stats.brinks || 0) + 1;
@@ -545,6 +548,9 @@ export class Dragon extends Entity {
 
     interact() {
         const E = state.entities;
+
+        // 0) 수련장 시험 표지 (systems/arena.js)
+        if (!this.fishing && nearbyArena()) { openArena(); return; }
 
         // 0) 보금자리 굴 — 들어가기 / 안에서는 꾸미기 (systems/denEnter.js)
         if (!this.fishing && tryDenInteract()) return;
