@@ -9,6 +9,7 @@
 //     { type: 'BOSS',   id }         그 보스를 쓰러뜨리면
 //     { type: 'EVENT',  hint }       특정 사건 (티아맷과의 첫 대련 승리 등)
 //     { type: 'SELF',   cond, hint } 혼자 싸우다 스스로 깨우친다
+//     { type: 'GIFT',   hint }       숨결을 맡겨 받을 때 같이 배운다 (ELEMENT_SKILLS)
 //     { type: 'AWAKEN', need, hint } 다른 스킬을 일정 단수까지 익히면 열린다. need: [[스킬id, 단수], ...]
 export const SKILL_SLOTS = ['Q', 'F', 'R'];
 
@@ -46,6 +47,12 @@ export const SKILLS = {
                     source: { type: 'MASTER' } },
     FROST_NOVA:   { name: '빙결 파동',     branch: 'BREATH', tier: 1, cooldown: 9,  desc: '주변의 모든 적을 2.5초 동안 얼린다', element: 'ICE',
                     source: { type: 'BOSS', id: 'MORGATH' } },
+    TIDE:         { name: '해일',         branch: 'BREATH', tier: 2, cooldown: 8,  desc: '앞쪽의 적을 멀리 쓸어 내고 흠뻑 적신다. 젖은 적은 번개와 냉기에 약하다', element: 'WATER',
+                    source: { type: 'GIFT', hint: '구름마루에서 물의 숨결을 맡겨 받으면' } },
+    UPHEAVAL:     { name: '지각 융기',     branch: 'BREATH', tier: 2, cooldown: 10, desc: '내 둘레로 바위가 솟아올라 닿은 적을 기절시킨다', element: 'EARTH',
+                    source: { type: 'GIFT', hint: '돌등에서 땅의 숨결을 맡겨 받으면' } },
+    BRAMBLE:      { name: '가시덤불',     branch: 'BREATH', tier: 2, cooldown: 9,  desc: '겨눈 자리에 가시덤불이 자라 5초 동안 적을 붙들고 독을 묻힌다', element: 'GRASS',
+                    source: { type: 'GIFT', hint: '뿌리골에서 풀의 숨결을 맡겨 받으면' } },
     FLAME_BREATH: { name: '화염 방사',     branch: 'BREATH', tier: 2, cooldown: 8,  desc: '1.8초 동안 앞쪽 부채꼴을 불태운다. 움직이며 쓸 수 있다', element: 'FIRE',
                     source: { type: 'MASTER' } },
     STORM:        { name: '번개 폭풍',     branch: 'BREATH', tier: 2, cooldown: 10, desc: '3초 동안 주변 적에게 벼락이 쏟아진다', element: 'THUNDER',
@@ -69,4 +76,6 @@ export const SKILLS = {
 };
 
 // 보스를 잡으면 배우는 스킬 (source 와 같은 내용이지만 Boss.js 가 바로 찾아 쓴다)
+// 맡겨 받은 숨결과 함께 배우는 기술 (entities/Dragon.js 의 unlockElement)
+export const ELEMENT_SKILLS = { WATER: 'TIDE', EARTH: 'UPHEAVAL', GRASS: 'BRAMBLE' };
 export const BOSS_SKILLS = { MORGATH: 'FROST_NOVA', ZALGORA: 'STORM', GLACIA: 'ICE_SPIKES', BASIL: 'DIVE' };

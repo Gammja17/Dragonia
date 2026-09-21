@@ -7,6 +7,8 @@ import { showToast } from '../ui/toast.js';
 import { showRaidWarning } from '../ui/hud.js';
 import { notify, activeQuests, curStep } from './quests.js';
 import { CHAPTERS, currentChapter } from '../data/chapters.js';
+import { npcName } from '../data/npcs.js';
+import { isDead } from './routine.js';
 import { play } from './audio.js';
 
 // 습격은 회차(state.raid.count)가 오를수록 인원이 늘고 새 병종이 섞인다. 3회차마다 대장이 온다.
@@ -31,6 +33,10 @@ const isNight = () => state.dayTime < 0.22 || state.dayTime > 0.82;
 export function updateRaid(dt) {
     const raid = state.raid;
     if (raid.active) {
+        if (raid.captainFell) { raid.captainFell = false; captainDown(); }
+        // 지켜야 하는 용이 쓰러졌는지 본다
+        const ob = raid.objective;
+        if (ob && !ob.failed) { const n = state.entities.npcs.find(x => x.config.name === ob.name); if (n && n.downTimer > 0) { ob.failed = true; showToast(`${npcName(ob.name)}가 쓰러졌다…`, '💫'); } }
         // 지도를 옮기면 사냥꾼도 같이 사라진다. 그걸 "격퇴"로 쳐 주면 굴에 들어갔다 나오는 것만으로 이긴다
         if (state.mapId !== 'VILLAGE') abandonRaid();
         else if (state.entities.humans.length === 0) endRaid();
@@ -69,6 +75,29 @@ function roster(count) {
     return list;
 }
 
+/**
+ * 습격마다 목표가 하나 붙기도 한다 (3장부터, 절반쯤).
+ *   RESCUE  사냥꾼 몇이 싸우지 못하는 용 하나를 노린다. 그 용이 쓰러지지 않게 지켜 내면 덤이 붙는다
+ * 대장이 낀 습격에서는 대장을 먼저 쓰러뜨리면 남은 사냥꾼 절반이 달아난다 (entities/Human.js 가 깃발을 세운다)
+ */
+function pickObjective(list) {
+    if (chapterNo() < 3 || Math.random() < 0.5) return null;
+    const weak = ['Poco', 'Mira', 'Ember'].filter(n => !isDead(n));
+    const npc = state.entities.npcs.find(n => weak.includes(n.config.name) && !(n.downTimer > 0));
+    if (!npc) return null;
+    return { type: 'RESCUE', name: npc.config.name, failed: false };
+}
+
+/** 대장이 쓰러졌다: 남은 사냥꾼의 절반이 도망친다 */
+function captainDown() {
+    const raid = state.raid;
+    if (!raid.active) return;
+    const rest = state.entities.humans.filter(h => !h.remove && h.type !== 'CAPTAIN');
+    const flee = rest.slice(0, Math.floor(rest.length / 2));
+    for (const h of flee) h.remove = true;
+    if (flee.length) showToast(`대장이 쓰러지자 사냥꾼 ${flee.length}명이 달아났다!`, '🏃');
+}
+
 /** 5장부터는 두 방향에서 한꺼번에 든다 */
 function raidSides() {
     const keys = Object.keys(SIDES);
@@ -95,6 +124,9 @@ export function triggerRaid(kind = null) {
     showToast(`사냥꾼 습격 ${raid.count}차! ${where}에서 몰려옵니다. 마을 용들과 함께 막아내세요!`, '⚔️');
     const list = roster(raid.count);
     if (list.includes('TRAPPER') && !state.story.flags?.sawTrapper) { (state.story.flags = state.story.flags || {}).sawTrapper = true; showToast('그물꾼이 섞여 있다. 느리게 날아오는 그물은 보고 피하자.', '🕸️'); }
+    raid.objective = pickObjective(list);
+    if (raid.objective) showToast(`사냥꾼 몇이 ${npcName(raid.objective.name)} 쪽으로 몰려간다. 쓰러지지 않게 지켜 주자!`, '🛡️');
+    if (list.includes('CAPTAIN')) showToast('대장이 섞여 있다. 대장을 먼저 쓰러뜨리면 나머지가 흔들린다.', '⚔️');
     list.forEach((type, i) => {
         const side = sides[i % sides.length];
         // 마을 가장자리 바깥, 그 변을 따라 흩어져서 등장
@@ -106,6 +138,7 @@ export function triggerRaid(kind = null) {
         const h = new Human(x, y, type);
         h.maxHp = h.hp = Math.round(h.hp * (1 + 0.12 * (raid.count - 1)));   // 회차가 오를수록 단단해진다
         h.power = 1 + 0.08 * (raid.count - 1);
+        if (raid.objective && i % 3 === 0 && type !== 'CAPTAIN') h.hunts = raid.objective.name;   // 셋 중 하나는 그 용만 노린다
         state.entities.humans.push(h);
     });
 }
@@ -135,6 +168,17 @@ function endRaid() {
     showToast(`습격 ${raid.count}차 격퇴! (${gold}G, 마을 용들의 호감 ↑)`, '🛡️');
     p.gainXp(60 + raid.count * 30);
     state.story.today.raid = true;   // 내일 아침 "어제 습격" 이야기가 나올 수 있다
+    const ob = raid.objective;
+    if (ob) {
+        const npc = state.entities.npcs.find(n => n.config.name === ob.name);
+        if (npc && !ob.failed) {
+            npc.relation = Math.min(100, (npc.relation || 0) + 8);
+            p.gold += 40; p.gainXp(80);
+            showToast(`${npcName(ob.name)}를 끝까지 지켜 냈다! (40G, 호감 ↑)`, '🛡️');
+            npc.say(ob.name === 'Poco' ? '고, 고마워… 나 진짜 무서웠어.' : '덕분에 살았어. 고마워.');
+        }
+        raid.objective = null;
+    }
     notify('raid');
 }
 
@@ -149,7 +193,7 @@ function abandonRaid() {
 export function raidStatusText() {
     if (state.dungeon) return '';   // 굴 속에서는 습격 시계가 멈춘다
     if (!state.raid.active && state.raid.count === 0) return '';   // 아직 습격을 겪기 전
-    if (state.raid.active) return `습격 중! 남은 사냥꾼 ${state.entities.humans.length}`;
+    if (state.raid.active) return `습격 중! 남은 사냥꾼 ${state.entities.humans.length}` + (state.raid.objective && !state.raid.objective.failed ? ` · ${npcName(state.raid.objective.name)}를 지켜라` : '');
     const t = Math.max(0, Math.ceil(state.raidTimer));
     return `다음 습격 ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 }

@@ -33,8 +33,9 @@ const WAR_AWAY = ['Tiamat', 'Kairon', 'Nara'];
 
 export function planFor(name, hour = state.dayTime * 24) {
     const r = ROUTINES[name];
-    if (!r || isDead(name)) return null;
-    let slot = slotAtHour(r.after && isDead(r.after.of) ? r.after : r, hour);
+    if (!r || isDead(name) || (r.when && !r.when(state))) return null;
+    const variant = (r.variants || []).find(v => v.when(state));   // 이야기의 갈래에 따라 하루가 통째로 다른 용
+    let slot = slotAtHour(variant || (r.after && isDead(r.after.of) ? r.after : r), hour);
     const gather = isGatherNow() && GATHER_SPOTS[name];
     // 길잡이를 마치기 전에는 촌장이 마을을 뜨지 않는다. 처음 온 아이가 헤매지 않게
     // (모임 날 밤만은 예외다 — 촌장이 빠진 모임은 모임이 아니다)

@@ -215,6 +215,7 @@ function populate(id) {
         if (f.t === 'DUMMY_SPOT') { state.dojoSpot = pos; continue; }
         if (f.t === 'BOSS') {
             if (state.bossesDefeated[f.id]) continue;
+            if (f.id === 'IGNAR' && state.story.route === 'dark' && state.quests.done.includes('m7d')) continue;
             // 사건을 겪기 전에는 둥지가 비어 있다. 지나가다 덜컥 마주치지 않게
             const need = (BOSSES[f.id] || {}).needs;
             if (need && !(state.story.events || []).includes(need)) continue;

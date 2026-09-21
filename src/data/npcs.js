@@ -5,7 +5,7 @@ export const NPC_NAMES_KO = {
     Riun: '리운', Seiran: '세이란', Haru: '하루', Yuan: '유안',
     Kirin: '키린', Raze: '레이즈', Mira: '미라', Dusk: '더스크',
     Iro: '이로', Sora: '소라', Flint: '플린트', Ember: '엠버',
-    Vesna: '베스나', IGNAR: '이그나르',
+    Vesna: '베스나', IGNAR: '이그나르', Ignar: '이그나르',
     Moss: '모스', Fern: '펀', Garam: '가람', Dol: '돌',
 };
 export const npcName = (id) => NPC_NAMES_KO[id] || id || '???';
@@ -70,6 +70,13 @@ export const FIXED_NPCS = [
         species: 'LOOK', look: 20, accessory: null, scale: 1.08, colors: { body: '#2a2630', belly: '#5a4a5a', wing: '#8a3a2a' }, element: 'FIRE', maxHp: 420, power: 14,
         x: 0, y: 0,
     },
+    {
+        // 결말 뒤의 이그나르. 교화 결말이면 웨스턴 마을 밖 호숫가에, 어둠의 결말이면 잿마루에 산다 (data/routines.js 의 when)
+        // 곁에 두고 다닐 수도 있고(의탁), 마음을 나눌 수도 있다
+        name: 'Ignar', personality: 'WISE', role: 'FALLEN', canPartner: true,
+        species: 'SHADOW', accessory: null, scale: 0.62, colors: { body: '#3a2a4a', belly: '#5a4a6a', wing: '#ff5a1f' }, element: 'FIRE', maxHp: 900, power: 22,
+        x: 0, y: 0,
+    },
     // ---- 뿌리골: 밀림 깊은 곳, 풀의 용들 ----
     {
         name: 'Moss', personality: 'WISE', role: 'ELDER_ROOT', canPartner: false,
@@ -97,7 +104,7 @@ export const FIXED_NPCS = [
     // 우리 마을과는 오래 서로를 모른 척해 왔다. 몸이 길고, 날개보다 물을 탄다.
     {
         // 리운: 구름마루의 어른. 물이 하는 말을 듣는다는 소문이 있다
-        name: 'Riun', personality: 'WISE', role: 'ELDER_EAST', canPartner: true, east: true,
+        name: 'Riun', personality: 'WISE', role: 'ELDER_EAST', canPartner: false, east: true,
         species: 'LOOK', look: 3, accessory: null, scale: 1.22, colors: { body: '#2a5f8f', belly: '#7fc4e8', wing: '#d8b25a' }, element: 'ICE', maxHp: 440, power: 15,
         x: 0, y: 0,
     },
@@ -115,7 +122,7 @@ export const FIXED_NPCS = [
     },
     {
         // 유안: 경계를 도는 자. 폭포 아래로 내려오는 것을 가장 싫어한다
-        name: 'Yuan', personality: 'GRUMPY', canPartner: true, east: true,
+        name: 'Yuan', personality: 'GRUMPY', canPartner: false, east: true,
         species: 'LOOK', look: 14, accessory: 'HELM', scale: 1.06, colors: { body: '#1f6f9f', belly: '#6fc0e0', wing: '#b8c8d0' }, element: 'ICE', maxHp: 360, power: 13,
         x: 0, y: 0,
     },

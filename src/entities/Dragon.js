@@ -9,8 +9,8 @@ import { MAX_KIDS } from '../core/config.js';
 import { rand, dist, clamp, pick, roundRect } from '../core/utils.js';
 import { IDLE_LINES, NIGHT_LINES, RAIN_LINES } from '../data/dialogues.js';
 import { ELEMENTS, STAGES, canFuse } from '../data/elements.js';
-import { SKILL_SLOTS } from '../data/skills.js';
-import { useSlot, updateChannels, checkSkillUnlocks } from '../systems/skills.js';
+import { SKILL_SLOTS, ELEMENT_SKILLS } from '../data/skills.js';
+import { useSlot, updateChannels, checkSkillUnlocks, learnSkill } from '../systems/skills.js';
 import { stat, hasPerk, grantPoints, POINTS_PER_LEVEL, POINTS_PER_STAGE } from '../systems/growth.js';
 import { openNestMenu, pendingTrial } from '../systems/story.js';
 import { applyStatus } from '../systems/status.js';
@@ -248,6 +248,7 @@ export class Dragon extends Entity {
         this.elements.push(id);
         this.element = id;
         showToast(`새 숨결 [${ELEMENTS[id].name}] 획득! ${ELEMENTS[id].desc} ([${ELEMENTS[id].key}]번 키)`, '✨');
+        if (this.isPlayer && ELEMENT_SKILLS[id]) learnSkill(ELEMENT_SKILLS[id]);   // 맡겨 받은 숨결은 기술도 같이 온다
         // 숨결이 셋이 되는 순간 필살기가 열린다
         if (this.elements.length === 3) showToast('품은 숨결이 셋이 되었다. 적을 맞혀 게이지를 채우면 [X]로 융합 브레스를 쓸 수 있다.', '🌈');
     }

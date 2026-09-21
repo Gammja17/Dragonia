@@ -92,6 +92,25 @@ export const ROUTINES = {
         raid: { map: 'VILLAGE', spot: [15, 7], doing: '대장간 앞을 지키고 서 있다' },
     },
 
+    // ── 이그나르: 결말 뒤에만 나타난다. when 이 거짓이면 어디에도 없다 ──────────
+    Ignar: {
+        job: '돌아온 용',
+        when: s => (s.story.route === 'redeem' && s.quests.done.includes('m6')) || (s.story.route === 'dark' && s.quests.done.includes('m7d')),
+        day: [
+            { h: 0,  map: 'LAKE', spot: [5, 5],   doing: '호숫가 빈 굴 앞에서 눈을 붙이고 있다' },
+            { h: 7,  map: 'LAKE', spot: [6, 6],   doing: '호숫가 바위에 앉아 물을 내려다보고 있다' },
+            { h: 13, map: 'DOJO', spot: [13, 9],  doing: '수련장 구석에서 카이론이 가르치는 걸 말없이 보고 있다' },
+            { h: 18, map: 'VILLAGE', spot: [14, 11], doing: '모닥불에서 조금 떨어진 자리에 앉아 있다' },
+            { h: 22, map: 'LAKE', spot: [5, 5],   doing: '호숫가 빈 굴로 돌아간다' },
+        ],
+        // 어둠의 결말: 잿마루를 떠나지 않는다
+        variants: [{ when: s => s.story.route === 'dark', day: [
+            { h: 0,  map: 'VOLCANO', spot: [12, 7], doing: '잿마루의 불가에 앉아 있다' },
+            { h: 9,  map: 'VOLCANO', spot: [14, 9], doing: '잿마루의 용들이 하는 보고를 듣고 있다' },
+            { h: 20, map: 'VOLCANO', spot: [12, 7], doing: '불가에서 혼자 불을 보고 있다' },
+        ] }],
+    },
+
     // ── 엠버: 그론의 조수. 제 굴이 없다. 대장간 구석에서 잔다 ─────────────
     Ember: {
         job: '대장간 조수',

@@ -32,6 +32,8 @@ export class Human extends Entity {
     pickTarget() {
         const nest = state.entities.nests[0];
         if (nest && nest.hasEgg && dist(this, nest) < 320) return nest;
+        // 이 습격에서 특정한 용만 노리기로 한 사냥꾼 (systems/raid.js 의 RESCUE)
+        if (this.hunts) { const prey = state.entities.npcs.find(n => n.config.name === this.hunts && !(n.downTimer > 0)); if (prey) return prey; }
         let best = state.player, bestD = dist(this, state.player);
         for (const a of allies()) {
             const d = dist(this, a);
@@ -83,6 +85,7 @@ export class Human extends Entity {
 
     die() {
         this.remove = true;
+        if (this.type === 'CAPTAIN') state.raid.captainFell = true;   // 남은 사냥꾼이 흔들린다 (systems/raid.js)
         state.player.gainXp(this.def.xp * xpMult());
         state.stats.kills.HUNTER = (state.stats.kills.HUNTER || 0) + 1;
         notify('kill', 'HUNTER');
