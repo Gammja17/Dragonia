@@ -112,6 +112,8 @@ export function applySave(data) {
     state.story = data.story || { scenes: [], lessons: [], lessonDay: 0 };
     state.story.rites = state.story.rites || [];
     state.story.clues = state.story.clues || [];
+    state.story.today = state.story.today || {};
+    state.story.yesterday = state.story.yesterday || {};
     state.stats = data.stats || { kills: {} };
     if (state.stats.brinks === undefined) state.stats.brinks = 0;
     state.event = data.event || null;

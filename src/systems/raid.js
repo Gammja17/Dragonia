@@ -5,7 +5,7 @@ import { rand, pick } from '../core/utils.js';
 import { Human } from '../entities/Human.js';
 import { showToast } from '../ui/toast.js';
 import { showRaidWarning } from '../ui/hud.js';
-import { notify } from './quests.js';
+import { notify, activeQuests, curStep } from './quests.js';
 import { play } from './audio.js';
 
 // 습격은 회차(state.raid.count)가 오를수록 인원이 늘고 새 병종이 섞인다. 3회차마다 대장이 온다.
@@ -14,14 +14,32 @@ const SIDES = {
     N: { name: '북쪽', dx: 0, dy: -1 }, S: { name: '남쪽', dx: 0, dy: 1 },
 };
 
+/**
+ * 이야기가 습격을 기다리고 있나. 지금 대목이 "사냥꾼을 쓰러뜨려라" 거나 "습격을 막아라" 인 퀘스트가 있으면 참.
+ * 그런 날은 시계를 기다리게 하지 않는다 — 그날 밤에 온다 (잠을 청해도 나팔이 깨운다, systems/story.js).
+ */
+export function raidWanted() {
+    return activeQuests().some(q => {
+        const g = (curStep(q) || {}).goal;
+        return g && (g.type === 'raid' || (g.type === 'kill' && g.target === 'HUNTER'));
+    });
+}
+
+const isNight = () => state.dayTime < 0.22 || state.dayTime > 0.82;
+
 export function updateRaid(dt) {
     const raid = state.raid;
-    // 습격은 마을에 있을 때만 벌어진다. 딴 데 있으면 시계가 멈춘다
-    if (state.mapId !== 'VILLAGE') { if (!raid.active) return; }
     if (raid.active) {
-        if (state.entities.humans.length === 0) endRaid();
+        // 지도를 옮기면 사냥꾼도 같이 사라진다. 그걸 "격퇴"로 쳐 주면 굴에 들어갔다 나오는 것만으로 이긴다
+        if (state.mapId !== 'VILLAGE') abandonRaid();
+        else if (state.entities.humans.length === 0) endRaid();
         return;
     }
+    // 습격은 마을에 있을 때만 벌어진다. 딴 데 있으면 시계가 멈춘다
+    if (state.mapId !== 'VILLAGE') return;
+    if (raidWanted() && isNight()) return triggerRaid();
+    // 첫 습격은 이야기가 부른다. 그 전에는 시계가 돌지 않는다 (새 게임 2분 만에 쳐들어오던 것)
+    if (raid.count === 0) return;
     state.raidTimer -= dt;
     if (state.raidTimer <= 0) triggerRaid();
 }
@@ -68,12 +86,21 @@ function endRaid() {
     for (const npc of state.entities.npcs) if (npc.config.fixed) npc.relation = Math.min(100, npc.relation + 2);
     showToast(`습격 ${raid.count}차 격퇴! (${gold}G, 마을 용들의 호감 ↑)`, '🛡️');
     p.gainXp(60 + raid.count * 30);
+    state.story.today.raid = true;   // 내일 아침 "어제 습격" 이야기가 나올 수 있다
     notify('raid');
+}
+
+/** 싸우다 말고 마을을 떠났다. 보상도, 막아 냈다는 기록도 없다 */
+function abandonRaid() {
+    state.raid.active = false;
+    state.raidTimer = RAID_INTERVAL;
+    showToast('마을을 비운 사이 습격이 지나갔다. 남은 용들이 겨우 막아 냈다.', '🛡️');
 }
 
 /** HUD용: 다음 습격까지 남은 시간 또는 남은 사냥꾼 수 */
 export function raidStatusText() {
     if (state.dungeon) return '';   // 굴 속에서는 습격 시계가 멈춘다
+    if (!state.raid.active && state.raid.count === 0) return '';   // 아직 습격을 겪기 전
     if (state.raid.active) return `습격 중! 남은 사냥꾼 ${state.entities.humans.length}`;
     const t = Math.max(0, Math.ceil(state.raidTimer));
     return `다음 습격 ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;

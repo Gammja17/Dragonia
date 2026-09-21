@@ -67,7 +67,8 @@ export const QUESTS = [
         reward: { xp: 80, meat: 2 },
     },
     {
-        id: 'm2', giver: 'Elder', act: 'main', requires: 'm1', title: '자라나는 날개',
+        // 카이론은 첫 밤을 자고 난 아침(ch1)에 엘더가 소개한다. 그 전에 보내면 카이론이 돌려보낸다
+        id: 'm2', giver: 'Elder', act: 'main', requires: 'm1', needs: s => s.story.scenes.includes('ch1'), title: '자라나는 날개',
         offer: "네 몸이 작아서는 그 불꽃에 힘이 안 실린다. 스승 카이론에게 가서 자라는 법을 물어보거라.",
         summary: "몸이 작아서는 숨결에 힘이 실리지 않는다. 용은 나이로 자라는 게 아니라, 자기보다 강한 상대를 넘어서면서 자란다.",
         steps: [
@@ -96,7 +97,7 @@ export const QUESTS = [
         steps: [
             {
                 goal: { type: 'kill', target: 'HUNTER', count: 4 },
-                hint: "마을에 습격이 오면 맞서 싸운다. 사냥꾼 넷을 쓰러뜨린다.",
+                hint: "오늘 밤 마을에 사냥꾼이 든다. 넷을 쓰러뜨린다. (밤을 기다리거나, 둥지에 누워 본다)",
                 scene: [
                     { who: '나', text: "(마지막 놈이 떨어뜨린 가죽을 펼쳐 봤다. 안쪽에 선이 그려져 있다.)" },
                     { who: '나', text: "(호수, 폭포, 동쪽 숲길. 그리고 마을. 마을 자리에만 붉게 동그라미가 쳐져 있다.)" },
@@ -421,7 +422,7 @@ export const QUESTS = [
         steps: [
             {
                 goal: { type: 'raid', count: 1 },
-                hint: "마을 습격을 한 번 함께 막아낸다.",
+                hint: "오늘 밤 마을에 드는 습격을 함께 막아낸다. (밤을 기다리거나, 둥지에 누워 본다)",
                 scene: [
                     { who: 'Tiamat', text: "괜찮아. 다 물러갔어." },
                     { who: 'Tiamat', text: "(티아맷은 망루에서 내려오지 않고 앉아 있었다.) 올라올래? 여기 넓어." },

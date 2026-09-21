@@ -20,7 +20,7 @@ export const state = {
     companion: null,
     den: { built: false, twigs: 0 },   // 아지트 둥지: 나뭇가지를 모아 지어야 알을 품을 수 있다
     rally: 0,             // 용의 함성: 남은 시간 동안 아군 공격력 +50%
-    story: { scenes: [], lessons: [], lessonDay: 0, events: [], bonds: [], rites: [], clues: [] },   // systems/story.js · clues: 정체의 단서
+    story: { scenes: [], lessons: [], lessonDay: 0, events: [], bonds: [], rites: [], clues: [], today: {}, yesterday: {} },   // systems/story.js · clues: 정체의 단서 · today/yesterday: 그날 있었던 일 (아침 장면이 "어제"를 말할 때 읽는다)
     talkTarget: null,    // 지금 T·클릭으로 말을 걸 수 있는 상대
     fadeTargets: [],     // 이번 프레임에 나무 뒤로 숨으면 안 되는 것들
     relics: [],          // 가진 유물 id (systems/relics.js)
@@ -77,7 +77,7 @@ export function resetState() {
         companion: null,
         den: { built: false, twigs: 0 },
         rally: 0,             // 용의 함성: 남은 시간 동안 아군 공격력 +50%
-        story: { scenes: [], lessons: [], lessonDay: 0, events: [], bonds: [], rites: [], clues: [] },   // systems/story.js
+        story: { scenes: [], lessons: [], lessonDay: 0, events: [], bonds: [], rites: [], clues: [], today: {}, yesterday: {} },   // systems/story.js
         relics: [],          // 가진 유물 id (systems/relics.js)
         relicSlots: [],
         materials: {},

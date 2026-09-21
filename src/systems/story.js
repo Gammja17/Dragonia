@@ -22,6 +22,7 @@ import { setBossBar, fadeScreen } from '../ui/hud.js';
 import { learnSkill } from './skills.js';
 import { saveGame } from './save.js';
 import { play } from './audio.js';
+import { raidWanted, triggerRaid } from './raid.js';
 
 // 스승의 수련 · 승급 시험 · 잠 · 아침 장면.
 // state.story = { scenes: [본 장면 id], lessons: [끝낸 수련 id], lessonDay: 마지막으로 수련한 날 }
@@ -262,6 +263,8 @@ function buildNest() {
 
 function sleep() {
     close();
+    // 이야기가 습격을 기다리는 밤에는 잠들지 못한다. 눕자마자 나팔이 깨운다
+    if (raidWanted()) return hornAtNight();
     play('sleep');
     fadeScreen(`${state.day + 1}일째 아침`, () => {
         const p = state.player;
@@ -276,9 +279,19 @@ function sleep() {
         p.hunger = Math.max(30, p.hunger - Math.round(25 * (1 - rest.heal)));
         for (const n of state.entities.npcs) if (n.config.fixed) { n.x = n.homeX; n.y = n.homeY; n.hp = n.maxHp; n.downTimer = 0; }
         for (const n of [state.partner, state.companion]) if (n && n.state !== 'WANDER') { n.x = p.x + 70; n.y = p.y + 20; }
+        state.story.yesterday = state.story.today;   // 오늘 있었던 일은 내일 아침의 "어제"가 된다
+        state.story.today = {};
         notify('sleep');           // "하룻밤 자고 나서" 로 이어지는 대목
         saveGame();
     }, playMorningScene);
+}
+
+/** 잠을 청했는데 습격이 오는 밤. 날은 넘어가지 않고, 한밤의 마을 광장에서 싸움이 시작된다 */
+function hornAtNight() {
+    fadeScreen('한밤중', () => { state.dayTime = 0.9; }, () => playScene('나팔 소리', [
+        { who: '나', text: '(막 잠이 들려는데 밖이 소란하다. …나팔 소리다.)' },
+        { who: 'Tiamat', text: '다들 일어나! 사냥꾼이야!' },
+    ], triggerRaid, { place: 'VILLAGE' }));
 }
 
 // 촌장이 알을 품어 주는 날수 (systems/npcActions.js 의 entrustEgg)

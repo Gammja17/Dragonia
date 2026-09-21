@@ -115,7 +115,7 @@ export const SCENES = [
         ],
     },
     {
-        id: 'ch3', title: '3장. 사냥꾼', when: s => s.raid.count >= 1 && s.story.lessons.length >= 2,
+        id: 'ch3', title: '3장. 사냥꾼', when: s => s.story.yesterday.raid && s.story.scenes.includes('ch1'),   // "어제 습격 봤지?" 로 여는 장면이라, 정말 어제 막아 낸 날 아침에만
         lines: [
             { who: 'Tiamat', text: "어제 습격 봤지? 놈들은 알을 노려. 우리 씨를 말리려는 거야." },
             { who: 'Nara', text: "우리 부모님도 저러다 돌아가셨어." },
