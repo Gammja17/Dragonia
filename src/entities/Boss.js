@@ -54,6 +54,8 @@ export class Boss extends Entity {
         this.patternIndex = 0;
         this.revived = false;
         this.phase2 = false;
+        this.phase = 0;        // 몇 번째 페이즈인가 (data/enemies.js 의 phases)
+        this.stagger = 0;      // 페이즈가 넘어가는 동안 잠깐 숨을 고른다
         this.hidden = false;   // 땅속에 있는 동안: 안 보이고 안 맞는다
         this.spiral = null;    // { left, angle, timer }
         this.charge = null;    // { windup, time, angle, chain }
@@ -62,7 +64,7 @@ export class Boss extends Entity {
         this.blizzard = null;  // { time, angle }
     }
     get light() { return this.hidden ? null : { r: 360, color: ELEMENTS[this.def.element].color, intensity: this.awake ? 0.9 : 0.4, dy: -60 }; }
-    get rage() { return this.hp < this.def.hp * 0.4 || this.phase2; }
+    get rage() { return this.def.phases ? this.phase === this.def.phases.length - 1 : (this.hp < this.def.hp * 0.4 || this.phase2); }
 
     update(dt) {
         if (this.hitFlash > 0) this.hitFlash -= dt * 8;
@@ -89,6 +91,10 @@ export class Boss extends Entity {
         const speedMult = updateStatus(this, dt);
         if (this.remove) return;
         if (this.def.phase2 && !this.phase2 && this.hp < this.def.hp * 0.5) this.enterPhase2();
+        // 페이즈: 체력이 문턱 아래로 내려가면 판이 바뀐다. 넘어가는 동안은 공격을 멈추고, 날아오던 탄도 걷힌다
+        const phases = this.def.phases;
+        if (phases && phases[this.phase + 1] && this.hp <= this.def.hp * phases[this.phase + 1].at) this.enterPhase(this.phase + 1);
+        if (this.stagger > 0) { this.stagger -= dt; this.patternTimer = Math.max(this.patternTimer, 0.6); }
 
         let moving = false;
         if (this.burrow) this.updateBurrow(dt);
@@ -112,7 +118,8 @@ export class Boss extends Entity {
 
         this.animator.playBase(moving ? 'move' : 'idle');
         this.animator.update(dt);
-        setBossBar(this.def.name + (this.phase2 ? ' (분노)' : ''), this.hp / this.def.hp);
+        const phaseName = this.def.phases ? ` · ${this.def.phases[this.phase].name}` : (this.phase2 ? ' (분노)' : '');
+        setBossBar(this.def.name + phaseName, this.hp / this.def.hp);
     }
 
     reset() {
@@ -120,8 +127,25 @@ export class Boss extends Entity {
         this.x = this.home.x; this.y = this.home.y;
         this.hp = this.def.hp;
         this.hidden = this.phase2 = false;
+        this.phase = 0; this.stagger = 0;   // 쓰러지면 처음부터 다시다
         this.charge = this.spiral = this.beam = this.burrow = this.blizzard = null;
         setBossBar(null);
+    }
+
+    /** 판이 바뀐다: 한마디 하고, 탄을 걷고, 잠깐 숨을 고른 뒤 새 패턴으로 */
+    enterPhase(i) {
+        const ph = this.def.phases[i];
+        this.phase = i;
+        this.patternIndex = 0;
+        this.stagger = 1.4;
+        this.charge = this.spiral = this.beam = this.burrow = this.blizzard = null;
+        this.hidden = false;
+        for (const b of state.entities.bullets) if (b.faction === 'ENEMY') b.remove = true;
+        if (i === this.def.phases.length - 1) this.phase2 = !!this.def.glow;
+        showToast(ph.say ? `${ph.name} — ${ph.say}` : ph.name, '⚔️');
+        spawnEffect('SHOCKWAVE', this.x, this.y, { size: 3.5, color: ELEMENTS[this.def.element].color });
+        shake(12); play('dieBig');
+        if (ph.summon) this.summon(ph.summon);
     }
 
     enterPhase2() {
@@ -151,7 +175,7 @@ export class Boss extends Entity {
     }
 
     startPattern() {
-        const patterns = this.def.patterns;
+        const patterns = this.def.phases ? this.def.phases[this.phase].patterns : this.def.patterns;
         const p = patterns[this.patternIndex++ % patterns.length];
         const rage = this.rage;
         this.patternTimer = rage ? 1.9 : 2.9;

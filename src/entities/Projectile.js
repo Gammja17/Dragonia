@@ -4,12 +4,13 @@ import { state } from '../core/state.js';
 import { MAX_BULLETS } from '../core/config.js';
 import { isOnScreen, shake } from '../core/camera.js';
 import { dist } from '../core/utils.js';
-import { ELEMENTS } from '../data/elements.js';
+import { ELEMENTS, canFuse } from '../data/elements.js';
 import { getTileImage } from '../world/terrain.js';
 import { drawPixelSprite } from '../render/pixel.js';
 import { getVfxImage, spawnEffect, spawnBolt, spawnText } from '../render/vfx.js';
 import { hitStop } from '../render/feedback.js';
 import { blocksFrom } from './enemyAI.js';
+import { showToast } from '../ui/toast.js';
 import { applyStatus } from '../systems/status.js';
 import { hasRelic } from '../systems/relics.js';
 import { play } from '../systems/audio.js';
@@ -39,6 +40,7 @@ export class Projectile extends Entity {
         this.pierce = (opts.pierce ?? el.pierce) && this.faction === 'ALLY'; // 관통: 같은 적은 한 번만 맞는다
         this.hitSet = new Set();
         this.fromPlayer = !!opts.fromPlayer;   // 플레이어가 쏜 탄만 필살기 게이지를 채운다
+        this.slow = opts.slow || 0;       // 맞은 용을 이만큼(초) 느리게 한다 (그물)
         this.homing = opts.homing || 0;   // 초당 꺾을 수 있는 각도(rad). 플레이어를 따라온다
         this.speed = speed;
         this.t = 0;
@@ -68,8 +70,12 @@ export class Projectile extends Entity {
         if (!this.pierce) this.remove = true;
         const el = ELEMENTS[this.element];
         if (this.kind === 'BREATH') spawnEffect(el.hit, this.x, this.y, { angle: this.angle, size: this.scale });
-        if (this.faction !== 'ALLY') { target.takeDamage(this.damage); return; }
-        if (this.fromPlayer && state.player.stageIndex >= 4) state.player.ult = Math.min(100, state.player.ult + 1.5);
+        if (this.faction !== 'ALLY') {
+            target.takeDamage(this.damage);
+            if (this.slow && target === state.player && !(target.invuln > 0)) { target.slowTimer = Math.max(target.slowTimer || 0, this.slow); showToast('그물에 걸렸다! 잠깐 발이 무겁다.', '🕸️'); }
+            return;
+        }
+        if (this.fromPlayer && canFuse(state.player)) state.player.ult = Math.min(100, state.player.ult + 1.5);
         const crit = Math.random() < CRIT_CHANCE + (hasRelic('HUNTER_CHARM') ? 0.1 : 0);
         play(crit ? 'crit' : 'hit');
         const dmg = this.damage * (crit ? (hasRelic('BASIL_FANG') ? 3 : 2) : 1);

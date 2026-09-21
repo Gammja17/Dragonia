@@ -8,7 +8,7 @@ import { isOnScreen, screenToWorld, cam } from '../core/camera.js';
 import { MAX_KIDS } from '../core/config.js';
 import { rand, dist, clamp, pick, roundRect } from '../core/utils.js';
 import { IDLE_LINES, NIGHT_LINES, RAIN_LINES } from '../data/dialogues.js';
-import { ELEMENTS, STAGES } from '../data/elements.js';
+import { ELEMENTS, STAGES, canFuse } from '../data/elements.js';
 import { SKILL_SLOTS } from '../data/skills.js';
 import { useSlot, updateChannels, checkSkillUnlocks } from '../systems/skills.js';
 import { stat, hasPerk, grantPoints, POINTS_PER_LEVEL, POINTS_PER_STAGE } from '../systems/growth.js';
@@ -171,7 +171,7 @@ export class Dragon extends Entity {
         this.gale = 0;        // 성장 트리 '질풍': 대시 뒤 연사가 빨라지는 남은 시간
         this.channels = [];                     // 진행 중인 스킬 (systems/skills.js)
         this.guard = 0;       // 강철 비늘 남은 시간
-        this.ult = 0;         // 필살기 게이지 0~100 (삼원룡만)
+        this.ult = 0;         // 필살기 게이지 0~100 (숨결이 셋 모이면 찬다)
         this.beam = null;     // 삼원 융합 브레스 { time, angle }
         this.slowTimer = 0;   // 빙판·얼음에 느려진 시간
         this.diveHeight = 0;  // 급강하 중 떠오른 높이
@@ -248,6 +248,8 @@ export class Dragon extends Entity {
         this.elements.push(id);
         this.element = id;
         showToast(`새 숨결 [${ELEMENTS[id].name}] 획득! ${ELEMENTS[id].desc} ([${ELEMENTS[id].key}]번 키)`, '✨');
+        // 숨결이 셋이 되는 순간 필살기가 열린다
+        if (this.elements.length === 3) showToast('품은 숨결이 셋이 되었다. 적을 맞혀 게이지를 채우면 [X]로 융합 브레스를 쓸 수 있다.', '🌈');
     }
 
     takeDamage(dmg) {
@@ -581,7 +583,7 @@ export class Dragon extends Entity {
 
     /** 필살기: 삼원 융합 브레스. 세 숨결을 하나로 뭉쳐 2.6초 동안 앞을 쓸어버린다 (삼원룡 전용) */
     useUltimate() {
-        if (this.stageIndex < 4) return;
+        if (!canFuse(this)) return;
         if (this.ult < 100) { showToast(`필살기 게이지 ${Math.floor(this.ult)}%. 적을 맞혀 채우세요.`, '🌈'); return; }
         this.ult = 0;
         this.beam = { time: 2.6, angle: this.aimAngle().angle, tick: 0 };

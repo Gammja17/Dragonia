@@ -6,6 +6,7 @@ import { Human } from '../entities/Human.js';
 import { showToast } from '../ui/toast.js';
 import { showRaidWarning } from '../ui/hud.js';
 import { notify, activeQuests, curStep } from './quests.js';
+import { CHAPTERS, currentChapter } from '../data/chapters.js';
 import { play } from './audio.js';
 
 // 습격은 회차(state.raid.count)가 오를수록 인원이 늘고 새 병종이 섞인다. 3회차마다 대장이 온다.
@@ -44,15 +45,37 @@ export function updateRaid(dt) {
     if (state.raidTimer <= 0) triggerRaid();
 }
 
+/**
+ * 장마다 달라지는 습격.
+ *   2장  정찰대: 기사와 궁수 몇
+ *   3~4장 그물꾼이 섞인다. 맞으면 발이 묶인다
+ *   5장  마법사가 늘고, 두 방향에서 든다
+ *   6장 뒤 중갑이 앞장서고, 대장이 자주 온다
+ * 회차(count)는 여전히 인원을 조금씩 늘린다.
+ */
+function chapterNo() { return CHAPTERS.indexOf(currentChapter(state)) + 1; }   // 1장=1 … (c3b 때문에 뒤쪽은 하나씩 밀리지만 순서만 본다)
+
 function roster(count) {
-    const n = Math.min(4 + Math.floor(count * 1.5), 16);
+    const ch = chapterNo();
+    const n = Math.min(3 + ch + Math.floor(count * 0.7), 16);
     const pool = ['KNIGHT', 'KNIGHT', 'ARCHER', 'ARCHER'];
-    if (count >= 2) pool.push('MAGE');
-    if (count >= 3) pool.push('HEAVY', 'MAGE');
-    if (count >= 6) pool.push('HEAVY', 'HEAVY');
+    if (ch >= 3) pool.push('TRAPPER', 'TRAPPER');
+    if (ch >= 5) pool.push('MAGE', 'MAGE');
+    if (ch >= 6) pool.push('MAGE', 'HEAVY');
+    if (ch >= 7) pool.push('HEAVY', 'HEAVY', 'TRAPPER');
     const list = Array.from({ length: n }, () => pick(pool));
-    if (count % 3 === 0) list.push('CAPTAIN', 'HEAVY', 'HEAVY');   // 대장은 호위를 데리고 온다
+    if (ch >= 6 && count % 2 === 0) list.push('CAPTAIN', 'HEAVY');       // 전쟁 뒤로는 대장이 자주 온다
+    else if (ch >= 4 && count % 3 === 0) list.push('CAPTAIN', 'HEAVY');  // 대장은 호위를 데리고 온다
     return list;
+}
+
+/** 5장부터는 두 방향에서 한꺼번에 든다 */
+function raidSides() {
+    const keys = Object.keys(SIDES);
+    const first = pick(keys);
+    if (chapterNo() < 6) return [SIDES[first]];
+    const second = pick(keys.filter(k => k !== first));
+    return [SIDES[first], SIDES[second]];
 }
 
 /** 6장의 대습격. 싸울 수 있는 용들이 폭포에 가 있는 틈을 알고 온다. 두 방향에서, 대장까지 */
@@ -65,11 +88,15 @@ export function triggerRaid(kind = null) {
     raid.active = true;
     raid.kind = kind;
     if (kind === 'war') return spawnWar();
-    const side = SIDES[pick(Object.keys(SIDES))];
-    showRaidWarning(`${side.name}에서 습격! (${raid.count}차)`);
+    const sides = raidSides();
+    const where = sides.map(s => s.name).join('과 ');
+    showRaidWarning(`${where}에서 습격! (${raid.count}차)`);
     play('raid');
-    showToast(`사냥꾼 습격 ${raid.count}차! ${side.name}에서 몰려옵니다. 마을 용들과 함께 막아내세요!`, '⚔️');
-    for (const type of roster(raid.count)) {
+    showToast(`사냥꾼 습격 ${raid.count}차! ${where}에서 몰려옵니다. 마을 용들과 함께 막아내세요!`, '⚔️');
+    const list = roster(raid.count);
+    if (list.includes('TRAPPER') && !state.story.flags?.sawTrapper) { (state.story.flags = state.story.flags || {}).sawTrapper = true; showToast('그물꾼이 섞여 있다. 느리게 날아오는 그물은 보고 피하자.', '🕸️'); }
+    list.forEach((type, i) => {
+        const side = sides[i % sides.length];
         // 마을 가장자리 바깥, 그 변을 따라 흩어져서 등장
         const spread = rand(-260, 260);
         const b = currentMapBounds();
@@ -80,7 +107,7 @@ export function triggerRaid(kind = null) {
         h.maxHp = h.hp = Math.round(h.hp * (1 + 0.12 * (raid.count - 1)));   // 회차가 오를수록 단단해진다
         h.power = 1 + 0.08 * (raid.count - 1);
         state.entities.humans.push(h);
-    }
+    });
 }
 
 function spawnWar() {

@@ -39,44 +39,72 @@ export const BIOME_ENEMIES = {
 };
 
 // 보스. 드래곤 시트를 크게 그려 쓴다. unlock: 처치 시 해금되는 속성
+//   phases  체력이 at(비율) 아래로 내려가면 다음 판으로 넘어간다. 체력통을 늘리는 게 아니라 패턴 구성이 바뀐다.
+//           넘어갈 때 한마디(say)를 하고, 날아오던 탄이 걷히고, 잠깐 숨을 고른다. 쓰러지면 처음부터 다시다.
+//           싸움 전체가 3~4분을 넘지 않게 체력을 잡는다 (text/story-bible.md 10절)
 export const BOSSES = {
     MORGATH: {
         needs: 'ev_morgath',   // 이 사건을 겪기 전에는 둥지가 비어 있다
         name: '뼈용 모르가스', title: '달빛 골짜기의 주인', species: 'BONE', colors: { body: '#ffffff', wing: '#ffffff' },
         x: 4400, y: 1500, scale: 2.0, hp: 1100, speed: 120, contact: 18, xp: 600,
         element: 'ICE', unlock: 'ICE', revive: true, patterns: ['RING', 'SUMMON', 'AIMED', 'BONE_RAIN'],
+        phases: [
+            { at: 1, name: '뼈의 울음', patterns: ['RING', 'AIMED', 'BONE_RAIN'] },
+            { at: 0.55, name: '부르는 소리', say: '「아직… 아직은 갈 수가 없다.」', patterns: ['SUMMON', 'BONE_RAIN', 'AIMED', 'RING'] },
+        ],
     },
     ZALGORA: {
         needs: 'ev_zalgora',   // 이 사건을 겪기 전에는 둥지가 비어 있다
         name: '쌍두룡 잘고라', title: '환영의 밀림의 폭군', species: 'HYDRA', colors: { body: '#a3262b', wing: '#e0a020' },
-        x: 1500, y: 4400, scale: 1.9, hp: 1700, speed: 150, contact: 22, xp: 900,
+        x: 1500, y: 4400, scale: 1.9, hp: 1600, speed: 150, contact: 22, xp: 900,
         element: 'THUNDER', unlock: 'THUNDER', twin: true, patterns: ['TWIN_BEAM', 'AIMED', 'SPIRAL', 'AIMED', 'CHARGE'],
+        phases: [
+            { at: 1, name: '오른쪽 머리', patterns: ['AIMED', 'SPIRAL', 'AIMED'] },
+            { at: 0.66, name: '왼쪽 머리', say: '「비켜, 이번에는 내 차례다!」', patterns: ['TWIN_BEAM', 'CHARGE', 'AIMED'] },
+            { at: 0.33, name: '두 머리', say: '「내가 왕이다!」 「아니, 내가!」', patterns: ['TWIN_BEAM', 'SPIRAL', 'CHARGE', 'TWIN_BEAM'] },
+        ],
     },
     GLACIA: {
         needs: 'ev_glacia',   // 이 사건을 겪기 전에는 둥지가 비어 있다
         name: '서리 여왕 글라시아', title: '얼어붙은 봉우리의 지배자', species: 'WYVERN', colors: { body: '#cfeaff', wing: '#7fb8ff' },
-        x: 6800, y: 1600, scale: 2.1, hp: 2600, speed: 165, contact: 24, xp: 1300,
+        x: 6800, y: 1600, scale: 2.1, hp: 2300, speed: 165, contact: 24, xp: 1300,
         element: 'ICE', unlock: null, patterns: ['HOMING', 'ICE_FIELD', 'BLIZZARD', 'RING', 'HOMING'],
+        phases: [
+            { at: 1, name: '서리', patterns: ['HOMING', 'RING', 'HOMING'] },
+            { at: 0.66, name: '얼어붙는 바닥', say: '「이 산에는 아무도 들이지 않는다.」', patterns: ['ICE_FIELD', 'HOMING', 'ICE_FIELD', 'RING'] },
+            { at: 0.33, name: '눈보라', say: '「예순 개였다… 예순 개를 내가…」', patterns: ['BLIZZARD', 'HOMING', 'ICE_FIELD', 'BLIZZARD'] },
+        ],
     },
     BASIL: {
         needs: 'ev_basil',   // 이 사건을 겪기 전에는 둥지가 비어 있다
         name: '모래 폭군 바실', title: '죽은 사구의 포식자', species: 'BEHEMOTH', colors: { body: '#c9a24a', wing: '#8a5a2a' },
-        x: 2000, y: 6800, scale: 2.1, hp: 3200, speed: 140, contact: 30, xp: 1600,
+        x: 2000, y: 6800, scale: 2.1, hp: 2800, speed: 140, contact: 30, xp: 1600,
         element: 'FIRE', unlock: null, chargeChain: true, patterns: ['BURROW', 'CHARGE', 'QUAKE', 'AIMED', 'BURROW'],
+        phases: [
+            { at: 1, name: '모래 위', patterns: ['AIMED', 'CHARGE', 'AIMED'] },
+            { at: 0.66, name: '모래 밑', patterns: ['BURROW', 'QUAKE', 'BURROW'] },
+            { at: 0.33, name: '폭주', patterns: ['BURROW', 'CHARGE', 'QUAKE', 'CHARGE'] },
+        ],
     },
     IGNAR: {
         needs: 'ev_ignar',   // 이 사건을 겪기 전에는 둥지가 비어 있다
         name: '고룡 이그나르', title: '하늘에서 떨어진 재앙', species: 'SHADOW', colors: { body: '#3a2a4a', wing: '#ff5a1f' },
-        x: 6700, y: 6700, scale: 2.0, hp: 4500, speed: 175, contact: 32, xp: 3000,
-        element: 'FIRE', unlock: null, phase2: true, patterns: ['METEOR_RAIN', 'AIMED', 'FLAME_WALL', 'CHARGE', 'SPIRAL'],
+        x: 6700, y: 6700, scale: 2.0, hp: 4000, speed: 175, contact: 32, xp: 3000,
+        element: 'FIRE', unlock: null, glow: true, patterns: ['METEOR_RAIN', 'AIMED', 'FLAME_WALL', 'CHARGE', 'SPIRAL'],
+        phases: [
+            { at: 1, name: '제 숨결', patterns: ['AIMED', 'FLAME_WALL', 'SPIRAL'] },
+            { at: 0.66, name: '빼앗은 숨결', say: '「네가 받았다는 그 숨결들이 나한테는 하나도 주어지지 않았다.」', summon: ['CULTIST', 'MAGMA_SLIME'], patterns: ['METEOR_RAIN', 'CHARGE', 'FLAME_WALL', 'AIMED'] },
+            { at: 0.33, name: '하늘에서 떨어진 것', say: '「좋다, 그렇다면 끝까지 와 봐라.」', patterns: ['METEOR_RAIN', 'SPIRAL', 'CHARGE', 'METEOR_RAIN'] },
+        ],
     },
 };
 
-// 마을을 습격하는 인간 사냥꾼. range: 공격 사거리, attack: 'MELEE' | 'ARROW' | 'ORB'
+// 마을을 습격하는 인간 사냥꾼. range: 공격 사거리, attack: 'MELEE' | 'ARROW' | 'ORB' | 'NET'(맞으면 느려진다)
 export const HUNTERS = {
     KNIGHT:  { name: '기사',        sprite: [0, 8], hp: 80,  speed: 90, range: 42,  attack: 'MELEE', damage: 10, cooldown: 1.6, xp: 70,  gold: 8 },
     ARCHER:  { name: '궁수',        sprite: [4, 8], hp: 60,  speed: 95, range: 270, attack: 'ARROW', damage: 8,  cooldown: 2.0, xp: 70,  gold: 8 },
     MAGE:    { name: '마법사',      sprite: [0, 7], hp: 70,  speed: 80, range: 320, attack: 'ORB',   damage: 12, cooldown: 2.6, xp: 90,  gold: 12 },
+    TRAPPER: { name: '그물꾼',      sprite: [4, 8], hp: 70,  speed: 100, range: 240, attack: 'NET',   damage: 4,  cooldown: 3.2, xp: 85,  gold: 10 },
     HEAVY:   { name: '중갑 기사',   sprite: [1, 8], hp: 200, speed: 62, range: 46,  attack: 'MELEE', damage: 18, cooldown: 2.0, xp: 120, gold: 16 },
     CAPTAIN: { name: '사냥꾼 대장', sprite: [1, 8], hp: 520, speed: 78, range: 60,  attack: 'MELEE', damage: 24, cooldown: 1.8, xp: 400, gold: 80, scale: 5 },
 };

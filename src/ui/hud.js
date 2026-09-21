@@ -1,3 +1,4 @@
+import { canFuse } from '../data/elements.js';
 import { state } from '../core/state.js';
 import { showToast } from './toast.js';
 import { npcName } from '../data/npcs.js';
@@ -100,7 +101,7 @@ export function updateHud() {
     $('twig-slot').style.display = state.den.built ? 'none' : '';
     $('ui-twigs').textContent = `${state.den.twigs}/8`;
     const ult = $('ult-slot');
-    ult.style.display = p.stageIndex >= 4 ? '' : 'none';
+    ult.style.display = canFuse(p) ? '' : 'none';
     ult.classList.toggle('ready', p.ult >= 100);
     ult.lastElementChild.style.height = (100 - p.ult) + '%';
     el.raidInfo.textContent = raidStatusText();

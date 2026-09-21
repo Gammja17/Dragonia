@@ -63,6 +63,9 @@ export class Human extends Entity {
         const aim = Math.atan2(target.y - 30 - (this.y - 16), target.x - this.x);
         if (def.attack === 'ARROW') {
             addBullet(new Projectile(this.x, this.y - 16, aim, { faction: 'ENEMY', kind: 'ARROW', damage: def.damage * this.power, speed: 520 }));
+        } else if (def.attack === 'NET') {
+            // 그물은 느리게 날아오니 보고 피할 수 있다. 맞으면 한동안 느려진다
+            addBullet(new Projectile(this.x, this.y - 16, aim, { faction: 'ENEMY', kind: 'ARROW', damage: def.damage * this.power, speed: 300, life: 1.6, slow: 2.6 }));
         } else if (def.attack === 'ORB') {
             addBullet(new Projectile(this.x, this.y - 16, aim, { faction: 'ENEMY', element: 'FIRE', damage: def.damage * this.power, speed: 300, life: 2.4, scale: 0.7 }));
         } else if (target === state.entities.nests[0]) {

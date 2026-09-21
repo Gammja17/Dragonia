@@ -22,6 +22,7 @@ export const LESSONS = [
 ];
 
 // 승급 시험: 레벨이 차도 스승과 겨뤄 이겨야 다음 단계로 자란다. stage: 도달할 단계 번호
+// (고룡까지다. 예전의 '삼원룡' 시험은 없앴다 — 숨결 셋을 하나로 엮는 건 스승을 이겨서 되는 일이 아니다)
 export const TRIALS = [
     // 몸이 자라는 건 레벨만으로 되지 않는다. 스승에게 배운 만큼, 마을에서 겪은 만큼 자란다.
     //   needs(s)  이게 참이어야 시험을 청할 수 있다
@@ -43,12 +44,6 @@ export const TRIALS = [
         needs: (s) => s.story.lessons.length >= 6 && Object.keys(s.bossesDefeated).length >= 1,
         why: '고룡은 마을 안에서 안 나온다. 바깥의 큰 놈을 하나는 잡고 와라.',
         intro: "[고룡]은 나도 못 가 본 자리다. 거기 가고 싶으면 나를 넘어서 가라.",
-    },
-    {
-        stage: 4, hp: 700,
-        needs: (s) => s.story.lessons.length >= 8 && Object.keys(s.bossesDefeated).length >= 3,
-        why: '셋을 하나로 엮는 일이다. 큰 놈들을 더 잡고 와라.',
-        intro: "불, 얼음, 번개를 한 몸에. 얘기로만 듣던 [삼원룡]이다. 내 전부로 막을 테니 넘어라.",
     },
 ];
 
