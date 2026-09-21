@@ -1,5 +1,5 @@
 import { mulberry32 } from '../core/utils.js';
-import { TILE_SRC, TILE_SCALE, TILE, GRASS, GRASS_DECOR, DIRT, WATER, NEST_RING } from '../data/tiles.js';
+import { TILE_SRC, TILE_SCALE, TILE, GRASS, GRASS_DECOR, DIRT, WATER, CLIFF, CLIFF_FACE, NEST_RING } from '../data/tiles.js';
 import { BIOMES } from './biomes.js';
 import { getTileImage } from './terrain.js';
 
@@ -12,8 +12,11 @@ import { getTileImage } from './terrain.js';
 export const COARSE_TILES = 2;                       // 큰 칸 한 변의 타일 수
 export const COARSE_PX = TILE * COARSE_TILES;        // 큰 칸 한 변의 월드 px (96)
 
-const GRASS_ID = 0, DIRT_ID = 1, WATER_ID = 2;
-const GROUND_NAMES = ['GRASS', 'DIRT', 'WATER'];
+const GRASS_ID = 0, DIRT_ID = 1, WATER_ID = 2, CLIFF_ID = 3;
+const GROUND_NAMES = ['GRASS', 'DIRT', 'WATER', 'CLIFF'];
+
+// 절벽 네모의 아래 세 줄은 아래로 늘어진 바위 면이 되고, 그 위가 고원 윗면(풀밭)이 된다
+const FACE_ROWS = 3;
 
 /** 큰 칸 좌표 → 그 칸 중심의 월드 좌표 */
 export const coarseCenter = (c) => (c + 0.5) * COARSE_PX;
@@ -36,6 +39,33 @@ function pickTile(kinds, tw, th, set, tx, ty) {
     return list[0];
 }
 
+// 이 칸 아래로 절벽이 몇 칸 이어지는가. 0 이면 절벽의 맨 아랫줄이다
+function cliffDepth(kinds, tw, th, tx, ty) {
+    let n = 0;
+    for (let y = ty + 1; y < th && kinds[y * tw + tx] === CLIFF_ID; y++) n++;
+    return n;
+}
+
+/**
+ * 고원 윗면의 테두리를 고른다. pickTile 과 방식은 같지만 "같은 것"의 기준이 다르다 —
+ * 절벽 칸이면 다 같다고 보면 아래로 늘어진 바위 면까지 한 덩어리가 되어
+ * 고원의 아래쪽 테두리(S)가 사라진다. 그래서 '고원 윗면'끼리만 같다고 본다.
+ */
+function pickCliffTile(kinds, tw, th, tx, ty) {
+    const same = (dx, dy) => {
+        const x = tx + dx, y = ty + dy;
+        if (x < 0 || y < 0 || x >= tw || y >= th) return true;
+        return kinds[y * tw + x] === CLIFF_ID && cliffDepth(kinds, tw, th, x, y) >= FACE_ROWS;
+    };
+    let key = (same(0, -1) ? '' : 'N') + (same(0, 1) ? '' : 'S') + (same(-1, 0) ? '' : 'W') + (same(1, 0) ? '' : 'E');
+    if (!key) key = 'C';                      // 네모로만 세우니 오목한 모서리는 생기지 않는다
+    const list = CLIFF[key] || CLIFF.C;
+    const px = tx % 2 ? 0 : 1, py = ty % 2 ? 0 : 1;
+    if (list.length === 4) return list[py * 2 + px];
+    if (list.length === 2) return list[key === 'N' || key === 'S' ? px : py];
+    return list[0];
+}
+
 /**
  * 지도 한 장을 만든다.
  *   spec.cw, spec.ch   큰 칸 수 (한 칸 96px)
@@ -45,6 +75,7 @@ function pickTile(kinds, tw, th, set, tx, ty) {
  *   spec.ponds         [[cx, cy, r], ...] 물웅덩이
  *   spec.roads         [[[cx,cy],[cx,cy], ...], ...] 이어 걷는 흙길
  *   spec.nests         [[cx, cy], ...] 둥지 돌무더기 자리
+ *   절벽은 spec 에 적지 않는다 — 바이옴이 정한 수만큼(world/biomes.js 의 cliffs) 저절로 선다
  */
 export function buildMap(spec) {
     const cw = spec.cw, ch = spec.ch;
@@ -103,6 +134,27 @@ export function buildMap(spec) {
             }
             fill(tx2, ty2, kindAt(tx2, ty2) === WATER_ID ? WATER_ID : DIRT_ID);
         }
+    }
+
+    // 5) 절벽: 직사각형 바위 고원. 길을 막아 지도에 "돌아가는 길"이 생긴다.
+    //    네모로만 세우는 건 타일 때문이다 — 오목한 모서리용 타일이 시트에 없다.
+    //    둘레 한 칸까지 전부 풀일 때만 세워서 길·물·광장·둥지를 덮지 않는다.
+    //    가장자리에서 세 칸 떨어뜨리는 건 포탈이 변 한가운데에 놓이기 때문이다.
+    const cliffCount = (BIOMES[spec.biome] || {}).cliffs || 0;
+    for (let made = 0, tries = 0; made < cliffCount && tries < 300; tries++) {
+        const bw = 3 + Math.floor(rng() * 3), bh = 3 + Math.floor(rng() * 2);
+        if (cw - bw - 6 < 1 || ch - bh - 6 < 1) break;              // 지도가 너무 작으면 포기
+        const bx = 3 + Math.floor(rng() * (cw - bw - 6));
+        const by = 3 + Math.floor(rng() * (ch - bh - 6));
+        let clear = true;
+        for (let y = by - 1; y <= by + bh && clear; y++) {
+            for (let x = bx - 1; x <= bx + bw; x++) {
+                if (kindAt(x, y) !== GRASS_ID || isNestCell(x, y)) { clear = false; break; }
+            }
+        }
+        if (!clear) continue;
+        for (let y = by; y < by + bh; y++) for (let x = bx; x < bx + bw; x++) fill(x, y, CLIFF_ID);
+        made++;
     }
 
     return {
@@ -168,6 +220,13 @@ function bake(kinds, tw, th, spec, rng) {
         let t;
         if (id === DIRT_ID) t = pickTile(kinds, tw, th, DIRT, tx, ty);
         else if (id === WATER_ID) t = pickTile(kinds, tw, th, WATER, tx, ty);
+        else if (id === CLIFF_ID) {
+            // 아래 세 줄은 늘어진 바위 면(맨 아랫줄은 둥근 마감), 그 위는 고원 윗면
+            const below = cliffDepth(kinds, tw, th, tx, ty);
+            if (below === 0) t = CLIFF_FACE.foot[tx % 2];
+            else if (below < FACE_ROWS) t = CLIFF_FACE.body[tx % 2];
+            else t = pickCliffTile(kinds, tw, th, tx, ty);
+        }
         else if (rng() < 0.09) t = GRASS_DECOR[Math.floor(rng() * GRASS_DECOR.length)];   // 풀밭이 너무 반반해서 꽃·잔돌을 조금 더 섞는다
         else t = GRASS[(ty % 2) * 2 + (tx % 2)];
         g.drawImage(sheet, t[0] * TILE_SRC, t[1] * TILE_SRC, TILE_SRC, TILE_SRC, tx * TILE_SRC, ty * TILE_SRC, TILE_SRC, TILE_SRC);
