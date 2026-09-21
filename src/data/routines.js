@@ -92,6 +92,38 @@ export const ROUTINES = {
         raid: { map: 'VILLAGE', spot: [15, 7], doing: '대장간 앞을 지키고 서 있다' },
     },
 
+    // ── 엠버: 그론의 조수. 제 굴이 없다. 대장간 구석에서 잔다 ─────────────
+    Ember: {
+        job: '대장간 조수',
+        day: [
+            { h: 0,  map: 'VILLAGE', spot: [16, 8],  doing: '대장간 구석 화덕 옆에 웅크려 자고 있다' },
+            { h: 6,  map: 'VILLAGE', spot: [16, 8],  doing: '하품을 하며 풀무를 밟고 있다' },
+            { h: 9,  map: 'VILLAGE', spot: [16, 7],  doing: '그론한테 혼나면서 쇠를 나르고 있다' },
+            { h: 13, map: 'VILLAGE', spot: [14, 9],  doing: '그론이 없는 틈에 게으름을 피우고 있다' },
+            { h: 16, map: 'VILLAGE', spot: [16, 7],  doing: '휘어진 못을 몰래 펴고 있다' },
+            { h: 20, map: 'VILLAGE', spot: [13, 11], doing: '모닥불 앞에서 제일 크게 떠들고 있다' },
+            { h: 23, map: 'VILLAGE', spot: [16, 8],  doing: '대장간 구석으로 자러 간다' },
+        ],
+        rain: { map: 'VILLAGE', spot: [16, 8], doing: '비 새는 데를 찾아 양동이를 받치고 있다' },
+        raid: { map: 'VILLAGE', spot: [16, 8], doing: '그론 옆에서 망치를 들고 서 있다' },
+    },
+
+    // ── 미라: 약초꾼. 해 질 녘이면 폭포 쪽에 가 있다 ──────────────────────
+    Mira: {
+        job: '약초꾼',
+        day: [
+            { h: 0,  map: 'VILLAGE', spot: [8, 5],   doing: '약초 말리는 시렁 옆에서 자고 있다' },
+            { h: 7,  map: 'VILLAGE', spot: [8, 5],   doing: '말린 약초를 하나하나 뒤집고 있다' },
+            { h: 10, map: 'LAKE',    spot: [12, 9],  doing: '물가에서 약초를 캐고 있다' },
+            { h: 14, map: 'VILLAGE', spot: [9, 7],   doing: '엘더의 무릎약을 달이고 있다' },
+            { h: 17, map: 'FALLS',   spot: [9, 10],  doing: '약초를 캔다며 폭포 쪽을 서성이고 있다' },
+            { h: 21, map: 'VILLAGE', spot: [11, 11], doing: '모닥불 곁에서 말없이 웃고 있다' },
+            { h: 23, map: 'VILLAGE', spot: [8, 5],   doing: '시렁 옆 잠자리로 돌아간다' },
+        ],
+        rain: { map: 'VILLAGE', spot: [8, 5], doing: '젖기 전에 약초를 걷어 들이고 있다' },
+        raid: { map: 'VILLAGE', spot: [9, 9], doing: '다친 용을 뒤로 끌어내고 있다' },
+    },
+
     // ── 포코: 막내. 일이랄 게 없다 ──────────────────────────────────────
     Poco: {
         job: '심부름꾼',

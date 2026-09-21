@@ -50,6 +50,18 @@ export const FIXED_NPCS = [
         species: 'LOOK', look: 22, accessory: 'HAT', colors: { body: '#8a2f2a', belly: '#d8a24a', wing: '#3a2a2a' }, element: 'FIRE', maxHp: 600, power: 16, scale: 1.18,
         x: 2448, y: 1000,   // 수련장
     },
+    {
+        // 엠버: 그론의 조수. 떠돌다 눌러앉았다. 손도 입도 빠르고, 맨날 혼난다 (text/story-bible.md 4절)
+        name: 'Ember', personality: 'PLAYFUL', canPartner: false,
+        species: 'LOOK', look: 11, accessory: null, scale: 0.9, colors: { body: '#b8323a', belly: '#e8a07a', wing: '#7a1f2a' }, element: 'FIRE', maxHp: 260, power: 9,
+        x: 1500, y: 1180,   // 대장간 옆
+    },
+    {
+        // 미라: 약초를 캐고 다친 용을 돌본다. 약초 핑계로 폭포 쪽에 자주 간다
+        name: 'Mira', personality: 'WISE', canPartner: false,
+        species: 'LOOK', look: 7, accessory: 'LEAF', scale: 0.95, colors: { body: '#4f7f4a', belly: '#b8d89a', wing: '#8a6a3a' }, element: 'ICE', maxHp: 240, power: 8,
+        x: 900, y: 900,
+    },
 
     // ---- 구름마루 마을. 폭포 위에 사는 동양용들 ----
     // 우리 마을과는 오래 서로를 모른 척해 왔다. 몸이 길고, 날개보다 물을 탄다.
@@ -79,10 +91,10 @@ export const FIXED_NPCS = [
     },
 ];
 
-export const WANDER_NAMES = ['Kirin', 'Raze', 'Mira', 'Dusk', 'Iro', 'Sora', 'Flint', 'Ember'];   // 나라·구름마루 용들은 고정 NPC라 뺀다
+export const WANDER_NAMES = ['Kirin', 'Raze', 'Dusk', 'Iro', 'Sora', 'Flint'];   // 나라·엠버·미라·구름마루 용들은 고정 NPC라 뺀다
 // 몸이 긴 동양용 외형(3 · 8 · 12 · 14 · 16)은 떠돌이에게 주지 않는다.
 // 12는 엘더, 나머지는 구름마루 용들 것이고, 9는 나라 것이다
-export const WANDER_LOOKS = [0, 1, 2, 5, 7, 10, 11, 13, 15, 19];
+export const WANDER_LOOKS = [0, 1, 2, 5, 10, 13, 15, 19];   // 7은 미라, 11은 엠버
 export const WANDER_ACCESSORIES = [null, null, 'LEAF', 'FLOWER', 'PLUME'];
 export const WANDER_PERSONALITIES = ['WISE', 'BRAVE', 'PLAYFUL', 'GRUMPY'];
 // 'RIVAL' 은 나라 전용 성격이라 떠돌이에게는 주지 않는다

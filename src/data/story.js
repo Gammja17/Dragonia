@@ -109,12 +109,16 @@ export const SCENES = [
     },
     // (예전 ch2 "자라는 날개"는 퀘스트 m2 와 같은 말을 두 번 해서 뺐다)
     {
-        id: 'ch3', title: '3장. 사냥꾼', when: s => s.story.yesterday.raid && s.story.scenes.includes('ch1'),   // "어제 습격 봤지?" 로 여는 장면이라, 정말 어제 막아 낸 날 아침에만
+        // "어제 습격"으로 여는 장면이라, 정말 어제 막아 낸 날 아침에만 나온다
+        id: 'ch3', title: '2장. 다음 날 아침', when: s => s.story.yesterday.raid && s.story.scenes.includes('ch1'), place: 'VILLAGE',
         lines: [
-            { who: 'Tiamat', text: "어제 습격 봤지? 놈들은 알을 노려. 우리 씨를 말리려는 거야." },
+            { who: 'Poco', text: "(눈 밑이 퀭하다.) …나 한숨도 못 잤어. 모루 밑이 생각보다 좁아." },
+            { who: 'Tiamat', text: "다친 용은 없어. 미라가 다 봤대. 너는? 어디 긁힌 데 없어?" },
             { who: 'Nara', text: "알을 왜 노려, 치사하게… 싸울 거면 우리랑 싸우든가." },
-            { who: 'Kairon', text: "인간이 이 숲을 찾아낸 건 [이그나르] 때문이다. 놈이 인간 도시를 태웠고, 그 원한이 우리한테 돌아왔다." },
-            { who: 'Elder', text: "그 얘기는 아직 이르다, 카이론. 아이야, 지금은 세지는 데만 신경 써라." },
+            { who: 'Kairon', text: "인간들이 왜 저러는지는 알아 둬라. 예순 해 전에—" },
+            { who: 'Elder', text: "카이론. 그 얘기는 아직 이르다." },
+            { who: 'Kairon', text: "…영감은 맨날 이르다지. 알았소." },
+            { who: 'Elder', text: "아이야, 지금은 밥 잘 먹고 크는 것만 생각하려무나." },
         ],
     },
     {
