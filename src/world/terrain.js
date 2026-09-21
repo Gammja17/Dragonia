@@ -14,7 +14,7 @@ let active = null;
 /** 게임 시작 전에 한 번. 타일 시트를 받고 바이옴별 색상판을 만들어 둔다 */
 export async function preloadTerrain() {
     images = await loadImages(TILE_IMAGES);
-    // 색상판 3~6: 초록 숲 시트를 다시 칠해 설원·화산·단풍·사막을 만든다 (키는 ground4, trees4 … 식)
+    // 색상판 3~7: 초록 숲 시트를 다시 칠해 설원·화산·단풍·사막·구름 위를 만든다 (키는 ground4, trees4 … 식)
     RECOLOR_NAMES.forEach((name, i) => {
         for (const base of ['ground', 'trees', 'props']) images[base + (4 + i)] = recolor(images[base], name, base === 'ground');
     });

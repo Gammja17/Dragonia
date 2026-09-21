@@ -17,6 +17,7 @@ const KEYMAP = {
     KeyP: 'kids',          // 가족
     KeyO: 'mute',          // 소리
     KeyU: 'hideUi',        // 좌우 UI 접기·펴기
+    KeyZ: 'fly',           // 날아오르기·내려앉기 (성체부터)
     KeyQ: 'skillQ', KeyF: 'skillF', KeyR: 'skillR',
     KeyB: 'skillbook',     // K 와 같다 (손에 익은 사람용)
     KeyX: 'ultimate',

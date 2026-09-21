@@ -178,7 +178,7 @@ function populate(id) {
     for (const p of portals) {
         const s = portalSpot(map, p.side);
         const gate = new Prop(s.x, s.y, 'PORTAL');
-        gate.portal = { side: p.side, to: p.to, name: p.name || mapName(p.to) };
+        gate.portal = { side: p.side, to: p.to, name: p.name || mapName(p.to), needsFlight: !!p.needsFlight };
         pools.props.push(gate);
     }
 
@@ -335,6 +335,9 @@ export function enterMap(id, { from = null, spot = null } = {}) {
     const leaving = state.entities && state.entities.nests && state.entities.nests[0];
     if (leaving) state.denNest = { hasEgg: leaving.hasEgg, progress: leaving.progress, genes: leaving.genes };
 
+    // 소품(나무·덤불)은 만들어질 때 activeBiome() 으로 색상판을 고른다. 지도를 먼저 활성화하지 않으면
+    // 설원·화산·구름 위의 나무가 직전 지도의 초록 시트로 나온다
+    setActiveMap(getMap(id));
     const { map, pools } = populate(id);
     state.mapId = id;
     state.indoors = !!DENS[id];
@@ -393,6 +396,8 @@ export function updatePortals() {
     if (state.raid.active) { showToast('사냥꾼이 마을을 치고 있다. 지금 떠날 수는 없다.', '⚔️'); return; }
     // 폭포 위는 남의 마을이다. 모임에 한 번 나가 봐야 올라갈 수 있다 (systems/gathering.js)
     if (gate.portal.to === 'CLOUDTOP' && !invitedUp()) { blockAtBorder(); return; }
+    // 하늘길. 날고 있어야 건넌다 (Z)
+    if (gate.portal.needsFlight && !p.flying) { if (!p.flyNag || state.gameTime - p.flyNag > 4) { p.flyNag = state.gameTime; showToast(p.stageIndex >= 2 ? '여기서부터는 하늘이다. 날아야 건넌다.' : '여기서부터는 하늘이다. 성체가 되어야 날 수 있다.', '☁️'); } return; }
     // 굴에서 나올 때는 들어갔던 입구 앞에 선다 (side 가 없다)
     const spot = gate.portal.spot ? { x: gate.portal.spot.x, y: gate.portal.spot.y + 84 } : null;
     travelTo(gate.portal.to, gate.portal.side ? OPPOSITE[gate.portal.side] : null, spot);

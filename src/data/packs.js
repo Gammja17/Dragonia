@@ -8,6 +8,12 @@
 //   lead: true                 그 자리에 정예(대장)를 세운다
 
 export const PACKS = {
+    SKY: [
+        { w: 4, units: [{ t: 'BAT', n: 4 }] },
+        { w: 3, units: [{ t: 'GHOST', n: 2 }] },
+        { w: 2, units: [{ t: 'SNOW_BAT', n: 3 }] },
+        { w: 1, units: [{ t: 'GHOST', n: 1, lead: true }, { t: 'BAT', n: 4 }] },
+    ],
     FOREST: [
         { w: 4, units: [{ t: 'SLIME', n: 2 }] },
         { w: 3, units: [{ t: 'GOBLIN', n: 3 }] },

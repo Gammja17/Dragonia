@@ -30,6 +30,12 @@ const RECOLORS = {
         if (isWater(h)) return [178, s * 0.9, 0.2 + l * 0.9];
         return [h, s, l];
     },
+    SKY(h, s, l) {        // 구름 위. 땅은 구름(흰빛), 물 자리는 뚫린 하늘(밝은 파랑)
+        if (isLeaf(h)) return [210, s * 0.12, 0.62 + l * 0.42];
+        if (isEarth(h)) return [215, s * 0.18, 0.5 + l * 0.45];
+        if (isWater(h)) return [205, 0.75, 0.5 + l * 0.5];
+        return [h, s, l];
+    },
 };
 
 export const RECOLOR_NAMES = Object.keys(RECOLORS);

@@ -17,7 +17,7 @@ const BUTTONS = [
     ['ultimate', 'X',    1.75, 2.55, 0.8],
 ];
 const TOP_BUTTONS = [
-    ['skillbook', '스킬'], ['journal', '일지'], ['kids', '가족'], ['eat', '먹기'], ['zoom', '시점'], ['hideUi', 'UI'],
+    ['skillbook', '스킬'], ['journal', '일지'], ['kids', '가족'], ['eat', '먹기'], ['zoom', '시점'], ['fly', '비행'], ['hideUi', 'UI'],
     ['num1', '1'], ['num2', '2'], ['num3', '3'],
 ];
 

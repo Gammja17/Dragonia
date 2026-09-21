@@ -17,7 +17,7 @@ const BIOME_TRACK = {
     VILLAGE: 'village', LAKE: 'lake', FOREST: 'forest', JUNGLE: 'jungle', HOLLOW: 'hollow',
     SNOW: 'snow', VOLCANO: 'volcano', AUTUMN: 'autumn', DESERT: 'desert',
     // 폭포 위 마을은 물소리 쪽, 마을 자체는 마을 곡을 같이 쓴다
-    FALLS: 'lake', CLOUDTOP: 'village',
+    FALLS: 'lake', CLOUDTOP: 'village', SKY: 'snow',
 };
 
 const saved = parseFloat(localStorage.getItem(VOL_KEY));

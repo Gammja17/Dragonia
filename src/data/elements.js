@@ -31,7 +31,7 @@ export const ELEMENTS = {
 export const STAGES = [
     { id: 'HATCHLING', name: '해츨링', minLevel: 1,  scale: 0.55, damage: 0.8, speed: 0.95 },
     { id: 'JUVENILE',  name: '어린 용', minLevel: 4,  scale: 0.78, damage: 1.0, speed: 1.0,  unlock: '더 센 숨결' },
-    { id: 'ADULT',     name: '성체',   minLevel: 8,  scale: 1.0,  damage: 1.3, speed: 1.05, unlock: '짝 맺기' },
+    { id: 'ADULT',     name: '성체',   minLevel: 8,  scale: 1.0,  damage: 1.3, speed: 1.05, unlock: '짝 맺기 · 비행 (Z)' },
     { id: 'ELDER',     name: '고룡',   minLevel: 13, scale: 1.2,  damage: 1.7, speed: 1.1 },
     // 숨겨진 단계: 세 숨결을 모두 얻은 고룡만 오를 수 있다. 필살기 [X] 삼원 융합 브레스
     { id: 'PRISM',     name: '삼원룡', minLevel: 16, scale: 1.3,  damage: 2.2, speed: 1.15, unlock: '필살기 [X] 삼원 융합 브레스', needsAllElements: true },

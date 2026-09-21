@@ -37,6 +37,7 @@ export function initAI(e) {
 /** 한 방. 예고 있는 공격만 피해를 준다 */
 function strike(e, mult = 1) {
     const p = state.player;
+    if (p.flying && !e.def.flying) return false;   // 하늘에 있는 놈은 발톱이 안 닿는다
     const dmg = (e.def.hit ?? e.def.damage * 2) * (e.elite ? 1.5 : 1) * (e.frenzied ? 1.35 : 1) * mult;
     if (dist(e, p) < REACH + (e.elite ? 16 : 0) + (e.ai.reach || 0)) {
         p.takeDamage(dmg);

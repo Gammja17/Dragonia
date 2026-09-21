@@ -14,4 +14,5 @@ export const BIOMES = {
     VOLCANO: { name: '화산',          safe: false, palette: 4 },
     AUTUMN:  { name: '단풍숲',        safe: false, palette: 5 },
     DESERT:  { name: '사막',          safe: false, palette: 6 },
+    SKY:     { name: '구름 위',       safe: false, palette: 7 },   // 날아야 갈 수 있다. 물 자리가 뚫린 하늘이다
 };

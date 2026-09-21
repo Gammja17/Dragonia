@@ -34,7 +34,8 @@ import { spawnEffect } from '../render/vfx.js';
 import { showToast } from '../ui/toast.js';
 import { setInteractTarget, toggleHelp, toggleUi } from '../ui/hud.js';
 import { groundAt, currentMapBounds, activeBiome } from '../world/terrain.js';
-import { slideMove } from '../world/collision.js';
+import { DENS } from '../data/dens.js';
+import { slideMove, solidAt } from '../world/collision.js';
 import { nearbyWaystone, openTravelMenu } from '../systems/travel.js';
 import { tryDelveInteract } from '../systems/delve.js';
 import { tryDenInteract } from '../systems/denEnter.js';
@@ -277,6 +278,12 @@ export class Dragon extends Entity {
         }
         const flying = this.sheet ? this.sheet.flying : true;
         this.hoverY = flying ? Math.sin(state.gameTime * 2 + this.animPhase) * 6 : 0;
+        // 날아오르는 중이면 몸이 천천히 떠오르고, 내려앉으면 내려온다 (그리기는 전부 hoverY 를 쓴다)
+        if (this.isPlayer) {
+            const want = this.flying ? -(38 + Math.sin(state.gameTime * 2.4) * 7) * this.stage.scale : 0;
+            this.flyLift = (this.flyLift || 0) + (want - (this.flyLift || 0)) * Math.min(1, dt * 5);
+            this.hoverY += this.flyLift;
+        }
 
         this.moving = false;
         if (this.hurtFlash > 0) this.hurtFlash -= dt;
@@ -298,10 +305,33 @@ export class Dragon extends Entity {
         const len = Math.hypot(dx, dy);
         if (!len) return;
         dx /= len; dy /= len;
-        slideMove(this, this.x + dx * speed * dt, this.y + dy * speed * dt, 20);
+        if (this.flying) { this.x += dx * speed * dt; this.y += dy * speed * dt; }   // 하늘에는 벽이 없다
+        else slideMove(this, this.x + dx * speed * dt, this.y + dy * speed * dt, 20);
         this.angle = Math.atan2(dy, dx);
         this.facing = facingFromVector(dx, dy, this.facing);
         this.moving = true;
+    }
+
+    // ---------- 비행 ----------
+    /** 성체부터 난다. 하늘에서는 벽도 물도 없고 땅의 적이 못 치지만, 배가 세 배로 꺼진다 */
+    toggleFlight() {
+        if (this.flying) { if (this.canLand()) this.land(); else showToast('여기엔 내려앉을 수 없다.', '☁️'); return; }
+        if (this.stageIndex < 2) { showToast('아직 날개가 몸을 못 든다. 성체가 되면 난다.', '🪽'); return; }
+        if (state.dungeon || state.indoors || DENS[state.mapId]) { showToast('천장이 있다. 밖에서 날자.', '🪽'); return; }
+        if (this.fishing || state.activity) return;
+        this.flying = true;
+        this.invuln = Math.max(this.invuln, 0.3);
+        spawnEffect('PUFF', this.x, this.y - 6, { size: 1.4 });
+        play('dash');
+        showToast('날아오른다. 같은 키로 내려앉는다.', '🪽');
+    }
+    /** 발밑이 땅이고 비어 있어야 내려앉는다 */
+    canLand() { return !solidAt(this.x, this.y, 20); }
+    land(msg) {
+        this.flying = false;
+        spawnEffect('PUFF', this.x, this.y - 6, { size: 1.2 });
+        play('dash');
+        if (msg) showToast(msg, '🪽');
     }
 
     // ---------- 플레이어 ----------
@@ -328,12 +358,14 @@ export class Dragon extends Entity {
             this.moveBy(this.dashDir.x, this.dashDir.y, baseSpeed * DASH_MULT, dt);
             burst(this.x, this.y - 30 * this.stage.scale, this.colors.body, 0.35);
         } else if (dx || dy) {
-            this.moveBy(dx, dy, baseSpeed * (input.down('sprint') ? SPRINT_MULT : 1), dt);
-            this.hunger -= 0.35 * dt * this.hungerMult;
+            this.moveBy(dx, dy, baseSpeed * (input.down('sprint') ? SPRINT_MULT : 1) * (this.flying ? 1.45 : 1), dt);
+            this.hunger -= 0.35 * dt * this.hungerMult * (this.flying ? 3 : 1);   // 나는 건 배가 빨리 꺼진다
             markTutorial('moved');
         } else {
-            this.hunger -= 0.08 * dt * this.hungerMult;
+            this.hunger -= 0.08 * dt * this.hungerMult * (this.flying ? 3 : 1);
         }
+        if (input.pressed('fly')) this.toggleFlight();
+        if (this.flying && this.hunger <= 0 && this.canLand()) this.land('배가 꺼져서 내려앉았다.');
         if (hasRelic('LIFE_STONE')) this.hp = Math.min(this.maxHp, this.hp + 1.5 * dt);
         this.hunger = Math.max(0, this.hunger);
 
@@ -359,11 +391,11 @@ export class Dragon extends Entity {
         // 말 걸기는 [Space]. T 도 그대로 쓸 수 있다.
         // 왼쪽 버튼은 브레스라, 탭으로 말 걸기는 터치 기기에서만 (mouse.inside 가 false)
         const tapped = mouse.clicked && !mouse.inside;
-        const wantTalk = input.pressed('confirm') || input.pressed('talk') || (tapped && pointed && pointed === target);
+        const wantTalk = !this.flying && (input.pressed('confirm') || input.pressed('talk') || (tapped && pointed && pointed === target));
         if (tapped && pointed && pointed !== target) showToast('너무 멀어요. 가까이 가서 말을 거세요.', '💬');
         if (wantTalk && target) { if (isKid) openKidHub(target); else startDialogue(target, 'TALK'); }
         else if (wantTalk && nestNear) openNestMenu();
-        else if (input.pressed('confirm')) this.interact();   // 말 걸 상대가 없으면 눈앞의 것을 집는다
+        else if (input.pressed('confirm') && !this.flying) this.interact();   // 말 걸 상대가 없으면 눈앞의 것을 집는다
 
         for (const k in this.cooldowns) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt);
         updateChannels(this, dt);
@@ -787,7 +819,9 @@ export class Dragon extends Entity {
             ctx.beginPath(); ctx.ellipse(0, 0, 40 * sc, 15 * sc, 0, 0, Math.PI * 2); ctx.stroke();
         }
         if (state.talkTarget === this) { ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 3; ctx.globalAlpha = 0.6 + Math.sin(state.gameTime * 6) * 0.3; ctx.beginPath(); ctx.ellipse(0, 0, 46 * sc, 18 * sc, 0, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1; }
-        this.drawShadow(ctx, (this.sheet && !this.sheet.flying ? 26 : 34) * sc);
+        if (this.flying) ctx.globalAlpha = 0.45;
+        this.drawShadow(ctx, (this.sheet && !this.sheet.flying ? 26 : 34) * sc * (this.flying ? 0.7 : 1));
+        ctx.globalAlpha = 1;
         ctx.restore();
 
         if (this.animator) {

@@ -85,7 +85,10 @@ export const MAPS = {
         plaza: [6, 5, 11, 7],
         ponds: [[4, 12, 2], [18, 12, 2]],      // 남쪽 출구는 비워 둔다
         roads: [[[11, 15], [11, 2]], [[2, 8], [19, 8]]],
-        portals: [{ side: 'S', to: 'FALLS', name: '구름 폭포' }],
+        portals: [
+            { side: 'S', to: 'FALLS', name: '구름 폭포' },
+            { side: 'N', to: 'SKY_RUINS', name: '구름 위', needsFlight: true },   // 걸어서는 못 넘는다
+        ],
         fixtures: [
             { t: 'PROP', type: 'FOUNTAIN', at: [11, 8] },
             { t: 'PROP', type: 'HOUSE', at: [7, 6] }, { t: 'PROP', type: 'HOUSE', at: [15, 6] },
@@ -94,6 +97,19 @@ export const MAPS = {
             { t: 'PROP', type: 'BARREL', at: [13, 6] }, { t: 'PROP', type: 'CRATE', at: [9, 9] },
             { t: 'PROP', type: 'SIGN', at: [11, 13] },
             { t: 'WAYSTONE', at: [11, 5] },
+        ],
+    },
+
+    // 구름 위. 성체가 되어 날 수 있어야 온다. 땅은 구름 조각이고 그 사이는 뚫린 하늘이라
+    // 걸어서는 건널 수 없다. 이그나르가 돌던 궤도 아래 옛 용들의 폐허가 남아 있다
+    SKY_RUINS: {
+        name: '구름 위 폐허', biome: 'SKY', cw: 22, ch: 16, seed: 130, trees: 0.06, wanderer: false, chests: 5,
+        ponds: [[4, 4, 3], [17, 4, 3], [4, 12, 3], [17, 12, 3], [14, 11, 2], [11, 3, 2], [7, 8, 2], [15, 6, 2]],   // 가운데 세로줄(11)은 비워 둔다. 석비와 남쪽 문이 걸어서 이어져야 한다
+        portals: [{ side: 'S', to: 'CLOUDTOP', name: '구름마루 마을' }],
+        fixtures: [
+            { t: 'WAYSTONE', at: [11, 7] },
+            { t: 'PROP', type: 'ROCK', at: [10, 6] }, { t: 'PROP', type: 'ROCK', at: [12, 6] },
+            { t: 'PROP', type: 'STUMP', at: [3, 8] }, { t: 'PROP', type: 'STUMP', at: [19, 8] },
         ],
     },
 
@@ -267,14 +283,14 @@ export const MAPS = {
 
 /** 이야기가 흐르는 차례. 미니맵의 '가 볼 곳' 과 빠른 이동 목록을 이 순서로 보여 준다 */
 export const MAP_ORDER = [
-    'VILLAGE', 'LAKE', 'FALLS', 'CLOUDTOP', 'EAST_ROAD', 'DOJO', 'HOLLOW', 'MORGATH_LAIR',
+    'VILLAGE', 'LAKE', 'FALLS', 'CLOUDTOP', 'SKY_RUINS', 'EAST_ROAD', 'DOJO', 'HOLLOW', 'MORGATH_LAIR',
     'SNOW_ROAD', 'GLACIA_LAIR', 'SOUTH_ROAD', 'JUNGLE', 'ZALGORA_LAIR',
     'DESERT', 'BASIL_LAIR', 'AUTUMN', 'VOLCANO', 'IGNAR_LAIR',
 ];
 
 // 일지 [지도] 탭에 그릴 자리 (0~1). 이어진 모양이 손에 잡히게만 잡았다
 export const MAP_POS = {
-    CLOUDTOP: [0.12, 0.10], FALLS: [0.12, 0.32], LAKE: [0.12, 0.55], VILLAGE: [0.32, 0.55],
+    SKY_RUINS: [0.30, 0.06], CLOUDTOP: [0.12, 0.10], FALLS: [0.12, 0.32], LAKE: [0.12, 0.55], VILLAGE: [0.32, 0.55],
     EAST_ROAD: [0.52, 0.55], DOJO: [0.52, 0.30], HOLLOW: [0.72, 0.55], MORGATH_LAIR: [0.92, 0.55],
     SNOW_ROAD: [0.72, 0.30], GLACIA_LAIR: [0.72, 0.08],
     SOUTH_ROAD: [0.32, 0.78], DESERT: [0.12, 0.90], BASIL_LAIR: [0.12, 0.99 - 0.02],
