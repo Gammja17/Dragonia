@@ -56,6 +56,9 @@ const EFFECTS = {
     HEART:    { img: 'heart', life: 0.9, from: 0.25, to: 0.4, spin: 0, rise: 60 },
     AURA:     { img: 'aura', life: 0.8, from: 0.6, to: 1.8, spin: 1, additive: true },
     RING:     { img: 'ring', life: 0.7, from: 0.2, to: 2.2, spin: 0.8, additive: true, light: { r: 300, color: '#ffe9a0' } },
+    // 떨어지는 별의 꼬리 (systems/prologue.js). 다른 효과와 달리 뒤로 갈수록 작아진다 —
+    // 커지면서 사라지는 STAR 로 꼬리를 그리면 뒤가 부풀어 흰 덩어리가 된다
+    METEOR:   { img: 'star', life: 0.34, from: 0.8, to: 0.12, spin: 1.2, additive: true, light: { r: 200, color: '#fff2b0' } },
 };
 
 class Effect {

@@ -368,6 +368,7 @@ export class Dragon extends Entity {
 
     // ---------- 플레이어 ----------
     updatePlayer(dt) {
+        if (state.prologue) { this.moving = false; return; }   // 떨어지던 밤엔 아직 내 몸이 아니다
         const { dx, dy } = input.axis();
         if (this.fishing) this.updateFishing(dt, dx || dy);
         this.dashCd -= dt; this.invuln -= dt; this.fury -= dt; this.guard -= dt; this.slowTimer -= dt; this.gale -= dt;
@@ -820,6 +821,7 @@ export class Dragon extends Entity {
 
     // ---------- 드로잉 ----------
     draw(ctx) {
+        if (this.hidden) return;        // 프롤로그에서 떨어지는 동안: 용이 아니라 빛으로만 보인다
         if (!isOnScreen(this)) return;
         if (this.beam) {                       // 삼원 융합 브레스: 불·얼음·번개 세 가닥이 꼬인 빛줄기
             const b = this.beam, sc0 = this.stage.scale, ox = this.x, oy = this.y - 40 * sc0, k = Math.min(1, b.time * 3);

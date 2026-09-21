@@ -95,6 +95,7 @@ export function resetState() {
         elderTutorialDone: false,
         tutorial: { moved: false, journal: false, ate: false, toured: false, finished: false },
         tour: null,
+        prologue: null,   // 떨어지던 밤 (systems/prologue.js). 새 게임에서만
         player: null,
         partner: null,
         currentNpc: null,

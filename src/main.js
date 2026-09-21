@@ -10,6 +10,7 @@ import { updateRaid } from './systems/raid.js';
 import { updateWeather, drawWeather } from './systems/weather.js';
 import { saveGame, readSave, applySave } from './systems/save.js';
 import { startDialogue, closeDialogue } from './systems/dialogue.js';
+import { startPrologue, updatePrologue, skipPrologue } from './systems/prologue.js';
 import { initHud, showGameUI, updateHud } from './ui/hud.js';
 import { initKidsPanel, refreshKidsPanel } from './ui/kidsPanel.js';
 import { initCustomizer } from './ui/customizer.js';
@@ -86,7 +87,8 @@ async function startGame(config, loadSave = false) {
     showGameUI();
     refreshKidsPanel();
     updateHud();
-    if (!save) setTimeout(() => startDialogue(elder, 'TALK'), 500);
+    // 새 게임이면 떨어지던 밤부터 보여 주고, 그 끝에서 엘더와의 첫 대화로 잇는다
+    if (!save) setTimeout(() => startPrologue(() => startDialogue(elder, 'TALK')), 500);
     lastTime = performance.now();
     requestAnimationFrame(loop);
 }
@@ -103,7 +105,8 @@ function loop(now) {
     if (input.pressed('debug')) showToast(`밸런스 오버레이 ${toggleDebug() ? '켬' : '끔'}`, '🛠️');
     if (mouse.wheel) showToast(`시점: ${stepZoom(mouse.wheel, canvas.width, canvas.height)}`, '🔍');
     if (input.pressed('cancel')) {
-        if (isPlacing()) cancelPlacing();
+        if (state.prologue) skipPrologue();
+        else if (isPlacing()) cancelPlacing();
         else if (isDecorPanelOpen()) closeDecorPanel();
     }
     if (state.isDialogueOpen) {
@@ -113,6 +116,7 @@ function loop(now) {
         update(dt);
     }
     updateCutscene(dt);   // 세계가 멈춰 있어도 띠와 어둠은 계속 움직여야 한다
+    updatePrologue(dt);
 
     followCamera(state.player);
     render();
@@ -120,7 +124,7 @@ function loop(now) {
     hudAccumulator += dt;
     if (hudAccumulator > 0.1) { updateHud(); updateMusic(); hudAccumulator = 0; }
     saveAccumulator += dt;
-    if (saveAccumulator > AUTOSAVE_INTERVAL) { saveGame(); saveAccumulator = 0; }
+    if (saveAccumulator > AUTOSAVE_INTERVAL && !state.prologue) { saveGame(); saveAccumulator = 0; }   // 프롤로그 도중의 한밤중을 저장하지 않는다
 
     input.endFrame();
     requestAnimationFrame(loop);
@@ -166,7 +170,7 @@ function render() {
 
     // 화면 근처 것만 골라 y 좌표 순으로 그린다 (아래쪽 개체가 앞에 오도록)
     const drawables = [...E.props, ...E.nests, ...E.items, ...E.babies, ...E.npcs, ...E.enemies, ...E.humans, ...E.bosses, state.player]
-        .filter(e => isOnScreen(e, 420));
+        .filter(e => !e.hidden && isOnScreen(e, 420));   // hidden: 프롤로그가 잠시 감춰 둔 것들
     // 나무 뒤에 가려지면 안 되는 것들 (entities/Prop.js 가 이 목록을 보고 나무를 투명하게 한다)
     state.fadeTargets = drawables.filter(e => !e.sprite || (e.type === 'CHEST' && !e.opened) || (e.type === 'BERRY' && e.ripe));
     drawables.sort((a, b) => a.y - b.y);
