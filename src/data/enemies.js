@@ -1,24 +1,29 @@
-// 적 정의. sprite: Tiny Dungeon 시트의 타일 좌표 [tx, ty]. move: 'chase' | 'erratic'(박쥐처럼 흔들리며) | 'flee'(사냥감: 공격하지 않고 도망친다)
+// 적 정의. sprite: Tiny Dungeon 시트의 타일 좌표 [tx, ty].
+//   move   행동 (entities/enemyAI.js): chase 덤빔 · charge 돌진 · flank 포위 · kite 사수 ·
+//          burrow 잠복 · guard 방패 · summon 소환 · swarm 떼 · flee 사냥감 · none 허수아비
+//   hit    예고 있는 공격 한 방의 피해 (내 체력 100 기준). damage 는 사수의 탄 피해
+//   minion 소환형이 부르는 졸개
 // meat: 죽을 때 반드시 떨어뜨리는 고기 수 (없으면 45% 확률로 1개)
 // filter: 같은 그림을 색만 바꿔 쓰는 변종 (canvas filter). move 'ranged': 거리를 두고 element 속성 구슬을 쏜다
 export const ENEMIES = {
     DUMMY:   { name: '허수아비', sprite: [6, 5],  hp: 40,  speed: 0,   damage: 0,  xp: 0,   color: '#c9a06a', move: 'none', noLoot: true },
     PREY:    { name: '들쥐',     sprite: [4, 10], hp: 18,  speed: 175, damage: 0,  xp: 8,   color: '#9aa0a8', move: 'flee', meat: 1 },
-    SLIME:   { name: '슬라임',   sprite: [0, 9],  hp: 30,  speed: 50,  damage: 5,  xp: 30,  color: '#2ecc71', move: 'chase', hop: true },
-    GOBLIN:  { name: '고블린',   sprite: [1, 9],  hp: 60,  speed: 110, damage: 6,  xp: 40,  color: '#e0a060', move: 'chase' },
-    RAT:     { name: '밀림쥐',   sprite: [3, 10], hp: 45,  speed: 170, damage: 6,  xp: 45,  color: '#b07a4a', move: 'erratic' },
-    CRAB:    { name: '붉은 게',  sprite: [2, 9],  hp: 120, speed: 70,  damage: 12, xp: 70,  color: '#e74c3c', move: 'chase', meat: 2 },
-    SPIDER:  { name: '독거미',   sprite: [2, 10], hp: 80,  speed: 130, damage: 9,  xp: 65,  color: '#8e5a3c', move: 'chase' },
-    BAT:     { name: '흡혈박쥐', sprite: [0, 10], hp: 50,  speed: 190, damage: 7,  xp: 55,  color: '#c07a4a', move: 'erratic', flying: true },
-    BANDIT:  { name: '도적',     sprite: [4, 9],  hp: 110, speed: 165, damage: 12, xp: 80,  color: '#3f8f5a', move: 'erratic' },
-    CULTIST: { name: '광신도',   sprite: [3, 9],  hp: 95,  speed: 80,  damage: 12, xp: 95,  color: '#7a3b3b', move: 'ranged', element: 'FIRE' },
-    FROST_SLIME: { name: '서리 슬라임', sprite: [0, 9], hp: 90,  speed: 60,  damage: 10, xp: 75, color: '#bfe9ff', move: 'chase', hop: true, filter: 'hue-rotate(40deg) brightness(1.35)' },
-    SNOW_BAT:    { name: '눈박쥐',     sprite: [0, 10], hp: 80, speed: 200, damage: 10, xp: 80, color: '#e8f4ff', move: 'erratic', flying: true, filter: 'grayscale(0.8) brightness(1.7)' },
-    ICE_MAGE:    { name: '서리 주술사', sprite: [3, 9], hp: 120, speed: 75, damage: 13, xp: 110, color: '#7fd4ff', move: 'ranged', element: 'ICE', filter: 'hue-rotate(190deg) brightness(1.2)' },
-    MAGMA_SLIME: { name: '용암 슬라임', sprite: [0, 9], hp: 150, speed: 70, damage: 16, xp: 120, color: '#ff7a2a', move: 'chase', hop: true, filter: 'hue-rotate(-130deg) saturate(2.2)', glow: '#ff7a2a' },
-    EMBER_SPIDER: { name: '불씨 거미',  sprite: [2, 10], hp: 130, speed: 150, damage: 14, xp: 115, color: '#ff5a2a', move: 'chase', filter: 'hue-rotate(-20deg) saturate(2.5) brightness(1.1)' },
-    SAND_CRAB:   { name: '모래 게',    sprite: [2, 9],  hp: 170, speed: 85, damage: 15, xp: 105, color: '#d8b25a', move: 'chase', meat: 2, filter: 'hue-rotate(40deg) saturate(0.7) brightness(1.2)' },
-    GHOST:   { name: '망령',     sprite: [1, 10], hp: 110, speed: 85,  damage: 11, xp: 90,  color: '#cfd8ff', move: 'chase', flying: true, glow: '#9fb4ff' },
+    SLIME:   { name: '슬라임',   sprite: [0, 9],  hp: 30,  speed: 50,  damage: 5,  hit: 8,  xp: 30,  color: '#2ecc71', move: 'chase', hop: true },
+    GOBLIN:  { name: '고블린',   sprite: [1, 9],  hp: 60,  speed: 110, damage: 6,  hit: 11, xp: 40,  color: '#e0a060', move: 'flank' },
+    RAT:     { name: '밀림쥐',   sprite: [3, 10], hp: 45,  speed: 170, damage: 6,  hit: 7,  xp: 45,  color: '#b07a4a', move: 'swarm' },
+    CRAB:    { name: '붉은 게',  sprite: [2, 9],  hp: 120, speed: 70,  damage: 12, hit: 22, xp: 70,  color: '#e74c3c', move: 'charge', meat: 2 },
+    SPIDER:  { name: '독거미',   sprite: [2, 10], hp: 80,  speed: 130, damage: 9,  hit: 15, xp: 65,  color: '#8e5a3c', move: 'burrow' },
+    BAT:     { name: '흡혈박쥐', sprite: [0, 10], hp: 50,  speed: 190, damage: 7,  hit: 6,  xp: 55,  color: '#c07a4a', move: 'swarm', flying: true },
+    BANDIT:  { name: '도적',     sprite: [4, 9],  hp: 110, speed: 165, damage: 12, hit: 14, xp: 80,  color: '#3f8f5a', move: 'flank' },
+    CULTIST: { name: '광신도',   sprite: [3, 9],  hp: 95,  speed: 80,  damage: 9,  hit: 9,  xp: 95,  color: '#7a3b3b', move: 'kite', element: 'FIRE' },
+    WARDEN:  { name: '방패 고블린', sprite: [1, 8], hp: 140, speed: 90,  damage: 10, hit: 16, xp: 110, color: '#9fb4c8', move: 'guard' },
+    FROST_SLIME: { name: '서리 슬라임', sprite: [0, 9], hp: 90,  speed: 60,  damage: 10, hit: 13, xp: 75, color: '#bfe9ff', move: 'chase', hop: true, filter: 'hue-rotate(40deg) brightness(1.35)' },
+    SNOW_BAT:    { name: '눈박쥐',     sprite: [0, 10], hp: 80, speed: 200, damage: 10, hit: 8,  xp: 80, color: '#e8f4ff', move: 'swarm', flying: true, filter: 'grayscale(0.8) brightness(1.7)' },
+    ICE_MAGE:    { name: '서리 주술사', sprite: [3, 9], hp: 120, speed: 75, damage: 13, hit: 13, xp: 110, color: '#7fd4ff', move: 'summon', minion: 'FROST_SLIME', element: 'ICE', filter: 'hue-rotate(190deg) brightness(1.2)' },
+    MAGMA_SLIME: { name: '용암 슬라임', sprite: [0, 9], hp: 150, speed: 70, damage: 16, hit: 20, xp: 120, color: '#ff7a2a', move: 'chase', hop: true, filter: 'hue-rotate(-130deg) saturate(2.2)', glow: '#ff7a2a' },
+    EMBER_SPIDER: { name: '불씨 거미',  sprite: [2, 10], hp: 130, speed: 150, damage: 14, hit: 18, xp: 115, color: '#ff5a2a', move: 'burrow', filter: 'hue-rotate(-20deg) saturate(2.5) brightness(1.1)' },
+    SAND_CRAB:   { name: '모래 게',    sprite: [2, 9],  hp: 170, speed: 85, damage: 15, hit: 26, xp: 105, color: '#d8b25a', move: 'charge', meat: 2, filter: 'hue-rotate(40deg) saturate(0.7) brightness(1.2)' },
+    GHOST:   { name: '망령',     sprite: [1, 10], hp: 110, speed: 85,  damage: 11, hit: 14, xp: 90,  color: '#cfd8ff', move: 'chase', flying: true, glow: '#9fb4ff' },
 };
 
 // 바이옴별 등장 적 (많이 적을수록 자주)

@@ -157,6 +157,7 @@ function render() {
     ctx.translate(-Math.round(cam.x + cam.shakeX), -Math.round(cam.y + cam.shakeY)); // 정수 좌표: 픽셀아트가 떨리지 않게
     drawTerrain(ctx, cam);
     for (const h of E.hazards) h.draw(ctx);   // 바닥 장판은 개체들 밑에
+    for (const e of E.enemies) if (e.drawGround) e.drawGround(ctx);   // 공격 예고는 바닥에
 
     // 화면 근처 것만 골라 y 좌표 순으로 그린다 (아래쪽 개체가 앞에 오도록)
     const drawables = [...E.props, ...E.nests, ...E.items, ...E.babies, ...E.npcs, ...E.enemies, ...E.humans, ...E.bosses, state.player]

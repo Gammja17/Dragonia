@@ -9,6 +9,7 @@ import { getTileImage } from '../world/terrain.js';
 import { drawPixelSprite } from '../render/pixel.js';
 import { getVfxImage, spawnEffect, spawnBolt, spawnText } from '../render/vfx.js';
 import { hitStop } from '../render/feedback.js';
+import { blocksFrom } from './enemyAI.js';
 import { applyStatus } from '../systems/status.js';
 import { hasRelic } from '../systems/relics.js';
 import { play } from '../systems/audio.js';
@@ -72,6 +73,12 @@ export class Projectile extends Entity {
         const crit = Math.random() < CRIT_CHANCE + (hasRelic('HUNTER_CHARM') ? 0.1 : 0);
         play(crit ? 'crit' : 'hit');
         const dmg = this.damage * (crit ? (hasRelic('BASIL_FANG') ? 3 : 2) : 1);
+        if (blocksFrom(target, this.x, this.y)) {        // 방패 고블린의 정면 — 튕긴다
+            spawnEffect('SPARK', this.x, this.y, { size: 0.9, color: '#cfe0ff' });
+            spawnText(target.x, target.y - 50, '막힘', '#cfe0ff', 13);
+            this.remove = true;
+            return;
+        }
         target.takeDamage(dmg, false, this);   // 맞은 쪽을 넘겨 주면 그쪽으로 밀린다
         spawnEffect(crit ? 'CRIT_FLASH' : 'HIT_SPARK', target.x, target.y - 24, { size: crit ? 1 : 0.8, color: crit ? null : el.color });
         spawnText(target.x, target.y - 50, crit ? `${Math.round(dmg)}!` : `${Math.round(dmg)}`, crit ? '#ffd84a' : '#fff', crit ? 22 : 15);

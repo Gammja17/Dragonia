@@ -18,6 +18,7 @@ import { xpMult } from '../systems/events.js';
 import { grantRelic, randomRelic } from '../systems/relics.js';
 import { materialFor } from '../data/materials.js';
 import { onGuardianDown } from '../systems/delve.js';
+import { updateAI, initAI, drawTell } from './enemyAI.js';
 
 export class Enemy extends Entity {
     /** elite: 정예 — 크고 단단하고 아프지만 보상이 두둑하다 */
@@ -31,6 +32,7 @@ export class Enemy extends Entity {
         this.angle = 0;
         this.phase = Math.random() * 6.28;
         this.shotTimer = 1 + Math.random() * 2;
+        initAI(this);
     }
     get light() {
         if (this.elite) return { r: 150, color: '#ffd84a', intensity: 0.7 };
@@ -43,44 +45,12 @@ export class Enemy extends Entity {
         if (this.knock && this.knock.t > 0) this.knock.t -= dt * 6;
         const speed = this.def.speed * updateStatus(this, dt);
         if (this.remove) return;
-        const player = state.player;
-        const d = dist(this, player);
-        // 날개 달린 놈은 나무 위로 날아간다. 땅을 걷는 놈은 물·나무에 걸린다
-        const step = this.def.flying
-            ? (vx, vy) => { this.x += vx; this.y += vy; }
-            : (vx, vy) => slideMove(this, this.x + vx, this.y + vy, 14);
         if (this.def.move === 'none') return;   // 수련용 허수아비
-        if (this.def.move === 'flee') {          // 사냥감: 가까이 오면 달아나고, 아니면 어슬렁거린다
-            if (d < 300) this.angle = Math.atan2(this.y - player.y, this.x - player.x) + Math.sin(state.gameTime * 3 + this.phase) * 0.6;
-            else if (Math.random() < dt * 0.5) this.angle = Math.random() * 6.28;
-            const v = d < 300 ? speed : speed * 0.25;
-            step(Math.cos(this.angle) * v * dt, Math.sin(this.angle) * v * dt);
-            return;
-        }
-        if (this.def.move === 'ranged') {        // 거리를 두고 구슬을 쏜다
-            this.angle = Math.atan2(player.y - this.y, player.x - this.x);
-            if (d < 520) {
-                const a = d > 330 ? this.angle : d < 230 ? this.angle + Math.PI : this.angle + Math.PI / 2;
-                step(Math.cos(a) * speed * dt, Math.sin(a) * speed * dt);
-                this.shotTimer -= dt * (speed > 0 ? 1 : 0);
-                if (this.shotTimer <= 0) {
-                    this.shotTimer = 2.4;
-                    const aim = Math.atan2(player.y - 30 - (this.y - 16), player.x - this.x);
-                    addBullet(new Projectile(this.x, this.y - 16, aim, { faction: 'ENEMY', element: this.def.element, damage: this.def.damage * (this.elite ? 1.6 : 1), speed: 290, life: 2.6, scale: 0.7 }));
-                }
-            }
-            return;
-        }
-        if (d < 420 && d > 30) {
-            this.angle = Math.atan2(player.y - this.y, player.x - this.x);
-            // erratic: 곧장 오지 않고 좌우로 흔들리며 다가온다
-            const a = this.def.move === 'erratic' ? this.angle + Math.sin(state.gameTime * 4 + this.phase) * 1.1 : this.angle;
-            step(Math.cos(a) * speed * dt, Math.sin(a) * speed * dt);
-        }
-        if (d < 40 && speed > 0) player.takeDamage(this.def.damage * (this.elite ? 1.6 : 1) * dt);
+        updateAI(this, dt, speed);              // 예고 → 발동 → 숨 고르기 (entities/enemyAI.js)
     }
     /** silent: 지속 피해(화상)처럼 번쩍임 없이 깎을 때 */
     takeDamage(dmg, silent = false, from = null) {
+        if (this.hidden) return;                 // 땅속에 있을 땐 못 맞힌다
         this.hp -= dmg;
         if (!silent) {
             this.hitFlash = 1;
@@ -114,8 +84,14 @@ export class Enemy extends Entity {
         if (this.elite) notify('elite');
         if (this.isGuardian) onGuardianDown();
     }
+    /** 바닥 층에 그리는 예고 (main.js 가 개체보다 먼저 부른다) */
+    drawGround(ctx) {
+        if (!isOnScreen(this)) return;
+        drawTell(ctx, this);
+    }
     draw(ctx) {
         if (!isOnScreen(this)) return;
+        if (this.hidden) return;                 // 땅속 — 흙더미만 보인다 (drawGround)
         const lift = this.def.flying ? 22 + Math.sin(state.gameTime * 5 + this.phase) * 5 : 0;
         ctx.save();
         ctx.translate(this.x, this.y);
@@ -131,7 +107,9 @@ export class Enemy extends Entity {
         if (this.def.filter && !(this.hitFlash > 0)) ctx.filter = this.def.filter;
         const kx = this.knock && this.knock.t > 0 ? this.knock.x * this.knock.t : 0;
         const ky = this.knock && this.knock.t > 0 ? this.knock.y * this.knock.t : 0;
-        drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, { sx: tx * 16, sy: ty * 16, sw: 16, sh: 16 }, this.x + kx, this.y + 4 - hop - lift + ky, { flip: Math.cos(this.angle) < 0, scale: this.elite ? 4.5 : 3 });
+        const telling = this.ai && (this.ai.s === 'tell' || this.ai.s === 'tell2');
+        const sc = (this.elite ? 4.5 : 3) * (telling ? 0.86 : 1);
+        drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, { sx: tx * 16, sy: ty * 16, sw: 16, sh: 16 }, this.x + kx, this.y + 4 - (telling ? 0 : hop) - lift + ky, { flip: Math.cos(this.angle) < 0, scale: sc });
         ctx.filter = 'none';
         this.drawHpBar(ctx, this.hp / this.maxHp, (this.elite ? 82 : 58) + lift, this.elite ? 50 : 34);
     }
