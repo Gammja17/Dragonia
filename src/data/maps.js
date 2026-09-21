@@ -25,7 +25,7 @@ export const START_MAP = 'VILLAGE';
 export const MAPS = {
     // ---------------- 마을과 그 언저리 ----------------
     VILLAGE: {
-        name: '드래곤 빌리지', biome: 'VILLAGE', cw: 24, ch: 17, seed: 101, trees: 0.1,
+        name: '웨스턴 마을', biome: 'VILLAGE', cw: 24, ch: 17, seed: 101, trees: 0.1,
         plaza: [6, 5, 12, 8],
         roads: [[[12, 1], [12, 15]], [[1, 8], [22, 8]]],
         portals: [
@@ -52,7 +52,7 @@ export const MAPS = {
         ponds: [[8, 10, 4]],
         roads: [[[18, 7], [14, 7], [14, 11]], [[14, 7], [10, 7], [10, 1]]],
         portals: [
-            { side: 'E', to: 'VILLAGE', name: '드래곤 빌리지' },
+            { side: 'E', to: 'VILLAGE', name: '웨스턴 마을' },
             { side: 'N', to: 'FALLS', name: '구름 폭포' },
         ],
         fixtures: [
@@ -122,7 +122,7 @@ export const MAPS = {
         ponds: [[5, 11, 2]],
         roads: [[[1, 7], [20, 7]], [[11, 7], [11, 1]]],
         portals: [
-            { side: 'W', to: 'VILLAGE', name: '드래곤 빌리지' },
+            { side: 'W', to: 'VILLAGE', name: '웨스턴 마을' },
             { side: 'N', to: 'DOJO', name: '카이론의 수련장' },
             { side: 'E', to: 'HOLLOW', name: '달빛 골짜기' },
         ],
@@ -199,7 +199,7 @@ export const MAPS = {
         ponds: [[17, 4, 2]],
         roads: [[[11, 1], [11, 13]], [[11, 7], [1, 7]]],
         portals: [
-            { side: 'N', to: 'VILLAGE', name: '드래곤 빌리지' },
+            { side: 'N', to: 'VILLAGE', name: '웨스턴 마을' },
             { side: 'S', to: 'JUNGLE', name: '환영의 밀림' },
             { side: 'W', to: 'DESERT', name: '죽은 사구' },
         ],

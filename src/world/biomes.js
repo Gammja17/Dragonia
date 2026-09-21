@@ -9,7 +9,7 @@
 // 예전엔 어느 지도든 덤불·고사리·바위·그루터기 넷만 깔려서, 색만 다른 같은 풀밭으로 보였다.
 // 바이옴마다 깔 것을 달리 주면 같은 생성기로 만든 지도도 저마다 다른 곳이 된다.
 export const BIOMES = {
-    VILLAGE: { name: '드래곤 빌리지', safe: true,  palette: 0,
+    VILLAGE: { name: '웨스턴 마을', safe: true,  palette: 0,
                decor: ['POT', 'CRATE_BIG', 'BARRELS', 'FENCE', 'ROCK_MOSS', 'PEBBLES'], landmarks: ['WELL', 'STALL', 'BENCH', 'GARDEN'] },
     LAKE:    { name: '신비의 호수',   safe: true,  palette: 0,
                decor: ['PEBBLES', 'ROCK_MOSS', 'STEPSTONE'], landmarks: ['STUMP_TABLE', 'BENCH', 'WELL'], cliffs: 1 },

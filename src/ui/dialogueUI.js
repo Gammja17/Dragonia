@@ -1,6 +1,7 @@
 // 대화창 DOM만 담당. 어떤 대사를 보여줄지는 systems/dialogue.js 가 결정.
 import { drawPortrait } from '../render/spritesheet.js';
 import { play } from '../systems/audio.js';
+import { state } from '../core/state.js';
 
 const $ = (id) => document.getElementById(id);
 const TIERS = ['낯선 사이', '아는 사이', '친구', '절친'];
@@ -8,6 +9,15 @@ const tierOf = (r) => (r >= 75 ? 3 : r >= 50 ? 2 : r >= 25 ? 1 : 0);
 
 let selected = 0;
 let typer = null;
+
+/** 대사 속 {name} 을 주인공 이름으로 바꾼다. "{name}(이)" 의 '이'는 받침이 있을 때만 붙는다 */
+function fillName(text) {
+    if (!text || text.indexOf('{name}') < 0) return text;
+    const name = state.player ? state.player.config.name : '';
+    const code = name.charCodeAt(name.length - 1);
+    const batchim = code >= 0xAC00 && code <= 0xD7A3 && (code - 0xAC00) % 28 !== 0;
+    return text.replace(/\{name\}\(이\)/g, name + (batchim ? '이' : '')).replace(/\{name\}/g, name);
+}
 
 /** 대사를 한 글자씩 찍는다. 다시 호출되면 이전 것은 멈춘다 */
 function typeText(text) {
@@ -31,6 +41,7 @@ export const dialogueUI = {
     /** options: [{ label, onSelect }]. 비어 있으면 '닫기' 버튼만 표시 */
     /** npc 를 넘기면 머리에 맡은 일·사이·호감도 막대를 함께 보여 준다 */
     show({ name, text, options, onClose, sheet, npc }) {
+        text = fillName(text);
         drawPortrait($('d-portrait'), sheet);
         $('dialogue-overlay').style.display = 'flex';
         $('d-name').textContent = name;

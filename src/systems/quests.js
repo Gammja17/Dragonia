@@ -78,6 +78,7 @@ export function goalText(g) {
         case 'collect': return `고기 ${n}개 모으기`;
         case 'bring': return `${npcName(g.target)}에게 고기 ${n}개 건네기`;
         case 'talk': return `${npcName(g.target)}에게 말 걸기`;
+        case 'tour': return '마을 둘러보기';
         case 'visit': return `${mapName(g.target)} 방문`;
         case 'sleep': return n > 1 ? `${n}밤 자고 나기` : '하룻밤 자고 나기';
         case 'hatch': return `알 ${n}개 부화`;

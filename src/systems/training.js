@@ -2,6 +2,7 @@ import { state } from '../core/state.js';
 import { rand, pick } from '../core/utils.js';
 import { PLANS, TRIPS, RESTS } from '../data/training.js';
 import { MAPS } from '../data/maps.js';
+import { mapOpen } from '../data/chapters.js';
 import { npcName } from '../data/npcs.js';
 import { Enemy } from '../entities/Enemy.js';
 import { setTrainingHooks, questsChanged } from './quests.js';
@@ -28,7 +29,7 @@ import { play } from './audio.js';
 const master = () => anyNpc('Kairon');
 const log = () => state.story.planLog || (state.story.planLog = { count: 0, last: null, trips: [], rests: [] });
 
-const nextTrip = () => TRIPS.find(t => !log().trips.includes(t.id) && t.when(state));
+const nextTrip = () => TRIPS.find(t => !log().trips.includes(t.id) && t.when(state) && mapOpen(state, t.map));
 const nextRest = () => RESTS.find(r => !log().rests.includes(r.id) && r.when(state));
 
 /** 오늘의 일과 하나를 고른다. 스킬을 배우는 기본기와 다른 하루가 번갈아 온다 */

@@ -20,7 +20,8 @@ import { Projectile, addBullet } from '../entities/Projectile.js';
 import { spawnEffect } from '../render/vfx.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
-import { setBossBar, fadeScreen } from '../ui/hud.js';
+import { setBossBar, fadeScreen, showRegionBanner } from '../ui/hud.js';
+import { currentChapter } from '../data/chapters.js';
 import { learnSkill } from './skills.js';
 import { saveGame } from './save.js';
 import { play } from './audio.js';
@@ -302,6 +303,17 @@ function hornAtNight() {
         { who: '나', text: '(막 잠이 들려는데 밖이 소란하다. …나팔 소리다.)' },
         { who: 'Tiamat', text: '다들 일어나! 사냥꾼이야!' },
     ], triggerRaid, { place: 'VILLAGE' }));
+}
+
+// ---------- 장 ----------
+/** 매 프레임 (main.js). 장이 넘어가면 이름을 한 번 띄운다 */
+export function updateChapter() {
+    if (state.isDialogueOpen || state.prologue || state.activity || state.raid.active) return;
+    const ch = currentChapter(state);
+    if (state.story.chapter === ch.id) return;
+    state.story.chapter = ch.id;
+    showRegionBanner(`${ch.title}. ${ch.name}`, '');
+    saveGame();
 }
 
 // ---------- 어린 용의 잘 시간 ----------

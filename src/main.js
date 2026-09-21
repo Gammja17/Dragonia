@@ -29,7 +29,7 @@ import { updateCutscene, drawCutscene, inCutscene } from './systems/cutscene.js'
 import { updateRoutine } from './systems/routine.js';
 import { updateTour } from './systems/tour.js';
 import { updateTraining } from './systems/training.js';
-import { updateBedtime } from './systems/story.js';
+import { updateBedtime, updateChapter } from './systems/story.js';
 import { updateDenPlace, drawDenGhost, isPlacing, cancelPlacing, setDenRebuilder } from './systems/denPlace.js';
 import { initDenPanel, isDecorPanelOpen, closeDecorPanel } from './ui/denPanel.js';
 import { inMyDen } from './systems/den.js';
@@ -102,7 +102,11 @@ async function startGame(config, loadSave = false) {
     refreshKidsPanel();
     updateHud();
     // 새 게임이면 떨어지던 밤부터 보여 주고, 그 끝에서 엘더와의 첫 대화로 잇는다
-    if (!save) setTimeout(() => startPrologue(() => startDialogue(elder, 'TALK')), 500);
+    if (!save) {
+        state.quests.active.m0 = { step: 0, n: 0 };   // 첫날의 길잡이 (data/quests.js)
+        state.quests.tracked = 'm0';
+        setTimeout(() => startPrologue(() => startDialogue(elder, 'TALK')), 500);
+    }
     lastTime = performance.now();
     requestAnimationFrame(loop);
 }
@@ -169,7 +173,7 @@ function update(dt) {
         if (inMyDen()) updateDenPlace();                      // 굴 안: 살림살이 놓기
         else updateSpawns(dt);
         updateTravel(); updatePortals(); updateRoutine(dt, getNpc); updateTour(dt); updateChronicle(dt);
-        updateBedtime();
+        updateBedtime(); updateChapter();
     }
     updateTraining();
 }

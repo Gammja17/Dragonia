@@ -7,7 +7,7 @@ import { BIOMES } from '../world/biomes.js';
 import { isAwake } from '../systems/travel.js';
 import { inDungeon, dungeonName } from '../systems/delve.js';
 import { currentMapName } from '../systems/world.js';
-import { tutorialView, updateTutorial } from '../systems/tutorial.js';
+import { updateTutorial } from '../systems/tutorial.js';
 import { getMinimapBase, minimapPlace, activeBiome } from '../world/terrain.js';
 import { SKILLS } from '../data/skills.js';
 import { toggleKidsPanel } from './kidsPanel.js';
@@ -52,7 +52,7 @@ export function initHud() {
         xpText: $('ui-xp-text'), hpText: $('ui-hp-text'), meat: $('ui-meat'), gold: $('ui-gold'), raidInfo: $('raid-info'),
         barXp: $('bar-xp'), barHp: $('bar-hp'), barHunger: $('bar-hunger'),
         biome: $('biome-text'), tip: $('interact-tip'), raid: $('raid-warning'),
-        minimap: $('minimap'), tracker: $('quest-tracker'), questMore: $('quest-more'), tutorial: $('tutorial-box'),
+        minimap: $('minimap'), tracker: $('quest-tracker'), questMore: $('quest-more'),
         bossBar: $('boss-bar'), bossName: $('boss-name'), bossFill: $('boss-fill'),
         elSlots: [...document.querySelectorAll('#skill-bar .slot.el')],
         skillSlots: [...document.querySelectorAll('#skill-bar .slot.skill')],
@@ -150,25 +150,9 @@ export function updateHud() {
     drawMinimap();
 }
 
-/** 처음 며칠 동안만 뜨는 '지금 할 일' */
+/** 처음 며칠의 조작 안내. 목록은 없앴고, 닥친 순간에 한 줄씩만 뜬다 (systems/tutorial.js) */
 function drawTutorial() {
-    updateTutorial(() => showToast('안내가 끝났습니다. 이제 마음대로 돌아다녀 보세요! ([H] 도움말)', '🎓'));
-    const view = tutorialView();
-    const key = view ? view.index + ':' + view.steps.map(s => s.text).join('|') : '';
-    if (el.tutorial.dataset.key === key) return;
-    el.tutorial.dataset.key = key;
-    el.tutorial.innerHTML = '';
-    if (!view) return;
-    const head = document.createElement('div');
-    head.className = 'tut-head';
-    head.textContent = `길잡이 ${view.index} / ${view.total}`;
-    el.tutorial.appendChild(head);
-    for (const step of view.steps) {
-        const d = document.createElement('div');
-        d.className = 'tut-step' + (step.now ? ' now' : '');
-        d.textContent = step.text;
-        el.tutorial.appendChild(d);
-    }
+    updateTutorial();
 }
 
 export function toggleHelp() {

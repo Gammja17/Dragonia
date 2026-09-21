@@ -249,21 +249,6 @@ body {
 #raid-info:empty { display: none; }
 #raid-info.active { color: #fff; background: rgba(150, 32, 32, 0.9); border-left-color: var(--hp); font-weight: 700; }
 
-/* 처음 며칠을 이끄는 안내 (systems/tutorial.js) */
-#tutorial-box {
-    background: rgba(14, 13, 22, 0.88); border-left: 3px solid var(--cold);
-    padding: 7px 10px; font-size: 0.72rem; line-height: 1.45;
-}
-#tutorial-box:empty { display: none; }
-#tutorial-box .tut-head {
-    color: var(--cold); font-weight: 700; font-size: 0.7rem;
-    letter-spacing: 0.5px; margin-bottom: 4px;
-}
-#tutorial-box .tut-step { color: var(--parch-dim); padding-left: 13px; position: relative; }
-#tutorial-box .tut-step::before { content: '□'; position: absolute; left: 0; }
-#tutorial-box .tut-step.now { color: var(--parch); font-weight: 600; }
-#tutorial-box .tut-step.now::before { content: '▶'; color: var(--cold); }
-
 #quest-tracker { display: flex; flex-direction: column; gap: 5px; }
 .quest-line {
     background: rgba(14, 13, 22, 0.86); border-left: 3px solid var(--gold-lit);
@@ -714,7 +699,6 @@ body.touch #quest-more { display: none; }
     #scene-title { top: 24%; font-size: 1rem; padding: 4px 12px; }
     .right-column { transform: scale(0.58); }
     .hud-panel { transform: scale(0.6); }
-    #tutorial-box { display: none; }
     body.touch #toast-box { top: 40px; }
 }
 /* 폰 세로: 왼쪽 판과 오른쪽 기둥이 나란히 서야 한다. 둘을 반쯤 줄이고, 칩은 왼쪽 판 밑에 세로로 */
@@ -762,7 +746,6 @@ body.cutscene #hud-panel,
 body.cutscene #hud-show-btn,
 body.cutscene #skill-bar,
 body.cutscene .right-column,
-body.cutscene #tutorial-box,
 body.cutscene #quest-tracker,
 body.cutscene #quest-more,
 body.cutscene #toast-box,

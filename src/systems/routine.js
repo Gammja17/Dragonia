@@ -146,7 +146,7 @@ export function updateRoutine(dt, getNpc) {
         const npc = findNpc(name);
 
         if (npc && tiedToPlayer(npc)) { npc.walkTo = null; continue; }   // 나를 따라다니는 중
-        if (name === 'Elder' && state.tour) continue;                     // 첫날 마을을 데리고 도는 중 (systems/tour.js)
+        if (name === 'Poco' && state.tour) continue;                      // 첫날 마을을 데리고 도는 중 (systems/tour.js)
 
         if (npc) {
             npc.doing = plan.doing;

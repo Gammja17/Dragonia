@@ -1,0 +1,63 @@
+// 장(章). 본 이야기의 한 줄기 (text/story-bible.md 7절).
+//
+// 세상은 이야기만큼만 열린다. 장마다 갈 수 있는 지도가 늘어나고,
+// 아직 안 열린 길 앞에서는 발이 멈춘다 (systems/world.js 의 updatePortals).
+//
+//   done(s)   이게 참이면 이 장은 끝났다. 끝나지 않은 첫 장이 '지금 장'이다
+//   maps      이 장에서 새로 열리는 지도 (앞 장의 것은 계속 열려 있다)
+//   blocked   아직 못 가는 길 앞에서 뜨는 말
+//
+// 2장부터는 아직 옛 퀘스트(m3~m6)에 묶여 있다. 장을 새로 쓸 때마다 done 을 그 장의 끝으로 바꾼다.
+
+const done = (id) => (s) => s.quests.done.includes(id);
+
+export const CHAPTERS = [
+    {
+        id: 'c1', title: '1장', name: '웨스턴 마을', done: done('m2'),
+        maps: ['VILLAGE', 'EAST_ROAD', 'DOJO'],
+        blocked: "아직은 마을 근처를 벗어나지 말라고 했다. 몸부터 키우자.",
+    },
+    {
+        id: 'c2', title: '2장', name: '나팔 소리', done: done('m3'),
+        maps: ['LAKE', 'SOUTH_ROAD'],
+        blocked: "그쪽은 아직 이르다. 마을 일이 먼저다.",
+    },
+    {
+        id: 'c3', title: '3장', name: '골짜기의 옛 수호룡', done: done('m4'),
+        maps: ['HOLLOW', 'MORGATH_LAIR', 'FALLS'],
+        blocked: "골짜기 너머는 아직 길이 막혀 있다.",
+    },
+    {
+        id: 'c4', title: '4장', name: '굶는 계절', done: done('m5'),
+        maps: ['JUNGLE', 'ZALGORA_LAIR', 'CLOUDTOP', 'SKY_RUINS'],
+        blocked: "거기까지 갈 일은 아직 없다.",
+    },
+    {
+        id: 'c5', title: '5장', name: '맡긴 알', done: done('m5a'),
+        maps: ['SNOW_ROAD', 'GLACIA_LAIR'],
+        blocked: "거기까지 갈 일은 아직 없다.",
+    },
+    {
+        id: 'c7', title: '7장', name: '사막 길', done: done('m5b'),
+        maps: ['DESERT', 'BASIL_LAIR', 'AUTUMN'],
+        blocked: "화산 쪽은 아직 아무도 보내 주지 않는다.",
+    },
+    {
+        id: 'c8', title: '8장', name: '잿마루', done: done('m6'),
+        maps: ['VOLCANO', 'IGNAR_LAIR'],
+        blocked: '',
+    },
+];
+
+/** 지금 장 (다 끝났으면 마지막 장) */
+export function currentChapter(s) {
+    return CHAPTERS.find(c => !c.done(s)) || CHAPTERS[CHAPTERS.length - 1];
+}
+
+/** 이 지도에 지금 갈 수 있나. 굴과, 이미 가 본 곳(옛 세이브)은 늘 열려 있다 */
+export function mapOpen(s, id) {
+    if ((s.visited || []).includes(id)) return true;
+    const at = CHAPTERS.indexOf(currentChapter(s));
+    const owner = CHAPTERS.findIndex(c => c.maps.includes(id));
+    return owner < 0 || owner <= at;
+}

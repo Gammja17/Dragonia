@@ -92,6 +92,11 @@ export function applySave(data) {
     state.blessingDay = data.blessingDay || 0;
     state.tutorial = data.tutorial || { moved: true, journal: true, ate: true, toured: true, finished: true };   // 예전 세이브는 안내를 건너뛴다
     if (state.tutorial.toured === undefined) state.tutorial.toured = true;   // 마을 돌기가 생기기 전 세이브
+    // '낯선 아침'(m0)이 생기기 전 세이브: 마을을 다 돌았으면 끝낸 것으로 친다. 돌던 중이면 그 대목부터 잇는다
+    if (!state.quests.done.includes('m0') && !('m0' in state.quests.active)) {
+        if (state.tutorial.toured) state.quests.done.unshift('m0');
+        else state.quests.active.m0 = { step: state.elderTutorialDone ? 1 : 0, n: 0 };
+    }
     state.tour = null;
     state.relics = data.relics || [];
     // 예전 세이브에는 장착 칸이 없다. 가진 유물 앞쪽 몇 개를 자동으로 끼워 준다

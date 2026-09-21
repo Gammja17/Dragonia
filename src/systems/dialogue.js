@@ -8,6 +8,7 @@ import { openNpcHub } from './npcActions.js';
 import { burst } from '../entities/Particle.js';
 import { beginCutscene, focusOn, endCutscene } from './cutscene.js';
 import { startTour } from './tour.js';
+import { notify } from './quests.js';
 
 // 이 모듈이 컷씬을 걸었는지. 걸었을 때만 우리가 내린다
 // (사건 장면은 systems/chronicle.js 가 따로 관리한다)
@@ -78,9 +79,10 @@ function choose(group, opt, npc) {
         case 'end':
             if (group === NPC_SCRIPTS.TUTORIAL) {
                 state.elderTutorialDone = true;
-                giveMeat(3, "그론이 구워 둔 고기 3개");
+                giveMeat(3, "그론이 구워 둔 고기 3개. [C]로 먹는다");
                 closeDialogue();
-                startTour();          // 촌장이 마을을 데리고 돈다 (systems/tour.js)
+                notify('talk', 'Elder');
+                startTour();          // 포코가 마을을 데리고 돈다 (systems/tour.js)
                 break;
             }
             closeDialogue();
