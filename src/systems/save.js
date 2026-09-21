@@ -52,6 +52,7 @@ export function saveGame() {
         npcs: Object.fromEntries(fixedNpcs()
             .map(n => [n.config.name, { relation: n.relation, lastGiftDay: n.lastGiftDay ?? null, lastTalkDay: n.lastTalkDay ?? null, lastPresentDay: n.lastPresentDay ?? null, lastPlayDay: n.lastPlayDay ?? null, dates: n.dates || 0, lastDateDay: n.lastDateDay ?? null, lastEggDay: n.lastEggDay ?? null, lastMeditateDay: n.lastMeditateDay ?? null }])),
         partner: state.partner ? state.partner.config.name : null,
+        partnerFollowing: state.partner ? state.partner.state !== 'WANDER' : false,
         nest: { hasEgg: nest.hasEgg, progress: nest.progress, genes: nest.genes },
         kids: state.kids.map(k => ({
             name: k.name, stage: k.stage, affection: k.affection, mode: k.mode, personality: k.personality,
@@ -123,7 +124,11 @@ export function applySave(data) {
         if (!saved) continue;
         Object.assign(npc, saved);
         if (data.companion === npc.config.name) { npc.state = 'COMPANION_FOLLOW'; state.companion = npc; }
-        if (data.partner === npc.config.name) { npc.state = 'PARTNER_FOLLOW'; state.partner = npc; }
+        if (data.partner === npc.config.name) {
+            state.partner = npc;
+            // 기다리라고 해 둔 짝은 그대로 둔다. 이 값이 없는 예전 세이브는 따라오던 것으로 본다
+            npc.state = data.partnerFollowing === false ? 'WANDER' : 'PARTNER_FOLLOW';
+        }
     }
 
     // 아이들. 지도를 옮길 때 따라오므로 개체만 만들어 두면 된다

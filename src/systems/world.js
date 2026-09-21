@@ -298,7 +298,7 @@ export function anyNpc(name) {
 /** 짝·동료·아이들을 지금 지도로 데려온다 */
 function bringFamily(pools, x, y) {
     for (const n of [state.partner, state.companion]) {
-        if (!n) continue;
+        if (!n || n.state === 'WANDER') continue;   // 기다리라고 한 짝은 두고 간다
         if (!pools.npcs.includes(n)) pools.npcs.push(n);
         n.x = x + rand(50, 90); n.y = y + rand(-30, 40);
     }

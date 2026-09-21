@@ -118,10 +118,16 @@ function ownMenu(npc, name) {
     if (name === 'Tiamat') sub.push({ label: '⚔️ 대련을 신청한다', onSelect: () => startSpar(npc) });
     if (name === 'Poco') sub.push({ label: '🎾 술래잡기 하자!', onSelect: () => startTag(npc) });
     if (name === 'Gron') sub.push({ label: '🔨 모루 앞에 선다', onSelect: () => openForge(npc) });
-    // 동행 (짝은 늘 따라다니므로 제외)
-    if (npc !== state.partner) {
-        if (state.companion === npc) sub.push({ label: '이제 마을로 돌아가도 돼', onSelect: () => setCompanion(npc, false) });
-        else if (relationTier(npc.relation) >= 2) sub.push({ label: '🤝 같이 모험을 떠나자', onSelect: () => setCompanion(npc, true) });
+    // 동행. 짝도 오늘은 혼자 다녀오겠다고 할 수 있다
+    // (예전엔 "짝은 늘 따라다니므로" 하고 아예 빼 놓아, 떼어 놓을 길이 없었다)
+    if (npc === state.partner) {
+        sub.push(npc.state === 'WANDER'
+            ? { label: '🤝 같이 가자', onSelect: () => setFollowing(npc, true) }
+            : { label: '👋 여기서 기다려 줄래?', onSelect: () => setFollowing(npc, false) });
+    } else if (state.companion === npc) {
+        sub.push({ label: '이제 마을로 돌아가도 돼', onSelect: () => setCompanion(npc, false) });
+    } else if (relationTier(npc.relation) >= 2) {
+        sub.push({ label: '🤝 같이 모험을 떠나자', onSelect: () => setCompanion(npc, true) });
     }
     if (!sub.length) return null;
     if (sub.length === 1) return sub[0];
@@ -312,6 +318,19 @@ function entrustEgg(npc) {
         spawnEffect('RING', npc.x, npc.y, { size: 1.2 });
         showToast('엘더에게 알을 맡겼습니다. 사흘 뒤 아침에 데려옵니다.', '🥚');
     });
+}
+
+/**
+ * 짝을 데리고 다닐지 정한다. 짝인 것은 그대로고 따라다니기만 끈다 —
+ * 아이 갖기도, 쌓인 사이도 그대로다. 마을에서 다시 말을 걸면 부를 수 있다.
+ * 따라다니는가의 기준은 state.partner 가 아니라 npc.state 다 (systems/routine.js 외).
+ */
+function setFollowing(npc, on) {
+    close();
+    npc.state = on ? 'PARTNER_FOLLOW' : 'WANDER';
+    showToast(on
+        ? `${npcName(npc.config.name)}(이)가 다시 따라나섭니다.`
+        : `${npcName(npc.config.name)}(이)가 마을에 남습니다. 다시 부르려면 말을 거세요.`, on ? '🤝' : '👋');
 }
 
 function setCompanion(npc, join) {

@@ -51,9 +51,13 @@ export function planFor(name, hour = state.dayTime * 24) {
     };
 }
 
-/** 나를 따라다니는 중이면 일과를 접어 둔다 */
+/**
+ * 나를 따라다니는 중이면 일과를 접어 둔다.
+ * 짝이라서가 아니라 '따라다니는 중이라서' 접는다 — 기다리라고 한 짝은
+ * 제 일과로 돌아가야 마을에 가만히 굳어 있지 않는다 (systems/npcActions.js 의 setFollowing).
+ */
 function tiedToPlayer(npc) {
-    return npc === state.partner || npc === state.companion || npc.state !== 'WANDER';
+    return npc.state !== 'WANDER';
 }
 
 /** 지금 이 지도에 있어야 하는 용들의 이름 */

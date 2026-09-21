@@ -68,7 +68,7 @@ function buildFloor(depth) {
     // 개체 풀을 굴 전용으로 갈아 끼운다. 짝·동료·아이들은 따라 들어온다
     const before = state.entities;
     const pools = emptyPools();
-    const follower = (n) => n && (n === state.partner || n === state.companion);
+    const follower = (n) => n && n.state !== 'WANDER' && (n === state.partner || n === state.companion);
     pools.npcs = before.npcs.filter(follower);
     pools.babies = before.babies.filter(b => state.kids.some(k => k.entity === b));
     if (!saved) saved = { mapId: state.mapId, x: state.player.x, y: state.player.y };
