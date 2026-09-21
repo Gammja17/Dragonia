@@ -25,6 +25,7 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 | `village.png` (집, 분수, 상자, 통, 표지판) | "Zelda-like tilesets and sprites" by ArMM1998 (CC0) | OpenGameArt |
 | `dungeon.png` (적, 사냥꾼, 화살) | "Tiny Dungeon" by Kenney (CC0) | https://kenney.nl/assets/tiny-dungeon |
 | `cave.png` (굴 속 바위 바닥·검은 구멍·돌덩이) | 같은 "Zelda-like tilesets and sprites" by ArMM1998 (CC0) | OpenGameArt |
+| `inner.png` (굴에 놓는 살림살이) | 〃 | OpenGameArt |
 
 ## 효과 (`assets/vfx/`)
 

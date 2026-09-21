@@ -3,7 +3,7 @@ import { isOnScreen, cam } from '../core/camera.js';
 import { state } from '../core/state.js';
 import { inCutscene } from '../systems/cutscene.js';
 import { PROP_SPRITES, TILE_SCALE, TILE, TILE_SRC, WATERFALL_SHEET } from '../data/tiles.js';
-import { FURNITURE } from '../data/furniture.js';
+import { FURNITURE, furnitureSheet } from '../data/furniture.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { getTileImage, activeBiome } from '../world/terrain.js';
 import { BIOMES } from '../world/biomes.js';
@@ -166,7 +166,7 @@ export class Prop extends Entity {
     /** 굴에 놓은 살림살이. assets/tiles/dungeon.png 에서 칸 하나를 떠 온다 */
     drawFurniture(ctx, alpha = 1) {
         const f = FURNITURE[this.fid];
-        const sheet = getTileImage('dungeon');
+        const sheet = getTileImage(furnitureSheet(f));
         if (!f || !sheet) return;
         const [sx, sy] = f.tile, [sw, sh] = f.span;
         const w = sw * TILE, h = sh * TILE;

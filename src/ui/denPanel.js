@@ -1,5 +1,5 @@
 import { state } from '../core/state.js';
-import { FURNITURE } from '../data/furniture.js';
+import { FURNITURE, furnitureSheet } from '../data/furniture.js';
 import { MY_DEN } from '../data/dens.js';
 import { owned, ownedList, craft, canAfford, costText, cozyOf, placed, pickUp } from '../systems/den.js';
 import { play } from '../systems/audio.js';
@@ -55,7 +55,7 @@ function tile(id, extra = '') {
     return b;
 }
 
-/** 목록에 쓸 작은 그림 (dungeon 시트에서 떠 온다) */
+/** 목록에 쓸 작은 그림. 가구마다 시트가 다르다 (data/furniture.js 의 sheet) */
 function drawThumb(canvas, id) {
     const f = FURNITURE[id];
     const g = canvas.getContext('2d');
@@ -68,7 +68,7 @@ function drawThumb(canvas, id) {
         const w = sw * 16 * k, h = sh * 16 * k;
         g.drawImage(img, f.tile[0] * 16, f.tile[1] * 16, sw * 16, sh * 16, (48 - w) / 2, (48 - h) / 2, w, h);
     };
-    img.src = 'assets/tiles/dungeon.png';
+    img.src = `assets/tiles/${furnitureSheet(f)}.png`;
 }
 
 function render() {

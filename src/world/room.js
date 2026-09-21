@@ -1,5 +1,5 @@
 import { mulberry32 } from '../core/utils.js';
-import { TILE, TILE_SRC } from '../data/tiles.js';
+import { TILE, TILE_SRC, CAVE_FLOOR, CAVE_RUBBLE, CAVE_TORCH, caveVoidTile } from '../data/tiles.js';
 import { getTileImage } from './terrain.js';
 
 // 굴 속 한 칸. 용마다 하나씩 배정받아 사는 보금자리다.
@@ -10,10 +10,7 @@ import { getTileImage } from './terrain.js';
 // 바깥 지도들과 똑같은 얼굴(groundAt/draw/minimap/w/h)을 해서, 나머지 코드가
 // 굴 안인지 밖인지 신경 쓰지 않아도 되게 한다.
 
-const FLOOR_TILES = [[0, 4], [1, 4], [2, 4], [3, 4]];
-const WALL_TILE = [4, 2];
-const WALL_TOP = [4, 3];
-const TORCH_TILE = [5, 2];
+// 굴 속 타일은 던전과 같은 한 벌을 쓴다 (data/tiles.js)
 
 const WALL = 0, FLOOR = 1;
 const PAD = 2;               // 방 둘레의 바위 두께
@@ -78,11 +75,12 @@ function bake(cells, N, seed, torches) {
     const c = document.createElement('canvas');
     c.width = N.w * TILE_SRC; c.height = N.h * TILE_SRC;
     const g = c.getContext('2d');
-    const sheet = getTileImage('dungeon');
+    const sheet = getTileImage('cave');
     g.fillStyle = '#0a0a10';
     g.fillRect(0, 0, c.width, c.height);
     if (!sheet) return c;
     const put = ([sx, sy], tx, ty) => g.drawImage(sheet, sx * TILE_SRC, sy * TILE_SRC, TILE_SRC, TILE_SRC, tx * TILE_SRC, ty * TILE_SRC, TILE_SRC, TILE_SRC);
+    const isFloor = (tx, ty) => tx >= 0 && ty >= 0 && tx < N.w && ty < N.h && cells[ty * N.w + tx] === FLOOR;
 
     // 아래쪽 벽면(방을 마주보는 면)에 횃불을 고르게 건다
     const facingRow = [];
@@ -98,18 +96,14 @@ function bake(cells, N, seed, torches) {
     for (let ty = 0; ty < N.h; ty++) for (let tx = 0; tx < N.w; tx++) {
         const i = ty * N.w + tx;
         if (cells[i] === FLOOR) {
-            put(FLOOR_TILES[Math.floor(rng() * FLOOR_TILES.length)], tx, ty);
+            put(CAVE_FLOOR[Math.floor(rng() * CAVE_FLOOR.length)], tx, ty);
+            if (rng() < 0.05) put(CAVE_RUBBLE[Math.floor(rng() * CAVE_RUBBLE.length)], tx, ty);
             continue;
         }
-        let touches = false;
-        for (let j = -1; j <= 1 && !touches; j++) for (let k = -1; k <= 1; k++) {
-            const nx = tx + k, ny = ty + j;
-            if (nx < 0 || ny < 0 || nx >= N.w || ny >= N.h) continue;
-            if (cells[ny * N.w + nx] === FLOOR) { touches = true; break; }
-        }
-        if (!touches) continue;
-        const facing = ty + 1 < N.h && cells[(ty + 1) * N.w + tx] === FLOOR;
-        put(lit.has(i) ? TORCH_TILE : facing ? WALL_TOP : WALL_TILE, tx, ty);
+        const t = caveVoidTile(tx, ty, isFloor);
+        if (!t) continue;
+        put(t, tx, ty);
+        if (lit.has(i)) put(CAVE_TORCH, tx, ty);   // 횃불은 반투명이라 벽 위에 얹는다
     }
     return c;
 }

@@ -1,7 +1,7 @@
 import { state } from '../core/state.js';
 import { mouse } from '../core/input.js';
 import { screenToWorld } from '../core/camera.js';
-import { FURNITURE } from '../data/furniture.js';
+import { FURNITURE, furnitureSheet } from '../data/furniture.js';
 import { TILE, TILE_SRC } from '../data/tiles.js';
 import { getTileImage } from '../world/terrain.js';
 import { canPlace, place, indexAt, pickUp, worldToTile, tileToWorld, inMyDen } from './den.js';
@@ -88,7 +88,7 @@ function rebuild() { if (rebuilder) rebuilder(); }
 export function drawDenGhost(ctx) {
     if (!state.holding || !lastTile) return;
     const f = FURNITURE[state.holding];
-    const sheet = getTileImage('dungeon');
+    const sheet = getTileImage(furnitureSheet(f));
     if (!f || !sheet) return;
     const [sw, sh] = f.span;
     const w0 = tileToWorld(lastTile.tx, lastTile.ty);

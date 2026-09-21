@@ -11,6 +11,7 @@ export const TILE_IMAGES = {
     village: 'assets/tiles/village.png',   // Zelda-like tilesets (CC0)
     dungeon: 'assets/tiles/dungeon.png',   // Kenney Tiny Dungeon (CC0): 적, 사냥꾼, 화살
     cave: 'assets/tiles/cave.png',         // Zelda-like tilesets (CC0): 굴 속 바위 바닥과 검은 구멍
+    inner: 'assets/tiles/inner.png',       // Zelda-like tilesets (CC0): 굴에 놓는 살림살이
     waterfall: 'assets/tiles/waterfall.png',  // Gentle Forest 의 폭포 애니메이션 (안 쓰고 있던 것)
     sparkle: 'assets/tiles/sparkle.png',      // 물 위에 흐르는 물비늘
 };
@@ -22,6 +23,36 @@ export const TILE_IMAGES = {
  *   SPLASH 바닥에 부딪혀 튀는 물보라. 마지막 낙수 칸을 덮는다
  *   CAP    물보라의 좌우 끝막이 (오른쪽은 뒤집어 쓴다)
  */
+/**
+ * 굴 속(던전과 내 굴). assets/tiles/cave.png 기준.
+ * 이 시트에서는 갈색 바위가 바닥이고 벽은 그 바닥에 뚫린 검은 구멍이라,
+ * 벽을 한 장짜리로 찍지 않고 바깥 세상의 흙·물처럼 오토타일로 두른다.
+ */
+export const CAVE_FLOOR = [[0, 0], [7, 3], [0, 0], [7, 3], [0, 1], [0, 2]];  // 밋밋한 쪽을 더 자주
+export const CAVE_VOID = {
+    C: [12, 5],
+    N: [12, 4], S: [12, 6], W: [11, 5], E: [13, 5],
+    NW: [11, 4], NE: [13, 4], SW: [11, 6], SE: [13, 6],
+    iSE: [14, 4], iSW: [15, 4], iNE: [14, 5], iNW: [15, 5],
+};
+export const CAVE_RUBBLE = [[5, 3], [6, 3], [5, 4], [6, 4], [5, 5], [6, 5], [5, 6]];
+export const CAVE_TORCH = [0, 6];    // 반투명이라 벽 위에 겹쳐 얹는다
+
+/**
+ * 벽 칸 하나가 쓸 구멍 타일을 고른다. isFloor(x,y) 로 이웃을 물어본다.
+ * 사방이 다 벽이면 null — 깊은 속은 굳이 그리지 않는다 (바탕이 같은 검은색이다).
+ */
+export function caveVoidTile(tx, ty, isFloor) {
+    let key = (isFloor(tx, ty - 1) ? 'N' : '') + (isFloor(tx, ty + 1) ? 'S' : '')
+            + (isFloor(tx - 1, ty) ? 'W' : '') + (isFloor(tx + 1, ty) ? 'E' : '');
+    if (!key) {
+        key = isFloor(tx + 1, ty + 1) ? 'iSE' : isFloor(tx - 1, ty + 1) ? 'iSW'
+            : isFloor(tx + 1, ty - 1) ? 'iNE' : isFloor(tx - 1, ty - 1) ? 'iNW' : null;
+        if (!key) return null;
+    }
+    return CAVE_VOID[key] || CAVE_VOID.C;
+}
+
 export const WATERFALL_SHEET = { frames: 6, fps: 10, TOP: 1, FALL: [2, 3], CAP: [4, 5], SPLASH: [6, 7] };
 
 /**
