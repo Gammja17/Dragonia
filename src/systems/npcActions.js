@@ -17,6 +17,7 @@ import { offerFor, heldOffer, runningFor, reportableFor, talkQuestFor, bringQues
          notify } from './quests.js';
 import { playScene } from './chronicle.js';
 import { masterOptions, updateDrill, isDrill } from './story.js';
+import { trainingPending, openTraining } from './training.js';
 import { learnSkill } from './skills.js';
 import { RECIPES, GOODS, MATERIALS, costOf, costText, canAfford, forge, buy, matCount } from './smithing.js';
 
@@ -75,6 +76,8 @@ export function openNpcHub(npc, skipErrand = false) {
     if (!skipErrand) {
         const report = reportableFor(npc);
         if (report) { reportQuest(npc, report); return true; }
+        // 스승은 오늘 할 일부터 말한다 (systems/training.js)
+        if (name === 'Kairon' && trainingPending()) { openTraining(npc, () => openNpcHub(npc, true)); return true; }
         const ask = talkQuestFor(npc);
         if (ask) { askQuest(npc, ask); return true; }
         const bring = bringQuestFor(npc);

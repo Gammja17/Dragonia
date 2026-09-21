@@ -751,6 +751,7 @@ export class Dragon extends Entity {
         }
 
         if (state.activity && state.activity.npc === this) { updateActivityNpc(this, dt); return; }
+        if (state.activity && state.activity.rival === this) return;   // 허수아비 내기 중인 맞수 (systems/story.js 가 움직인다)
 
         if (this.downTimer > 0) {               // 쓰러져 쉬는 중
             this.downTimer -= dt;
@@ -785,6 +786,7 @@ export class Dragon extends Entity {
     /** 마을 용·짝·동료의 전투. 싸우는 중이면 true */
     fight(dt, following) {
         const E = state.entities;
+        if (this.passive) return false;   // 오늘은 구경만 하기로 한 스승 (systems/training.js)
         let foe = null, best = 460;
         for (const e of [...E.humans, ...E.enemies, ...E.bosses]) {
             if (e.awake === false || e.type === 'DUMMY') continue;   // 허수아비는 제자의 몫이다

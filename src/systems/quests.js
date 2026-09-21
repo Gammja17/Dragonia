@@ -26,6 +26,8 @@ import { showToast } from '../ui/toast.js';
 let onChange = () => {};
 /** 퀘스트 상태가 바뀔 때 호출될 함수 (추적창·로그 갱신용) */
 export function setQuestListener(fn) { onChange = fn; }
+/** 퀘스트 바깥에서 추적창에 뜨는 것이 바뀌었을 때 (systems/training.js) */
+export function questsChanged() { onChange(); }
 
 /** 한 번에 떠안을 수 있는 퀘스트 수. 이야기 하나에 집중하게 하는 문턱 */
 const MAX_ACTIVE = 2;
@@ -175,6 +177,7 @@ export function notify(type, target) {
         if (stepFilled(q)) completeStep(q);
     }
     choreNotify(type, target);
+    training.notify(type, target);
     onChange();
 }
 
@@ -182,6 +185,10 @@ export function notify(type, target) {
 // (quests → chores 로 거꾸로 import 하면 두 파일이 서로를 물어 버린다)
 let choreNotify = () => {};
 export function setChoreNotify(fn) { choreNotify = fn; }
+
+// 스승의 하루 일과도 퀘스트처럼 추적창·일지·머리 위 표시에 뜬다. systems/training.js 가 자기를 끼워 넣는다
+let training = { notify() {}, line: () => null, row: () => null, marker: () => null };
+export function setTrainingHooks(hooks) { training = hooks; }
 
 // ---------- 말을 걸어서 넘기는 대목 ----------
 
@@ -239,7 +246,7 @@ export function reportableFor(npc) { return activeQuests().find(q => isComplete(
 export function questMarker(npc) {
     if (!npc.config.name || !state.quests) return null;
     if (reportableFor(npc) || talkQuestFor(npc) || bringQuestFor(npc)) return '?';
-    return offerFor(npc) ? '!' : null;
+    return offerFor(npc) ? '!' : training.marker(npc);
 }
 
 /** 추적할 퀘스트를 바꾼다 (로그에서 클릭) */
@@ -299,7 +306,7 @@ export function turnInQuest(q, npc, choiceId = null) {
 /** 추적창에 보여 줄 한 개 (없으면 null) */
 export function trackedLine() {
     const q = trackedQuest();
-    if (!q) return null;
+    if (!q) return training.line();
     const total = steps(q).length;
     const done = isComplete(q);
     return {
@@ -316,6 +323,8 @@ export function questLog() {
     const Q = state.quests;
     const seen = new Set();
     const groups = [];
+    const today = training.row();
+    if (today) groups.push({ act: 'training', name: '오늘의 수련', rows: [today] });
     for (const q of QUESTS) {
         const active = q.id in Q.active, done = Q.done.includes(q.id);
         // 아직 받지도 않았고 앞선 퀘스트도 안 끝냈으면 로그에 나오지 않는다

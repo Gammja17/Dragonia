@@ -101,6 +101,7 @@ export function placeByRoutine(mapId, pools, getNpc) {
         npc.doing = plan.doing;
         npc.job = plan.job;
         npc.walkTo = null;
+        npc.remove = false;   // 딴 지도에서 문을 나서며 지워졌던 용이면 표시가 남아 있다. 안 풀면 놓자마자 사라진다
         pools.npcs.push(npc);
     }
 }
