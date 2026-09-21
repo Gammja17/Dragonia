@@ -32,7 +32,7 @@ import { rgbToHsl, hslToRgb } from '../render/tint.js';
 import { drawIcon, drawGlow } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
 import { showToast } from '../ui/toast.js';
-import { setInteractTarget, toggleHelp } from '../ui/hud.js';
+import { setInteractTarget, toggleHelp, toggleUi } from '../ui/hud.js';
 import { groundAt, currentMapBounds, activeBiome } from '../world/terrain.js';
 import { slideMove } from '../world/collision.js';
 import { nearbyWaystone, openTravelMenu } from '../systems/travel.js';
@@ -96,6 +96,9 @@ export function facingFromVector(dx, dy, fallback = 'down') {
     if (horiz) return dx > 0 ? 'right' : 'left';
     return dy > 0 ? 'down' : 'up';
 }
+
+// 안내문의 키 이름. 터치 기기에서는 키가 없으니 '탭'
+const TAP = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? '탭' : 'Space';
 
 /** 플레이어와 NPC 공용. config: { name, species, colors:{body,belly,wing}, personality?, role?, canPartner? } */
 export class Dragon extends Entity {
@@ -348,7 +351,7 @@ export class Dragon extends Entity {
         const mouth = !target && !nestNear ? E0.props.find(x => x.type === 'DEN_MOUTH' && dist(this, x) < 120) : null;
         // 눈앞의 것이 먼저다. 굴 꾸미기 안내가 둥지·상대를 가리면 안 된다
         if (nestNear) setInteractTarget(nestNear, inMyDen() ? 'Space · E 둥지에서 잔다' : 'Space 둥지에서 쉬기');
-        else if (target) setInteractTarget(target, isKid ? 'Space 아이와 대화' : 'Space 대화 · L 플러팅');
+        else if (target) setInteractTarget(target, `${TAP} ${isKid ? '아이와 대화' : '대화'}`);
         else if (mouth) setInteractTarget(mouth, mouth.denId === 'DEN_MINE' ? 'E 내 굴에 들어간다 (둥지)' : 'E 굴에 들어간다');
         else if (inMyDen()) setInteractTarget(this, 'E 굴 꾸미기');
         else setInteractTarget(null);
@@ -361,7 +364,6 @@ export class Dragon extends Entity {
         if (wantTalk && target) { if (isKid) openKidHub(target); else startDialogue(target, 'TALK'); }
         else if (wantTalk && nestNear) openNestMenu();
         else if (input.pressed('confirm')) this.interact();   // 말 걸 상대가 없으면 눈앞의 것을 집는다
-        if (input.pressed('flirt') && target && !isKid) startDialogue(target, 'FLIRT');
 
         for (const k in this.cooldowns) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt);
         updateChannels(this, dt);
@@ -380,6 +382,7 @@ export class Dragon extends Entity {
         if (input.pressed('eat')) this.eat();
         if (input.pressed('kids')) toggleKidsPanel();
         if (input.pressed('help')) toggleHelp();
+        if (input.pressed('hideUi')) toggleUi();
         if (input.pressed('journal')) toggleJournal();
         if (input.pressed('skillbook')) toggleJournal('skills');   // 스킬 나무
         if (input.pressed('growthTab')) toggleJournal('growth');   // 성장 나무

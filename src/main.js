@@ -72,6 +72,7 @@ window.__dragonia = { state, step(dt) { update(dt); followCamera(state.player); 
 
 /** config: 새 게임 설정. loadSave 가 true 면 저장된 진행 상황을 이어서 한다 */
 async function startGame(config, loadSave = false) {
+    document.body.classList.add('playing');
     initAudio(); // 시작 버튼 클릭 = 첫 사용자 입력이라 여기서 소리를 켤 수 있다
     await assetsReady;
     const save = loadSave ? readSave() : null;

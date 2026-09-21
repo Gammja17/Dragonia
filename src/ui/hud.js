@@ -27,6 +27,23 @@ let el = {};
 let minimapBase = null;
 let lastBiome = null;
 
+/** 왼쪽 판(상태)을 접거나 편다 */
+export function collapseHud(on) {
+    el.panel.classList.toggle('hud-collapsed', on);
+    el.showBtn.style.display = on ? 'block' : 'none';
+}
+/** 오른쪽 기둥(지도·길잡이·퀘스트)을 접거나 편다 */
+export function collapseRight(on) {
+    document.querySelector('.right-column').classList.toggle('hud-collapsed', on);
+    $('right-show-btn').style.display = on ? 'block' : 'none';
+}
+/** [U] · 터치 [UI]: 둘 다 켜져 있으면 둘 다 접고, 하나라도 접혀 있으면 둘 다 편다 */
+export function toggleUi() {
+    const anyHidden = el.panel.classList.contains('hud-collapsed') || document.querySelector('.right-column').classList.contains('hud-collapsed');
+    collapseHud(!anyHidden);
+    collapseRight(!anyHidden);
+}
+
 export function initHud() {
     el = {
         layer: $('ui-layer'), customizer: $('customizer'),
@@ -40,14 +57,10 @@ export function initHud() {
         elSlots: [...document.querySelectorAll('#skill-bar .slot.el')],
         skillSlots: [...document.querySelectorAll('#skill-bar .slot.skill')],
     };
-    $('hud-collapse-btn').addEventListener('click', () => {
-        el.panel.classList.add('hud-collapsed');
-        el.showBtn.style.display = 'block';
-    });
-    el.showBtn.addEventListener('click', () => {
-        el.panel.classList.remove('hud-collapsed');
-        el.showBtn.style.display = 'none';
-    });
+    $('hud-collapse-btn').addEventListener('click', () => collapseHud(true));
+    el.showBtn.addEventListener('click', () => collapseHud(false));
+    $('right-collapse-btn').addEventListener('click', () => collapseRight(true));
+    $('right-show-btn').addEventListener('click', () => collapseRight(false));
     $('kids-toggle-btn').addEventListener('click', toggleKidsPanel);
     $('help-close').addEventListener('click', toggleHelp);
     $('points-chip').addEventListener('click', () => toggleJournal('growth'));

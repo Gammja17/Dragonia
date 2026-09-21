@@ -9,7 +9,6 @@ const KEYMAP = {
     KeyE: 'interact',
     KeyC: 'eat',           // 고기 먹기. 상호작용과 섞이면 상자를 열려다 고기를 먹는다
     KeyT: 'talk',
-    KeyL: 'flirt',
     KeyJ: 'journal',       // 일지 (퀘스트)
     KeyM: 'worldmap',      // 지도
     KeyK: 'skillbook',     // 스킬
@@ -17,6 +16,7 @@ const KEYMAP = {
     KeyG: 'growthTab',     // 성장
     KeyP: 'kids',          // 가족
     KeyO: 'mute',          // 소리
+    KeyU: 'hideUi',        // 좌우 UI 접기·펴기
     KeyQ: 'skillQ', KeyF: 'skillF', KeyR: 'skillR',
     KeyB: 'skillbook',     // K 와 같다 (손에 익은 사람용)
     KeyX: 'ultimate',

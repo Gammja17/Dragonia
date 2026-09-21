@@ -137,7 +137,7 @@ body {
     padding: 4px 10px 8px;
     pointer-events: auto;
 }
-.hud-collapsed { display: none; }
+.hud-collapsed, .right-column.hud-collapsed { display: none !important; }
 
 #hud-show-btn {
     position: absolute; top: 18px; left: 18px; z-index: 50; display: none;
@@ -146,6 +146,18 @@ body {
     color: var(--parch); font-family: var(--font-ko); font-size: 0.75rem;
 }
 #hud-show-btn:hover { background: rgba(216, 178, 90, 0.22); }
+#right-show-btn {
+    position: absolute; top: 18px; right: 18px; z-index: 50; display: none;
+    padding: 6px 12px; cursor: pointer; pointer-events: auto;
+    background: rgba(14, 13, 22, 0.86); border: 1px solid var(--gold);
+    color: var(--parch); font-family: var(--font-ko); font-size: 0.75rem;
+}
+#right-collapse-btn {
+    align-self: flex-end; margin-top: -4px; padding: 3px 9px; cursor: pointer; pointer-events: auto;
+    background: rgba(14, 13, 22, 0.7); border: 1px solid var(--gold-dim);
+    color: var(--parch-dim); font-family: var(--font-ko); font-size: 0.66rem;
+}
+#right-collapse-btn:hover { color: var(--parch); border-color: var(--gold); }
 
 .hud-head {
     display: flex; align-items: center; gap: 10px;
@@ -360,7 +372,8 @@ body {
 }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-#d-header { display: flex; align-items: center; gap: 14px; margin-bottom: 9px; }
+#d-header { display: flex; align-items: center; gap: 14px; margin-bottom: 9px; flex: none; }
+#d-text, #d-options { flex: none; }   /* 판이 낮아도 글이 눌려 선택지와 겹치지 않는다. 넘치면 판이 스크롤된다 */
 #d-portrait.portrait {
     width: 84px; height: 84px; flex: none;
     background: rgba(0, 0, 0, 0.35); border: 1px solid var(--gold-dim);
@@ -634,46 +647,87 @@ button.start-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
 #touch-layer {
     position: fixed; inset: 0; pointer-events: none; z-index: 120; display: none;
     user-select: none; -webkit-user-select: none; touch-action: none;
+    /* 버튼 한 단위. 짧은 변의 11%, 38~60px (ui/touch.js 가 이 변수로 자리를 잡는다) */
+    --u: clamp(38px, 11vmin, 60px);
 }
-body.touch #touch-layer { display: block; }
+body.touch.playing #touch-layer { display: block; }   /* 시작 화면에서는 안 보인다 */
 #stick-base {
-    position: absolute; left: 24px; bottom: 28px; width: 148px; height: 148px; border-radius: 50%;
+    position: absolute; left: 16px; bottom: 18px; border-radius: 50%;
+    width: calc(3.4 * var(--u)); height: calc(3.4 * var(--u));
     background: rgba(255, 255, 255, 0.07); border: 2px solid rgba(255, 255, 255, 0.22);
     pointer-events: auto; display: flex; align-items: center; justify-content: center;
 }
 #stick-knob {
-    width: 62px; height: 62px; border-radius: 50%;
+    width: calc(1.4 * var(--u)); height: calc(1.4 * var(--u)); border-radius: 50%;
     background: rgba(255, 216, 74, 0.5); border: 2px solid rgba(255, 255, 255, 0.55);
 }
 .touch-btn {
     position: absolute; border-radius: 50%;
     background: rgba(14, 13, 22, 0.6); border: 2px solid rgba(216, 178, 90, 0.8);
     color: var(--parch); text-align: center; font-weight: 700;
-    font-family: var(--font-ko); font-size: 0.82rem; pointer-events: auto;
+    font-family: var(--font-ko); font-size: 0.78rem; pointer-events: auto;
 }
+.touch-btn.big { font-size: 0.95rem; background: rgba(120, 40, 20, 0.45); border-color: rgba(255, 170, 80, 0.9); }
 .touch-btn.down { background: rgba(255, 216, 74, 0.42); color: #2a1d06; }
 #touch-top {
-    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 5px; pointer-events: auto;
+    position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 4px; pointer-events: auto; flex-wrap: nowrap;
 }
 .touch-chip {
-    padding: 6px 10px; background: rgba(14, 13, 22, 0.78);
+    padding: 6px 9px; background: rgba(14, 13, 22, 0.78);
     border: 1px solid rgba(216, 178, 90, 0.7); color: var(--parch);
-    font-size: 0.72rem; font-family: var(--font-ko);
+    font-size: 0.7rem; font-family: var(--font-ko); white-space: nowrap; line-height: 1;
 }
 .touch-chip.down { background: rgba(255, 216, 74, 0.4); color: #2a1d06; }
-body.touch #skill-bar { bottom: auto; top: 46px; transform: translateX(-50%) scale(0.8); transform-origin: top center; }
+/* 터치에서는 Q·F·R·X 가 버튼으로 있으니 스킬 칸 줄은 치운다. 속성 1·2·3 은 위 칩으로 */
+body.touch #skill-bar { display: none; }
 body.touch #help-chip, body.touch #help-panel { display: none !important; }
-body.touch #toast-box { top: 96px; }
+body.touch #toast-box { top: 44px; width: min(420px, 60vw); }
+body.touch .toast { font-size: 0.74rem; padding: 5px 10px; }
+body.touch #interact-tip { bottom: calc(3.6 * var(--u) + 24px); }
+body.touch #quest-more { display: none; }
 
+/* 작은 화면(폰 가로·태블릿) */
 @media (max-width: 900px), (max-height: 540px) {
-    .hud-panel   { transform: scale(0.74); transform-origin: top left;  top: 6px; left: 6px; }
-    .right-column { transform: scale(0.74); transform-origin: top right; top: 6px; right: 6px; }
+    .hud-panel   { transform: scale(0.7); transform-origin: top left;  top: 6px; left: 6px; }
+    .right-column { transform: scale(0.68); transform-origin: top right; top: 6px; right: 6px; }
+    #hud-show-btn, #right-show-btn { top: 8px; }
     #dialogue-overlay { max-height: 58vh; padding: 6px 4% 10px; }
     #d-options { grid-template-columns: 1fr 1fr; }
     #boss-bar { top: 44px; }
     #toast-box { top: 88px; width: 86vw; }
-
+}
+/* 폰 가로: 높이가 없다. 오른쪽 기둥은 지도만 남기고, 길잡이는 아래로 접는다 */
+@media (max-height: 460px) {
+    #dialogue-overlay, body.cutscene #dialogue-overlay { max-height: 88vh; bottom: 0; padding: 4px 5% 8px; }
+    #d-header { gap: 10px; margin-bottom: 4px; }
+    #d-portrait.portrait { width: 54px; height: 54px; }
+    #d-text, body.cutscene #d-text { font-size: 0.86rem; line-height: 1.45; margin-bottom: 6px; min-height: 0; }
+    #d-options { flex-direction: row; flex-wrap: wrap; gap: 4px; width: 100%; }
+    #d-options .d-btn { flex: 1 1 45%; padding: 5px 8px; font-size: 0.82rem; }
+    #scene-title { top: 12%; font-size: 1rem; padding: 4px 12px; }
+    .right-column { transform: scale(0.58); }
+    .hud-panel { transform: scale(0.6); }
+    #tutorial-box { display: none; }
+    body.touch #toast-box { top: 40px; }
+}
+/* 폰 세로: 왼쪽 판과 오른쪽 기둥이 나란히 서야 한다. 둘을 반쯤 줄이고, 칩은 왼쪽 판 밑에 세로로 */
+@media (max-width: 520px) and (orientation: portrait) {
+    .hud-panel   { transform: scale(0.54); top: 4px; left: 4px; }
+    .right-column { transform: scale(0.54); top: 4px; right: 4px; }
+    #touch-top {
+        top: calc(4px + 0.54 * 300px); left: 6px; transform: none;
+        flex-direction: column; gap: 3px; width: max-content;
+    }
+    .touch-chip { padding: 6px 8px; min-width: 34px; text-align: center; }
+    body.touch #toast-box { top: auto; bottom: calc(3.6 * var(--u) + 60px); width: 74vw; }
+    .toast { animation-duration: 2.8s; }
+    #dialogue-overlay { max-height: 62vh; }
+    #d-options { grid-template-columns: 1fr; }
+    #journal-tabs { flex-wrap: wrap; gap: 3px; }
+    .journal-tab { flex: 1 1 auto; padding: 5px 4px; font-size: 0.7rem; }
+    #region-banner { top: 30%; }
+    #scene-title { top: 22%; font-size: 1.1rem; letter-spacing: 2px; padding: 6px 14px; }
 }
 
 /* ── 컷씬 ────────────────────────────────────────────────────────────────
@@ -947,4 +1001,4 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 .folk-moon.now { color: var(--gold-lit); border-color: var(--gold); }
 
 /* 세계 지도 (수첩 · 지도 탭). 판 폭에 맞춰 비율을 지킨 채 줄어든다 */
-.world-map { display: block; width: 100%; max-width: 900px; height: auto; margin: 0 auto 10px; border-radius: 8px; border: 1px solid rgba(216,178,90,0.25); }
+.world-map { display: block; width: min(100%, calc((92vh - 190px) * 1.915)); max-width: 900px; height: auto; margin: 0 auto 10px; border-radius: 8px; border: 1px solid rgba(216,178,90,0.25); }

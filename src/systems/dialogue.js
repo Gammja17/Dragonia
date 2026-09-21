@@ -35,12 +35,14 @@ export function startDialogue(npc, type) {
         }
     } else if (type === 'FLIRT' && npc.config.canPartner) {
         group = NPC_SCRIPTS.FLIRT;
-        key = npc.relation < 30 ? 'low' : npc.relation < 60 ? 'mid' : 'high';
+        key = flirtKey(npc);
     } else {
         group = NPC_SCRIPTS[npc.config.personality] || NPC_SCRIPTS.WISE;
     }
     renderNode(group, key, npc);
 }
+
+function flirtKey(npc) { return npc.relation < 30 ? 'low' : npc.relation < 60 ? 'mid' : 'high'; }
 
 export function closeDialogue() {
     state.isDialogueOpen = false;
@@ -58,6 +60,7 @@ function renderNode(group, key, npc) {
         options: [
             ...node.options.map(opt => ({ label: opt.t, onSelect: () => choose(group, opt, npc) })),
             ...(key === 'intro' && canGift(npc) ? [{ label: '고기를 선물한다 (고기 -1)', onSelect: () => gift(npc) }] : []),
+            ...(key === 'intro' && group !== NPC_SCRIPTS.TUTORIAL && npc.config.canPartner && !npc.config.fixed ? [{ label: '💗 마음을 떠본다', onSelect: () => renderNode(NPC_SCRIPTS.FLIRT, flirtKey(npc), npc) }] : []),
         ],
         onClose: closeDialogue,
         sheet: npc.sheet,
