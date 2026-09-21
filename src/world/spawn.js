@@ -8,6 +8,7 @@ import { Enemy } from '../entities/Enemy.js';
 import { mapEnemies, mapHasBoss } from '../systems/world.js';
 import { enemyCapMult } from '../systems/events.js';
 import { pickPack } from '../data/packs.js';
+import { MAPS } from '../data/maps.js';
 
 // 지금 밟고 있는 지도에만 적을 뿌린다.
 // 마을·호수처럼 safe 한 곳과 보스 결투장에는 야생 적이 나오지 않는다.
@@ -17,8 +18,16 @@ const DESPAWN_RANGE = 1500;
 
 function peaceful() {
     const b = BIOMES[activeBiome()];
-    return (b && b.safe) || mapHasBoss() || state.dungeon;
+    const spec = MAPS[state.mapId];
+    return (b && b.safe) || (spec && spec.safe) || mapHasBoss() || state.dungeon;
 }
+/** 이 지도에 한 번에 있을 수 있는 적 수 */
+function cap() {
+    const spec = MAPS[state.mapId];
+    return Math.min(MAX_ENEMIES, (spec && spec.enemyCap) || 10) * enemyCapMult();
+}
+let nextPack = 2;     // 다음 무리까지 남은 시간(초)
+let lastMap = null;   // 지도를 옮기면 시계를 되돌린다
 
 /** 화면 밖 빈 땅 한 점 (없으면 null) */
 function openSpot() {
@@ -62,11 +71,17 @@ export function spawnPack() {
 /** 예전 이름을 쓰는 곳을 위해 */
 export const spawnEnemy = spawnPack;
 
-/** 매 프레임: 멀어진 적은 치우고, 부족하면 보충 */
-export function updateSpawns() {
+/**
+ * 매 프레임: 멀어진 적은 치우고, 부족하면 보충.
+ * 예전엔 프레임마다 2.5% 라 1초에 한 무리꼴로 쏟아졌다. 이제 12~20초에 하나, 상한은 지도마다
+ */
+export function updateSpawns(dt = 1 / 60) {
     const E = state.entities;
     for (const e of E.enemies) if (dist(e, state.player) > DESPAWN_RANGE) e.remove = true;
     if (peaceful()) return;
-    // 무리 단위로 보충한다. 한 번에 여럿이 오므로 확률은 낮춘다
-    if (E.enemies.length < MAX_ENEMIES * enemyCapMult() && Math.random() < 0.025) spawnPack();
+    if (state.mapId !== lastMap) { lastMap = state.mapId; nextPack = 1.5; }   // 새 지도에선 첫 무리가 곧 나온다
+    nextPack -= dt;
+    if (nextPack > 0) return;
+    nextPack = rand(12, 20);
+    if (E.enemies.filter(e => e.def.move !== 'none').length < cap()) spawnPack();
 }

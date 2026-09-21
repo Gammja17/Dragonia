@@ -6,6 +6,8 @@
 //   ponds      물웅덩이 [[cx, cy, r]]
 //   roads      흙길. 점을 차례로 이어 간다
 //   trees      나무 빽빽한 정도 (0~1). 가장자리는 늘 빽빽하게 막는다
+//   safe       참이면 야생 적이 안 나온다 (바이옴의 safe 와 별개로 지도 하나만)
+//   enemyCap   한 번에 있을 수 있는 적 수 (없으면 world/spawn.js 의 기본값 10)
 //   portals    { side: 'N'|'S'|'E'|'W', to: 지도 id, name }  — 반대편 지도에도 짝이 있어야 한다
 //   fixtures   그 지도에만 있는 것들
 //                { t:'NPC', name }            고정 NPC (data/npcs.js 의 이름)
@@ -115,7 +117,7 @@ export const MAPS = {
 
     // ---------------- 동쪽: 수련장 · 달빛 골짜기 · 서리 봉우리 ----------------
     EAST_ROAD: {
-        name: '동쪽 숲길', biome: 'FOREST', cw: 22, ch: 15, seed: 104, trees: 0.55,
+        name: '동쪽 숲길', biome: 'FOREST', cw: 22, ch: 15, seed: 104, trees: 0.55, enemyCap: 6,
         ponds: [[5, 11, 2]],
         roads: [[[1, 7], [20, 7]], [[11, 7], [11, 1]]],
         portals: [
@@ -129,7 +131,7 @@ export const MAPS = {
         ],
     },
     DOJO: {
-        name: '카이론의 수련장', biome: 'FOREST', cw: 18, ch: 13, seed: 105, trees: 0.3,
+        name: '카이론의 수련장', biome: 'FOREST', cw: 18, ch: 13, seed: 105, trees: 0.3, safe: true,   // 야생 적 없음. 시험장 표지판이 무리를 부른다
         clearings: [[9, 6, 4]],
         roads: [[[9, 12], [9, 6]]],
         portals: [{ side: 'S', to: 'EAST_ROAD', name: '동쪽 숲길' }],
@@ -191,7 +193,7 @@ export const MAPS = {
 
     // ---------------- 남쪽: 밀림 · 사막 ----------------
     SOUTH_ROAD: {
-        name: '남쪽 숲길', biome: 'FOREST', cw: 22, ch: 15, seed: 110, trees: 0.55,
+        name: '남쪽 숲길', biome: 'FOREST', cw: 22, ch: 15, seed: 110, trees: 0.55, enemyCap: 6,
         ponds: [[17, 4, 2]],
         roads: [[[11, 1], [11, 13]], [[11, 7], [1, 7]]],
         portals: [

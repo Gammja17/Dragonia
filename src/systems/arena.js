@@ -35,7 +35,7 @@ export function openArena() {
             let i = 0;
             for (const [type, n, elite] of m.units) for (let k = 0; k < n; k++, i++) {
                 const a = (i / 8) * Math.PI * 2, r = 160 + (i % 3) * 40;
-                state.entities.enemies.push(new Enemy(spot.x + Math.cos(a) * r, spot.y + 60 + Math.sin(a) * r * 0.6, type, !!elite));
+                { const e = new Enemy(spot.x + Math.cos(a) * r, spot.y + 60 + Math.sin(a) * r * 0.6, type, !!elite); e.aggro = true; state.entities.enemies.push(e); }
             }
             showToast(`${m.label}. 시험 시작`, '⚔️');
         },

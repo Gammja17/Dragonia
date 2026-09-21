@@ -146,7 +146,7 @@ function update(dt) {
     pruneEntities();
     if (outside) {
         if (inMyDen()) updateDenPlace();                      // 굴 안: 살림살이 놓기
-        else updateSpawns();
+        else updateSpawns(dt);
         updateTravel(); updatePortals(); updateRoutine(dt, getNpc); updateTour(dt); updateChronicle(dt);
     }
 }

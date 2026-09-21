@@ -43,6 +43,10 @@ src/
                     customizer, toast, touch(모바일 조작)
 ```
 
+## 대사 고치기
+
+`text/dialogue.csv` 의 **대사** 열만 고쳐서 `main` 에 올리면 자동으로 반영·배포된다. 자세한 건 `text/README.md`.
+
 ## 조작
 - **WASD** 이동 · **Shift** 탁: 대시(무적) / 꾹: 달리기
 - **마우스** 커서 쪽으로 조준 · **왼클릭(꾹)** 브레스 연사

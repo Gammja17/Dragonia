@@ -140,6 +140,7 @@ export class Boss extends Entity {
         for (const type of types) {
             const a = rand(0, 6.28);
             const e = new Enemy(this.x + Math.cos(a) * 220, this.y + Math.sin(a) * 160, type);
+            e.aggro = true;
             state.entities.enemies.push(e);
             spawnEffect('MAGIC_CIRCLE', e.x, e.y, { size: 1, color: ELEMENTS[this.def.element].color });
         }

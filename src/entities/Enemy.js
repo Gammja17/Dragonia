@@ -17,7 +17,7 @@ import { xpMult } from '../systems/events.js';
 import { grantRelic, randomRelic } from '../systems/relics.js';
 import { materialFor } from '../data/materials.js';
 import { onGuardianDown } from '../systems/delve.js';
-import { updateAI, initAI, drawTell } from './enemyAI.js';
+import { updateAI, initAI, drawTell, alert } from './enemyAI.js';
 import { AFFIXES, rollAffix } from '../data/affixes.js';
 import { noteDealt } from '../render/debugOverlay.js';
 import { spawnEffect, spawnText } from '../render/vfx.js';
@@ -80,6 +80,7 @@ export class Enemy extends Entity {
         }
         this.hp -= dmg;
         noteDealt(dmg);
+        if (!silent) alert(this);              // 먼저 때리면 그 무리가 돌아본다
         if (!silent) {
             this.hitFlash = 1;
             this.squash = 1;                     // 옆으로 퍼지고 위아래로 눌린다 (draw)
@@ -103,7 +104,7 @@ export class Enemy extends Entity {
         if (this.affix && this.affix.id === 'SPLIT' && !this.splitChild) {   // 둘로 갈라진다 (한 번만)
             for (const side of [-1, 1]) {
                 const c = new Enemy(this.x + side * 34, this.y + 8, this.type, false);
-                c.splitChild = true;
+                c.splitChild = true; c.aggro = true;
                 c.maxHp = c.hp = Math.round(this.def.hp * 0.35);
                 state.entities.enemies.push(c);
                 burst(c.x, c.y, this.def.color, 0.6, 6);

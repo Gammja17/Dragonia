@@ -1,7 +1,7 @@
 import { state } from '../core/state.js';
 import { dist, rand } from '../core/utils.js';
 import { slideMove } from '../world/collision.js';
-import { spawnEffect } from '../render/vfx.js';
+import { spawnEffect, spawnText } from '../render/vfx.js';
 import { burst } from './Particle.js';
 import { Projectile, addBullet } from './Projectile.js';
 import { shake } from '../core/camera.js';
@@ -28,9 +28,14 @@ import { play } from '../systems/audio.js';
 const RING = 150;             // flank: 링 반지름
 const LUNGE_RANGE = 78;       // chase/flank: 덤비는 거리
 const REACH = 46;             // 맞았다고 치는 거리
+const LEASH = 1100;           // 이보다 멀어지면 쫓기를 그만두고 제자리로 돌아간다
+// 어그로 반경. 이 안에 들어가거나 먼저 때려야 덤빈다. 그 전엔 제 자리 근처를 어슬렁거린다
+const AGGRO = { chase: 240, charge: 330, flank: 260, kite: 360, ranged: 360, burrow: 200, guard: 220, summon: 300, swarm: 230, erratic: 230, flee: 0 };
 
 export function initAI(e) {
-    e.ai = { s: 'idle', t: 0, dir: 0, cd: rand(0.4, 1.4) };
+    e.ai = { s: 'idle', t: 0, dir: 0, cd: rand(0.4, 1.4), wt: rand(0.5, 2.5), wdir: rand(0, Math.PI * 2), wmove: false };
+    e.home = { x: e.x, y: e.y };
+    e.aggro = e.def.move === 'flee';   // 사냥감은 늘 제 행동(도망)을 한다
     if (e.def.move === 'burrow') { e.ai.s = 'hidden'; e.hidden = true; }
 }
 
@@ -264,6 +269,7 @@ function summon(e, dt, d, speed) {
                 const ang = rand(0, Math.PI * 2);
                 const m = new e.constructor(e.x + Math.cos(ang) * 60, e.y + Math.sin(ang) * 60, kind);
                 m.summonedBy = e;
+                m.aggro = true;
                 state.entities.enemies.push(m);
                 burst(m.x, m.y, e.def.color, 0.8, 8);
             }
@@ -291,9 +297,41 @@ export function updateAI(e, dt, speed) {
     if (!a) initAI(e);
     if (e.ai.cd > 0) e.ai.cd -= dt;
     const d = dist(e, state.player);
-    // 멀면 쉰다 (잠복형은 예외 — 어차피 안 보인다)
-    if (d > 640 && e.def.move !== 'burrow') { if (d < 900 && d > 80) { face(e, state.player.x, state.player.y); move(e, e.angle, e.angle, speed * 0.6, dt); } return; }
+    // 어그로가 없으면 덤비지 않는다. 반경 안에 들어오면 알아채고, 멀어지면 잊는다
+    if (!e.aggro) {
+        const range = (AGGRO[e.def.move] ?? 240) * (e.elite ? 1.15 : 1);
+        if (range && d < range && !state.player.invisible) { alert(e); }
+        else { wander(e, dt, speed); return; }
+    } else if (d > LEASH) {
+        e.aggro = false; e.ai.s = e.def.move === 'burrow' ? 'hidden' : 'idle';
+        if (e.def.move === 'burrow') e.hidden = true;
+        return;
+    }
     (BEHAVIORS[e.def.move] || chase)(e, dt, d, speed);
+}
+
+/** 알아챘다. 같은 무리(가까이 있는 놈들)도 같이 돌아본다 */
+export function alert(e, chain = true) {
+    if (e.aggro || e.remove || e.def.move === 'none') return;
+    e.aggro = true;
+    spawnText(e.x, e.y - (e.elite ? 100 : 70), '!', '#ffd84a', 16);
+    if (!chain) return;
+    for (const o of state.entities.enemies) if (o !== e && !o.aggro && dist(o, e) < 220) alert(o, false);
+}
+
+/** 어그로 전: 제 자리 근처를 느릿느릿 오간다. 잠복형은 땅속에 그대로 */
+function wander(e, dt, speed) {
+    const a = e.ai;
+    if (e.def.move === 'burrow') return;
+    a.wt -= dt;
+    if (a.wt <= 0) {
+        a.wmove = !a.wmove;
+        a.wt = a.wmove ? rand(0.6, 1.4) : rand(1.5, 4);
+        // 집에서 멀어졌으면 돌아오는 쪽으로
+        const far = e.home && dist(e, e.home) > 160;
+        a.wdir = far ? Math.atan2(e.home.y - e.y, e.home.x - e.x) : rand(0, Math.PI * 2);
+    }
+    if (a.wmove) { e.angle = a.wdir; move(e, a.wdir, a.wdir, speed * 0.35, dt); }
 }
 
 /** 정면 방패: 이 각도에서 온 탄은 막힌다 (guard 행동만) */
