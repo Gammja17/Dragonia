@@ -6,6 +6,7 @@
 //   done(s)   이게 참이면 이 장은 끝났다. 끝나지 않은 첫 장이 '지금 장'이다
 //   maps      이 장에서 새로 열리는 지도 (앞 장의 것은 계속 열려 있다)
 //   blocked   아직 못 가는 길 앞에서 뜨는 말
+//   locked    이 장의 지도가 아직 닫혀 있을 때, 그 길 앞에서 뜨는 말 (없으면 지금 장의 blocked)
 //
 // 2장부터는 아직 옛 퀘스트(m3~m6)에 묶여 있다. 장을 새로 쓸 때마다 done 을 그 장의 끝으로 바꾼다.
 
@@ -23,9 +24,16 @@ export const CHAPTERS = [
         blocked: "그쪽은 아직 이르다. 마을 일이 먼저다.",
     },
     {
-        id: 'c3', title: '3장', name: '골짜기의 옛 수호룡', done: done('m4'),
-        maps: ['HOLLOW', 'MORGATH_LAIR', 'FALLS'],
-        blocked: "골짜기 너머는 아직 길이 막혀 있다.",
+        id: 'c3', title: '3장', name: '골짜기의 옛 수호룡', done: s => !!s.bossesDefeated.MORGATH,
+        maps: ['HOLLOW', 'MORGATH_LAIR'],
+        blocked: "거기까지 갈 일은 아직 없다.",
+    },
+    {
+        // 같은 3장의 뒷부분. 얼음이 녹아 폭포까지 길이 열린다
+        id: 'c3b', title: '3장', name: '골짜기의 옛 수호룡', done: done('m4'),
+        maps: ['FALLS'],
+        locked: "폭포로 가는 길은 허옇게 얼어붙어 있다. 골짜기에서 밤마다 내려오는 냉기 때문이라고 한다.",
+        blocked: "거기까지 갈 일은 아직 없다.",
     },
     {
         id: 'c4', title: '4장', name: '굶는 계절', done: done('m5'),
@@ -52,6 +60,12 @@ export const CHAPTERS = [
 /** 지금 장 (다 끝났으면 마지막 장) */
 export function currentChapter(s) {
     return CHAPTERS.find(c => !c.done(s)) || CHAPTERS[CHAPTERS.length - 1];
+}
+
+/** 막힌 길 앞에서 띄울 말 */
+export function blockedText(s, id) {
+    const owner = CHAPTERS.find(c => c.maps.includes(id));
+    return (owner && owner.locked) || currentChapter(s).blocked;
 }
 
 /** 이 지도에 지금 갈 수 있나. 굴과, 이미 가 본 곳(옛 세이브)은 늘 열려 있다 */

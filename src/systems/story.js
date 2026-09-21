@@ -311,8 +311,10 @@ export function updateChapter() {
     if (state.isDialogueOpen || state.prologue || state.activity || state.raid.active) return;
     const ch = currentChapter(state);
     if (state.story.chapter === ch.id) return;
+    const turned = state.story.chapterTitle !== ch.title;   // 한 장이 앞뒤로 나뉜 경우엔 이름을 다시 띄우지 않는다
     state.story.chapter = ch.id;
-    showRegionBanner(`${ch.title}. ${ch.name}`, '');
+    state.story.chapterTitle = ch.title;
+    if (turned) showRegionBanner(`${ch.title}. ${ch.name}`, '');
     saveGame();
 }
 

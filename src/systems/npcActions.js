@@ -76,12 +76,12 @@ export function openNpcHub(npc, skipErrand = false) {
     if (!skipErrand) {
         const report = reportableFor(npc);
         if (report) { reportQuest(npc, report); return true; }
-        // 스승은 오늘 할 일부터 말한다 (systems/training.js)
-        if (name === 'Kairon' && trainingPending()) { openTraining(npc, () => openNpcHub(npc, true)); return true; }
         const ask = talkQuestFor(npc);
         if (ask) { askQuest(npc, ask); return true; }
         const bring = bringQuestFor(npc);
         if (bring) { bringToQuest(npc, bring); return true; }
+        // 스승은 오늘 할 일부터 말한다. 다만 물어보러 온 이야기(퀘스트)가 있으면 그게 먼저다 (systems/training.js)
+        if (name === 'Kairon' && trainingPending()) { openTraining(npc, () => openNpcHub(npc, true)); return true; }
         const offer = offerFor(npc);
         if (offer) { hearQuest(npc, offer); return true; }
     }

@@ -15,7 +15,7 @@ import { Nest } from '../entities/Nest.js';
 import { Boss } from '../entities/Boss.js';
 import { showRegionBanner } from '../ui/hud.js';
 import { showToast } from '../ui/toast.js';
-import { currentChapter, mapOpen } from '../data/chapters.js';
+import { blockedText, mapOpen } from '../data/chapters.js';
 
 // 지역 이름 밑에 한 줄로 붙는 설명
 const BIOME_LABEL = {
@@ -404,7 +404,7 @@ export function updatePortals() {
     if (state.raid.active) { showToast('사냥꾼이 마을을 치고 있다. 지금 떠날 수는 없다.', '⚔️'); return; }
     // 세상은 이야기만큼만 열린다 (data/chapters.js)
     if (!mapOpen(state, gate.portal.to)) {
-        if (!p.gateNag || state.gameTime - p.gateNag > 4) { p.gateNag = state.gameTime; showToast(currentChapter(state).blocked, '🚧'); }
+        if (!p.gateNag || state.gameTime - p.gateNag > 4) { p.gateNag = state.gameTime; showToast(blockedText(state, gate.portal.to), '🚧'); }
         return;
     }
     // 폭포 위는 남의 마을이다. 모임에 한 번 나가 봐야 올라갈 수 있다 (systems/gathering.js)

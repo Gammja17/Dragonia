@@ -122,11 +122,13 @@ export const SCENES = [
         ],
     },
     {
-        id: 'ch4', title: '4장. 죽지 못한 용', when: s => s.bossesDefeated.MORGATH,
+        id: 'ch4', title: '3장. 꿈', when: s => s.bossesDefeated.MORGATH,
         lines: [
-            { who: '???', text: "(꿈에 뼈만 남은 용이 고개를 숙였다. 고맙다고 했다.)" },
-            { who: 'Kairon', text: "모르가스를 보내 줬다고 들었다. 내 스승이셨다. 이그나르한테 당하고도 마을을 못 떠나셨지." },
-            { who: 'Kairon', text: "네가 얻은 [빙결 파동], 스승님 기술이다. 스킬 나무에서 끼워 봐라." },
+            { who: '???', text: "(꿈에 뼈만 남은 용이 나왔다. 아무 말 없이 고개를 한 번 끄덕이고 갔다.)" },
+            { who: 'Kairon', text: "일어났냐. …어제는 고마웠다. 그 말 하려고 왔다." },
+            { who: 'Kairon', text: "네가 받은 [빙결 파동]은 스승님 기술이다. 스킬 나무에서 끼워 봐라. 아끼지 말고 써. 그분은 아끼는 걸 제일 싫어하셨다." },
+            { who: 'Nara', text: "(문밖에서) 스승님이 고맙다는 말을 했어? 진짜? 나 방금 들은 거 맞아?" },
+            { who: 'Kairon', text: "…너는 왜 여기 있냐." },
         ],
     },
     {
