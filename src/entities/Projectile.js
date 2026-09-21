@@ -151,12 +151,10 @@ export class Projectile extends Entity {
         const p = ELEMENTS[this.element].proj;
         const img = getVfxImage(p.img);
         if (!img) return;
-        if (p.filter) ctx.filter = p.filter;
         const frame = p.frames[Math.floor(this.t * p.fps) % p.frames.length];
-        ctx.globalCompositeOperation = 'lighter';
-        drawPixelSprite(ctx, img, { sx: frame * p.fw, sy: 0, sw: p.fw, sh: p.fh }, this.x, this.y, { scale: 3 * this.scale, ax: p.ax, ay: p.ay, angle: this.angle });
+        if (!p.solid) ctx.globalCompositeOperation = 'lighter';
+        drawPixelSprite(ctx, img, { sx: frame * p.fw, sy: 0, sw: p.fw, sh: p.fh }, this.x, this.y, { scale: 3 * this.scale, ax: p.ax, ay: p.ay, angle: this.angle + (p.spin || 0) * this.t });
         ctx.globalCompositeOperation = 'source-over';
-        if (p.filter) ctx.filter = 'none';
     }
 }
 

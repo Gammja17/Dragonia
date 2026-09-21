@@ -40,6 +40,11 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 | `ice_spike.png` | "Ice Spell Effect 01" by pimen | https://pimen.itch.io/ |
 | `thunder_ball.png` | "Thunder Spell Effect 01" by pimen | https://pimen.itch.io/ |
 | `puff.png` | "Smoke n Dust 01" by pimen | https://pimen.itch.io/ |
+| `water.png`, `water_hit.png` | "Water Spell Effect 02" by pimen — 물덩이의 되풀이 프레임과 터지는 프레임을 한 줄로 재배치 | https://pimen.itch.io/ |
+| `water_splash.png` | "Water Spell Effect 01" by pimen | https://pimen.itch.io/ |
+| `earth_hit.png` | "Earth Spell Effect 01" by pimen | https://pimen.itch.io/ |
+| `grass.png`, `grass_hit.png` | "Acid Spell Effect" by pimen | https://pimen.itch.io/ |
+| `root.png` | "Wood Spell Effect" by pimen | https://pimen.itch.io/ |
 | `star.png`, `ring.png`, `slash.png`, `scorch.png`, `twirl.png`, `spark.png`, `muzzle.png`, `dirt.png`, `flare.png`, `circle_magic.png`, `shockwave.png`, `heart.png`, `aura.png` | "Particle Pack" by Kenney (CC0) | https://kenney.nl/assets/particle-pack |
 
 ## UI (`assets/ui/`)

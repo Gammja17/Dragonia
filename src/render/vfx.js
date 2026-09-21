@@ -18,6 +18,13 @@ const VFX_IMAGES = {
     ice_spike: 'assets/vfx/ice_spike.png',     // 32x32 × 9 솟아오르는 얼음
     thunder_ball: 'assets/vfx/thunder_ball.png', // 48x48 × 16
     puff: 'assets/vfx/puff.png',               // 48x32 × 9 먼지
+    water: 'assets/vfx/water.png',             // 56x38 × 16 날아가는 물덩이
+    water_hit: 'assets/vfx/water_hit.png',     // 64x64 × 13
+    water_splash: 'assets/vfx/water_splash.png', // 64x74 × 15 솟았다 가라앉는 물기둥
+    earth_hit: 'assets/vfx/earth_hit.png',     // 44x39 × 11: 0~4 땅에서 솟는 바위, 5 온전한 바위(날아가는 숨결로도 쓴다), 6~10 부서짐
+    grass: 'assets/vfx/grass.png',             // 18x18 × 10 날아가는 독즙
+    grass_hit: 'assets/vfx/grass_hit.png',     // 31x25 × 6
+    root: 'assets/vfx/root.png',               // 20x20 × 13 땅에서 솟아 후려치는 뿌리
     // Kenney Particle Pack (흰색이라 spawnEffect 의 color 로 물들여 쓴다)
     slash: 'assets/vfx/slash.png', scorch: 'assets/vfx/scorch.png', twirl: 'assets/vfx/twirl.png', spark: 'assets/vfx/spark.png',
     muzzle: 'assets/vfx/muzzle.png', dirt: 'assets/vfx/dirt.png', flare: 'assets/vfx/flare.png', circle_magic: 'assets/vfx/circle_magic.png',
@@ -38,6 +45,12 @@ const EFFECTS = {
     FIRE_HIT: { img: 'firebolt', fw: 48, fh: 48, frames: [5, 6, 7, 8, 9, 10], fps: 20, scale: 3, ax: 0.83, ay: 0.5, additive: true, light: { r: 220, color: '#ff9a3c' } },
     ICE_HIT:  { img: 'ice_hit', fw: 48, fh: 32, frames: [0, 1, 2, 3, 4, 5, 6, 7], fps: 20, scale: 3, ax: 0.5, ay: 0.5, additive: true, light: { r: 200, color: '#7fd4ff' } },
     THUNDER_HIT: { img: 'thunder_hit', fw: 32, fh: 32, frames: [0, 1, 2, 3, 4, 5], fps: 22, scale: 3.5, ax: 0.5, ay: 0.5, additive: true, light: { r: 240, color: '#ffe27a' } },
+    WATER_HIT: { img: 'water_hit', fw: 64, fh: 64, frames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], fps: 24, scale: 2.6, ax: 0.6, ay: 0.5, additive: true, light: { r: 200, color: '#7fc4ff' } },
+    WATER_SPLASH: { img: 'water_splash', fw: 64, fh: 74, frames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], fps: 20, scale: 2.4, ax: 0.5, ay: 0.95, light: { r: 180, color: '#7fc4ff' } },
+    EARTH_HIT: { img: 'earth_hit', fw: 44, fh: 39, frames: [5, 6, 7, 8, 9, 10], fps: 18, scale: 3, ax: 0.5, ay: 0.5 },
+    EARTH_RISE: { img: 'earth_hit', fw: 44, fh: 39, frames: [0, 1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 10], fps: 18, scale: 3, ax: 0.5, ay: 0.6 },
+    GRASS_HIT: { img: 'grass_hit', fw: 31, fh: 25, frames: [0, 1, 2, 3, 4, 5], fps: 18, scale: 3.4, ax: 0.5, ay: 0.6, additive: true, light: { r: 170, color: '#9fe07a' } },
+    ROOT:     { img: 'root', fw: 20, fh: 20, frames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], fps: 16, scale: 4.5, ax: 0.5, ay: 0.95 },
     SMOKE:    { img: 'smoke', fw: 64, fh: 64, frames: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], fps: 18, scale: 2, ax: 0.5, ay: 0.6 },
     STAR:     { img: 'star', life: 0.5, from: 0.3, to: 1.6, spin: 1.5, additive: true, light: { r: 260, color: '#fff2b0' } },
     FLAMES:   { img: 'flames', fw: 48, fh: 48, row: 1, frames: [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3], fps: 10, scale: 2.4, ax: 0.5, ay: 0.85, additive: true, light: { r: 170, color: '#ff9a3c' } },

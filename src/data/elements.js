@@ -6,7 +6,7 @@
 //  EARTH   바위: 느리고 묵직하다. 맞은 적이 잠깐 기절한다. (돌등에서 받는다)
 //  GRASS   가시: 두 갈래로 나가 독을 묻힌다. 독은 오래가고, 불이 닿으면 번진다. (뿌리골에서 받는다)
 //
-// proj.filter: 새 속성은 아직 제 그림이 없어서 있는 그림의 색을 돌려 쓴다 (CSS filter).
+// proj.solid: 빛을 더하지 않고 제 색 그대로 그리는 탄 (밝은 풀밭 위에서 물·독즙이 하얗게 날아가 버려서). proj.spin: 한 장짜리 그림이 돌면서 날아가는 빠르기(rad/초)
 // rate: 꾹 누르고 있을 때 발사 간격(초). pellets: 한 번에 나가는 탄 수, spread: 탄 사이 각도(rad)
 export const ELEMENTS = {
     FIRE: {
@@ -32,22 +32,22 @@ export const ELEMENTS = {
     },
     WATER: {
         name: '물', key: '4', color: '#4aa3ff', damage: 6, speed: 560, rate: 0.3, life: 0.7, pellets: 1, spread: 0, radius: 46, push: 22,
-        proj: { img: 'ice', fw: 48, fh: 32, frames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], fps: 20, ax: 0.8, ay: 0.5, filter: 'hue-rotate(25deg) saturate(1.8) brightness(0.95)' },
-        hit: 'ICE_HIT', trail: '#7fc4ff', sound: 'ice',
+        proj: { img: 'water', fw: 56, fh: 38, frames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], fps: 20, ax: 0.75, ay: 0.5, solid: true },
+        hit: 'WATER_HIT', trail: '#7fc4ff', sound: 'ice',
         status: { type: 'WET', duration: 4.5 },
         desc: '적을 밀어내는 물줄기. 젖은 적은 번개와 냉기에 약해진다',
     },
     EARTH: {
         name: '땅', key: '5', color: '#c9a06a', damage: 24, speed: 380, rate: 0.95, life: 0.95, pellets: 1, spread: 0, radius: 72,
-        proj: { img: 'firebolt', fw: 48, fh: 48, frames: [0, 1, 2, 3], fps: 8, ax: 0.8, ay: 0.6, filter: 'grayscale(1) sepia(0.9) brightness(0.8) contrast(1.3)' },
-        hit: 'FIRE_HIT', trail: '#a88a5a', sound: 'shoot',
+        proj: { img: 'earth_hit', fw: 44, fh: 39, frames: [5], fps: 1, ax: 0.5, ay: 0.5, solid: true, spin: 9 },
+        hit: 'EARTH_HIT', trail: '#a88a5a', sound: 'shoot',
         status: { type: 'STUN', duration: 0.7 },
         desc: '느리고 묵직한 바위. 맞은 적이 잠깐 기절하고, 얼거나 굳은 적은 부서진다',
     },
     GRASS: {
         name: '풀', key: '6', color: '#6fcf5a', damage: 5, speed: 540, rate: 0.28, life: 0.7, pellets: 2, spread: 0.12, radius: 40,
-        proj: { img: 'thunder', fw: 32, fh: 32, frames: [0, 1, 2, 3, 4], fps: 14, ax: 0.7, ay: 0.5, filter: 'hue-rotate(60deg) saturate(1.4)' },
-        hit: 'THUNDER_HIT', trail: '#9fe07a', sound: 'zap',
+        proj: { img: 'grass', fw: 18, fh: 18, frames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], fps: 16, ax: 0.5, ay: 0.5, solid: true },
+        hit: 'GRASS_HIT', trail: '#9fe07a', sound: 'zap',
         status: { type: 'POISON', duration: 5 },
         desc: '독을 묻히는 가시 두 갈래. 독은 오래가고, 불이 닿으면 번진다',
     },

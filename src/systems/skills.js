@@ -176,7 +176,7 @@ const CAST = {
             if (!e.statusImmune) { e.x += Math.cos(angle) * 260; e.y += Math.sin(angle) * 260; }
         }
         for (const b of state.entities.bullets) if (b.faction === 'ENEMY' && dist(p, b) < 360) b.remove = true;   // 날아오던 것도 같이 쓸려 간다
-        for (let i = 1; i <= 4; i++) spawnEffect('GUST', p.x + Math.cos(angle) * i * 95, p.y - 30 + Math.sin(angle) * i * 95, { size: 1 + i * 0.45, angle, color: '#4aa3ff' });
+        for (let i = 1; i <= 4; i++) spawnEffect('WATER_SPLASH', p.x + Math.cos(angle) * i * 95, p.y + Math.sin(angle) * i * 95, { size: 0.8 + i * 0.3 });
         spawnEffect('SHOCKWAVE', p.x, p.y, { size: 1.8, color: '#4aa3ff' });
         shake(7); play('gust');
     },
@@ -184,15 +184,16 @@ const CAST = {
         for (let i = 0; i < 8; i++) {
             const a = (i / 8) * Math.PI * 2;
             addHazard(p.x + Math.cos(a) * 170, p.y + Math.sin(a) * 130, { faction: 'ALLY', r: 95, delay: 0.25 + (i % 2) * 0.12, linger: 0,
-                damage: 30 * power(p, 'EARTH', m), color: '#c9a06a', effect: 'FIRE_HIT', effectSize: 1.6, sound: i === 0 ? 'boom' : null, shake: i === 0 ? 10 : 0, status: { type: 'STUN', duration: 1.6 } });
+                damage: 30 * power(p, 'EARTH', m), color: '#c9a06a', effect: 'EARTH_RISE', effectSize: 1.6, sound: i === 0 ? 'boom' : null, shake: i === 0 ? 10 : 0, status: { type: 'STUN', duration: 1.6 } });
         }
         spawnEffect('SHOCKWAVE', p.x, p.y, { size: 2.4, color: '#c9a06a' });
     },
     BRAMBLE(p, m) {
         const { x, y } = p.aimPoint(380);
         addHazard(x, y, { faction: 'ALLY', r: 175, delay: 0.35, linger: 5, damage: 10 * power(p, 'GRASS', m), dps: 7 * power(p, 'GRASS', m),
-            color: '#6fcf5a', effect: 'THUNDER_HIT', effectSize: 2.2, sound: 'zap', status: { type: 'POISON', duration: 5 } });
+            color: '#6fcf5a', effect: 'GRASS_HIT', effectSize: 2.2, sound: 'zap', status: { type: 'POISON', duration: 5 } });
         spawnEffect('MAGIC_CIRCLE', x, y, { size: 1.5, color: '#6fcf5a' });
+        for (let i = 0; i < 7; i++) { const a = (i / 7) * Math.PI * 2; spawnEffect('ROOT', x + Math.cos(a) * 110, y + Math.sin(a) * 85, { size: 1 + (i % 2) * 0.3 }); }
         for (const e of foes()) if (Math.hypot(e.x - x, e.y - y) < 175) applyStatus(e, 'SLOW', 3);
     },
     FROST_NOVA(p, m) {
