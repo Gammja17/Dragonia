@@ -24,8 +24,12 @@ async function buildGallery() {
         return c;
     };
     let first = null;
+    const L = DRAGON_SHEETS.LOOK;
     LOOK_NAMES.forEach((name, i) => {
-        const c = add(g => g.drawImage(looks, (i % 13) * 64, Math.floor(i / 13) * 64, 64, 64, 0, 0, 64, 64), { species: 'LOOK', look: i }, name);
+        // 칸이 가로로 길어서(80x64) 64칸에 그대로 넣으면 눌린다. 비율을 지켜 가운데에 맞춘다
+        const sx = (i % L.cols) * L.fw, sy = Math.floor(i / L.cols) * L.fh;
+        const k = Math.min(64 / L.fw, 64 / L.fh);
+        const c = add(g => g.drawImage(looks, sx, sy, L.fw, L.fh, (64 - L.fw * k) / 2, (64 - L.fh * k) / 2, L.fw * k, L.fh * k), { species: 'LOOK', look: i }, name);
         if (!first) first = [c, { species: 'LOOK', look: i }, name];
     });
     for (const [species, name] of CLASSIC) {

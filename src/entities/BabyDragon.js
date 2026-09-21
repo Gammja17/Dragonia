@@ -8,7 +8,7 @@ import { dist, rand, pick, roundRect } from '../core/utils.js';
 import { setKidStage, addAffection, findKid } from '../systems/kids.js';
 import { showToast } from '../ui/toast.js';
 import { KID_TALK } from '../data/npcTalk.js';
-import { facingFromVector, drawAccessory, outlineFor } from './Dragon.js';
+import { facingFromVector, drawAccessory, outlineFor, headTop, bubble } from './Dragon.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
 import { Animator, drawFrame } from '../render/spritesheet.js';
 
@@ -147,7 +147,7 @@ export class BabyDragon extends Entity {
 
         // 이름표와 말풍선. 줌을 되돌려 그려서 멀리 당겨 봐도 같은 크기로 또렷하다
         const kid = findKid(this);
-        const top = this.y - this.sheet.fh * this.sheet.scale * s * this.sheet.anchor.y - 6;
+        const top = this.y - headTop(this.sheet, s) - 6;
         const k = 1 / cam.zoom;
         ctx.save();
         ctx.translate(Math.round(this.x), Math.round(top));
@@ -164,13 +164,10 @@ export class BabyDragon extends Entity {
         if (this.chatFade > 0 && this.chat) {
             ctx.globalAlpha = Math.min(1, this.chatFade);
             ctx.font = '12px "Noto Sans KR"';
-            const w = Math.ceil(ctx.measureText(this.chat).width) + 22;
-            ctx.fillStyle = 'rgba(10, 9, 16, 0.92)';
-            ctx.fillRect(-w / 2, -44, w, 24);
-            ctx.fillStyle = 'rgba(216, 178, 90, 0.7)';
-            ctx.fillRect(-w / 2, -44, w, 2);
-            ctx.fillStyle = '#ece3cf';
-            ctx.fillText(this.chat, 0, -27);
+            const w = Math.ceil(ctx.measureText(this.chat).width) + 24;
+            bubble(ctx, -w / 2, -46, w, 26, -20);
+            ctx.fillStyle = '#20202a';
+            ctx.fillText(this.chat, 0, -28);
             ctx.globalAlpha = 1;
         }
         ctx.restore();

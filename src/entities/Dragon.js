@@ -60,13 +60,45 @@ const HUNGER_PECKISH = 35, HUNGER_STARVING = 12;
 const DASH_TIME = 0.2, DASH_COOLDOWN = 1.0, DASH_MULT = 3.4;
 const MOUTH_OFFSET = 40; // 화염구가 생성되는 위치(발 기준점에서 바라보는 방향으로)
 
+/**
+ * 발 기준점에서 그림 꼭대기까지의 높이(px). 이름표와 체력바를 머리 바로 위에 붙이는 데 쓴다.
+ * box(칸 안에서 그림이 실제로 차지하는 자리, data/sprites.js)가 있으면 그 값을 쓴다 — 체구가
+ * 작은 용은 칸 위쪽이 통째로 비어 있어서, 칸 높이로 재면 이름표가 허공에 떠 버린다.
+ */
+export function headTop(sheet, scale = 1) {
+    if (!sheet) return 90;
+    return (sheet.fh * sheet.anchor.y - (sheet.box ? sheet.box.y : 0)) * sheet.scale * scale;
+}
+
+/**
+ * 흰 바탕 기본 말풍선. 몸통(x,y,w,h)과 아래를 가리키는 꼬리를 한 붓으로 채운다.
+ * tailY 는 꼬리가 나오는 높이 — 말풍선 아래쪽 변과 같게 준다.
+ */
+export function bubble(ctx, x, y, w, h, tailY) {
+    const r = 9;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    ctx.moveTo(-7, tailY - 1); ctx.lineTo(7, tailY - 1); ctx.lineTo(0, tailY + 8);
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 2;
+    ctx.fill();
+    ctx.restore();
+}
+
 /** 머리 위 장신구. accessory: render/pixel.js 의 아이콘 이름 */
 export function drawAccessory(ctx, sheet, accessory, facing, x, y, scale) {
     if (!accessory || !sheet.head) return;
     if (sheet.procedural && (facing === 'up' || facing === 'down')) return;   // 좌우 그림만 있는 외형은 어느 쪽을 보는지 여기선 알 수 없다
     const s = sheet.scale * scale, [hx, hy] = sheet.head[facing];
+    const b = sheet.box || { x: 0, y: 0, w: sheet.fw, h: sheet.fh };          // head 비율은 칸이 아니라 용 몸을 기준으로 읽는다
     const left = x - sheet.fw * s * sheet.anchor.x, top = y - sheet.fh * s * sheet.anchor.y;
-    drawIcon(ctx, accessory, left + sheet.fw * s * hx, top + sheet.fh * s * hy, Math.max(2, Math.round(3 * scale)));
+    drawIcon(ctx, accessory, left + (b.x + b.w * hx) * s, top + (b.y + b.h * hy) * s, Math.max(2, Math.round(3 * scale)));
 }
 
 // 지금 보고 있는 축(가로/세로)을 조금 우대한다. 정확히 대각선으로 움직일 때
@@ -875,7 +907,7 @@ export class Dragon extends Entity {
     drawPlayerBar(ctx) {
         const r = this.hp / this.maxHp;
         if (r >= 1) return;
-        const top = this.sheet ? this.sheet.fh * this.sheet.scale * this.sheet.anchor.y : 90;
+        const top = headTop(this.sheet);
         const k = 1 / cam.zoom;
         const W = 74, H = 8;
         ctx.save();
@@ -901,7 +933,7 @@ export class Dragon extends Entity {
      */
     drawNameplate(ctx) {
         if (inCutscene()) return;   // 컷씬에서는 대화창이 말하는 이를 알려 준다
-        const top = this.sheet ? this.sheet.fh * this.sheet.scale * this.sheet.anchor.y : 90;
+        const top = headTop(this.sheet);
         const k = 1 / cam.zoom;
         ctx.save();
         ctx.translate(Math.round(this.x), Math.round(this.y - top - 14 + this.hoverY));
@@ -920,20 +952,13 @@ export class Dragon extends Entity {
         ctx.fillStyle = '#ece3cf';
         ctx.fillText(name, 0, 0);
 
-        // 호감도 하트
-        if (this.relation > 0) {
-            ctx.font = '11px "Noto Sans KR"';
-            ctx.fillStyle = '#ff7aa8';
-            ctx.fillText('♥'.repeat(Math.min(3, Math.max(1, Math.ceil(this.relation / 30)))), 0, -20);
-        }
-
         // 퀘스트 표시 (! 새 부탁 / ? 보고할 것)
         const mark = questMarker(this);
         if (mark) {
             ctx.font = '900 30px Fredoka';
             ctx.fillStyle = mark === '?' ? '#7dd36a' : '#ffd84a';
             ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 5;
-            const my = (this.relation > 0 ? -42 : -26) + Math.sin(state.gameTime * 4) * 3;
+            const my = -26 + Math.sin(state.gameTime * 4) * 3;
             ctx.strokeText(mark, 0, my); ctx.fillText(mark, 0, my);
         }
 
@@ -945,17 +970,10 @@ export class Dragon extends Entity {
             const lh = 19, padX = 12, padY = 9;
             const w = Math.max(...lines.map(l => ctx.measureText(l).width)) + padX * 2;
             const h = lines.length * lh + padY * 2 - 4;
-            const bottom = (this.relation > 0 ? -44 : -28) - (mark ? 30 : 0);
+            const bottom = -28 - (mark ? 30 : 0);
             const topY = bottom - h;
-            ctx.fillStyle = 'rgba(10, 9, 16, 0.92)';
-            ctx.fillRect(-w / 2, topY, w, h);
-            ctx.fillStyle = 'rgba(216, 178, 90, 0.75)';
-            ctx.fillRect(-w / 2, topY, w, 2);
-            ctx.fillRect(-w / 2, topY + h - 2, w, 2);
-            ctx.beginPath();                              // 아래를 가리키는 꼬리
-            ctx.moveTo(-6, bottom); ctx.lineTo(6, bottom); ctx.lineTo(0, bottom + 7);
-            ctx.fillStyle = 'rgba(10, 9, 16, 0.92)'; ctx.fill();
-            ctx.fillStyle = '#ece3cf';
+            bubble(ctx, -w / 2, topY, w, h, bottom);
+            ctx.fillStyle = '#20202a';
             lines.forEach((line, i) => ctx.fillText(line, 0, topY + padY + lh * i + 11));
         }
         ctx.restore();

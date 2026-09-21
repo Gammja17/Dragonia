@@ -51,7 +51,7 @@ export function buildSheet(desc, images, look = 0) {
         anims[name] = { fps: a.fps || 8, loop: a.loop !== false, count };
     }
 
-    return { frames, anims, fw, fh, head: desc.head, procedural: desc.type === 'static', scale: desc.scale || 1, anchor: desc.anchor || { x: 0.5, y: 1 }, flying: !!desc.flying };
+    return { frames, anims, fw, fh, head: desc.head, box: desc.boxes && desc.boxes[look], procedural: desc.type === 'static', scale: desc.scale || 1, anchor: desc.anchor || { x: 0.5, y: 1 }, flying: !!desc.flying };
 }
 
 /** 애니메이션 재생 상태. 엔티티마다 하나씩 */
@@ -159,6 +159,10 @@ export function drawFrame(ctx, sheet, f, x, y, scale = 1, motion = null, outline
     }
     const dx = -w * sheet.anchor.x, dy = -h * sheet.anchor.y;
     ctx.save();
+    // 픽셀아트를 키워 그릴 땐 보간을 끈다. 켜 두면 64px 그림을 2.5배로 늘리면서 죄다 뭉개졌다.
+    // 반대로 줄여 그리는 시트(WESTERN 205px 등)는 켜 둬야 획이 듬성듬성 빠지지 않는다.
+    // imageSmoothingEnabled 는 캔버스 상태라 아래 restore() 가 알아서 되돌린다.
+    ctx.imageSmoothingEnabled = s < 1;
     ctx.translate(x, y);
     if (f.flip) ctx.scale(-1, 1);
     if (outline) {
