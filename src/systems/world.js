@@ -5,6 +5,7 @@ import { MAPS, START_MAP, mapName } from '../data/maps.js';
 import { buildMap, coarseCenter, COARSE_PX } from '../world/mapgen.js';
 import { setActiveMap, activeMap } from '../world/terrain.js';
 import { buildPropGrid, solidAt } from '../world/collision.js';
+import { BIOMES } from '../world/biomes.js';
 import { BIOME_ENEMIES, BOSSES } from '../data/enemies.js';
 import { FIXED_NPCS, WANDER_NAMES, WANDER_PERSONALITIES, WANDER_SPECIES, WANDER_LOOKS, WANDER_ACCESSORIES, SPECIES_COLORS } from '../data/npcs.js';
 import { Dragon } from '../entities/Dragon.js';
@@ -163,6 +164,12 @@ function populate(id) {
     scatter(Math.round(area * trees * 0.11), (x, y) => { if (!nearRoad(x, y)) pools.props.push(new Prop(x, y, 'TREE')); }, 220);
     scatter(Math.round(area * 0.22), (x, y) => pools.props.push(new Prop(x, y, pick(['BUSH', 'BUSH', 'FERN', 'ROCK', 'STUMP']))), 70);
     scatter(Math.round(area * 0.06), (x, y) => pools.props.push(new Prop(x, y, 'BERRY')), 90);
+
+    // 바이옴마다 다른 잡동사니와 랜드마크 (world/biomes.js).
+    // 이게 없으면 색상판만 다른 같은 풀밭이 19장 나온다
+    const biome = BIOMES[spec.biome] || BIOMES.FOREST;
+    if (biome.decor) scatter(Math.round(area * 0.10), (x, y) => pools.props.push(new Prop(x, y, pick(biome.decor))), 110);
+    if (biome.landmarks) scatter(2 + Math.floor(rng() * 2), (x, y) => pools.props.push(new Prop(x, y, pick(biome.landmarks))), 520);
 
     let chestNo = 0;
     scatter(spec.chests ?? 3, (x, y) => {

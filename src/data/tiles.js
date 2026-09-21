@@ -57,4 +57,47 @@ export const PROP_SPRITES = {
     BOARD:  [{ sheet: 'village', sx: 544, sy: 32, sw: 16, sh: 16, ax: 0.5, ay: 0.95 }],   // 잡일 게시판
     CHEST:  [{ sheet: 'dungeon', sx: 80, sy: 112, sw: 16, sh: 16, ax: 0.5, ay: 0.9 }],
     CHEST_OPEN: [{ sheet: 'dungeon', sx: 112, sy: 112, sw: 16, sh: 16, ax: 0.5, ay: 0.9 }],
+
+    // ---- 마을 시트에서 캐낸 것들 ----
+    // village.png 는 40×36 = 1,440칸짜리인데 집·분수·상자 몇 개만 꺼내 쓰고 있었다.
+    // 지도 19장이 죄다 "풀밭 + 흙길 + 연못"으로 보이던 건 깔 것이 다섯 가지뿐이어서였다.
+    // 여기 있는 것들을 바이옴별로 나눠 뿌린다 (world/biomes.js 의 decor · landmarks).
+    //
+    // 큰 것(랜드마크): 지도마다 한두 개만 서서 "여기가 어디인지" 기억에 남게 한다
+    WELL:      [{ sheet: 'village', sx: 497, sy: 54,  sw: 31, sh: 58, ax: 0.5, ay: 0.92 }],
+    STALL:     [{ sheet: 'village', sx: 288, sy: 359, sw: 80, sh: 85, ax: 0.5, ay: 0.92 }],
+    GATE:      [{ sheet: 'village', sx: 409, sy: 361, sw: 62, sh: 94, ax: 0.5, ay: 0.95 }],
+    TEMPLE:    [{ sheet: 'village', sx: 98,  sy: 361, sw: 28, sh: 23, ax: 0.5, ay: 0.9 }],
+    RUIN:      [{ sheet: 'village', sx: 592, sy: 41,  sw: 32, sh: 39, ax: 0.5, ay: 0.9 }],
+    BANNER:    [{ sheet: 'village', sx: 54,  sy: 464, sw: 26, sh: 55, ax: 0.5, ay: 0.95 }],
+    STONE_WALL:[{ sheet: 'village', sx: 91,  sy: 103, sw: 26, sh: 33, ax: 0.5, ay: 0.9 }],
+    CAVE_ARCH: [{ sheet: 'village', sx: 168, sy: 504, sw: 48, sh: 40, ax: 0.5, ay: 0.95 }],
+    GARDEN:    [{ sheet: 'village', sx: 0,   sy: 448, sw: 58, sh: 128, ax: 0.5, ay: 0.95 }],
+    VINE_PILLAR:[{ sheet: 'village', sx: 1,  sy: 225, sw: 15, sh: 31, ax: 0.5, ay: 0.92 }],
+    STUMP_TABLE:[{ sheet: 'village', sx: 565, sy: 168, sw: 35, sh: 72, ax: 0.5, ay: 0.95 }],
+
+    // 중간 것: 사람이 살던 흔적
+    BENCH:     [{ sheet: 'village', sx: 451, sy: 105, sw: 44, sh: 21, ax: 0.5, ay: 0.85 }],
+    FENCE:     [{ sheet: 'village', sx: 355, sy: 112, sw: 43, sh: 21, ax: 0.5, ay: 0.85 }],
+    BARRELS:   [{ sheet: 'village', sx: 528, sy: 0,   sw: 32, sh: 28, ax: 0.5, ay: 0.9 }],
+    CRATE_BIG: [{ sheet: 'village', sx: 564, sy: 129, sw: 26, sh: 31, ax: 0.5, ay: 0.9 }],
+    LADDER:    [{ sheet: 'village', sx: 420, sy: 22,  sw: 7,  sh: 38, ax: 0.5, ay: 0.95 }],
+    CROPS:     [{ sheet: 'village', sx: 417, sy: 320, sw: 15, sh: 23, ax: 0.5, ay: 0.9 },
+                { sheet: 'village', sx: 433, sy: 320, sw: 15, sh: 23, ax: 0.5, ay: 0.9 },
+                { sheet: 'village', sx: 449, sy: 320, sw: 15, sh: 23, ax: 0.5, ay: 0.9 }],
+    GRAVE:     [{ sheet: 'village', sx: 567, sy: 83,  sw: 20, sh: 24, ax: 0.5, ay: 0.9 },
+                { sheet: 'village', sx: 599, sy: 83,  sw: 19, sh: 23, ax: 0.5, ay: 0.9 },
+                { sheet: 'village', sx: 567, sy: 112, sw: 20, sh: 16, ax: 0.5, ay: 0.9 }],
+    POT:       [{ sheet: 'village', sx: 564, sy: 1,   sw: 9,  sh: 13, ax: 0.5, ay: 0.9 }],
+
+    // 바닥에 깔리는 잡동사니: 밟고 지나가도 되는 것들. 풀밭이 허전하지 않게
+    ROCK_MOSS: [{ sheet: 'village', sx: 69,  sy: 26,  sw: 25, sh: 21, ax: 0.5, ay: 0.8 },
+                { sheet: 'village', sx: 112, sy: 81,  sw: 16, sh: 14, ax: 0.5, ay: 0.8 },
+                { sheet: 'village', sx: 129, sy: 83,  sw: 15, sh: 13, ax: 0.5, ay: 0.8 }],
+    PEBBLES:   [{ sheet: 'village', sx: 208, sy: 353, sw: 16, sh: 15, ax: 0.5, ay: 0.7 },
+                { sheet: 'village', sx: 162, sy: 86,  sw: 13, sh: 8,  ax: 0.5, ay: 0.7 }],
+    GRAVEL:    [{ sheet: 'village', sx: 193, sy: 371, sw: 31, sh: 28, ax: 0.5, ay: 0.7 }],
+    SKULL:     [{ sheet: 'village', sx: 450, sy: 34,  sw: 13, sh: 13, ax: 0.5, ay: 0.7 }],
+    DEAD_BRANCH:[{ sheet: 'village', sx: 433, sy: 34, sw: 15, sh: 14, ax: 0.5, ay: 0.7 }],
+    STEPSTONE: [{ sheet: 'village', sx: 177, sy: 161, sw: 47, sh: 14, ax: 0.5, ay: 0.7 }],
 };

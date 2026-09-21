@@ -19,6 +19,21 @@ const FOOTPRINT = {
     CRATE: [15, 10],
     BARREL: [15, 10],
     WATERFALL: [76, 26],
+    // 마을 시트에서 캐낸 것들. 몸으로 막아서 지도에 길과 막다른 곳이 생긴다.
+    // 작은 잡동사니(자갈·해골·삭정이)는 일부러 넣지 않는다 — 밟고 지나가야 걸리적거리지 않는다
+    WELL: [26, 16],
+    STALL: [50, 24],
+    GATE: [40, 22],
+    TEMPLE: [30, 16],
+    RUIN: [26, 15],
+    BANNER: [12, 9],
+    STONE_WALL: [30, 18],
+    CAVE_ARCH: [48, 22],
+    GARDEN: [46, 30],
+    VINE_PILLAR: [14, 9],
+    STUMP_TABLE: [30, 16],
+    BARRELS: [22, 12],
+    CRATE_BIG: [16, 11],
 };
 
 const CELL = 160;                   // 공간 해시 칸 크기

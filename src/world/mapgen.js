@@ -168,7 +168,7 @@ function bake(kinds, tw, th, spec, rng) {
         let t;
         if (id === DIRT_ID) t = pickTile(kinds, tw, th, DIRT, tx, ty);
         else if (id === WATER_ID) t = pickTile(kinds, tw, th, WATER, tx, ty);
-        else if (rng() < 0.06) t = GRASS_DECOR[Math.floor(rng() * GRASS_DECOR.length)];
+        else if (rng() < 0.09) t = GRASS_DECOR[Math.floor(rng() * GRASS_DECOR.length)];   // 풀밭이 너무 반반해서 꽃·잔돌을 조금 더 섞는다
         else t = GRASS[(ty % 2) * 2 + (tx % 2)];
         g.drawImage(sheet, t[0] * TILE_SRC, t[1] * TILE_SRC, TILE_SRC, TILE_SRC, tx * TILE_SRC, ty * TILE_SRC, TILE_SRC, TILE_SRC);
     }
