@@ -4,7 +4,7 @@ import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
 import { play } from './audio.js';
 import { saveGame } from './save.js';
-import { acceptQuest, takeQuestScene } from './quests.js';
+import { acceptQuest, takeQuestScene, notify } from './quests.js';
 import { QUESTS } from '../data/quests.js';
 import { CHRONICLE } from '../data/chronicle.js';
 import { BOND_SCENES } from '../data/npcTalk.js';
@@ -34,6 +34,7 @@ function context() {
         biome: activeBiome(),
         map: state.mapId,
         night: t < 0.22 || t > 0.82,
+        hour: t * 24,
         day: state.day,
         done: (id) => state.quests.done.includes(id),
         active: (id) => id in state.quests.active,
@@ -42,6 +43,8 @@ function context() {
         boss: (id) => !!state.bossesDefeated[id],
         // 퀘스트 마무리에서 무엇을 골랐는지. 사건이 그 선택을 기억한다
         chose: (questId, optionId) => (state.quests.choices || {})[questId] === optionId,
+        // 그 용과 데이트를 몇 번 했나 (밀회 줄기가 갈린다)
+        datesOf: (name) => { const n = anyNpc(name); return n ? (n.dates || 0) : 0; },
         relationOf: (name) => {
             const n = state.entities.npcs.find(x => x.config.name === name);
             return n ? (n.relation || 0) : 0;
@@ -101,6 +104,7 @@ function fire(ev) {
             if (q) acceptQuest(q);
         }
         if (ev.clue) addClue(ev.clue);
+        notify('event', ev.id);      // "그 자리에 가 있기"가 목표인 대목
         if (ev.toast) showToast(ev.toast, ev.icon || '📖');
         saveGame();
     });

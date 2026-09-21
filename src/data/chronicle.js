@@ -9,6 +9,7 @@
 export const CLUES = {
     mark:    '목 아래 비늘 한 장 밑에 무늬가 있다. 떨어지던 날엔 없었다.',
     breath:  '숨결이 둘이 되었다. 드래곤은 하나의 속성만 가지고 태어난다는데. 엘더는 "딱 한 번을 빼고는" 이라고 했다.',
+    sky:     '세이란의 물점: 구름보다 위에 돌로 지은 빈 둥지들. 알 껍데기가 둘. 아주 오래된 것 하나, 얼마 안 된 것 하나.',
     seiran:  '세이란: 어느 집안 무늬도 아니다. 물에 비친 옛일 속에 같은 무늬가 하나 있었다. 붉은 하늘 밑으로 떨어지는 용.',
     twice:   '포코: 내가 떨어지던 밤, 하늘은 두 번 붉어졌다. 엘더는 한 번만 봤다고 한다.',
     breath:  '카이론: 세 숨결을 한 몸에 쓰는 용은 원래 없다. 있다면 누가 그렇게 만든 것이다.',
@@ -92,20 +93,18 @@ export const CHRONICLE = [
         toast: '새 퀘스트: 골짜기의 옛 수호룡', icon: '📜',
     },
     {
-        id: 'ev_zalgora', title: '밀림에서 본 것', grant: 'm5',
-        when: c => c.done('m4') && !c.done('m5') && !c.active('m5') && c.map === 'JUNGLE',
+        // 밀림에 처음 들어섰을 때. 퀘스트(m5)는 엘더가 준다
+        id: 'ev_zalgora', title: '밀림에서 본 것',
+        when: c => c.active('m5') && !c.boss('ZALGORA') && c.map === 'JUNGLE',
         lines: [
-            { who: '나', text: "(나뭇잎 사이로 거대한 그림자가 지나갔다. 목이 둘이었다.)" },
+            { who: '나', text: "(나뭇잎 사이로 커다란 그림자가 지나갔다. 목이 둘이다.)" },
             { who: '???', text: "「내가 왕이다」 「닥쳐, 네가 무슨 왕이야」 「내가,」" },
-            { who: '나', text: "(한 몸에서 두 목소리가 서로 악을 썼다. 싸우는 게 아니다. 서로를 견디고 있다.)" },
-            { who: 'Tiamat', text: "잘고라야. 원래 형제였대. 이그나르의 저주로 한 몸이 됐다더라." },
-            { who: 'Tiamat', text: "끝내 주는 게 나아. 저건 사는 게 아니야." },
+            { who: '나', text: "(한 몸에서 두 목소리가 서로 악을 쓴다. 싸운다기보다는, 서로를 간신히 견디는 것 같다.)" },
         ],
-        toast: '새 퀘스트: 환영의 밀림', icon: '📜',
     },
     {
         id: 'ev_glacia', title: '여름에 내린 눈', grant: 'm5a',
-        when: c => c.done('m5') && !c.done('m5a') && !c.active('m5a') && c.map === 'VILLAGE',
+        when: c => c.done('m5') && (c.done('m5g') || c.boss('GLACIA')) && !c.done('m5a') && !c.active('m5a') && c.map === 'VILLAGE',
         lines: [
             { who: '나', text: "(마을 광장에 눈이 내리고 있었다. 한여름에.)" },
             { who: 'Poco', text: "우와아 눈이다! 근데 왜 이렇게 추워?" },
@@ -206,6 +205,36 @@ export const CHRONICLE = [
             { who: 'Haru', text: "왔다! 여기야 여기! 구경시켜 줄게. 유안한테 걸리기 전에 빨리!" },
         ],
         toast: '구름마루의 용들과 이야기할 수 있습니다.', icon: '🏔️',
+    },
+
+    // ---------- 밀회: 해 질 녘의 폭포 (text/story-bible.md 7절) ----------
+    // 하루와 가까워지는 중이면 내가 들킬 뻔하고, 아니면 남의 밀회를 본다. 어느 쪽이든 미라와 유안이 드러난다
+    {
+        id: 'ev_tryst', title: '폭포의 두 그림자', grant: 's1',
+        when: c => c.map === 'FALLS' && c.hour >= 17 && c.hour < 20 && c.done('m5g') && !c.gathering && c.datesOf('Haru') === 0 && !c.s.story.events.includes('ev_tryst_mine'),
+        lines: [
+            { who: '나', text: "(해 질 녘의 폭포. 물안개 너머에 그림자가 둘 서 있다. 하나는 몸이 길다.)" },
+            { who: 'Mira', text: "…스무 해야, 유안. 길이 얼어 있는 동안 나 매일 저 밑에까지 왔었어. 올려다보기만 하고." },
+            { who: 'Yuan', text: "알아. 위에서 보였어." },
+            { who: 'Mira', text: "봤으면서 한 번을 안 내려와?" },
+            { who: 'Yuan', text: "내려가면 다시 못 올라올 것 같아서." },
+            { who: '나', text: "(…저 유안이 맞나. 아랫것들이 밟을 데가 아니라던 그 유안이.)" },
+            { who: 'Yuan', text: "(홱 돌아본다.) 누구냐!" },
+            { who: 'Mira', text: "…아. 너였구나." },
+        ],
+    },
+    {
+        id: 'ev_tryst_mine', title: '들킬 뻔한 저녁',
+        when: c => c.map === 'FALLS' && c.hour >= 17 && c.hour < 20 && c.done('m5g') && !c.gathering && c.datesOf('Haru') >= 1 && !c.s.story.events.includes('ev_tryst'),
+        lines: [
+            { who: 'Haru', text: "왔다! 쉿, 쉿. 오늘 유안 아저씨 순찰이 이쪽이야." },
+            { who: 'Yuan', text: "(멀리서) 하루! 거기 누구랑 있는 거냐!" },
+            { who: 'Haru', text: "으악." },
+            { who: 'Mira', text: "(풀숲에서 불쑥 나온다.) 저예요, 유안 님. 약초 캐다가 길을 물었어요. 이 아이들은 길을 알려 준 것뿐이고요." },
+            { who: 'Yuan', text: "…미라. …해 지기 전에 내려가시오." },
+            { who: '나', text: "(유안이 미라를 아는 눈치다. 그것도 꽤 오래.)" },
+            { who: 'Mira', text: "(작게) 조심해, 너희. 위에서는 생각보다 많이 보여. …나? 나는 그냥 약초 캐러 온 거야. 진짜로." },
+        ],
     },
 
     // ---------- 탐험 중의 작은 발견 ----------

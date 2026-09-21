@@ -36,7 +36,7 @@ export const CHAPTERS = [
         blocked: "거기까지 갈 일은 아직 없다.",
     },
     {
-        id: 'c4', title: '4장', name: '굶는 계절', done: done('m5'),
+        id: 'c4', title: '4장', name: '굶는 계절', done: done('m5g'),
         maps: ['JUNGLE', 'ZALGORA_LAIR', 'CLOUDTOP', 'SKY_RUINS'],
         blocked: "거기까지 갈 일은 아직 없다.",
     },

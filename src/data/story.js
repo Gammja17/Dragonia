@@ -132,11 +132,11 @@ export const SCENES = [
         ],
     },
     {
-        id: 'ch5', title: '5장. 두 개의 머리', when: s => s.bossesDefeated.ZALGORA,
+        id: 'ch5', title: '4장. 고기 나온 아침', when: s => s.bossesDefeated.ZALGORA, place: 'VILLAGE',
         lines: [
-            { who: 'Poco', text: "쌍두룡 이겼다며?! 마을이 온통 네 얘기야!" },
-            { who: 'Gron', text: "잘고라는 원래 형제였다. 이그나르 저주로 한 몸이 돼서 미쳤지. 네가 끝내 준 거다." },
-            { who: '나', text: "(이그나르. 어딜 가도 그 이름이 나온다.)" },
+            { who: 'Poco', text: "야! 야야! 오늘 아침에 고기 나왔어! 진짜 고기! 두 점이나!" },
+            { who: 'Gron', text: "네 덕이다. …리크랑 로크, 걔네 어릴 때 내 대장간에서 못을 훔쳐다가 팽이를 만들었지. 그때 혼을 냈어야 했는데." },
+            { who: 'Gron', text: "됐다. 옛날얘기다. 밥이나 먹어라." },
         ],
     },
     {

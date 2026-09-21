@@ -26,6 +26,7 @@ import { learnSkill } from './skills.js';
 import { saveGame } from './save.js';
 import { play } from './audio.js';
 import { raidWanted, triggerRaid } from './raid.js';
+import { isGatherNow } from './gathering.js';
 
 // 스승의 수련 · 승급 시험 · 잠 · 아침 장면.
 // state.story = { scenes: [본 장면 id], lessons: [끝낸 수련 id], lessonDay: 마지막으로 수련한 날 }
@@ -340,6 +341,7 @@ export function updateBedtime() {
     }
     if (!(t >= BEDTIME || t < 0.2)) return;
     // 한창 일이 벌어지는 중에는 재우지 않는다. 습격을 기다리는 밤도 마찬가지다
+    if (isGatherNow()) return;   // 달맞이 모임은 밤에 선다
     if (state.raid.active || raidWanted() || state.activity || state.dungeon || state.tour || state.prologue || state.entities.bosses.some(b => b.awake)) return;
     const near = state.entities.npcs.find(n => BEDTIME_LINES[n.config.name] && dist(n, p) < 500);
     const lines = near ? [{ who: near.config.name, text: BEDTIME_LINES[near.config.name] }] : [];

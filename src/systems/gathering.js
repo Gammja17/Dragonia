@@ -14,7 +14,12 @@ export const GATHER_FROM = 20;        // 몇 시부터
 export const GATHER_MAP = 'FALLS';
 
 /** 오늘이 모임 날인가 */
-export function isGatherDay(day = state.day) { return day > 0 && day % GATHER_EVERY === 0; }
+export function isGatherDay(day = state.day) { return firstGathering() || (day > 0 && day % GATHER_EVERY === 0); }
+
+/** 스무 해 만에 다시 서는 첫 모임. 달이 기울 때까지 밤마다 불을 피운다 — 주인공이 와서 볼 때까지 (퀘스트 m5g) */
+function firstGathering() {
+    return !!state.quests && 'm5g' in state.quests.active && !(state.story.events || []).includes('ev_gathering');
+}
 
 /** 지금 모임이 서 있는가 */
 export function isGatherNow() {
