@@ -4,6 +4,7 @@ import { npcName } from '../data/npcs.js';
 import { clamp, dist, pick, rand } from '../core/utils.js';
 import { NPC_TALK, TIER_NAMES, SITUATION_LINES, DATES, CONFESSION, FAMILY_TALK, BOND_SCENES, ROMANCE_GATES, relationTier } from '../data/npcTalk.js';
 import { MAX_KIDS } from '../core/config.js';
+import { mixGenes } from './kids.js';
 import { fadeScreen } from '../ui/hud.js';
 import { Projectile, addBullet } from '../entities/Projectile.js';
 import { burst } from '../entities/Particle.js';
@@ -82,10 +83,18 @@ export function openNpcHub(npc, skipErrand = false) {
     const mine = ownMenu(npc, name);
     if (mine) opts.push(mine);
 
+    // 3-1) 주워 온 알 맡기기 — 촌장에게만. 아직 제 둥지에서 품을 수 없는 용의 길이다
+    if (name === 'Elder' && state.player.carrying === 'EGG') {
+        opts.push({ label: '🥚 알을 맡긴다', onSelect: () => entrustEgg(npc) });
+    }
+
     // 4) 마음 — 짝이 될 수 있는 용만
     if (npc.config.canPartner) {
+        // heartCount 는 "보여 줄 것이 없다" 를 null 로, 짝에게는 꼬리표 없는 '' 를 돌려준다.
+        // 예전엔 여기서 빈 문자열을 '없음' 으로 읽어, 짝이 되는 순간 이 항목이 통째로 사라졌다.
+        // 그래서 짝과 아이를 갖자는 말을 꺼낼 길이 아예 없었다.
         const heart = heartCount(npc);
-        if (heart) opts.push({ label: `♥ 마음을 전한다${heart}`, onSelect: () => heartMenu(npc) });
+        if (heart !== null) opts.push({ label: `♥ 마음을 전한다${heart}`, onSelect: () => heartMenu(npc) });
     }
 
     opts.push({ label: '다음에 봐', onSelect: close });
@@ -271,6 +280,9 @@ function familyTalk(npc) {
     const nest = state.entities.nests[0];
     const back = [{ label: '그래.', onSelect: () => openNpcHub(npc) }];
     if (!state.den.built) { show(npc, '아직 둥지가 없잖아. 아지트에 둥지부터 짓자. (둥지에서 [T]. 나뭇가지 8, 30G)', back); return; }
+    // 둥지는 내 굴 안에만 있다(밖에서는 state.denNest 에 상태만 들고 다닌다).
+    // 예전엔 굴 밖에서도 nest 를 그대로 읽어, 마을에서 이 말을 꺼내면 대화가 통째로 죽었다
+    if (!nest) { show(npc, '여기선 좀… 우리 굴로 가자. 둥지가 있어야지.', back); return; }
     if (nest.hasEgg) { show(npc, '둥지에 이미 알이 있어. 저 아이부터 잘 품어 주자.', back); return; }
     if (state.kids.length >= MAX_KIDS) { show(npc, '우리 집, 이미 북적북적해. 이 아이들부터 잘 키우자.', back); return; }
     if (npc.lastEggDay && state.day - npc.lastEggDay < 3) { show(npc, '조금만 더 있다가. 몸을 추슬러야 해. (사흘에 한 번)', back); return; }
@@ -279,6 +291,26 @@ function familyTalk(npc) {
         nest.layEgg(state.player, npc);
         spawnEffect('RING', nest.x, nest.y, { size: 1.4 });
         showToast(`${npcName(npc.config.name)}(이)가 둥지에 알을 낳았습니다! 곁에서 품어 주세요.`, '🥚');
+    });
+}
+
+/**
+ * 주워 온 알을 촌장에게 맡긴다. 사흘 뒤 아침에 촌장이 아기를 데려온다 (systems/story.js).
+ * 알을 품으려면 다 자란 몸과 제 둥지가 있어야 하는데, 그게 없는 동안 알이 갈 곳이 없었다.
+ */
+function entrustEgg(npc) {
+    const back = [{ label: '그래.', onSelect: () => openNpcHub(npc) }];
+    if (state.eggSitting) { show(npc, '이미 하나 품고 있잖느냐. 저 아이가 깨어난 뒤에 오거라.', back); return; }
+    if (state.kids.length >= MAX_KIDS) { show(npc, '네 집이 이미 북적북적하다. 그 아이들부터 잘 키우고 오거라.', back); return; }
+    state.player.carrying = null;
+    state.eggSitting = { day: state.day, genes: mixGenes(state.player, state.partner) };
+    playLines(npc, [
+        '알이구나. 어디서 주워 왔느냐.',
+        '네 몸으로는 아직 못 품는다. 알은 품는 이의 체온을 따라가거든.',
+        '내가 맡으마. 사흘이면 깨어날 게다. 그때 데려다주지.',
+    ], () => {
+        spawnEffect('RING', npc.x, npc.y, { size: 1.2 });
+        showToast('엘더에게 알을 맡겼습니다. 사흘 뒤 아침에 데려옵니다.', '🥚');
     });
 }
 

@@ -34,7 +34,7 @@ export function saveGame() {
         player: {
             config: { name: p.config.name, species: p.species, colors: p.colors, accessory: p.config.accessory || null, look: p.look },
             level: p.level, xp: p.xp, maxXp: p.maxXp, hp: p.hp, maxHp: p.maxHp, hunger: p.hunger,
-            meat: p.inventory.meat, gold: p.gold, x: p.x, y: p.y,
+            meat: p.inventory.meat, gold: p.gold, x: p.x, y: p.y, carrying: p.carrying,
             stageIndex: p.stageIndex, elements: p.elements, element: p.element, skills: p.skills, slots: p.slots,
         },
         gameTime: state.gameTime, dayTime: state.dayTime, day: state.day, raidTimer: state.raidTimer,
@@ -45,7 +45,7 @@ export function saveGame() {
         bossesDefeated: state.bossesDefeated,
         raidCount: state.raid.count, upgrades: state.upgrades, openedChests: state.openedChests, blessingDay: state.blessingDay,
         companion: state.companion ? state.companion.config.name : null,
-        den: state.den, ult: p.ult,
+        den: state.den, ult: p.ult, eggSitting: state.eggSitting,
         relics: state.relics, relicSlots: state.relicSlots, materials: state.materials, waystones: state.waystones,
         furniture: state.furniture, denDecor: state.denDecor, densSeen: state.densSeen, stats: state.stats, event: state.event, story: state.story,
         growth: state.growth, revivedDay: state.revivedDay,
@@ -73,6 +73,7 @@ export function applySave(data) {
     p.skills = s.skills || [];
     p.slots = s.slots || { Q: null, F: null, R: null };
     p.gold = s.gold || 0;
+    p.carrying = s.carrying || null;   // 들고 있던 알. 예전엔 안 담아서 껐다 켜면 사라졌다
 
     Object.assign(state, {
         gameTime: data.gameTime, dayTime: data.dayTime, day: data.day, raidTimer: data.raidTimer,
@@ -100,6 +101,7 @@ export function applySave(data) {
     state.visited = data.visited || [];
     state.den = data.den || { built: !!(data.nest && data.nest.hasEgg), twigs: 0 };
     state.denNest = data.nest || { hasEgg: false, progress: 0, genes: null };
+    state.eggSitting = data.eggSitting || null;
     p.ult = data.ult || 0;
     state.story = data.story || { scenes: [], lessons: [], lessonDay: 0 };
     state.story.rites = state.story.rites || [];

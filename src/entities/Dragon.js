@@ -58,6 +58,7 @@ const AIM_MAGNET = 95;       // 마우스 조준: 커서가 적에게 이만큼 
 // 허기 단계: 배가 고프면 느려지고 숨결이 굼떠진다. 예전처럼 공격을 막지는 않는다
 const HUNGER_PECKISH = 35, HUNGER_STARVING = 12;
 const DASH_TIME = 0.2, DASH_COOLDOWN = 1.0, DASH_MULT = 3.4;
+const ADULT_STAGE = STAGES.findIndex(s => s.id === 'ADULT');   // 이 단계부터 제 알을 품을 수 있다
 const MOUTH_OFFSET = 40; // 화염구가 생성되는 위치(발 기준점에서 바라보는 방향으로)
 
 /**
@@ -617,8 +618,33 @@ export class Dragon extends Entity {
         }
     }
 
+    /**
+     * 들고 있는 알을 곁의 둥지에 놓는다. 놓았거나 못 놓는 까닭을 알렸으면 true.
+     * 둥지는 내 굴 안에만 있으므로, 곁에 없으면 아무 일도 없던 것처럼 false 를 돌려주어
+     * [E] 가 원래 하던 일(굴 꾸미기 · 줍기 · 낚시)로 넘어가게 한다.
+     */
+    putEggInNest() {
+        const nest = state.entities.nests.find(n => dist(this, n) < 110);
+        if (!nest) return false;
+        if (!state.den.built) { showToast('아직 둥지가 없습니다. 둥지 앞에서 [E]로 먼저 지으세요. (나뭇가지 8, 30G)', '🪹'); return true; }
+        if (nest.hasEgg) { showToast('둥지에 이미 알이 있습니다.', '🥚'); return true; }
+        if (state.kids.length >= MAX_KIDS) { showToast('둥지가 꽉 찼습니다! 더 이상 알을 둘 수 없어요.', '😅'); return true; }
+        // 제 알을 품으려면 다 자라야 한다. 아직 어리면 엘더에게 맡기는 길이 있다 (systems/npcActions.js)
+        if (this.stageIndex < ADULT_STAGE) { showToast('아직 알을 품을 몸이 아닙니다. 엘더에게 맡겨 보세요.', '🥚'); return true; }
+        this.carrying = null;
+        nest.layEgg(this, state.partner);
+        showToast('알을 둥지에 안착시켰습니다. 곁에 있어 주면 빨리 자랍니다.', '🏠');
+        return true;
+    }
+
     interact() {
         const E = state.entities;
+
+        // 0) 알을 들고 둥지 앞에 섰으면 놓는 것이 먼저다.
+        //    내 굴 안에서는 아래 tryDenInteract 가 [E] 를 늘 채 가기 때문에(둥지 곁이면 잠자기,
+        //    아니면 꾸미기), 예전에 여기 아래쪽에 있던 '알을 둥지에 놓기' 에는 닿을 수가 없었다.
+        //    알을 주워도 내려놓을 길이 없어 영영 들고 다니게 됐다.
+        if (!this.fishing && this.carrying === 'EGG' && this.putEggInNest()) return;
 
         // 0) 수련장 시험 표지 (systems/arena.js)
         if (!this.fishing && nearbyArena()) { openArena(); return; }
@@ -680,17 +706,6 @@ export class Dragon extends Entity {
         // 3-1) 아기 쓰다듬기 (고기를 먹이는 건 아이 대화창에서)
         const kid = E.babies.find(b => dist(this, b) < 80);
         if (kid && !this.carrying && kid.pet()) return;
-
-        // 4) 알을 둥지에 놓기
-        const nest = E.nests.find(n => dist(this, n) < 80);
-        if (nest && this.carrying === 'EGG' && !nest.hasEgg) {
-            if (!state.den.built) { showToast("아직 둥지가 없습니다. 아지트에서 [T]로 둥지를 지으세요. (나뭇가지 8, 30G)", "🪹"); return; }
-            if (state.kids.length >= MAX_KIDS) { showToast("둥지가 꽉 찼습니다! 더 이상 알을 둘 수 없어요.", "😅"); return; }
-            this.carrying = null;
-            nest.layEgg(this, state.partner);
-            showToast("알을 둥지에 안착시켰습니다.", "🏠");
-            return;
-        }
 
         // 5) 물가라면 낚시
         const water = !this.carrying && this.nearWater();

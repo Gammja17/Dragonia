@@ -512,6 +512,8 @@ function renderBag(body) {
         ['고기', `${p.inventory.meat}개`],
         ['골드', `${p.gold}G`],
         ...(state.den.built ? [] : [['나뭇가지', `${state.den.twigs} / 8 (둥지 재료)`]]),
+        ...(p.carrying === 'EGG' ? [['용의 알', '들고 있다 (내 굴 둥지에 [E], 또는 엘더에게 맡긴다)']] : []),
+        ...(state.eggSitting ? [['맡긴 알', `엘더가 품는 중 (${Math.max(0, 3 - (state.day - state.eggSitting.day))}일 남음)`]] : []),
     ]));
     const mats = Object.entries(MATERIALS).map(([id, m]) => [m.name, `${matCount(id)}개`, matCount(id) === 0]);
     body.appendChild(section('대장간 소재', mats));

@@ -30,6 +30,7 @@ export const state = {
     visited: [],         // 발을 들여 본 지도들
     dojoSpot: null,      // 수련장 허수아비가 설 자리 (지도가 깔릴 때 정해진다)
     denNest: null,       // 둥지 상태 (딴 지도에 있을 때도 알이 자라도록 들고 있는다)
+    eggSitting: null,    // 촌장에게 맡긴 알 { day, genes } — 사흘 뒤 아침에 깨어난다
     indoors: false,      // 굴 안(보금자리·미궁)인가 — 조명·날씨가 달라진다
     event: null,         // 밤 이벤트 'BLOOD_MOON' | 'METEOR' (systems/events.js)
     stats: { kills: {}, brinks: 0 },   // brinks: 체력 20% 아래까지 몰렸다 살아난 횟수 (스킬 해금 조건)
@@ -82,6 +83,7 @@ export function resetState() {
         visited: [],
         dojoSpot: null,
         denNest: null,
+        eggSitting: null,
         indoors: false,
         furniture: {},
         denDecor: [],

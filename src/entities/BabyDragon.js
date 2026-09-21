@@ -125,7 +125,8 @@ export class BabyDragon extends Entity {
             this.wanderTimer = rand(2, 5);
             this.angle = rand(0, TAU);
         }
-        if (!this.home) { const nest = state.entities.nests[0]; this.home = { x: nest.x, y: nest.y }; }
+        // 둥지는 내 굴 안에만 있다. 밖에서는 지금 선 자리를 제집으로 삼는다
+        if (!this.home) { const nest = state.entities.nests[0]; this.home = nest ? { x: nest.x, y: nest.y } : { x: this.x, y: this.y }; }
         if (dist(this, this.home) > 200) this.angle = Math.atan2(this.home.y - this.y, this.home.x - this.x);
         slideMove(this, this.x + Math.cos(this.angle) * 40 * dt, this.y + Math.sin(this.angle) * 40 * dt, 12);
     }

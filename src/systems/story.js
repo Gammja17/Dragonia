@@ -11,6 +11,9 @@ import { NPC_TALK } from '../data/npcTalk.js';
 import { STAGES } from '../data/elements.js';
 import { SKILLS } from '../data/skills.js';
 import { Enemy } from '../entities/Enemy.js';
+import { BabyDragon } from '../entities/BabyDragon.js';
+import { registerKid } from './kids.js';
+import { notify } from './quests.js';
 import { Projectile, addBullet } from '../entities/Projectile.js';
 import { spawnEffect } from '../render/vfx.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
@@ -277,8 +280,34 @@ function sleep() {
     }, playMorningScene);
 }
 
+// 촌장이 알을 품어 주는 날수 (systems/npcActions.js 의 entrustEgg)
+const EGG_SIT_DAYS = 3;
+
+/** 촌장에게 맡긴 알이 오늘 깨어나면 데려다주는 장면. 재생했으면 true */
+function deliverEgg() {
+    const egg = state.eggSitting;
+    if (!egg || state.day - egg.day < EGG_SIT_DAYS) return false;
+    state.eggSitting = null;
+    const p = state.player;
+    playScene('알이 깨어났다', [
+        { who: 'Elder', text: '왔다. 문 앞에서 기다리고 있었다.' },
+        { who: 'Elder', text: '사흘을 품었더니 밤새 발길질을 하더구나. 성질이 급한 아이다.' },
+        { who: 'Elder', text: '자, 네 아이다. 이제부터는 네가 품어라.' },
+    ], () => {
+        const baby = new BabyDragon(p.x + rand(-40, 40), p.y + rand(20, 50), egg.genes);
+        state.entities.babies.push(baby);
+        registerKid(baby);
+        spawnEffect('RING', baby.x, baby.y);
+        notify('hatch');
+        showToast('아기 용이 태어났습니다!', '🐣');
+        saveGame();
+    });
+    return true;
+}
+
 /** 아직 안 본 장면 중 조건이 맞는 첫 번째를 재생 (아침에 눈뜰 때) */
 export function playMorningScene() {
+    if (deliverEgg()) return;   // 맡긴 알이 먼저다. 되풀이되는 장면이라 SCENES 에 두지 않는다
     const scene = SCENES.find(sc => !state.story.scenes.includes(sc.id) && sc.when(state));
     if (!scene) return;
     state.story.scenes.push(scene.id);
