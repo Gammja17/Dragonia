@@ -47,6 +47,12 @@ function context() {
     };
 }
 
+/** 정체의 단서를 하나 적어 둔다 (일지 [기록]) */
+export function addClue(id) {
+    if (!state.story.clues) state.story.clues = [];
+    if (!state.story.clues.includes(id)) state.story.clues.push(id);
+}
+
 export function seenEvent(id) { return (state.story.events || []).includes(id); }
 
 /** 매 프레임 호출. 0.8초마다 조건이 맞는 사건이 있는지 살핀다 */
@@ -82,6 +88,7 @@ function fire(ev) {
             const q = QUESTS.find(x => x.id === ev.grant);
             if (q) acceptQuest(q);
         }
+        if (ev.clue) addClue(ev.clue);
         if (ev.toast) showToast(ev.toast, ev.icon || '📖');
         saveGame();
     });

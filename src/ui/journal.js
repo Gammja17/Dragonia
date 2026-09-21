@@ -1,5 +1,6 @@
 import { state } from '../core/state.js';
 import { MAPS, MAP_POS } from '../data/maps.js';
+import { CLUES } from '../data/chronicle.js';
 
 // 지도마다 놓이는 상자 수의 합 (systems/world.js 의 spec.chests ?? 3)
 const CHEST_COUNT = Object.values(MAPS).reduce((n, m) => n + (m.chests ?? 3), 0);
@@ -150,6 +151,9 @@ function renderRecord(body) {
         ['연 보물상자', `${chests} / ${CHEST_COUNT}`],
         ['끝낸 퀘스트', `${state.quests.done.length}`],
     ]));
+    // 정체의 단서. 승급 의식과 사건에서 모인다 (data/chronicle.js 의 CLUES)
+    const clues = (state.story.clues || []).filter(id => CLUES[id]);
+    if (clues.length) body.appendChild(section('비늘 아래의 무늬', clues.map((id, i) => [`${i + 1}`, CLUES[id]])));
 }
 
 /** 소리 탭: 배경음·효과음 음량과, 빌려 쓴 음원의 만든 이 */

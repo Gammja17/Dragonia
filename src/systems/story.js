@@ -3,7 +3,7 @@ import { cozyRest, inMyDen } from './den.js';
 import { openDecorPanel } from '../ui/denPanel.js';
 import { RITES } from '../data/ceremony.js';
 import { npcName } from '../data/npcs.js';
-import { playScene } from './chronicle.js';
+import { playScene, addClue } from './chronicle.js';
 import { dist, rand, pick } from '../core/utils.js';
 
 import { LESSONS, TRIALS, SCENES } from '../data/story.js';
@@ -166,6 +166,7 @@ export function playRite(stage) {
     };
     state.story.rites = state.story.rites || [];
     if (!state.story.rites.includes(stage)) state.story.rites.push(stage);
+    if (rite.clue) addClue(rite.clue);
     playScene(rite.title, rite.lines(ctx), () => {
         if (rite.toast) showToast(rite.toast, '🏅');
         play('evolve');

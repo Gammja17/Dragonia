@@ -103,6 +103,7 @@ export function applySave(data) {
     p.ult = data.ult || 0;
     state.story = data.story || { scenes: [], lessons: [], lessonDay: 0 };
     state.story.rites = state.story.rites || [];
+    state.story.clues = state.story.clues || [];
     state.stats = data.stats || { kills: {} };
     if (state.stats.brinks === undefined) state.stats.brinks = 0;
     state.event = data.event || null;

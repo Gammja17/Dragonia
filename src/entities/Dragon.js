@@ -798,6 +798,12 @@ export class Dragon extends Entity {
                 (this._outline || (this._outline = outlineFor(f, this.isPlayer))));
             ctx.globalAlpha = 1;
             drawAccessory(ctx, this.sheet, this.config.accessory, this.facing, this.x, this.y + this.hoverY - this.diveHeight, sc);
+            // 정체의 무늬. 어린 용이 된 뒤 목 아래에서 희미하게 빛나고, 자랄수록 또렷해진다
+            if (this.isPlayer && state.story.rites && state.story.rites.length) {
+                const n = state.story.rites.length;
+                const pulse = 0.22 + n * 0.08 + Math.sin(state.gameTime * 2.2) * 0.08;
+                drawGlow(ctx, this.x + (this.facing === 'left' ? -6 : this.facing === 'right' ? 6 : 0) * sc, this.y + this.hoverY - this.diveHeight - 30 * sc, (7 + n * 2) * sc, '#c58aff', pulse);
+            }
         } else {
             // 시트 로딩 전 임시 표시
             ctx.fillStyle = this.colors.body;
