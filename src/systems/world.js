@@ -388,7 +388,9 @@ export function initWorld(config) {
         accessory: config.accessory || null, look: config.look || 0,
     }, true);
     primeNpcs();
-    state.furniture = { STRAW: 1 };   // 첫 잠자리 한 벌은 마을에서 챙겨 준다
+    // 첫 잠자리 한 벌은 마을에서 챙겨서 굴에 깔아 놓아 준다 (빈 굴에 혼자 들어서면 휑하다)
+    state.furniture = {};
+    state.denDecor = [{ id: 'STRAW', tx: 2, ty: 4 }];
     enterMap(START_MAP, {});
     const v = getMap(START_MAP);
     state.player.x = v.w / 2; state.player.y = v.h * 0.62;

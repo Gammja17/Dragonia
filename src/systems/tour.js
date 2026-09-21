@@ -21,22 +21,24 @@ export const GUIDE = 'Poco';
 const STOPS = [
     { at: [12, 7], stand: [-90, 50], lines: [
         { who: 'Poco', text: '안녕! 나 포코야! 너 내가 발견했어, 내가! 별인 줄 알았는데 용이더라. 근데 용이 더 좋아, 별은 말을 못 하잖아.' },
-        { who: 'Poco', text: '여기가 광장이야. 네가 떨어진 데가 딱 저기. 봐 봐, 돌 깨진 거 보이지? 그론 아저씨가 사흘째 투덜대고 있어.' },
-        { who: 'Poco', text: '샘물은 아무나 마셔도 돼. 나 여기서 물장난 치다가 맨날 혼나.' },
+        { who: 'Poco', text: '여기가 광장이야. 네가 떨어진 데가 딱 저기거든. 봐 봐, 돌 깨진 거 보이지? 그론 아저씨가 그것 때문에 사흘째 투덜대고 있어.' },
+        { who: 'Poco', text: '샘물은 아무나 마셔도 돼. 나는 여기서 물장난 치다가 맨날 혼나지만.', look: 'PROP:FOUNTAIN', label: '광장의 샘' },
+        { who: 'Poco', text: '저 판때기는 게시판이야. 어른들이 심부름을 쪽지로 붙여 놓는 덴데, 하고 싶은 것만 떼어 가면 된대.', look: 'PROP:BOARD', label: '게시판' },
     ] },
     { at: [15, 7], stand: [-70, 60], lines: [
-        { who: 'Poco', text: '여긴 그론 아저씨 대장간! 숲에서 주운 거 갖다주면 비늘을 단단하게 해 줘.' },
+        { who: 'Poco', text: '여긴 그론 아저씨 대장간! 숲에서 주운 걸 갖다주면 아저씨가 비늘을 단단하게 해 줘.', look: 'Gron', label: '대장간 · 그론' },
+        { who: 'Poco', text: '옆에 있는 누나는 엠버 누나야. 아저씨 조수인데 맨날 혼나.', look: 'Ember', label: '조수 · 엠버' },
         { who: 'Gron', text: '뭘 봐. 살 거 아니면 가라.' },
         { who: 'Poco', text: '(작게) 무섭게 생겼지? 근데 있잖아, 나 나팔 소리 나면 맨날 여기 와서 숨거든. 아저씨가 나가라고 한 적 한 번도 없어.' },
         { who: 'Gron', text: '다 들린다.' },
     ] },
     { at: [12, 12], stand: [60, 40], lines: [
-        { who: 'Poco', text: '이 돌은 옛날 용들이 세운 거래. 손 얹으면 막 빛나. 밖에도 똑같은 돌이 있는데, 깨워 놓으면 돌에서 돌로 슝 하고 갈 수 있대.' },
+        { who: 'Poco', text: '이 돌은 옛날 용들이 세운 거래. 손을 얹으면 막 빛나는데, 밖에 있는 똑같은 돌들도 깨워 놓으면 돌에서 돌로 슝 하고 갈 수 있대.', look: 'PROP:WAYSTONE', label: '이동 석비' },
         { who: 'Poco', text: '난 안 써 봤어. 밖에 안 나가거든. …밖은 좀, 그래. 무서운 거 많아.' },
     ] },
     { at: [5, 10], stand: [90, 60], lines: [
-        { who: 'Poco', text: '짜잔! 여기가 네 굴이야! 비어 있던 덴데 엘더 할아버지가 너 주래.' },
-        { who: 'Poco', text: '안에 아무것도 없긴 한데… 그래도 네 거잖아. 나도 처음엔 풀 한 줌밖에 없었어.' },
+        { who: 'Poco', text: '짜잔! 여기가 네 굴이야! 비어 있던 덴데 엘더 할아버지가 너한테 주래.', look: 'DEN:DEN_MINE', label: '나의 굴' },
+        { who: 'Poco', text: '안에는 마른 풀 잠자리 하나밖에 없긴 한데, 그건 내가 깔아 놓은 거다? 나도 처음엔 풀 한 줌으로 시작했어.', look: 'DEN:DEN_MINE', label: '나의 굴' },
         { who: 'Poco', text: '밤 되면 안에 있는 둥지에서 자면 돼. 애들은 밤에 돌아다니면 안 된대. 티아맷 누나한테 걸리면 진짜 무서워.' },
         { who: 'Poco', text: '다 봤다! 이제 할아버지한테 가 봐. 너 다 나으면 시킬 일 있다고 하셨거든.' },
     ] },
@@ -82,7 +84,7 @@ export function updateTour(dt) {
         if (arrived && dist(p, e) < 200) {
             t.phase = 'talk';
             e.walkTo = null;
-            playScene(null, stop.lines, () => { t.i++; t.phase = 'walk'; t.stuck = 0; }, { cinematic: false });
+            playScene(null, stop.lines, () => { t.i++; t.phase = 'walk'; t.stuck = 0; });   // 가리키는 것마다 화면이 그쪽을 본다 (line.look)
         }
     }
 }

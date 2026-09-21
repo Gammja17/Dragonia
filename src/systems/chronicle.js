@@ -11,7 +11,7 @@ import { BOND_SCENES } from '../data/npcTalk.js';
 import { activeBiome } from '../world/terrain.js';
 import { inDungeon } from './delve.js';
 import { isGatherNow } from './gathering.js';
-import { beginCutscene, focusOn, endCutscene } from './cutscene.js';
+import { beginCutscene, focusOn, endCutscene, pointAt } from './cutscene.js';
 import { anyNpc, travelTo } from './world.js';
 import { triggerRaid } from './raid.js';
 
@@ -145,6 +145,20 @@ function finishEvent(ev) {
 }
 
 /**
+ * 대사가 가리키는 것을 찾는다 (line.look).
+ *   'PROP:FOUNTAIN'  지금 지도에서 나와 가장 가까운 그 종류의 소품
+ *   'DEN:DEN_MINE'   그 굴의 입구
+ *   'Gron'           그 이름의 용
+ */
+function lookTarget(look) {
+    const p = state.player, props = state.entities.props;
+    const near = (list) => list.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0] || null;
+    if (look.startsWith('PROP:')) return near(props.filter(x => x.type === look.slice(5)));
+    if (look.startsWith('DEN:')) return near(props.filter(x => x.type === 'DEN_MOUTH' && x.denId === look.slice(4)));
+    return state.entities.npcs.find(n => n.config.name === look) || null;
+}
+
+/**
  * 여러 줄짜리 장면을 차례로 보여 준다. 아침 장면(systems/story.js)도 이걸 쓴다.
  * line = { who: NPC 이름 | '나' | '???', text }
  */
@@ -171,7 +185,7 @@ export function playScene(title, lines, then, { cinematic = true, place = null }
         }
         const line = lines[i++];
         const speaker = find(line.who);
-        if (cinematic) focusOn(speaker);
+        if (cinematic) { focusOn(speaker); pointAt(line.look ? lookTarget(line.look) : null, line.label || ''); }
         state.isDialogueOpen = true;
         dialogueUI.show({
             name: line.who === '나' ? state.player.config.name : npcName(line.who),

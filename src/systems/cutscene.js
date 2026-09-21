@@ -122,8 +122,18 @@ export function focusOn(entity) {
     scene.focus = entity || null;
 }
 
+/**
+ * 이번 대사가 가리키는 것 (시설이든 용이든). 카메라가 나와 그것 사이를 보고, 그 자리에 빛이 떨어지고, 이름표가 뜬다.
+ * target: { x, y } 가 있는 것이면 무엇이든. null 이면 거둔다
+ */
+export function pointAt(target, label = '') {
+    // 용은 말하는 동안 자리를 옮기기도 하므로 좌표를 베끼지 않고 대상을 들고 있는다
+    scene.poi = target ? { get x() { return target.x; }, get y() { return target.y; }, label } : null;
+}
+
 /** 컷씬 끝 */
 export function endCutscene() {
+    scene.poi = null;
     for (const m of cast) {
         m.e.x = m.x; m.e.y = m.y; m.e.facing = m.facing; m.e.moving = false;
         // 불러왔던 용은 다시 제 일과로 돌려보낸다
@@ -144,7 +154,7 @@ export function inCutscene() { return scene.on; }
 export function cutsceneTarget() {
     if (!scene.on) return null;
     const p = state.player;
-    const f = scene.focus && scene.focus !== p ? scene.focus : null;
+    const f = scene.poi || (scene.focus && scene.focus !== p ? scene.focus : null);
     const x = f ? (p.x + f.x) / 2 : p.x;
     const y = f ? (p.y + f.y) / 2 : p.y;
     // 대화창이 아래를 덮으므로 인물을 화면 위쪽(AIM)에 놓는다.
@@ -192,7 +202,7 @@ export function drawCutscene(ctx, w, h) {
         g2.fillStyle = `rgba(6,5,12,${dim})`;
         g2.fillRect(0, 0, w, h);
         g2.globalCompositeOperation = 'destination-out';
-        for (const e of [state.player, scene.focus]) {
+        for (const e of [state.player, scene.focus, scene.poi]) {
             if (!e) continue;
             const sp = worldToScreen(e.x, e.y - 22);
             const r = 210 * cam.zoom * scene.dim;
@@ -221,6 +231,32 @@ export function drawCutscene(ctx, w, h) {
         ctx.lineTo(sp.x + 9, ty - 4);
         ctx.closePath();
         ctx.fill();
+        ctx.restore();
+    }
+
+    // 2-1) 가리키는 것: 천천히 뛰는 금빛 테와 이름표
+    if (scene.poi && scene.dim > 0.4) {
+        const sp = worldToScreen(scene.poi.x, scene.poi.y - 30);
+        const beat = (Math.sin(performance.now() / 320) + 1) / 2;
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, (scene.dim - 0.4) / 0.4);
+        ctx.strokeStyle = `rgba(255,216,74,${0.55 + beat * 0.4})`;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(sp.x, sp.y + 34 * cam.zoom, (74 + beat * 10) * cam.zoom, (30 + beat * 4) * cam.zoom, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        if (scene.poi.label) {
+            ctx.font = `700 ${Math.round(15 * cam.zoom)}px sans-serif`;
+            ctx.textAlign = 'center';
+            const tw = ctx.measureText(scene.poi.label).width + 22;
+            const ty = sp.y - 78 * cam.zoom;
+            ctx.fillStyle = 'rgba(14,13,22,0.9)';
+            ctx.fillRect(sp.x - tw / 2, ty - 17, tw, 26);
+            ctx.strokeStyle = 'rgba(216,178,90,0.9)'; ctx.lineWidth = 1;
+            ctx.strokeRect(sp.x - tw / 2 + 0.5, ty - 16.5, tw - 1, 25);
+            ctx.fillStyle = '#ffd84a';
+            ctx.fillText(scene.poi.label, sp.x, ty + 2);
+        }
         ctx.restore();
     }
 

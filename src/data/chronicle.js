@@ -49,7 +49,7 @@ export const CHRONICLE = [
         id: 'ev_board', title: '광장의 게시판',
         when: c => c.map === 'VILLAGE' && c.done('m1'),
         lines: [
-            { who: 'Gron', text: "야, 너. 거기 말고 이쪽. 광장에 판때기 하나 서 있는 거 봤냐." },
+            { who: 'Gron', text: "야, 너. 거기 말고 이쪽이다. 광장에 판때기 하나 서 있는 거 봤냐.", look: 'PROP:BOARD', label: '게시판' },
             { who: 'Gron', text: "마을 놈들이 손 모자랄 때 거기다 쪽지를 붙여 놔. 고블린이 시끄럽다, 고기가 떨어졌다, 뭐 그런 거." },
             { who: 'Gron', text: "하기 싫으면 안 해도 된다. 아무도 뭐라 안 해. 대신 하면 값은 쳐 준다. 나도 가끔 붙이니까 눈여겨봐라." },
         ],
