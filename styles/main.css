@@ -711,7 +711,7 @@ body.touch #quest-more { display: none; }
     #d-text, body.cutscene #d-text { font-size: 0.86rem; line-height: 1.45; margin-bottom: 6px; min-height: 0; }
     #d-options { flex-direction: row; flex-wrap: wrap; gap: 4px; width: 100%; }
     #d-options .d-btn { flex: 1 1 45%; padding: 5px 8px; font-size: 0.82rem; }
-    #scene-title { top: 12%; font-size: 1rem; padding: 4px 12px; }
+    #scene-title { top: 24%; font-size: 1rem; padding: 4px 12px; }
     .right-column { transform: scale(0.58); }
     .hud-panel { transform: scale(0.6); }
     #tutorial-box { display: none; }
@@ -733,7 +733,7 @@ body.touch #quest-more { display: none; }
     #journal-tabs { flex-wrap: wrap; gap: 3px; }
     .journal-tab { flex: 1 1 auto; padding: 5px 4px; font-size: 0.7rem; }
     #region-banner { top: 30%; }
-    #scene-title { top: 22%; font-size: 1.1rem; letter-spacing: 2px; padding: 6px 14px; }
+    #scene-title { top: 40%; font-size: 1.1rem; letter-spacing: 2px; padding: 6px 14px; }
 }
 
 /* ── 컷씬 ────────────────────────────────────────────────────────────────
@@ -741,7 +741,7 @@ body.touch #quest-more { display: none; }
    띠·어둠·스포트라이트는 캔버스가 그린다 (systems/cutscene.js). 여기서는 DOM 쪽만. */
 
 #scene-title {
-    position: absolute; left: 50%; top: 15%;
+    position: absolute; left: 50%; top: 27%;   /* 지역 이름 배너(12%)와 겹치지 않게 그 아래 */
     transform: translate(-50%, -50%) scale(0.96);
     z-index: 205; pointer-events: none;
     font-family: var(--font-ko);

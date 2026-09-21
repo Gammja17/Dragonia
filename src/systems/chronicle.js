@@ -58,6 +58,7 @@ export function seenEvent(id) { return (state.story.events || []).includes(id); 
 /** 매 프레임 호출. 0.8초마다 조건이 맞는 사건이 있는지 살핀다 */
 export function updateChronicle(dt) {
     if (playing || state.isDialogueOpen || inDungeon() || state.activity || state.raid.active) return;
+    if (state.bannerUntil && state.gameTime < state.bannerUntil) return;   // 지역 이름이 떠 있는 동안은 기다린다
     checkTimer -= dt;
     if (checkTimer > 0) return;
     checkTimer = 0.8;

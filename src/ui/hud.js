@@ -270,6 +270,7 @@ export function showRegionBanner(name, sub = '') {
     el0.classList.remove('on');
     void el0.offsetWidth;
     el0.classList.add('on');
+    state.bannerUntil = state.gameTime + 3;   // 이 동안은 사건 컷씬을 띄우지 않는다 (systems/chronicle.js)
     clearTimeout(regionTimer);
     regionTimer = setTimeout(() => el0.classList.remove('on'), 2800);
 }
