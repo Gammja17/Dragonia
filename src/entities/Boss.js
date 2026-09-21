@@ -66,6 +66,7 @@ export class Boss extends Entity {
 
     update(dt) {
         if (this.hitFlash > 0) this.hitFlash -= dt * 8;
+        if (this.squash > 0) this.squash -= dt * 7;
         const player = state.player;
         const d = dist(this, player);
 
@@ -320,7 +321,7 @@ export class Boss extends Entity {
     takeDamage(dmg, silent = false) {
         if (!this.awake || this.hidden) return;
         this.hp -= dmg;
-        if (!silent) this.hitFlash = 1;
+        if (!silent) { this.hitFlash = 1; this.squash = 1; }
         if (this.hp > 0 || this.remove) return;
         if (this.def.revive && !this.revived) {      // 모르가스: 죽지 못한 용
             this.revived = true;
@@ -394,7 +395,10 @@ export class Boss extends Entity {
         const hover = this.sheet.flying ? Math.sin(state.gameTime * 2) * 8 : 0;
         if (!this.awake) ctx.globalAlpha = 0.75;
         if (this.hitFlash > 0) ctx.filter = 'brightness(2.2)';
+        const q = this.squash > 0 ? Math.sin(this.squash * Math.PI) : 0;
+        if (q) { ctx.save(); ctx.translate(this.x, this.y + hover); ctx.scale(1 + 0.1 * q, 1 - 0.1 * q); ctx.translate(-this.x, -(this.y + hover)); }
         drawFrame(ctx, this.sheet, this.animator.frame(this.facing), this.x, this.y + hover, sc);
+        if (q) ctx.restore();
         ctx.filter = 'none';
         ctx.globalAlpha = 1;
 

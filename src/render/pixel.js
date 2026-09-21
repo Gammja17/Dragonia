@@ -1,12 +1,13 @@
 // 픽셀아트 그리기 도구: 시트 일부 그리기, 피격용 흰색 실루엣, 빛 번짐 스프라이트, 코드로 찍은 작은 아이콘.
 
 /** r: { sx, sy, sw, sh }. (x,y)는 기준점(ax, ay: 0~1) 위치 */
-export function drawPixelSprite(ctx, img, r, x, y, { scale = 3, flip = false, ax = 0.5, ay = 1, angle = 0 } = {}) {
+export function drawPixelSprite(ctx, img, r, x, y, { scale = 3, flip = false, ax = 0.5, ay = 1, angle = 0, stretchX = 1, stretchY = 1 } = {}) {
     const w = r.sw * scale, h = r.sh * scale;
     ctx.save();
     ctx.translate(Math.round(x), Math.round(y));
     if (angle) ctx.rotate(angle);
     if (flip) ctx.scale(-1, 1);
+    if (stretchX !== 1 || stretchY !== 1) ctx.scale(stretchX, stretchY);   // 맞았을 때 납작해지는 것 (발을 기준으로)
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(img, r.sx, r.sy, r.sw, r.sh, -w * ax, -h * ay, w, h);
     ctx.restore();

@@ -84,6 +84,7 @@ export class Projectile extends Entity {
         shake(crit ? 3 : 1.2);
         spawnText(target.x, target.y - 50, crit ? `${Math.round(dmg)}!` : `${Math.round(dmg)}`, crit ? '#ffd84a' : '#fff', crit ? 22 : 15);
         if (crit) { hitStop(0.05); shake(4); }   // 치명타는 한 박자 멈춘다
+        else hitStop(0.018);                     // 보통 타도 한 프레임쯤은 멈춘다. 맞았다는 느낌은 여기서 난다
         if (this.kind !== 'BREATH') return;
         if (el.status) {
             // 이미 느려진 적에게 냉기를 또 맞히면 얼어붙는다

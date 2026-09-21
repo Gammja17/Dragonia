@@ -3,7 +3,7 @@ import { Item } from './Item.js';
 import { burst } from './Particle.js';
 import { state } from '../core/state.js';
 import { hitStop } from '../render/feedback.js';
-import { isOnScreen, cam } from '../core/camera.js';
+import { isOnScreen, cam, shake } from '../core/camera.js';
 import { dist } from '../core/utils.js';
 import { ENEMIES } from '../data/enemies.js';
 import { getTileImage } from '../world/terrain.js';
@@ -47,6 +47,7 @@ export class Enemy extends Entity {
         // 맞고 움찔하는 표시. 실제로 밀어내면 조준한 자리에서 벗어나 총알이 빗나간다.
         // 그려질 때만 어긋나게 하고 자리는 그대로 둔다
         if (this.knock && this.knock.t > 0) this.knock.t -= dt * 6;
+        if (this.squash > 0) this.squash -= dt * 7;    // 눌렸다 튕겨 돌아오는 0.14초
         let speed = this.def.speed * updateStatus(this, dt);
         if (this.remove) return;
         if (this.def.move === 'none') return;   // 수련용 허수아비
@@ -81,6 +82,7 @@ export class Enemy extends Entity {
         noteDealt(dmg);
         if (!silent) {
             this.hitFlash = 1;
+            this.squash = 1;                     // 옆으로 퍼지고 위아래로 눌린다 (draw)
             // 맞은 쪽으로 밀린다. 맞은 티가 나야 때린 맛이 난다
             if (from) {
                 const a = Math.atan2(this.y - from.y, this.x - from.x);
@@ -88,7 +90,12 @@ export class Enemy extends Entity {
                 this.knock = { x: Math.cos(a) * push, y: Math.sin(a) * push, t: 1 };
             }
         }
-        if (this.hp <= 0 && !this.remove) { hitStop(0.05); this.die(); }
+        if (this.hp <= 0 && !this.remove) {
+            // 마지막 타는 한 박자 멈추고 화면이 살짝 흔들린다. 정예는 더 길게
+            hitStop(this.elite ? 0.11 : 0.07);
+            shake(this.elite ? 5 : 2);
+            this.die();
+        }
     }
     die() {
         this.remove = true;
@@ -106,8 +113,9 @@ export class Enemy extends Entity {
         state.player.gainXp(this.def.xp * bonus * xpMult());
         state.stats.kills[this.type] = (state.stats.kills[this.type] || 0) + 1;
         if (this.elite && Math.random() < 0.3) { const id = randomRelic(); if (id) grantRelic(id, this.x, this.y); }
-        burst(this.x, this.y, this.def.color, 0.8, 8);
+        burst(this.x, this.y, this.def.color, this.elite ? 1.4 : 1, this.elite ? 16 : 10);
         spawnEffect(this.def.flying ? 'PUFF' : 'SMOKE', this.x, this.y - 16, { size: this.elite ? 1.8 : 1 });
+        spawnEffect('SHOCKWAVE', this.x, this.y, { size: this.elite ? 1.2 : 0.6, color: this.def.color });
         play(this.elite ? 'dieBig' : 'die');
         const meat = this.def.meat ?? (Math.random() < 0.45 ? 1 : 0);
         for (let i = 0; i < meat; i++) state.entities.items.push(new Item(this.x + i * 22, this.y, 'MEAT'));
@@ -178,7 +186,9 @@ export class Enemy extends Entity {
         const ky = this.knock && this.knock.t > 0 ? this.knock.y * this.knock.t : 0;
         const telling = this.ai && (this.ai.s === 'tell' || this.ai.s === 'tell2');
         const sc = (this.elite ? 4.5 : 3) * (telling ? 0.86 : 1);
-        drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, { sx: tx * 16, sy: ty * 16, sw: 16, sh: 16 }, this.x + kx, this.y + 4 - (telling ? 0 : hop) - lift + ky, { flip: Math.cos(this.angle) < 0, scale: sc });
+        // 눌림: 맞는 순간 가로 1.28 · 세로 0.74 로 찌그러졌다가 되돌아온다
+        const q = this.squash > 0 ? Math.sin(this.squash * Math.PI) : 0;
+        drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, { sx: tx * 16, sy: ty * 16, sw: 16, sh: 16 }, this.x + kx, this.y + 4 - (telling ? 0 : hop) - lift + ky, { flip: Math.cos(this.angle) < 0, scale: sc, stretchX: 1 + 0.28 * q, stretchY: 1 - 0.26 * q });
         ctx.filter = 'none';
         this.drawHpBar(ctx, this.hp / this.maxHp, (this.elite ? 82 : 58) + lift, this.elite ? 50 : 34);
         this.drawName(ctx, lift);
