@@ -451,7 +451,7 @@ export class Dragon extends Entity {
 
         for (const k in this.cooldowns) this.cooldowns[k] = Math.max(0, this.cooldowns[k] - dt);
         updateChannels(this, dt);
-        ['FIRE', 'ICE', 'THUNDER'].forEach((el, i) => {
+        Object.keys(ELEMENTS).forEach((el, i) => {
             if (input.pressed('num' + (i + 1)) && this.elements.includes(el)) this.element = el;
         });
 

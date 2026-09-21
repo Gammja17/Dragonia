@@ -37,7 +37,7 @@ export const CHAPTERS = [
     },
     {
         id: 'c4', title: '4장', name: '굶는 계절', done: done('m5g'),
-        maps: ['JUNGLE', 'ZALGORA_LAIR', 'CLOUDTOP', 'SKY_RUINS'],
+        maps: ['JUNGLE', 'ZALGORA_LAIR', 'ROOTVALE', 'CLOUDTOP', 'SKY_RUINS'],
         blocked: "거기까지 갈 일은 아직 없다.",
     },
     {
@@ -52,7 +52,7 @@ export const CHAPTERS = [
     },
     {
         id: 'c7', title: '7장', name: '사막 길', done: done('m5c'),
-        maps: ['DESERT', 'BASIL_LAIR', 'ASH_CITY', 'AUTUMN'],
+        maps: ['DESERT', 'BASIL_LAIR', 'STONEBACK', 'ASH_CITY', 'AUTUMN'],
         blocked: "화산 쪽은 아직 아무도 보내 주지 않는다.",
     },
     {

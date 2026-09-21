@@ -213,6 +213,7 @@ export const MAPS = {
         portals: [
             { side: 'N', to: 'SOUTH_ROAD', name: '남쪽 숲길' },
             { side: 'E', to: 'ZALGORA_LAIR', name: '쌍두룡의 둥지' },
+            { side: 'W', to: 'ROOTVALE', name: '뿌리골' },
             { side: 'S', to: 'AUTUMN', name: '단풍 골' },
         ],
         fixtures: [
@@ -236,6 +237,7 @@ export const MAPS = {
         portals: [
             { side: 'E', to: 'SOUTH_ROAD', name: '남쪽 숲길' },
             { side: 'S', to: 'BASIL_LAIR', name: '모래 폭군의 둥지' },
+            { side: 'W', to: 'STONEBACK', name: '돌등' },
         ],
         fixtures: [{ t: 'WAYSTONE', at: [12, 7] }, { t: 'PROP', type: 'ROCK', at: [7, 5] }],
     },
@@ -247,6 +249,32 @@ export const MAPS = {
         fixtures: [
             { t: 'BOSS', id: 'BASIL', at: [9, 7] },
             { t: 'PROP', type: 'CAMPFIRE', at: [5, 10] }, { t: 'PROP', type: 'CAMPFIRE', at: [13, 10] },
+        ],
+    },
+
+    // 밀림 서쪽 깊은 곳, 풀의 용들이 사는 마을. 잘고라가 사냥터를 차지한 동안 같이 굶었다
+    ROOTVALE: {
+        name: '뿌리골', biome: 'JUNGLE', cw: 18, ch: 13, seed: 141, trees: 0.5, safe: true, wanderer: false,
+        clearings: [[9, 6, 4]],
+        roads: [[[17, 6], [9, 6]]],
+        portals: [{ side: 'E', to: 'JUNGLE', name: '환영의 밀림' }],
+        fixtures: [
+            { t: 'NPC', name: 'Moss', at: [8, 5] }, { t: 'NPC', name: 'Fern', at: [11, 8] },
+            { t: 'PROP', type: 'HOUSE', at: [6, 4] }, { t: 'PROP', type: 'HOUSE', at: [12, 4] },
+            { t: 'PROP', type: 'CAMPFIRE', at: [9, 7] }, { t: 'WAYSTONE', at: [14, 7] },
+        ],
+    },
+    // 사막 서쪽의 바위 고원, 땅의 용들이 사는 마을. 바실 때문에 예순 해 동안 바깥과 끊겨 있었다
+    STONEBACK: {
+        name: '돌등', biome: 'DESERT', cw: 18, ch: 13, seed: 142, trees: 0.04, safe: true, wanderer: false,
+        clearings: [[9, 6, 4]],
+        roads: [[[17, 6], [9, 6]]],
+        portals: [{ side: 'E', to: 'DESERT', name: '죽은 사구' }],
+        fixtures: [
+            { t: 'NPC', name: 'Garam', at: [8, 5] }, { t: 'NPC', name: 'Dol', at: [11, 8] },
+            { t: 'PROP', type: 'HOUSE', at: [6, 4] }, { t: 'PROP', type: 'HOUSE', at: [12, 4] },
+            { t: 'PROP', type: 'ROCK', at: [5, 8] }, { t: 'PROP', type: 'ROCK', at: [13, 9] },
+            { t: 'PROP', type: 'CAMPFIRE', at: [9, 7] }, { t: 'WAYSTONE', at: [14, 7] },
         ],
     },
 

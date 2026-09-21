@@ -303,6 +303,7 @@ export function turnInQuest(q, npc, choiceId = null) {
     if (r.gold) p.gold += r.gold;
     if (r.relation && npc) npc.relation = clamp((npc.relation || 0) + r.relation, 0, 100);
     if (r.clue) addClue(r.clue);
+    if (r.element) p.unlockElement(r.element);      // 싸워서 얻는 게 아니라 맡겨 받는 숨결 (text/story-bible.md 5절)
     showToast(`퀘스트 완료: ${q.title} (${rewardText(q)})`, '🎉');
     if (r.xp) p.gainXp(r.xp);
     // 고른 선택지에 딸린 장면이 먼저, 그다음이 퀘스트 마무리 장면

@@ -4,7 +4,7 @@ import { state } from '../core/state.js';
 import { MAX_BULLETS } from '../core/config.js';
 import { isOnScreen, shake } from '../core/camera.js';
 import { dist } from '../core/utils.js';
-import { ELEMENTS, canFuse } from '../data/elements.js';
+import { ELEMENTS, REACTIONS, canFuse } from '../data/elements.js';
 import { getTileImage } from '../world/terrain.js';
 import { drawPixelSprite } from '../render/pixel.js';
 import { getVfxImage, spawnEffect, spawnBolt, spawnText } from '../render/vfx.js';
@@ -63,6 +63,31 @@ export class Projectile extends Entity {
         if (this.life < 0) this.remove = true;
         if (this.kind === 'BREATH' && Math.random() < 0.25) burst(this.x, this.y, ELEMENTS[this.element].trail, 0.4);
     }
+    /** 이 숨결이 대상에 걸린 상태와 반응하나 */
+    reaction(target) {
+        const table = REACTIONS[this.element], s = target.status;
+        if (!table || !s) return null;
+        const key = Object.keys(table).find(k => s[k] > 0);
+        return key ? { ...table[key], on: key } : null;
+    }
+
+    applyReaction(r, target, targets) {
+        spawnText(target.x, target.y - 78, r.name, ELEMENTS[this.element].color, 17);
+        if (r.clear) target.status[r.on] = 0;
+        if (r.stun) applyStatus(target, 'STUN', r.stun);
+        if (r.burn) applyStatus(target, 'BURN', r.burn);
+        if (r.poison) applyStatus(target, 'POISON', r.poison);
+        if (r.spread) {
+            spawnEffect('SHOCKWAVE', target.x, target.y - 20, { size: r.spread / 90, color: ELEMENTS[this.element].color });
+            for (const e of targets) {
+                if (e === target || e.remove || dist(e, target) > r.spread) continue;
+                e.takeDamage(this.damage * 0.8, false, this);
+                if (r.burn) applyStatus(e, 'BURN', r.burn);
+            }
+        }
+        this.chainBonus = r.chain || 0;
+    }
+
     /** 대상에 맞았을 때 (systems/combat.js). targets: 번개가 튈 수 있는 다른 대상들 */
     hit(target, targets = []) {
         if (this.hitSet.has(target)) return;
@@ -78,7 +103,9 @@ export class Projectile extends Entity {
         if (this.fromPlayer && canFuse(state.player)) state.player.ult = Math.min(100, state.player.ult + 1.5);
         const crit = Math.random() < CRIT_CHANCE + (hasRelic('HUNTER_CHARM') ? 0.1 : 0);
         play(crit ? 'crit' : 'hit');
-        const dmg = this.damage * (crit ? (hasRelic('BASIL_FANG') ? 3 : 2) : 1);
+        // 속성 연계: 이미 걸려 있는 상태에 이 숨결이 닿으면 반응이 난다 (data/elements.js 의 REACTIONS)
+        const react = this.kind === 'BREATH' ? this.reaction(target) : null;
+        const dmg = this.damage * (crit ? (hasRelic('BASIL_FANG') ? 3 : 2) : 1) * (react && react.mult ? react.mult : 1);
         if (blocksFrom(target, this.x, this.y)) {        // 방패 고블린의 정면 — 튕긴다
             spawnEffect('SPARK', this.x, this.y, { size: 0.9, color: '#cfe0ff' });
             spawnText(target.x, target.y - 50, '막힘', '#cfe0ff', 13);
@@ -92,6 +119,8 @@ export class Projectile extends Entity {
         if (crit) { hitStop(0.05); shake(4); }   // 치명타는 한 박자 멈춘다
         else hitStop(0.018);                     // 보통 타도 한 프레임쯤은 멈춘다. 맞았다는 느낌은 여기서 난다
         if (this.kind !== 'BREATH') return;
+        if (react) this.applyReaction(react, target, targets);
+        if (el.push && !target.statusImmune && !target.def?.scale) { target.x += Math.cos(this.angle) * el.push; target.y += Math.sin(this.angle) * el.push; }
         if (el.status) {
             // 이미 느려진 적에게 냉기를 또 맞히면 얼어붙는다
             if (el.status.type === 'SLOW' && target.status && target.status.SLOW > 0) applyStatus(target, 'STUN', 1.2);
@@ -100,7 +129,7 @@ export class Projectile extends Entity {
         if (el.chain) {
             let from = target;
             const used = new Set([target]);
-            const bounces = el.chain.count + (hasRelic('ZALGORA_SCALE') ? 1 : 0);
+            const bounces = el.chain.count + (hasRelic('ZALGORA_SCALE') ? 1 : 0) + (this.chainBonus || 0);   // 젖은 적에게는 더 멀리 튄다 (감전)
             for (let i = 0; i < bounces; i++) {
                 const next = targets.find(t => !t.remove && !used.has(t) && dist(from, t) < el.chain.range);
                 if (!next) break;
@@ -122,10 +151,12 @@ export class Projectile extends Entity {
         const p = ELEMENTS[this.element].proj;
         const img = getVfxImage(p.img);
         if (!img) return;
+        if (p.filter) ctx.filter = p.filter;
         const frame = p.frames[Math.floor(this.t * p.fps) % p.frames.length];
         ctx.globalCompositeOperation = 'lighter';
         drawPixelSprite(ctx, img, { sx: frame * p.fw, sy: 0, sw: p.fw, sh: p.fh }, this.x, this.y, { scale: 3 * this.scale, ax: p.ax, ay: p.ay, angle: this.angle });
         ctx.globalCompositeOperation = 'source-over';
+        if (p.filter) ctx.filter = 'none';
     }
 }
 

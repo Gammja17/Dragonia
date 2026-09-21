@@ -291,6 +291,8 @@ body {
 }
 .slot-name { font-size: 0.6rem; white-space: nowrap; max-width: 58px; overflow: hidden; text-overflow: ellipsis; }
 .slot.locked { opacity: 0.5; filter: grayscale(0.85); }
+/* 새 마을에서 받는 숨결은 받기 전까지 칸이 보이지 않는다 */
+.slot.el.locked[data-el="WATER"], .slot.el.locked[data-el="EARTH"], .slot.el.locked[data-el="GRASS"] { display: none; }
 .slot.active { border-color: var(--gold-lit); transform: translateY(-4px); }
 .slot.active .slot-key, .slot.active .slot-name { color: var(--gold-lit); }
 .slot[data-el="FIRE"].active   { border-color: #ff9a3c; }
