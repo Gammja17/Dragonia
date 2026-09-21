@@ -59,6 +59,14 @@ export const ROUTINES = {
         ],
         rain: { map: 'DOJO', spot: [9, 7], doing: '비를 맞으면서도 허수아비를 놓지 않는다' },
         raid: { map: 'VILLAGE', spot: [14, 8], doing: '제일 앞에 나가 사냥꾼과 맞선다' },
+        // 어둠의 결말: 마을이 잿마루에 넘어간 다음 날 말없이 떠났다 (data/quests.js 의 m7d)
+        variants: [{ when: s => s.story.route === 'dark' && s.quests.done.includes('m7d'), day: [
+            { h: 0,  map: 'CLOUDTOP', spot: [16, 10], doing: '구름마루에서 얻은 잠자리에 누워 있다' },
+            { h: 6,  map: 'CLOUDTOP', spot: [15, 12], doing: '물가에서 혼자 자세를 잡고 있다' },
+            { h: 13, map: 'FALLS',    spot: [10, 10], doing: '폭포 아래에 서서 마을 쪽을 한참 보고 있다' },
+            { h: 17, map: 'CLOUDTOP', spot: [15, 12], doing: '물가에서 해가 질 때까지 수련한다' },
+            { h: 21, map: 'CLOUDTOP', spot: [16, 10], doing: '구름마루에서 얻은 잠자리로 돌아간다' },
+        ] }],
     },
 
     // ── 티아맷: 망루지기 ────────────────────────────────────────────────

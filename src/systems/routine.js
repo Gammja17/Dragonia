@@ -44,9 +44,10 @@ export function planFor(name, hour = state.dayTime * 24) {
     }
     // 달이 가장 밝은 밤에는 두 마을이 모두 폭포 아래로 내려온다
     if (gather) slot = { map: GATHER_MAP, spot: GATHER_SPOTS[name], doing: '달 밝은 밤의 모임에 나와 있다' };
-    if (state.raid.active && r.raid) slot = r.raid;   // 마을이 불타는 것보다 급한 모임은 없다
+    const own = variant || r;
+    if (state.raid.active && own.raid) slot = own.raid;   // 마을이 불타는 것보다 급한 모임은 없다
     if (state.raid.active && state.raid.kind === 'war' && WAR_AWAY.includes(name)) slot = { map: 'FALLS', spot: [10, 10], doing: '폭포에서 마을로 달려오고 있다' };
-    else if (!isGatherNow() && r.rain && (state.weather.type === 'RAIN' || state.weather.type === 'SNOW')) slot = r.rain;
+    else if (!isGatherNow() && own.rain && (state.weather.type === 'RAIN' || state.weather.type === 'SNOW')) slot = own.rain;
     if (!MAPS[slot.map] && !DENS[slot.map]) return null;
     return {
         job: r.job,

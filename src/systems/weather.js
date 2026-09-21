@@ -42,16 +42,19 @@ export function drawWeather(ctx, cam) {
     if (state.dungeon || state.indoors) return;   // 굴 속에는 비도 눈도 오지 않는다
     const w = state.weather;
     const biome = activeBiome();
-    if (biome === 'SNOW' || biome === 'VOLCANO') {   // 설원엔 늘 눈, 화산엔 불티
-        const snow = biome === 'SNOW', t = state.gameTime;
+    // 어둠의 결말 뒤의 웨스턴 마을에는 잿마루처럼 재가 내린다 (눈처럼 아래로, 잿빛으로)
+    const ash = state.mapId === 'VILLAGE' && state.story.route === 'dark' && state.quests.done.includes('m7d');
+    if (biome === 'SNOW' || biome === 'VOLCANO' || ash) {   // 설원엔 늘 눈, 화산엔 불티
+        const snow = biome === 'SNOW' || ash, t = state.gameTime;
         ctx.save();
         if (!snow) ctx.globalCompositeOperation = 'lighter';
-        ctx.fillStyle = snow ? 'rgba(255,255,255,0.85)' : 'rgba(255,140,60,0.8)';
-        for (let i = 0; i < 110; i++) {
+        if (ash) { ctx.fillStyle = 'rgba(70,62,66,0.2)'; ctx.fillRect(0, 0, cam.w, cam.h); }   // 하늘이 재에 가려 마을 빛깔이 죽는다
+        ctx.fillStyle = ash ? 'rgba(205,200,196,0.8)' : snow ? 'rgba(255,255,255,0.85)' : 'rgba(255,140,60,0.8)';
+        for (let i = 0; i < (ash ? 170 : 110); i++) {
             const seed = i * 7919, speed = 50 + (seed % 70), dir = snow ? 1 : -1;
             const x = (((seed * 3 % 2400) + Math.sin(t * 0.8 + i) * 40 - cam.x) % cam.w + cam.w) % cam.w;
             const y = (((seed * 11 % 2400) + dir * t * speed - cam.y) % cam.h + cam.h) % cam.h;
-            const r = snow ? 2 + (seed % 3) : 1.5 + (seed % 2);
+            const r = ash ? 3 + (seed % 3) : snow ? 2 + (seed % 3) : 1.5 + (seed % 2);
             ctx.fillRect(x, y, r, r);
         }
         ctx.restore();

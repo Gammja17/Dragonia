@@ -264,6 +264,8 @@ function reportQuest(npc, q) {
 /** 인사말: 가끔은 지금 상황(날씨, 밤, 습격, 가족…)에 맞는 한마디 */
 function greeting(npc, talk, tier) {
     const fits = SITUATION_LINES.filter(s => s.lines[npc.config.name] && s.when(state, npc));
+    const must = fits.find(s => s.always);
+    if (must) return pick([must.lines[npc.config.name]].flat());
     if (fits.length && Math.random() < 0.55) return pick(fits).lines[npc.config.name];
     return talk.greet[tier];
 }

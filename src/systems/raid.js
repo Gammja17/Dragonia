@@ -45,6 +45,8 @@ export function updateRaid(dt) {
     // 습격은 마을에 있을 때만 벌어진다. 딴 데 있으면 시계가 멈춘다
     if (state.mapId !== 'VILLAGE') return;
     if (raidWanted() && isNight()) return triggerRaid();
+    // 어둠의 결말: 마을이 잿마루의 일부가 된 뒤로는 때 되면 오던 사냥꾼이 오지 않는다 (퀘스트가 부르는 습격은 그대로)
+    if (state.story.route === 'dark' && state.quests.done.includes('m7d')) return;
     // 첫 습격은 이야기가 부른다. 그 전에는 시계가 돌지 않는다 (새 게임 2분 만에 쳐들어오던 것)
     if (raid.count === 0) return;
     state.raidTimer -= dt;
@@ -194,6 +196,7 @@ export function raidStatusText() {
     if (state.dungeon) return '';   // 굴 속에서는 습격 시계가 멈춘다
     if (!state.raid.active && state.raid.count === 0) return '';   // 아직 습격을 겪기 전
     if (state.raid.active) return `습격 중! 남은 사냥꾼 ${state.entities.humans.length}` + (state.raid.objective && !state.raid.objective.failed ? ` · ${npcName(state.raid.objective.name)}를 지켜라` : '');
+    if (state.story.route === 'dark' && state.quests.done.includes('m7d')) return '';   // 나팔은 다시 울리지 않는다
     const t = Math.max(0, Math.ceil(state.raidTimer));
     return `다음 습격 ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 }
