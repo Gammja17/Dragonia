@@ -890,7 +890,9 @@ export class Dragon extends Entity {
             const f = this.animator.frame(this.facing);
             if (this.downTimer > 0) ctx.globalAlpha = 0.55;
             drawFrame(ctx, this.sheet, f, this.x, this.y + (this.downTimer > 0 ? 18 : this.hoverY) - this.diveHeight, sc,
-                { t: state.gameTime + this.animPhase, moving: this.moving, attacking: this.animator.name === 'attack' && !this.animator.done },
+                { t: state.gameTime + this.animPhase, moving: this.moving, attacking: this.animator.name === 'attack' && !this.animator.done,
+                  hurt: this.animator.name === 'hit' && !this.animator.done ? Math.max(0, 1 - this.animator.t * 4) : 0,
+                  shape: this.isPlayer ? this.stage.shape : null },   // 자라면서 몸 비율이 바뀌는 건 내 용뿐이다 (마을 용은 다 성체)
                 (this._outline || (this._outline = outlineFor(f, this.isPlayer))));
             ctx.globalAlpha = 1;
             drawAccessory(ctx, this.sheet, this.config.accessory, this.facing, this.x, this.y + this.hoverY - this.diveHeight, sc);

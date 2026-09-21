@@ -11,6 +11,7 @@ import { KID_TALK } from '../data/npcTalk.js';
 import { facingFromVector, drawAccessory, outlineFor, headTop, bubble } from './Dragon.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
 import { Animator, drawFrame } from '../render/spritesheet.js';
+import { STAGES } from '../data/elements.js';
 
 const TAU = Math.PI * 2;
 const STAGE_SCALE = { BABY: 0.36, TEEN: 0.55, ADULT: 0.8 }; // 부모 스프라이트 대비 크기
@@ -142,7 +143,9 @@ export class BabyDragon extends Entity {
         const hover = this.sheet.flying ? Math.sin(state.gameTime * 3 + this.x) * 4 * s : 0;
         const kf = this.animator.frame(this.facing);
         drawFrame(ctx, this.sheet, kf, this.x, this.y + hover, s,
-            { t: state.gameTime + this.followGap, moving: this.animator.name === 'move', attacking: this.animator.name === 'attack' && !this.animator.done },
+            { t: state.gameTime + this.followGap, moving: this.animator.name === 'move', attacking: this.animator.name === 'attack' && !this.animator.done,
+              hurt: this.animator.name === 'hit' && !this.animator.done ? Math.max(0, 1 - this.animator.t * 4) : 0,
+              shape: STAGES[0].shape },   // 새끼는 늘 해츨링 비율 — 머리가 크고 몸이 작다
             (this._outline || (this._outline = outlineFor(kf, false))));
         if (this.stage === 'BABY') drawAccessory(ctx, this.sheet, 'SHELL', this.facing, this.x, this.y + hover, s * 1.6);
 

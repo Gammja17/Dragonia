@@ -142,21 +142,73 @@ export function averageColor(img, sx = 0, sy = 0, sw = img.width, sh = img.heigh
     return rgb;
 }
 
+// ---------- 한 장짜리 그림에 생명 넣기 ----------
+// 기본 외형(looks.png)은 용 한 마리에 그림이 딱 한 장이다. 넘길 프레임이 없으니
+// 그리는 순간에 몸을 주물러서 움직임을 만든다. 전부 캔버스 변형이라 외곽선도 저절로 따라온다.
+//
+//   숨쉬기·통통 튀기   가만히 있어도 살아 있어 보이게
+//   걸을 때 좌우 기울임  한 장짜리 그림이 "걷는 것처럼" 보이는 건 거의 이것 때문이다
+//   덤빌 때 앞으로 숙임  공격에 무게가 실린다
+//   맞으면 뒤로 젖혀짐   맞았다는 게 몸으로 보인다
+
+const BANDS = 8;   // 성장 단계에 따라 몸을 주무를 때 쓰는 가로 띠 수
+
+// head(머리 쪽) ~ body(꼬리 쪽) 사이를 부드럽게 오가는 띠별 배율.
+// 세로는 전체 키가 변하지 않도록 평균으로 정규화한다 — 비율만 바뀌고 덩치는 stage.scale 이 정한다.
+const bandCache = new Map();
+function shapeBands(shape) {
+    const key = `${shape.head}|${shape.body}`;
+    let b = bandCache.get(key);
+    if (b) return b;
+    const k = [];
+    for (let i = 0; i < BANDS; i++) {
+        const t = i / (BANDS - 1);
+        k.push(shape.head + (shape.body - shape.head) * (t * t * (3 - 2 * t)));   // 부드럽게: 띠 경계의 계단이 덜 보인다
+    }
+    const avg = k.reduce((sum, v) => sum + v, 0) / BANDS;
+    b = k.map(v => [v, v / avg]);
+    bandCache.set(key, b);
+    return b;
+}
+
+// 가로 띠로 나눠 그린다. 띠마다 폭이 달라서 자리마다 몸통 굵기가 달라진다.
+// (해츨링은 머리 쪽 띠가 넓고 꼬리 쪽이 좁다 — 새끼 짐승의 비율이 그렇다)
+function drawBands(ctx, img, f, dx, dy, w, h, bands) {
+    const sh = f.sh / BANDS, bandH = h / BANDS;
+    let y = dy;
+    for (let i = 0; i < BANDS; i++) {
+        const [kx, ky] = bands[i];
+        const bw = w * kx;
+        // 1px 겹쳐 그려야 띠 사이가 실처럼 벌어지지 않는다
+        ctx.drawImage(img, f.sx, f.sy + sh * i, f.sw, sh, dx + (w - bw) / 2, y, bw, bandH * ky + 1);
+        y += bandH * ky;
+    }
+}
+
 /**
  * anchor 기준점(발 위치)이 (x,y)에 오도록 그린다.
- * motion:  { t, moving, attacking } — 한 장짜리(procedural) 시트는 이 값으로 통통 튀고 숨 쉬고 덤벼드는 움직임을 만든다
+ * motion:  { t, moving, attacking, hurt, shape } — 한 장짜리(procedural) 시트는 이 값으로 움직임과 몸 비율을 만든다.
+ *           hurt 0~1 (맞은 직후), shape { head, body, tempo } (성장 단계별 몸 비율. 없으면 원래 비율)
  * outline: { color, width } — 스프라이트 둘레에 두를 테두리 (배경과 섞여 보이지 않게)
  */
 export function drawFrame(ctx, sheet, f, x, y, scale = 1, motion = null, outline = null) {
     const s = sheet.scale * scale;
     let w = f.sw * s, h = f.sh * s;
+    let rot = 0, lunge = 0;
+    const shape = motion && motion.shape;
+
     if (sheet.procedural && motion) {
-        const breathe = Math.sin(motion.t * 2.4) * 0.02;
-        const hop = motion.moving ? Math.abs(Math.sin(motion.t * 9)) : 0;
+        const t = motion.t * (shape ? shape.tempo : 1);   // 작은 몸은 빨리, 큰 몸은 느리게 숨 쉰다
+        const breathe = Math.sin(t * 2.4) * 0.02;
+        const hop = motion.moving ? Math.abs(Math.sin(t * 9)) : 0;
         y -= hop * 10 * scale;
         h *= 1 + breathe + hop * 0.05 + (motion.attacking ? 0.08 : 0);
         w *= 1 - breathe + (motion.attacking ? 0.06 : 0);
+        rot += Math.sin(t * 4.5) * (motion.moving ? 0.055 : 0.014);   // 걸을 때 몸이 좌우로 흔들린다
+        if (motion.attacking) { lunge += 7 * scale; rot -= 0.16; }    // 덤빌 때 앞으로 튀어나가며 숙인다
+        if (motion.hurt > 0) { lunge -= 11 * scale * motion.hurt; rot += 0.3 * motion.hurt; }   // 맞으면 뒤로 젖혀진다
     }
+
     const dx = -w * sheet.anchor.x, dy = -h * sheet.anchor.y;
     ctx.save();
     // 픽셀아트를 키워 그릴 땐 보간을 끈다. 켜 두면 64px 그림을 2.5배로 늘리면서 죄다 뭉개졌다.
@@ -164,12 +216,22 @@ export function drawFrame(ctx, sheet, f, x, y, scale = 1, motion = null, outline
     // imageSmoothingEnabled 는 캔버스 상태라 아래 restore() 가 알아서 되돌린다.
     ctx.imageSmoothingEnabled = s < 1;
     ctx.translate(x, y);
+    // 기울임·돌진은 뒤집기 다음에 건다. 그래야 오른쪽을 볼 때 저절로 반대로 적용된다
+    // (원본 그림은 모두 왼쪽을 본다 — 그림 기준의 "앞"은 -x 쪽이다)
     if (f.flip) ctx.scale(-1, 1);
+    if (rot) ctx.rotate(rot);          // 축은 발밑이라 몸이 발을 딛고 흔들린다
+    if (lunge) ctx.translate(-lunge, 0);
+
+    const bands = shape ? shapeBands(shape) : null;
     if (outline) {
         const sil = silhouette(f.img, outline.color);
         const r = outline.width;
-        for (const [ox, oy] of OUTLINE_STEPS) ctx.drawImage(sil, f.sx, f.sy, f.sw, f.sh, dx + ox * r, dy + oy * r, w, h);
+        for (const [ox, oy] of OUTLINE_STEPS) {
+            if (bands) drawBands(ctx, sil, f, dx + ox * r, dy + oy * r, w, h, bands);
+            else ctx.drawImage(sil, f.sx, f.sy, f.sw, f.sh, dx + ox * r, dy + oy * r, w, h);
+        }
     }
-    ctx.drawImage(f.img, f.sx, f.sy, f.sw, f.sh, dx, dy, w, h);
+    if (bands) drawBands(ctx, f.img, f, dx, dy, w, h, bands);
+    else ctx.drawImage(f.img, f.sx, f.sy, f.sw, f.sh, dx, dy, w, h);
     ctx.restore();
 }

@@ -28,11 +28,16 @@ export const ELEMENTS = {
 };
 
 // 성장 단계. 레벨이 minLevel 에 닿으면 진화한다.
+// shape: 단계마다 몸의 비율이 다르다. 덩치(scale)만 키우면 "커진 아기"로 보여서,
+//        머리 쪽(head)과 꼬리 쪽(body)의 가로 배율을 따로 준다.
+//        해츨링은 머리가 크고 몸이 작다(새끼 짐승의 비율), 고룡은 목이 길고 몸이 굵다.
+//        tempo 는 숨·걸음의 빠르기 — 작은 것은 종종거리고 큰 것은 느긋하다.
+//        성체는 원본 그림 그대로라 shape 가 없다 (띠로 나눠 그리지 않아 그리는 값도 싸다).
 export const STAGES = [
-    { id: 'HATCHLING', name: '해츨링', minLevel: 1,  scale: 0.55, damage: 0.8, speed: 0.95 },
-    { id: 'JUVENILE',  name: '어린 용', minLevel: 4,  scale: 0.78, damage: 1.0, speed: 1.0,  unlock: '더 센 숨결' },
+    { id: 'HATCHLING', name: '해츨링', minLevel: 1,  scale: 0.55, damage: 0.8, speed: 0.95, shape: { head: 1.26, body: 0.80, tempo: 1.5 } },
+    { id: 'JUVENILE',  name: '어린 용', minLevel: 4,  scale: 0.78, damage: 1.0, speed: 1.0,  unlock: '더 센 숨결', shape: { head: 1.11, body: 0.92, tempo: 1.18 } },
     { id: 'ADULT',     name: '성체',   minLevel: 8,  scale: 1.0,  damage: 1.3, speed: 1.05, unlock: '짝 맺기 · 비행 (Z)' },
-    { id: 'ELDER',     name: '고룡',   minLevel: 13, scale: 1.2,  damage: 1.7, speed: 1.1 },
+    { id: 'ELDER',     name: '고룡',   minLevel: 13, scale: 1.2,  damage: 1.7, speed: 1.1,  shape: { head: 0.92, body: 1.12, tempo: 0.8 } },
     // 숨겨진 단계: 세 숨결을 모두 얻은 고룡만 오를 수 있다. 필살기 [X] 삼원 융합 브레스
-    { id: 'PRISM',     name: '삼원룡', minLevel: 16, scale: 1.3,  damage: 2.2, speed: 1.15, unlock: '필살기 [X] 삼원 융합 브레스', needsAllElements: true },
+    { id: 'PRISM',     name: '삼원룡', minLevel: 16, scale: 1.3,  damage: 2.2, speed: 1.15, unlock: '필살기 [X] 삼원 융합 브레스', needsAllElements: true, shape: { head: 0.90, body: 1.16, tempo: 0.72 } },
 ];
