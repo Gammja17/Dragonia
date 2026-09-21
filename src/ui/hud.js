@@ -244,7 +244,7 @@ export function setBossBar(name, ratio = 0) {
 
 /** 일지·가족·도움말 창이 떠 있으면 머리 위 안내는 가린다 (창 위에 겹쳐 보이던 문제) */
 function panelOpen() {
-    return ['journal-panel', 'kids-panel', 'help-panel'].some(id => getComputedStyle($(id)).display !== 'none');
+    return ['journal-panel', 'kids-panel', 'help-panel', 'settings-panel'].some(id => getComputedStyle($(id)).display !== 'none');
 }
 
 /** 근처 NPC 머리 위에 '말 걸기' 안내를 띄운다. 예전엔 화면 절반만큼 어긋난 위치에 떴다. */

@@ -22,7 +22,7 @@ import { toggleDebug, updateDebug, drawDebug } from './render/debugOverlay.js';
 import { initWaystones, updateTravel } from './systems/travel.js';
 import { inDungeon } from './systems/delve.js';
 import { updateChronicle } from './systems/chronicle.js';
-import { updateCutscene, drawCutscene } from './systems/cutscene.js';
+import { updateCutscene, drawCutscene, inCutscene } from './systems/cutscene.js';
 import { updateRoutine } from './systems/routine.js';
 import { updateTour } from './systems/tour.js';
 import { updateDenPlace, drawDenGhost, isPlacing, cancelPlacing, setDenRebuilder } from './systems/denPlace.js';
@@ -32,6 +32,7 @@ import { updateEvents, drawEvents } from './systems/events.js';
 import { initAudio } from './systems/audio.js';
 import { initMusic, updateMusic } from './systems/music.js';
 import { initJournal } from './ui/journal.js';
+import { initSettings, toggleSettings, closeTopPanel } from './ui/settings.js';
 import { initTouch } from './ui/touch.js';
 import { dialogueUI } from './ui/dialogueUI.js';
 import { showToast } from './ui/toast.js';
@@ -53,6 +54,7 @@ initInput();
 initHud();
 initKidsPanel();
 initJournal();
+initSettings();
 initDenPanel();
 setDenRebuilder(refreshDen);
 initTouch();
@@ -102,9 +104,12 @@ function loop(now) {
     if (input.pressed('zoom')) showToast(`시점: ${cycleZoom(canvas.width, canvas.height)}`, '🔍');
     if (input.pressed('debug')) showToast(`밸런스 오버레이 ${toggleDebug() ? '켬' : '끔'}`, '🛠️');
     if (mouse.wheel) showToast(`시점: ${stepZoom(mouse.wheel, canvas.width, canvas.height)}`, '🔍');
+    // [Esc]: 하던 것부터 닫고, 닫을 게 없으면 설정 창
     if (input.pressed('cancel')) {
         if (isPlacing()) cancelPlacing();
         else if (isDecorPanelOpen()) closeDecorPanel();
+        else if (closeTopPanel()) { /* 창 하나 닫음 */ }
+        else if (!state.isDialogueOpen && !inCutscene()) toggleSettings();
     }
     if (state.isDialogueOpen) {
         if (input.pressed('cancel')) closeDialogue();

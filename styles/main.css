@@ -420,7 +420,7 @@ body {
    ========================================================================== */
 /* 가운데에 뜨는 판은 모두 같은 크기다. 창마다 크기가 달라 열 때마다
    눈이 다시 자리를 잡아야 하던 것을, 제일 큰 스킬 나무에 맞춰 통일했다 */
-#journal-panel, #help-panel, #den-panel, #kids-panel {
+#journal-panel, #help-panel, #den-panel, #kids-panel, #settings-panel {
     top: 50%; left: 50%; bottom: auto; right: auto;
     transform: translate(-50%, -50%);
     width: min(1040px, 95vw);
@@ -439,6 +439,12 @@ body {
     width: min(760px, 100%); margin: 0 auto;
 }
 #help-panel .panel-body { width: min(860px, 100%); margin: 0 auto; }
+#settings-panel .panel-body { width: min(520px, 100%); margin: 0 auto; }
+#settings-panel .journal-row { padding: 7px 0; font-size: 0.86rem; align-items: center; }
+#settings-panel .journal-slider input[type="range"] { width: 200px; }
+.settings-btn { padding: 5px 12px; cursor: pointer; background: var(--ink-raise); border: 1px solid var(--gold-dim); color: var(--parch); font-family: var(--font-ko); font-size: 0.78rem; }
+.settings-btn:hover { background: var(--ink-hover); border-color: var(--gold); }
+.settings-note { margin-top: 18px; color: var(--parch-dim); font-size: 0.74rem; line-height: 1.5; }
 #help-panel .panel-body { columns: 2; column-gap: 34px; }
 #help-panel .help-row, #help-panel .help-sep { break-inside: avoid; }
 #journal-tabs { display: flex; gap: 4px; margin-bottom: 9px; }
@@ -947,7 +953,7 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 .slot-rank { position: absolute; top: 2px; right: 4px; font-size: 0.55rem; color: var(--gold-lit); letter-spacing: -1px; }
 
 @media (max-width: 900px), (max-height: 620px) {
-    #journal-panel, #help-panel, #den-panel, #kids-panel { width: 97vw; height: 92vh; max-height: 92vh; }
+    #journal-panel, #help-panel, #den-panel, #kids-panel, #settings-panel { width: 97vw; height: 92vh; max-height: 92vh; }
     .tree-canopy { gap: 2px; }
     .tnode { width: 62px; }
     .tnode-gem { width: 38px; height: 38px; border-width: 2px; }
