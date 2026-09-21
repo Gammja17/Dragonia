@@ -20,6 +20,7 @@ import { updateLighting, drawLighting } from './render/lighting.js';
 import { drawCrosshair } from './render/cursor.js';
 import { applyHitStop, updateFeedback, drawFeedback, flashAmount } from './render/feedback.js';
 import { initPostFx, resizePostFx, renderPostFx } from './render/postfx.js';
+import { setCrispLayer, beginCrispWorld, endCrispWorld } from './render/overlay.js';
 import { toggleDebug, updateDebug, drawDebug } from './render/debugOverlay.js';
 import { initWaystones, updateTravel } from './systems/travel.js';
 import { inDungeon } from './systems/delve.js';
@@ -42,12 +43,18 @@ import { showToast } from './ui/toast.js';
 const AUTOSAVE_INTERVAL = 20; // 초
 
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const usePostFx = initPostFx(canvas);   // WebGL 후처리(번짐·일렁임). 못 켜면 false 라 예전 화면 그대로 간다
+// 세계는 화면 밖 캔버스에 그려 셰이더로 넘기고, 보이는 캔버스에는
+// 또렷해야 하는 것(이름표·말풍선)만 얹는다. 흰 글씨는 번짐을 피할 수 없기 때문이다.
+const worldCanvas = document.createElement('canvas');
+const usePostFx = initPostFx(worldCanvas, canvas);   // 못 켜면 false 라 예전처럼 캔버스 하나로 간다
+const ctx = (usePostFx ? worldCanvas : canvas).getContext('2d');
+if (usePostFx) setCrispLayer(canvas.getContext('2d'));
 
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    worldCanvas.width = canvas.width;
+    worldCanvas.height = canvas.height;
     resizeCamera(canvas.width, canvas.height);
     if (usePostFx) resizePostFx(canvas.width, canvas.height);
 }
@@ -168,6 +175,7 @@ function render() {
     ctx.fillStyle = '#050505';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    beginCrispWorld(cam, canvas.width, canvas.height);   // 이름표·말풍선이 얹힐 층도 같은 시점으로
     ctx.save();
     ctx.scale(cam.zoom, cam.zoom);
     ctx.save();
@@ -193,6 +201,7 @@ function render() {
     ctx.globalCompositeOperation = 'source-over';
     drawCrosshair(ctx);                        // 조준점은 파티클 위에
     ctx.restore();
+    endCrispWorld();
 
     // 조명·날씨도 같은 배율 안에서 (cam.w/h 가 곧 화면 크기)
     drawLighting(ctx, cam);

@@ -117,15 +117,17 @@ function makeTarget(w, h) {
 }
 
 /**
- * 2D 캔버스 위에 겹쳐 놓을 WebGL 캔버스를 만든다.
+ * WebGL 캔버스를 만들어 화면에 끼운다.
+ *   worldCanvas    세계를 그려 둘 화면 밖 캔버스 (이걸 텍스처로 올린다)
+ *   displayCanvas  화면에 있는 원래 캔버스. 입력을 받고, 또렷해야 하는 글자를 얹는 층이 된다
  * 되면 true. WebGL 이 없거나 셰이더가 안 되면 false 를 돌려주고 아무것도 바꾸지 않는다.
  */
-export function initPostFx(canvas2d) {
+export function initPostFx(worldCanvas, displayCanvas) {
     try {
-        srcCanvas = canvas2d;
+        srcCanvas = worldCanvas;
         fxCanvas = document.createElement('canvas');
         fxCanvas.id = 'fxCanvas';
-        fxCanvas.style.cssText = 'position:absolute; left:0; top:0; width:100%; height:100%; display:block;';
+        fxCanvas.style.cssText = 'position:absolute; left:0; top:0; width:100%; height:100%; display:block; z-index:0;';
         gl = fxCanvas.getContext('webgl', { alpha: false, antialias: false, depth: false });
         if (!gl) return false;
 
@@ -147,14 +149,20 @@ export function initPostFx(canvas2d) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);   // 캔버스는 위아래가 뒤집혀 들어온다
 
-        // 2D 캔버스 바로 뒤에 끼운다. ui-layer 는 DOM 에서 더 뒤라 계속 위에 뜬다
-        srcCanvas.after(fxCanvas);
-        srcCanvas.style.display = 'none';
+        // 보이는 캔버스 바로 앞에 끼운다 — 후처리 결과가 뒤, 또렷한 글자 층이 앞.
+        // ui-layer 는 DOM 에서 더 뒤라 계속 맨 위에 뜬다.
+        //
+        // 보이는 캔버스를 display:none 으로 감췄더니 마우스 입력이 몽땅 죽은 적이 있다.
+        // 조준·발사·휠 줌·터치가 전부 이 캔버스에 묶여 있어서(core/input.js) 숨기면 안 된다.
+        displayCanvas.before(fxCanvas);
+        displayCanvas.style.position = 'absolute';
+        displayCanvas.style.left = '0';
+        displayCanvas.style.top = '0';
+        displayCanvas.style.zIndex = '1';
         return true;
     } catch (e) {
         console.warn('후처리를 못 켰다. 원래 화면으로 간다:', e);
         if (fxCanvas) fxCanvas.remove();
-        if (srcCanvas) srcCanvas.style.display = 'block';
         return false;
     }
 }

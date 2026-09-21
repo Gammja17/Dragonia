@@ -9,6 +9,7 @@ import { ENEMIES } from '../data/enemies.js';
 import { getTileImage } from '../world/terrain.js';
 import { slideMove } from '../world/collision.js';
 import { drawPixelSprite, whiteCopy, coloredCopy, drawGlow } from '../render/pixel.js';
+import { crisp } from '../render/overlay.js';
 import { updateStatus, statusTint } from '../systems/status.js';
 import { notify } from '../systems/quests.js';
 import { play } from '../systems/audio.js';
@@ -214,6 +215,6 @@ export class Enemy extends Entity {
         drawPixelSprite(ctx, this.hitFlash > 0 ? whiteCopy(sheet) : sheet, rect, px, py, opts);
         ctx.filter = 'none';
         this.drawHpBar(ctx, this.hp / this.maxHp, (this.elite ? 82 : 58) + lift, this.elite ? 50 : 34);
-        this.drawName(ctx, lift);
+        this.drawName(crisp(ctx), lift);   // 이름표는 번짐을 타지 않는 층에
     }
 }

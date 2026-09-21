@@ -28,6 +28,7 @@ import { toggleJournal } from '../ui/journal.js';
 import { openKidHub } from '../systems/kidActions.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
 import { Animator, drawFrame, averageColor } from '../render/spritesheet.js';
+import { crisp } from '../render/overlay.js';
 import { rgbToHsl, hslToRgb } from '../render/tint.js';
 import { drawIcon, drawGlow } from '../render/pixel.js';
 import { spawnEffect } from '../render/vfx.js';
@@ -925,7 +926,7 @@ export class Dragon extends Entity {
         }
 
         if (!this.isPlayer) {
-            this.drawNameplate(ctx);
+            this.drawNameplate(crisp(ctx));   // 이름표는 번짐을 타지 않는 층에
             this.drawHpBar(ctx, this.hp / this.maxHp, -12, 60);
         } else {
             this.drawPlayerBar(ctx);

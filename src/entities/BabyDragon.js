@@ -11,6 +11,7 @@ import { KID_TALK } from '../data/npcTalk.js';
 import { facingFromVector, drawAccessory, outlineFor, headTop, bubble } from './Dragon.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
 import { Animator, drawFrame } from '../render/spritesheet.js';
+import { crisp } from '../render/overlay.js';
 import { STAGES } from '../data/elements.js';
 
 const TAU = Math.PI * 2;
@@ -149,31 +150,33 @@ export class BabyDragon extends Entity {
             (this._outline || (this._outline = outlineFor(kf, false))));
         if (this.stage === 'BABY') drawAccessory(ctx, this.sheet, 'SHELL', this.facing, this.x, this.y + hover, s * 1.6);
 
-        // 이름표와 말풍선. 줌을 되돌려 그려서 멀리 당겨 봐도 같은 크기로 또렷하다
+        // 이름표와 말풍선. 줌을 되돌려 그려서 멀리 당겨 봐도 같은 크기로 또렷하다.
+        // 번짐(후처리)을 타지 않는 층에 그린다 — 흰 말풍선은 그냥 두면 뿌옇게 번진다
+        const g = crisp(ctx);
         const kid = findKid(this);
         const top = this.y - headTop(this.sheet, s) - 6;
         const k = 1 / cam.zoom;
-        ctx.save();
-        ctx.translate(Math.round(this.x), Math.round(top));
-        ctx.scale(k, k);
-        ctx.textAlign = 'center';
+        g.save();
+        g.translate(Math.round(this.x), Math.round(top));
+        g.scale(k, k);
+        g.textAlign = 'center';
         if (kid) {
-            ctx.font = '600 12px "Noto Sans KR"';
-            const w = Math.ceil(ctx.measureText(kid.name).width) + 14;
-            ctx.fillStyle = 'rgba(10, 9, 16, 0.78)';
-            ctx.fillRect(-w / 2, -14, w, 19);
-            ctx.fillStyle = '#ffe9a0';
-            ctx.fillText(kid.name, 0, 0);
+            g.font = '600 12px "Noto Sans KR"';
+            const w = Math.ceil(g.measureText(kid.name).width) + 14;
+            g.fillStyle = 'rgba(10, 9, 16, 0.78)';
+            g.fillRect(-w / 2, -14, w, 19);
+            g.fillStyle = '#ffe9a0';
+            g.fillText(kid.name, 0, 0);
         }
         if (this.chatFade > 0 && this.chat) {
-            ctx.globalAlpha = Math.min(1, this.chatFade);
-            ctx.font = '12px "Noto Sans KR"';
-            const w = Math.ceil(ctx.measureText(this.chat).width) + 24;
-            bubble(ctx, -w / 2, -46, w, 26, -20);
-            ctx.fillStyle = '#20202a';
-            ctx.fillText(this.chat, 0, -28);
-            ctx.globalAlpha = 1;
+            g.globalAlpha = Math.min(1, this.chatFade);
+            g.font = '12px "Noto Sans KR"';
+            const w = Math.ceil(g.measureText(this.chat).width) + 24;
+            bubble(g, -w / 2, -46, w, 26, -20);
+            g.fillStyle = '#20202a';
+            g.fillText(this.chat, 0, -28);
+            g.globalAlpha = 1;
         }
-        ctx.restore();
+        g.restore();
     }
 }
