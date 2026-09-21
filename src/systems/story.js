@@ -15,7 +15,7 @@ import { SKILLS } from '../data/skills.js';
 import { Enemy } from '../entities/Enemy.js';
 import { BabyDragon } from '../entities/BabyDragon.js';
 import { registerKid } from './kids.js';
-import { notify, setFlagListener, acceptQuest } from './quests.js';
+import { notify, setFlagListener, acceptQuest, questsChanged } from './quests.js';
 import { QUESTS } from '../data/quests.js';
 import { DARK_ROUTE } from '../data/story.js';
 import { anyNpc } from './world.js';
@@ -360,6 +360,13 @@ function killNpc(name) {
     if (is(state.partner)) state.partner = null;
     if (is(state.companion)) state.companion = null;
     for (const n of state.entities.npcs) if (is(n)) n.remove = true;
+    // 그 용이 맡겼던 일은 이제 보고할 데가 없다. 남겨 두면 영영 못 끝내는 일이 자리만 차지한다
+    for (const q of QUESTS) {
+        if (!(q.id in state.quests.active) || q.act === 'main' || (q.turnIn || q.giver) !== name) continue;
+        delete state.quests.active[q.id];
+        showToast(`${npcName(name)}의 부탁 [${q.title}]은 끝내 전하지 못했다.`, '🕯️');
+    }
+    questsChanged();
     saveGame();
 }
 

@@ -80,7 +80,8 @@ export function updateTour(dt) {
         const moved = Math.hypot(e.x - (t.lx || 0), e.y - (t.ly || 0));
         t.stuck = moved < 3 ? (t.stuck || 0) + dt : 0;
         t.lx = e.x; t.ly = e.y;
-        const arrived = dist(e, goal) < 48 || (t.stuck > 1.5 && dist(e, goal) < 260);
+        // 멀리서 걸렸더라도 3초를 못 움직이면 그 자리에서 이야기한다 (길잡이가 벽에 걸려 첫날이 멈추면 안 된다)
+        const arrived = dist(e, goal) < 48 || (t.stuck > 1.5 && dist(e, goal) < 260) || t.stuck > 3;
         if (arrived && dist(p, e) < 200) {
             t.phase = 'talk';
             e.walkTo = null;
