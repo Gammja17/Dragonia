@@ -17,6 +17,7 @@ import { offerFor, heldOffer, runningFor, reportableFor, talkQuestFor, bringQues
          notify } from './quests.js';
 import { playScene } from './chronicle.js';
 import { isDead } from './routine.js';
+import { canOuting, outingWait, goOuting } from './family.js';
 import { loveIntercept, moodGreeting, heartClosed, isSulking, onDate, onPartnered, apologize, breakUp, canVow, vowHint, vowed, makeVow } from './romance.js';
 import { ownsRelic, grantRelic } from './relics.js';
 import { masterOptions, updateDrill, isDrill } from './story.js';
@@ -139,10 +140,15 @@ function ownMenu(npc, name) {
     if (name === 'Ember' && isDead('Gron')) sub.push({ label: '🔨 모루 앞에 선다', onSelect: () => emberForge(npc) });
     // 동행. 짝도 오늘은 혼자 다녀오겠다고 할 수 있다
     // (예전엔 "짝은 늘 따라다니므로" 하고 아예 빼 놓아, 떼어 놓을 길이 없었다)
-    if (npc === state.partner) {
+    if (npc === state.partner && isSulking(npc)) {
+        // 토라진 짝은 같이 가자는 말로는 안 따라온다. 사과가 먼저다 (마음 메뉴)
+    } else if (npc === state.partner) {
         sub.push(npc.state === 'WANDER'
             ? { label: '🤝 같이 가자', onSelect: () => setFollowing(npc, true) }
             : { label: '👋 여기서 기다려 줄래?', onSelect: () => setFollowing(npc, false) });
+        // 가족 나들이: 짝이 곁에 있고 아이가 있을 때, 사흘에 한 번 (systems/family.js)
+        if (canOuting()) sub.push({ label: '🧺 다 같이 호숫가로 나들이를 간다', onSelect: () => { close(); goOuting(); } });
+        else if (state.kids.length > 0 && outingWait() > 0) sub.push({ label: `(나들이는 ${outingWait()}일 뒤에 또 갈 수 있다)`, onSelect: back });
     } else if (state.companion === npc) {
         sub.push({ label: '이제 마을로 돌아가도 돼', onSelect: () => setCompanion(npc, false) });
     } else if (relationTier(npc.relation) >= 2) {

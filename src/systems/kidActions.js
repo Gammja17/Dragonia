@@ -6,6 +6,8 @@ import { burst } from '../entities/Particle.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
 import { addAffection, findKid, renameKid, toggleKidMode } from './kids.js';
+import { kidMoodLine } from './family.js';
+import { KID_JOBS } from '../data/family.js';
 
 // 자식과의 대화(T). 성격(personality)과 애정도에 따라 말투가 달라지고,
 // 놀아 주기·훈련은 하루 한 번, 숨결 가르치기는 청소년부터.
@@ -51,7 +53,11 @@ export function openKidHub(baby) {
     if (kid.stage !== 'ADULT') opts.push({ label: kid.mode === 'FOLLOW' ? '둥지를 지키고 있으렴' : '같이 가자', onSelect: () => { toggleKidMode(kid); close(); } });
     opts.push({ label: '이름을 지어 준다', onSelect: () => { const n = prompt('아이의 새 이름 (12자까지)', kid.name); if (n) renameKid(kid, n); back(); } });
     opts.push({ label: '다음에 또 놀자', onSelect: close });
-    show(baby, kid, line(kid, 'greet'), opts);
+    // 부모 사이에 일이 있으면 그 얘기부터 꺼낸다. 일을 맡은 아이는 무슨 일을 하는지 한 줄
+    const greet = kidMoodLine(kid) || line(kid, 'greet');
+    show(baby, kid, kid.job ? `(요즘은 [${KID_JOBS[kid.job].name}] 일을 한다.)
+
+${greet}` : greet, opts);
 }
 
 function play(baby, kid, back) {

@@ -29,6 +29,7 @@ import { learnSkill } from './skills.js';
 import { saveGame } from './save.js';
 import { play } from './audio.js';
 import { raidWanted, triggerRaid } from './raid.js';
+import { familyMorning } from './family.js';
 import { isGatherNow } from './gathering.js';
 
 // 스승의 수련 · 승급 시험 · 잠 · 아침 장면.
@@ -441,6 +442,7 @@ function deliverEgg() {
 /** 아직 안 본 장면 중 조건이 맞는 첫 번째를 재생 (아침에 눈뜰 때) */
 export function playMorningScene() {
     if (deliverEgg()) return;   // 맡긴 알이 먼저다. 되풀이되는 장면이라 SCENES 에 두지 않는다
+    if (familyMorning()) return;   // 일을 맡은 아이들이 들고 온 것 · 다 자란 아이의 성년식 (systems/family.js)
     const scene = SCENES.find(sc => !state.story.scenes.includes(sc.id) && sc.when(state));
     if (!scene) return;
     state.story.scenes.push(scene.id);
