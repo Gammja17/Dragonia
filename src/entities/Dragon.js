@@ -115,12 +115,19 @@ function deepen([r0, g0, b0], l, s, alpha) {
     return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${alpha})`;
 }
 
-/** 그 용이 실제로 띠는 색에서 뽑은 테두리. 용마다 한 번만 계산한다 (f: 지금 그리는 칸) */
+/**
+ * 그 용이 실제로 띠는 색에서 뽑은 테두리. 용마다 한 번만 계산한다 (f: 지금 그리는 칸)
+ *
+ * 색조는 그 용의 것을 따르되 밝기는 충분히 낮춰야 한다. 예전엔 제 색을 조금만
+ * 어둡게 했더니, 초록 용(그론)은 초록 풀밭 위에서 테두리까지 풀색이라 윤곽이
+ * 아예 사라져 반투명한 것처럼 보였다. 파란 용·분홍 용만 멀쩡했던 것도 그래서다.
+ * 테두리는 용을 배경에서 떼어 놓으라고 있는 것이니 배경과 같은 밝기면 안 된다.
+ */
 export function outlineFor(f, isPlayer) {
     const rgb = averageColor(f.img, f.sx, f.sy, f.sw, f.sh);
     return isPlayer
-        ? { color: deepen(rgb, 0.23, 0.7, 0.92), width: 2.2 }
-        : { color: deepen(rgb, 0.18, 0.55, 0.78), width: 1.5 };
+        ? { color: deepen(rgb, 0.14, 0.7, 0.95), width: 2.2 }
+        : { color: deepen(rgb, 0.10, 0.45, 0.92), width: 2 };
 }
 
 /** 이동 벡터 → 4방향. fallback 은 지금 보고 있는 방향 */
