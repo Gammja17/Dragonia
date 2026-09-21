@@ -10,7 +10,24 @@ export const TILE_IMAGES = {
     props: 'assets/tiles/forest_props.png', props2: 'assets/tiles/forest_props2.png', props3: 'assets/tiles/forest_props3.png',
     village: 'assets/tiles/village.png',   // Zelda-like tilesets (CC0)
     dungeon: 'assets/tiles/dungeon.png',   // Kenney Tiny Dungeon (CC0): 적, 사냥꾼, 화살
+    waterfall: 'assets/tiles/waterfall.png',  // Gentle Forest 의 폭포 애니메이션 (안 쓰고 있던 것)
+    sparkle: 'assets/tiles/sparkle.png',      // 물 위에 흐르는 물비늘
 };
+
+/**
+ * 폭포 애니메이션 시트. 6프레임 × 10행이고, 작가의 사용 설명대로 세 부분으로 나눠 쓴다.
+ *   TOP    맨 윗칸 (물이 넘어가는 자리)
+ *   FALL   떨어지는 물. 두 행을 번갈아 이어 붙여야 이음매가 안 보인다
+ *   SPLASH 바닥에 부딪혀 튀는 물보라. 마지막 낙수 칸을 덮는다
+ *   CAP    물보라의 좌우 끝막이 (오른쪽은 뒤집어 쓴다)
+ */
+export const WATERFALL_SHEET = { frames: 6, fps: 10, TOP: 1, FALL: [2, 3], CAP: [4, 5], SPLASH: [6, 7] };
+
+/**
+ * 물비늘. 3프레임 × 3행 — 0 온칸, 1 대각 반칸, 2 작은 조각.
+ * 작가 조언대로 물을 덮지 않고 가장자리에 흩뿌린다. 가로로만 흘러야 해서 돌리지 않는다.
+ */
+export const SPARKLE_SHEET = { frames: 3, fps: 4, FULL: 0, DIAG: 1, SMALL: 2 };
 
 // 둥지: 풀밭 위 돌무더기 고리 (2x2 타일). 지형에 직접 구워 넣는다
 export const NEST_RING = [[4, 3], [5, 3], [4, 4], [5, 4]];

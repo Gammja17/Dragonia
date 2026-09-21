@@ -1,5 +1,5 @@
 import { mulberry32 } from '../core/utils.js';
-import { TILE_SRC, TILE_SCALE, TILE, GRASS, GRASS_DECOR, DIRT, WATER, CLIFF, CLIFF_FACE, NEST_RING } from '../data/tiles.js';
+import { TILE_SRC, TILE_SCALE, TILE, GRASS, GRASS_DECOR, DIRT, WATER, CLIFF, CLIFF_FACE, SPARKLE_SHEET, NEST_RING } from '../data/tiles.js';
 import { BIOMES } from './biomes.js';
 import { getTileImage } from './terrain.js';
 
@@ -37,6 +37,27 @@ function pickTile(kinds, tw, th, set, tx, ty) {
     if (list.length === 4) return list[py * 2 + px];
     if (list.length === 2) return list[key === 'N' || key === 'S' ? px : py];
     return list[0];
+}
+
+/**
+ * 물비늘을 놓을 자리를 고른다. 물은 구운 그림이라 가만히 있는데,
+ * 그 위에서 이것만 움직여도 물이 흐르는 것처럼 보인다.
+ *
+ * 작가 조언대로 물을 덮지 않는다 — 가장자리에는 작은 조각을 드문드문,
+ * 트인 물 한가운데에는 온칸짜리를 아주 가끔만 놓는다.
+ */
+function makeSparkles(kinds, tw, th, rng) {
+    const spots = [];
+    const isWater = (x, y) => x >= 0 && y >= 0 && x < tw && y < th && kinds[y * tw + x] === WATER_ID;
+    for (let ty = 0; ty < th; ty++) for (let tx = 0; tx < tw; tx++) {
+        if (!isWater(tx, ty)) continue;
+        const edge = !isWater(tx - 1, ty) || !isWater(tx + 1, ty) || !isWater(tx, ty - 1) || !isWater(tx, ty + 1);
+        const r = rng();
+        if (edge ? r < 0.35 : r < 0.05) {
+            spots.push({ tx, ty, row: edge ? SPARKLE_SHEET.SMALL : SPARKLE_SHEET.FULL, flip: rng() < 0.5, phase: Math.floor(rng() * SPARKLE_SHEET.frames) });
+        }
+    }
+    return spots;
 }
 
 // 이 칸 아래로 절벽이 몇 칸 이어지는가. 0 이면 절벽의 맨 아랫줄이다
@@ -164,6 +185,7 @@ export function buildMap(spec) {
         w: tw * TILE, h: th * TILE,
         kinds,
         canvas: bake(kinds, tw, th, spec, rng),
+        sparkles: makeSparkles(kinds, tw, th, rng),
         groundAt(x, y) {
             const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE);
             if (tx < 0 || ty < 0 || tx >= tw || ty >= th) return 'GRASS';
@@ -179,7 +201,27 @@ export function buildMap(spec) {
             if (sw <= 0 || sh <= 0) return;
             ctx.imageSmoothingEnabled = false;
             ctx.drawImage(c, sx, sy, sw, sh, sx * TILE_SCALE, sy * TILE_SCALE, sw * TILE_SCALE, sh * TILE_SCALE);
+            this.drawSparkles(ctx, cam);
             ctx.imageSmoothingEnabled = true;
+        },
+        /** 물 위에 흐르는 물비늘. 구운 그림 위에 얹는 유일한 움직이는 바닥 */
+        drawSparkles(ctx, cam) {
+            const sheet = getTileImage('sparkle');
+            if (!sheet || !this.sparkles.length) return;
+            const S = SPARKLE_SHEET;
+            const t = Math.floor(performance.now() / 1000 * S.fps);
+            const x0 = cam.x - TILE, x1 = cam.x + cam.w + TILE;
+            const y0 = cam.y - TILE, y1 = cam.y + cam.h + TILE;
+            for (const p of this.sparkles) {
+                const dx = p.tx * TILE, dy = p.ty * TILE;
+                if (dx < x0 || dx > x1 || dy < y0 || dy > y1) continue;
+                const f = ((t + p.phase) % S.frames) * TILE_SRC;
+                if (!p.flip) { ctx.drawImage(sheet, f, p.row * TILE_SRC, TILE_SRC, TILE_SRC, dx, dy, TILE, TILE); continue; }
+                ctx.save();
+                ctx.translate(dx + TILE, dy); ctx.scale(-1, 1);
+                ctx.drawImage(sheet, f, p.row * TILE_SRC, TILE_SRC, TILE_SRC, 0, 0, TILE, TILE);
+                ctx.restore();
+            }
         },
         /** 미니맵 바탕: 지도 전체를 size 안에 비율 그대로 담는다 */
         minimap(size) {

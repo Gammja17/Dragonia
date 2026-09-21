@@ -2,7 +2,7 @@ import { Entity } from './Entity.js';
 import { isOnScreen, cam } from '../core/camera.js';
 import { state } from '../core/state.js';
 import { inCutscene } from '../systems/cutscene.js';
-import { PROP_SPRITES, TILE_SCALE, TILE, TILE_SRC } from '../data/tiles.js';
+import { PROP_SPRITES, TILE_SCALE, TILE, TILE_SRC, WATERFALL_SHEET } from '../data/tiles.js';
 import { FURNITURE } from '../data/furniture.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { getTileImage, activeBiome } from '../world/terrain.js';
@@ -122,47 +122,45 @@ export class Prop extends Entity {
     }
 
     /**
-     * 폭포. 코드로 그린다 — 떨어지는 물줄기 여러 가닥과 아래쪽 물보라.
-     * 위로 길게 솟아 지도 북쪽 벽을 이룬다. 바닥은 물이라 지나갈 수 없다.
+     * 폭포. Gentle Forest 의 폭포 애니메이션 시트로 그린다.
+     * 예전엔 사각형과 타원을 코드로 찍어 흉내 냈는데, 시트가 이미 있는데도 안 쓰고 있었다.
+     *
+     * 세 부분을 쌓는다: 맨 윗칸 → 떨어지는 물(두 행을 번갈아) → 바닥 물보라.
+     * 물보라는 마지막 낙수 칸을 덮어야 물줄기가 허공에서 뚝 끊기지 않는다.
      */
     drawWaterfall(ctx) {
-        const t = state.gameTime;
-        const W = 150, H = 340;                 // 폭 · 높이
-        const top = this.y - H;
+        const sheet = getTileImage('waterfall');
+        if (!sheet) return;
+        const W = WATERFALL_SHEET;
+        const f = (Math.floor(state.gameTime * W.fps + this.seed * W.frames) % W.frames) * TILE_SRC;
+        const cols = 3, rows = 7;
+        const left = Math.round(this.x) - cols * TILE / 2;
+        const top = Math.round(this.y) - rows * TILE;
+
+        const put = (row, gx, gy, flip = false) => {
+            const dx = left + gx * TILE, dy = top + gy * TILE;
+            if (!flip) { ctx.drawImage(sheet, f, row * TILE_SRC, TILE_SRC, TILE_SRC, dx, dy, TILE, TILE); return; }
+            ctx.save();
+            ctx.translate(dx + TILE, dy); ctx.scale(-1, 1);
+            ctx.drawImage(sheet, f, row * TILE_SRC, TILE_SRC, TILE_SRC, 0, 0, TILE, TILE);
+            ctx.restore();
+        };
+
         ctx.save();
-        ctx.translate(Math.round(this.x), 0);
-
-        // 뒤쪽 어두운 바위 틈
+        ctx.imageSmoothingEnabled = false;
+        // 뒤쪽 어두운 바위 틈. 없으면 폭포가 허공에 뜬 것처럼 보인다
         ctx.fillStyle = '#10202e';
-        ctx.fillRect(-W / 2 - 8, top - 18, W + 16, H + 18);
+        ctx.fillRect(left - 6, top - 10, cols * TILE + 12, rows * TILE - TILE);
 
-        // 물줄기: 굵기와 속도가 조금씩 다른 가닥들
-        for (let i = 0; i < 11; i++) {
-            const k = (i / 10 - 0.5);
-            const x = k * (W - 22);
-            const speed = 210 + ((i * 37) % 90);
-            const wobble = Math.sin(t * 1.4 + i) * 3;
-            ctx.globalAlpha = 0.34 + ((i * 7) % 5) * 0.06;
-            ctx.fillStyle = i % 3 === 0 ? '#eaf8ff' : '#9fd8f5';
-            ctx.fillRect(Math.round(x + wobble - 5), top, 10, H);
-            // 흘러내리는 밝은 마디
-            ctx.globalAlpha = 0.5;
-            ctx.fillStyle = '#ffffff';
-            for (let n = 0; n < 4; n++) {
-                const y = top + ((t * speed + i * 120 + n * (H / 4)) % H);
-                ctx.fillRect(Math.round(x + wobble - 4), Math.round(y), 8, 26);
-            }
+        for (let gx = 0; gx < cols; gx++) {
+            put(W.TOP, gx, 0);
+            for (let gy = 1; gy < rows; gy++) put(W.FALL[(gy - 1) % 2], gx, gy);
         }
-
-        // 떨어지는 자리의 물보라
-        ctx.globalAlpha = 0.42 + Math.sin(t * 5) * 0.06;
-        ctx.fillStyle = '#dff2ff';
-        ctx.beginPath();
-        ctx.ellipse(0, this.y - 6, W * 0.62, 26, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1;
+        for (let gx = 0; gx < cols; gx++) { put(W.SPLASH[0], gx, rows - 2); put(W.SPLASH[1], gx, rows - 1); }
+        put(W.CAP[0], -1, rows - 2); put(W.CAP[1], -1, rows - 1);
+        put(W.CAP[0], cols, rows - 2, true); put(W.CAP[1], cols, rows - 1, true);
         ctx.restore();
-        drawGlow(ctx, this.x, this.y - 16, 120, '#bfe9ff', 0.22 + Math.sin(t * 3 + this.seed * 6) * 0.05);
+        ctx.imageSmoothingEnabled = true;
     }
 
     /** 굴에 놓은 살림살이. assets/tiles/dungeon.png 에서 칸 하나를 떠 온다 */
