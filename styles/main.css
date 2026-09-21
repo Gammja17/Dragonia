@@ -444,7 +444,7 @@ body {
 #settings-panel .journal-slider input[type="range"] { width: 200px; }
 .settings-btn { padding: 5px 12px; cursor: pointer; background: var(--ink-raise); border: 1px solid var(--gold-dim); color: var(--parch); font-family: var(--font-ko); font-size: 0.78rem; }
 .settings-btn:hover { background: var(--ink-hover); border-color: var(--gold); }
-.settings-note { margin-top: 18px; color: var(--parch-dim); font-size: 0.74rem; line-height: 1.5; }
+.settings-note { margin-top: 18px; color: var(--parch-dim); font-size: 0.74rem; line-height: 1.5; white-space: pre-line; }
 #help-panel .panel-body { columns: 2; column-gap: 34px; }
 #help-panel .help-row, #help-panel .help-sep { break-inside: avoid; }
 #journal-tabs { display: flex; gap: 4px; margin-bottom: 9px; }
