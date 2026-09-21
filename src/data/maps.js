@@ -126,6 +126,7 @@ export const MAPS = {
             { side: 'E', to: 'HOLLOW', name: '달빛 골짜기' },
         ],
         fixtures: [
+            { t: 'WAYSTONE', at: [11, 4] },   // 늘 지나다니는 길이라 여기서도 건너뛸 수 있게
             { t: 'PROP', type: 'SIGN', at: [11, 8] },
             { t: 'CAVE', id: 'FOREST_HOLE', at: [17, 11] },   // 처음 만나는 굴
         ],
@@ -201,7 +202,8 @@ export const MAPS = {
             { side: 'S', to: 'JUNGLE', name: '환영의 밀림' },
             { side: 'W', to: 'DESERT', name: '죽은 사구' },
         ],
-        fixtures: [{ t: 'PROP', type: 'SIGN', at: [12, 7] }],
+        fixtures: [
+            { t: 'WAYSTONE', at: [14, 7] },{ t: 'PROP', type: 'SIGN', at: [12, 7] }],
     },
     JUNGLE: {
         name: '환영의 밀림', biome: 'JUNGLE', cw: 22, ch: 16, seed: 111, trees: 0.7,

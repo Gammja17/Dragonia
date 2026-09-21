@@ -415,8 +415,13 @@ export class Dragon extends Entity {
         state.talkTarget = target;   // 그릴 때 발밑에 표시한다
         // 굴 입구·굴 안은 [E] 로
         const mouth = !target && !nestNear ? E0.props.find(x => x.type === 'DEN_MOUTH' && dist(this, x) < 120) : null;
+        // 이동 석비 (systems/travel.js). 마을 광장처럼 용이 북적이는 곳에서는 말 걸 상대가 늘 먼저
+        // 잡혀 석비를 쓸 수가 없었다. 상대보다 가까이 서 있으면 석비가 먼저다
+        const stone = !this.flying && !this.fishing && !this.carrying ? nearbyWaystone() : null;
+        const stoneFirst = !!stone && !nestNear && (!target || dist(this, stone) < 95 || dist(this, stone) < dist(this, target));
         // 눈앞의 것이 먼저다. 굴 꾸미기 안내가 둥지·상대를 가리면 안 된다
         if (nestNear) setInteractTarget(nestNear, inMyDen() ? 'Space · E 둥지에서 잔다' : 'Space 둥지에서 쉬기');
+        else if (stoneFirst) setInteractTarget(stone, `${TAP} 석비로 건너뛴다`);
         else if (target) setInteractTarget(target, `${TAP} ${isKid ? '아이와 대화' : '대화'}`);
         else if (mouth) setInteractTarget(mouth, mouth.denId === 'DEN_MINE' ? 'E 내 굴에 들어간다 (둥지)' : 'E 굴에 들어간다');
         else if (inMyDen()) setInteractTarget(this, 'E 굴 꾸미기');
@@ -427,7 +432,8 @@ export class Dragon extends Entity {
         const tapped = mouse.clicked && !mouse.inside;
         const wantTalk = !this.flying && (input.pressed('confirm') || input.pressed('talk') || (tapped && pointed && pointed === target));
         if (tapped && pointed && pointed !== target) showToast('너무 멀어요. 가까이 가서 말을 거세요.', '💬');
-        if (wantTalk && target) { if (isKid) openKidHub(target); else startDialogue(target, 'TALK'); }
+        if (wantTalk && stoneFirst) openTravelMenu(stone);
+        else if (wantTalk && target) { if (isKid) openKidHub(target); else startDialogue(target, 'TALK'); }
         else if (wantTalk && nestNear) openNestMenu();
         else if (input.pressed('confirm') && !this.flying) this.interact();   // 말 걸 상대가 없으면 눈앞의 것을 집는다
 
