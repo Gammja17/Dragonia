@@ -236,7 +236,7 @@ class FloatText {
     draw(ctx) {
         ctx.save();
         ctx.globalAlpha = Math.min(1, (0.9 - this.t) * 3);
-        ctx.font = `900 ${this.size}px Fredoka, "Noto Sans KR", sans-serif`;   // '간발!' 같은 한글은 Fredoka 에 없다
+        ctx.font = `900 ${this.size}px "KOTRA LEAP", Fredoka, "Noto Sans KR", sans-serif`;   // 뜬 글자는 도약체. 없으면 Fredoka(숫자)·Noto
         ctx.textAlign = 'center';
         ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,0.75)';
         ctx.strokeText(this.text, this.x, this.y);

@@ -5,6 +5,43 @@
    둥근 모서리와 네온 광택은 쓰지 않는다 (픽셀 테두리와 부딪힌다).
    ========================================================================== */
 
+/* ==========================================================================
+   서체
+   제목·강조는 KOTRA 도약체, 본문은 부크크 명조(Light 본문 · Bold 굵은 글).
+   파일은 assets/fonts/ 에 둔다 (README.md 의 '서체' 절). 파일이 없으면 Google Fonts 의
+   Gowun Batang · Noto Sans KR 로 물러난다 — 아래 src 는 위에서부터 있는 것을 쓴다.
+   ========================================================================== */
+@font-face {
+    font-family: 'KOTRA LEAP';
+    src: url('../assets/fonts/KOTRA LEAP.ttf') format('truetype'),
+         url('../assets/fonts/KOTRA_LEAP.ttf') format('truetype'),
+         url('../assets/fonts/KOTRA_LEAP.otf') format('opentype'),
+         url('../assets/fonts/KOTRA_DOYAK.otf') format('opentype'),
+         url('../assets/fonts/KOTRA_DOYAK.ttf') format('truetype');
+    font-weight: 100 900;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Bookk Myungjo';
+    src: url('../assets/fonts/BookkMyungjo_Light.ttf') format('truetype'),
+         url('../assets/fonts/Bookk Myungjo Light.ttf') format('truetype'),
+         url('../assets/fonts/BookkMyungjo-Light.ttf') format('truetype'),
+         url('../assets/fonts/bookkmyungjo_light.ttf') format('truetype'),
+         url('../assets/fonts/BookkMyungjo_Light.otf') format('opentype');
+    font-weight: 100 500;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Bookk Myungjo';
+    src: url('../assets/fonts/BookkMyungjo_Bold.ttf') format('truetype'),
+         url('../assets/fonts/Bookk Myungjo Bold.ttf') format('truetype'),
+         url('../assets/fonts/BookkMyungjo-Bold.ttf') format('truetype'),
+         url('../assets/fonts/bookkmyungjo_bold.ttf') format('truetype'),
+         url('../assets/fonts/BookkMyungjo_Bold.otf') format('opentype');
+    font-weight: 600 900;
+    font-display: swap;
+}
+
 :root {
     /* 판 */
     --ink:        #13121d;
@@ -30,10 +67,11 @@
     --bad:        #ff8a7a;
     --cold:       #7fd4ff;
 
-    --font-ko:    'Noto Sans KR', sans-serif;
-    --font-num:   'Fredoka', 'Noto Sans KR', sans-serif;
-    /* 제목 서체. 이야기가 붙는 자리(로고 · 지역 이름 · 장면 제목 · 말하는 이 · 보스 이름)에만 쓴다 */
-    --font-title: 'Gowun Batang', 'Noto Sans KR', serif;
+    /* 본문: 부크크 명조. 없으면 Noto Sans KR */
+    --font-ko:    'Bookk Myungjo', 'Noto Sans KR', serif;
+    --font-num:   'Fredoka', 'KOTRA LEAP', 'Noto Sans KR', sans-serif;
+    /* 제목·강조: KOTRA 도약체. 로고 · 지역 이름 · 장면 제목 · 말하는 이 · 보스 이름 · 판 제목 · 퀘스트 제목 · 습격 경고 */
+    --font-title: 'KOTRA LEAP', 'Gowun Batang', 'Noto Sans KR', serif;
 }
 
 * { box-sizing: border-box; }
@@ -47,6 +85,7 @@ body {
     touch-action: none; user-select: none;
     -webkit-font-smoothing: antialiased;
     word-break: keep-all;   /* 한글 낱말이 줄 끝에서 조각나지 않게 */
+    letter-spacing: 0.01em; /* 명조는 자간을 아주 조금 벌려야 어두운 판 위에서 읽힌다 */
 }
 
 #gameCanvas { display: block; }
@@ -103,7 +142,7 @@ body {
 
 /* 목록 한 줄 (이름 ......... 값) */
 .journal-title {
-    color: var(--gold-lit); font-weight: 700; font-size: 0.86rem;
+    color: var(--gold-lit); font-weight: 700; font-size: 0.9rem; font-family: var(--font-title);
     border-bottom: 1px solid var(--gold-dim); padding-bottom: 3px; margin: 14px 0 6px;
 }
 .journal-title:first-child { margin-top: 0; }
@@ -169,7 +208,7 @@ body {
     padding-bottom: 8px; margin-bottom: 9px;
     border-bottom: 1px solid var(--gold-dim);
 }
-.hud-name { font-weight: 700; font-size: 1rem; color: var(--parch); line-height: 1.2; }
+.hud-name { font-weight: 700; font-size: 1.05rem; color: var(--parch); line-height: 1.2; font-family: var(--font-title); }
 .hud-lvl { font-size: 0.74rem; color: var(--gold-lit); margin-top: 2px; }
 .hud-partner { font-size: 0.68rem; color: var(--parch-dim); margin-top: 1px; }
 
@@ -259,7 +298,7 @@ body {
     background: rgba(14, 13, 22, 0.86); border-left: 3px solid var(--gold-lit);
     color: var(--parch-mid); padding: 7px 10px; font-size: 0.72rem; line-height: 1.35;
 }
-.quest-line b { display: block; color: var(--gold-lit); font-size: 0.8rem; margin-bottom: 2px; }
+.quest-line b { display: block; color: var(--gold-lit); font-size: 0.84rem; margin-bottom: 2px; font-family: var(--font-title); }
 .quest-line i { display: block; font-style: normal; color: var(--parch); font-size: 0.72rem; margin-bottom: 2px; }
 .quest-line.complete { border-left-color: var(--good); }
 .quest-line.complete b { color: var(--good); }
@@ -354,7 +393,7 @@ body.cutscene #flow-bar { display: none; }
 
 #raid-warning {
     position: absolute; top: 18%; left: 50%; transform: translate(-50%, -50%);
-    color: #ff5a4d; font-size: 2.6rem; font-weight: 900; letter-spacing: 6px;
+    color: #ff5a4d; font-size: 2.6rem; font-weight: 900; letter-spacing: 6px; font-family: var(--font-title);
     text-shadow: 0 0 24px rgba(255, 0, 0, 0.7), 0 3px 0 #2a0000;
     display: none; animation: shake 0.5s infinite;
     text-align: center; width: 100%; z-index: 20;
@@ -404,7 +443,7 @@ body.cutscene #flow-bar { display: none; }
 #d-rel.show { display: block; }
 #d-rel i { display: block; height: 100%; background: linear-gradient(90deg, #d86a8a, #ff9ab4); }
 #d-text {
-    color: var(--parch); font-size: 1rem; line-height: 1.66;
+    color: var(--parch); font-size: 1.04rem; line-height: 1.74;
     margin-bottom: 11px; min-height: 2.9em; white-space: pre-wrap;
     cursor: pointer;   /* 찍히는 중에 누르면 글을 한 번에 다 보여 준다 (ui/dialogueUI.js) */
 }
@@ -586,7 +625,7 @@ body.cutscene #flow-bar { display: none; }
 .help-row b.inline { color: var(--gold-lit); font-family: var(--font-num); text-align: left; }
 .help-sep {
     margin-top: 11px; padding-top: 8px; border-top: 1px solid var(--gold-dim);
-    color: var(--gold-lit); font-weight: 700; font-size: 0.8rem; margin-bottom: 4px;
+    color: var(--gold-lit); font-weight: 700; font-size: 0.84rem; margin-bottom: 4px; font-family: var(--font-title);
 }
 .controls-hint { display: none; }
 
@@ -822,7 +861,7 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 }
 .folk-card.here { border-left-color: var(--gold-lit); background: var(--ink-hover); }
 .folk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.folk-name { color: var(--gold-lit); font-size: 0.92rem; }
+.folk-name { color: var(--gold-lit); font-size: 0.96rem; font-family: var(--font-title); }
 .folk-job { color: var(--parch-dim); font-size: 0.68rem; }
 .folk-where { color: var(--parch-mid); font-size: 0.74rem; margin-top: 3px; }
 .folk-doing { color: var(--parch); font-size: 0.78rem; margin-top: 2px; line-height: 1.45; }
@@ -874,7 +913,7 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 #journal-points { font-size: 0.74rem; color: var(--gold-lit); font-family: var(--font-num); white-space: nowrap; }
 
 .tree-note { background: var(--ink-raise); border-left: 3px solid var(--gold); padding: 7px 12px; margin-bottom: 4px; }
-.tree-note-title { color: var(--gold-lit); font-weight: 700; font-size: 0.88rem; }
+.tree-note-title { color: var(--gold-lit); font-weight: 700; font-size: 0.92rem; font-family: var(--font-title); }
 .tree-note-text { color: var(--parch-mid); font-size: 0.74rem; margin-top: 3px; line-height: 1.5; }
 
 /* flex: 1 0 auto — 남는 자리는 채우되 내용보다 작아지지 않는다 (작아지면 나무가 설명 위로 넘친다) */
@@ -891,7 +930,7 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 .tree-branch { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .branch-head { display: flex; align-items: baseline; gap: 6px; border-bottom: 3px solid var(--c); padding: 0 14px 5px; white-space: nowrap; }
 .branch-glyph { font-size: 0.78rem; color: var(--c); }
-.branch-name { font-size: 0.92rem; font-weight: 700; color: var(--parch); letter-spacing: 1px; }
+.branch-name { font-size: 0.95rem; font-weight: 700; color: var(--parch); letter-spacing: 1px; font-family: var(--font-title); }
 .branch-sub { font-size: 0.68rem; color: var(--c); }
 
 .branch-rows { display: flex; flex-direction: column-reverse; align-items: center; gap: 22px; }
@@ -952,7 +991,7 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
     border-top: 1px solid var(--gold-dim); padding: 10px 2px 0; margin-top: 8px; min-height: 54px;
 }
 .detail-info { flex: 1; min-width: 0; }
-.detail-name { font-size: 0.88rem; font-weight: 700; color: var(--gold-lit); }
+.detail-name { font-size: 0.92rem; font-weight: 700; color: var(--gold-lit); font-family: var(--font-title); }
 .detail-text { font-size: 0.75rem; color: var(--parch-mid); margin-top: 3px; line-height: 1.45; }
 .detail-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .detail-hint { font-size: 0.73rem; color: var(--parch-dim); }
@@ -1013,7 +1052,7 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
     font-size: 2.1rem; font-weight: 700; color: var(--parch);
     text-shadow: 0 2px 0 #1a1206, 0 0 22px rgba(216, 178, 90, 0.55);
 }
-#region-sub { font-size: 0.82rem; color: var(--gold-lit); letter-spacing: 3px; text-shadow: 0 2px 4px #000; white-space: normal; max-width: 80vw; }
+#region-sub { font-size: 0.86rem; color: var(--gold-lit); letter-spacing: 2px; text-shadow: 0 2px 4px #000; white-space: normal; max-width: 80vw; }
 /* 이름 위아래로 가늘게 긋는 금선. 가운데가 밝고 끝으로 갈수록 사라진다 */
 .region-rule {
     width: min(360px, 62vw); height: 2px;

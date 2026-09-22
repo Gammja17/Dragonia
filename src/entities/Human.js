@@ -238,7 +238,7 @@ export class Human extends Entity {
         }
         if (this.carrying) {   // 아기를 끌고 간다: 붉은 느낌표
             ctx.save();
-            ctx.fillStyle = '#ff6b5e'; ctx.font = '900 20px Fredoka, "Noto Sans KR", sans-serif'; ctx.textAlign = 'center';
+            ctx.fillStyle = '#ff6b5e'; ctx.font = '900 20px Fredoka, "Bookk Myungjo", "Noto Sans KR", sans-serif'; ctx.textAlign = 'center';
             ctx.fillText('!', this.x, this.y - 70 + Math.sin(state.gameTime * 8) * 3);
             ctx.restore();
         }

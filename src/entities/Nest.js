@@ -73,7 +73,7 @@ export class Nest extends Entity {
             if (!this.hasEgg) {
                 const bob = Math.sin(state.gameTime * 2.2) * 3;
                 ctx.save();
-                ctx.font = '600 20px "Noto Sans KR"';
+                ctx.font = '600 20px "Bookk Myungjo", "Noto Sans KR"';
                 ctx.textAlign = 'center';
                 ctx.fillStyle = 'rgba(255, 226, 170, 0.9)';
                 ctx.fillText('💤', this.x, this.y - 30 + bob);

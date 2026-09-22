@@ -92,3 +92,11 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 ## 라이선스 전문
 - CC BY 3.0: https://creativecommons.org/licenses/by/3.0/
 - CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/
+
+## 서체 (`assets/fonts/`, 저장소에는 올리지 않는다)
+
+| 서체 | 쓰임 | 라이선스 | 출처 |
+|---|---|---|---|
+| KOTRA 도약체 | 제목·강조 | KOTRA 서체 이용 약관 (무료 배포, 폰트 자체의 재판매 금지) | KOTRA (대한무역투자진흥공사) |
+| 부크크 명조 (Light · Bold) | 본문 | SIL Open Font License 1.1 | 부크크 (bookk.co.kr) |
+| Noto Sans KR · Gowun Batang · Fredoka | 위 파일이 없을 때의 대체 · 숫자 | SIL OFL 1.1 | Google Fonts |

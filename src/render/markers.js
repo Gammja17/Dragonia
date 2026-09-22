@@ -22,7 +22,7 @@ function chevron(g, x, y, size, color, down = true) {
 }
 
 function label(g, x, y, text, color) {
-    g.font = '600 12px "Noto Sans KR", sans-serif';
+    g.font = '600 12px "Bookk Myungjo", "Noto Sans KR", sans-serif';
     g.textAlign = 'center';
     const w = Math.ceil(g.measureText(text).width) + 16;
     g.fillStyle = 'rgba(10, 9, 16, 0.86)';

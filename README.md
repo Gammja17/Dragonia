@@ -44,6 +44,12 @@ src/
                     customizer, toast, touch(모바일 조작)
 ```
 
+## 서체
+
+제목·강조는 **KOTRA 도약체**, 본문은 **부크크 명조**(Light 본문 · Bold 굵은 글), 숫자는 Fredoka.
+글꼴 파일은 저장소에 올리지 않았으니 `assets/fonts/` 에 직접 넣는다 (파일 이름은 `assets/fonts/README.md`).
+파일이 없으면 Google Fonts 로 물러난다.
+
 ## 대사 고치기
 
 `text/dialogue.csv` 의 **대사** 열만 고쳐서 `main` 에 올리면 자동으로 반영·배포된다. 자세한 건 `text/README.md`.

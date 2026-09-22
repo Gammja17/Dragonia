@@ -170,7 +170,7 @@ export class BabyDragon extends Entity {
         g.scale(k, k);
         g.textAlign = 'center';
         if (kid) {
-            g.font = '600 12px "Noto Sans KR"';
+            g.font = '600 12px "Bookk Myungjo", "Noto Sans KR"';
             const w = Math.ceil(g.measureText(kid.name).width) + 14;
             g.fillStyle = 'rgba(10, 9, 16, 0.78)';
             g.fillRect(-w / 2, -14, w, 19);
@@ -179,7 +179,7 @@ export class BabyDragon extends Entity {
         }
         if (this.chatFade > 0 && this.chat) {
             g.globalAlpha = Math.min(1, this.chatFade);
-            g.font = '12px "Noto Sans KR"';
+            g.font = '12px "Bookk Myungjo", "Noto Sans KR"';
             const w = Math.ceil(g.measureText(this.chat).width) + 24;
             bubble(g, -w / 2, -46, w, 26, -20);
             g.fillStyle = '#20202a';

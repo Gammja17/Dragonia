@@ -1029,7 +1029,7 @@ export class Dragon extends Entity {
 
         // 이름
         const name = this.isPlayer ? (this.config.name || '용') : npcName(this.config.name);
-        ctx.font = '600 13px "Noto Sans KR"';
+        ctx.font = '600 13px "Bookk Myungjo", "Noto Sans KR"';
         const nw = Math.ceil(ctx.measureText(name).width) + 16;
         ctx.fillStyle = 'rgba(10, 9, 16, 0.78)';
         ctx.fillRect(-nw / 2, -16, nw, 21);
@@ -1051,7 +1051,7 @@ export class Dragon extends Entity {
         // 말풍선. 길면 줄을 나눈다
         if (this.chatFade > 0 && this.currentChat) {
             ctx.globalAlpha = Math.min(1, this.chatFade);
-            ctx.font = '13px "Noto Sans KR"';
+            ctx.font = '13px "Bookk Myungjo", "Noto Sans KR"';
             const lines = wrapText(ctx, this.currentChat, 230);
             const lh = 19, padX = 12, padY = 9;
             const w = Math.max(...lines.map(l => ctx.measureText(l).width)) + padX * 2;
