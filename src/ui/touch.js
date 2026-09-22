@@ -31,25 +31,59 @@ export function initTouch() {
     document.body.appendChild(layer);
 
     // ---- 가상 스틱 ----
+    // 왼쪽 아래 어디를 짚든 그 자리에 스틱이 생긴다. 고정된 원을 눈으로 찾아 엄지를 얹는 건
+    // 폰에서 늘 한 박자 늦었다. 손을 떼면 다시 제자리(왼쪽 아래)로 돌아가 어디를 짚을지 알려 준다.
+    // 밀지 않고 툭 친 거라면 스틱이 아니라 '그 자리를 탭' 으로 넘긴다 — 용에게 말 걸기가 살아 있어야 한다
+    const zone = document.createElement('div');
+    zone.id = 'stick-zone';
+    layer.appendChild(zone);
     const base = document.createElement('div'), knob = document.createElement('div');
     base.id = 'stick-base'; knob.id = 'stick-knob';
     base.appendChild(knob);
     layer.appendChild(base);
-    let stickId = null;
+    let stickId = null, origin = null, startedAt = 0, moved = false;
+    const place = (t) => {
+        const size = base.offsetWidth;
+        origin = { x: t.clientX, y: t.clientY };
+        base.style.left = `${t.clientX - size / 2}px`;
+        base.style.top = `${t.clientY - size / 2}px`;
+        base.style.right = base.style.bottom = 'auto';
+        base.classList.add('on');
+    };
+    const rest = () => {
+        base.classList.remove('on');
+        base.style.left = base.style.top = base.style.right = base.style.bottom = '';
+        knob.style.transform = '';
+        input.setAxis(0, 0);
+    };
     const move = (t) => {
-        const r = base.getBoundingClientRect();
-        const R = r.width * 0.38;
-        let dx = t.clientX - (r.left + r.width / 2), dy = t.clientY - (r.top + r.height / 2);
-        const len = Math.hypot(dx, dy) || 1, k = Math.min(1, len / R);
+        const R = base.offsetWidth * 0.38;
+        let dx = t.clientX - origin.x, dy = t.clientY - origin.y;
+        const len = Math.hypot(dx, dy) || 1;
+        if (len > 10) moved = true;
+        const k = Math.min(1, len / R);
         dx = dx / len * k; dy = dy / len * k;
         knob.style.transform = `translate(${dx * R}px, ${dy * R}px)`;
-        input.setAxis(Math.abs(dx) > 0.25 ? dx : 0, Math.abs(dy) > 0.25 ? dy : 0);
+        input.setAxis(Math.abs(dx) > 0.2 ? dx : 0, Math.abs(dy) > 0.2 ? dy : 0);
     };
-    base.addEventListener('touchstart', (e) => { e.preventDefault(); stickId = e.changedTouches[0].identifier; move(e.changedTouches[0]); }, { passive: false });
-    base.addEventListener('touchmove', (e) => { e.preventDefault(); for (const t of e.changedTouches) if (t.identifier === stickId) move(t); }, { passive: false });
-    const end = (e) => { for (const t of e.changedTouches) if (t.identifier === stickId) { stickId = null; knob.style.transform = ''; input.setAxis(0, 0); } };
-    base.addEventListener('touchend', end);
-    base.addEventListener('touchcancel', end);
+    zone.addEventListener('touchstart', (e) => {
+        if (stickId !== null) return;
+        e.preventDefault();
+        const t = e.changedTouches[0];
+        stickId = t.identifier; startedAt = performance.now(); moved = false;
+        place(t); move(t);
+    }, { passive: false });
+    zone.addEventListener('touchmove', (e) => { e.preventDefault(); for (const t of e.changedTouches) if (t.identifier === stickId) move(t); }, { passive: false });
+    const end = (e) => {
+        for (const t of e.changedTouches) {
+            if (t.identifier !== stickId) continue;
+            stickId = null;
+            rest();
+            if (!moved && performance.now() - startedAt < 250) input.tapAt(t.clientX, t.clientY);
+        }
+    };
+    zone.addEventListener('touchend', end);
+    zone.addEventListener('touchcancel', end);
 
     // ---- 버튼 ----
     const bind = (el, action) => {

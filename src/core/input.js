@@ -47,6 +47,8 @@ export const input = {
     endFrame() { for (const k in held) prev[k] = held[k]; mouse.clicked = false; mouse.right = false; mouse.wheel = 0; },
     /** 터치 버튼이 키보드처럼 동작을 누르고 뗀다 */
     setVirtual(action, down) { held[action] = down; },
+    /** 터치 조작 층이 삼킨 짧은 탭을 화면 탭으로 넘긴다 (ui/touch.js 의 스틱 자리) */
+    tapAt(x, y) { mouse.x = x; mouse.y = y; mouse.clicked = true; mouse.inside = false; },
     setAxis(dx, dy) { virtualAxis = { dx, dy }; },
     /** 이동 벡터 (-1..1, -1..1) */
     axis() {

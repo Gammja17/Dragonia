@@ -43,7 +43,8 @@ export class Projectile extends Entity {
         this.hitSet = new Set();
         this.fromPlayer = !!opts.fromPlayer;   // 플레이어가 쏜 탄만 필살기 게이지를 채운다
         this.slow = opts.slow || 0;       // 맞은 용을 이만큼(초) 느리게 한다 (그물)
-        this.homing = opts.homing || 0;   // 초당 꺾을 수 있는 각도(rad). 플레이어를 따라온다
+        this.homing = opts.homing || 0;   // 초당 꺾을 수 있는 각도(rad)
+        this.homingTarget = opts.homingTarget || null;   // 따라갈 상대. 없으면 플레이어 (사냥꾼의 그물)
         this.speed = speed;
         this.t = 0;
     }
@@ -52,11 +53,15 @@ export class Projectile extends Entity {
     }
     update(dt) {
         if (this.homing) {
-            const p = state.player;
-            let da = Math.atan2(p.y - 30 - this.y, p.x - this.x) - this.angle;
-            da = Math.atan2(Math.sin(da), Math.cos(da));
-            this.angle += Math.max(-this.homing * dt, Math.min(this.homing * dt, da));
-            this.vx = Math.cos(this.angle) * this.speed; this.vy = Math.sin(this.angle) * this.speed;
+            const t = this.homingTarget || state.player;
+            // 쫓던 상대가 쓰러지면 더 꺾지 않고 가던 길로 날아간다
+            if (t && !t.remove) {
+                const ty = t.y - (this.homingTarget ? 20 : 30);
+                let da = Math.atan2(ty - this.y, t.x - this.x) - this.angle;
+                da = Math.atan2(Math.sin(da), Math.cos(da));
+                this.angle += Math.max(-this.homing * dt, Math.min(this.homing * dt, da));
+                this.vx = Math.cos(this.angle) * this.speed; this.vy = Math.sin(this.angle) * this.speed;
+            }
         }
         this.x += this.vx * dt;
         this.y += this.vy * dt;

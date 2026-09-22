@@ -50,6 +50,7 @@ import { markTutorial } from '../systems/tutorial.js';
 import { inCutscene } from '../systems/cutscene.js';
 
 import { toggleKidsPanel } from '../ui/kidsPanel.js';
+import { isTouchDevice } from '../ui/touch.js';
 import { startDialogue } from '../systems/dialogue.js';
 
 const WALK_SPEED = 260;
@@ -59,6 +60,11 @@ const TALK_RANGE = 300;      // 마우스로 가리킨 상대에게는 조금 �
 const AIM_RANGE = 560;       // 자동 조준(터치·키보드): 이 거리 안, 바라보는 쪽 ±AIM_CONE 안의 가장 가까운 적을 겨눈다
 const AIM_CONE = 1.0;
 const AIM_MAGNET = 95;       // 마우스 조준: 커서가 적에게 이만큼 가까우면 그 적에게 살짝 붙여 준다
+// 터치(모바일) 조준. 엄지 하나로 방향까지 맞출 수는 없다 — 둘레의 적을 붙잡고 숨결이 알아서 따라간다
+const TOUCH = isTouchDevice();
+const TOUCH_AIM_RANGE = 700;   // 이 안이면 등 뒤에 있어도 겨눈다
+const TOUCH_LOCK_TIME = 1.1;   // 한 번 붙잡은 적은 이만큼 놓지 않는다 (겨냥이 프레임마다 튀지 않게)
+const TOUCH_HOMING = 5.5;      // 숨결이 1초에 꺾을 수 있는 각도(rad). 겨눈 적을 따라간다
 // 허기 단계: 배가 고프면 느려지고 숨결이 굼떠진다. 예전처럼 공격을 막지는 않는다
 const HUNGER_PECKISH = 35, HUNGER_STARVING = 12;
 const DASH_TIME = 0.2, DASH_COOLDOWN = 1.0, DASH_MULT = 3.4;
@@ -494,6 +500,7 @@ export class Dragon extends Entity {
         });
 
         this.fireTimer -= dt;
+        this.aimLockTimer = (this.aimLockTimer || 0) - dt;   // 터치 자동 조준이 붙잡은 적 (lockTarget)
         // 마우스 왼쪽 버튼(모바일은 [불] 버튼)을 꾹 누르고 있으면 연사.
         // 대화창이 떠 있을 땐 updatePlayer 가 아예 안 돈다
         if ((input.down('attack') || mouse.down) && this.fireTimer <= 0) this.attack();
@@ -556,6 +563,11 @@ export class Dragon extends Entity {
             return best ? toward(best) : { angle: Math.atan2(c.y - oy, c.x - ox), target: null };
         }
 
+        if (TOUCH && this.isPlayer) {
+            const locked = this.lockTarget(foes);
+            return locked ? toward(locked) : { angle: this.angle, target: null };
+        }
+
         let best = null, bestD = AIM_RANGE;
         for (const e of foes) {
             if (e.awake === false) continue;
@@ -566,6 +578,31 @@ export class Dragon extends Entity {
             if (Math.abs(da) < AIM_CONE || d < 120) { best = e; bestD = d; }
         }
         return best ? toward(best) : { angle: this.angle, target: null };
+    }
+
+    /**
+     * 터치 자동 조준: 붙잡을 적 하나.
+     * 예전엔 바라보는 쪽 원뿔(±AIM_CONE) 안만 봤다. 스틱을 쥔 엄지가 겨냥까지 맡아야 해서,
+     * 옆으로 피하며 쏘면 숨결이 늘 허공으로 나갔다. 이제 둘레를 다 보되 앞쪽을 조금 더 친다.
+     * 한 번 붙잡으면 TOUCH_LOCK_TIME 동안 놓지 않아 겨냥이 적 사이를 오가지 않는다.
+     */
+    lockTarget(foes) {
+        const alive = (e) => !!e && !e.remove && e.awake !== false && !(e.hp <= 0);
+        this.aimLockTimer = (this.aimLockTimer || 0);
+        if (alive(this.aimLock) && this.aimLockTimer > 0 && dist(this, this.aimLock) < TOUCH_AIM_RANGE) return this.aimLock;
+        let best = null, bestScore = Infinity;
+        for (const e of foes) {
+            if (!alive(e)) continue;
+            const d = dist(this, e);
+            if (d > TOUCH_AIM_RANGE) continue;
+            let da = Math.atan2(e.y - this.y, e.x - this.x) - this.angle;
+            da = Math.atan2(Math.sin(da), Math.cos(da));
+            const score = d * (1 + 0.45 * Math.abs(da) / Math.PI);   // 앞쪽이 조금 유리할 뿐, 뒤도 겨눈다
+            if (score < bestScore) { best = e; bestScore = score; }
+        }
+        this.aimLock = best;
+        this.aimLockTimer = TOUCH_LOCK_TIME;
+        return best;
     }
 
     /** 0 배부름 · 1 출출함(조금 느려짐) · 2 굶주림(많이 느려짐) */
@@ -600,24 +637,27 @@ export class Dragon extends Entity {
         const slug = [1, 1.25, 1.5][this.hungerLevel];   // 배가 고프면 숨결이 굼떠진다
         this.fireTimer = (el.rateByStage ? el.rateByStage[st] : el.rate) * (this.fury > 0 ? 0.75 : 1) * slug * (this.gale > 0 ? 0.65 : 1) * flowRateMult();
         if (this.animator) this.animator.play('attack');
-        const { angle } = this.aimAngle();
+        const { angle, target } = this.aimAngle();
         const pellets = el.pelletsByStage ? el.pelletsByStage[st] : el.pellets;
-        for (let i = 0; i < pellets; i++) this.breathe(angle + (i - (pellets - 1) / 2) * el.spread);
+        // 모바일에서만 유도탄. 엄지로 겨눌 수 없으니 숨결이 붙잡은 적 쪽으로 휘어 간다.
+        // 터치가 되는 노트북이라도 마우스를 쓰는 중이면(mouse.inside) 겨냥은 손끝에 맡긴다
+        const seek = TOUCH && this.isPlayer && !mouse.inside ? target : null;
+        for (let i = 0; i < pellets; i++) this.breathe(angle + (i - (pellets - 1) / 2) * el.spread, 1, seek);
         const sc = this.stage.scale;
         spawnEffect('MUZZLE', this.x + Math.cos(angle) * 50 * sc, this.y - 40 * sc + Math.sin(angle) * 50 * sc, { angle: angle + Math.PI / 2, size: 0.7 + sc * 0.4, color: el.color });
         kick(angle, el.pellets > 1 ? 3.5 : 2);   // 쏘는 반대쪽으로 화면이 살짝 밀린다
         play(el.sound);
     }
 
-    /** 현재 속성의 브레스 한 발 */
-    breathe(angle, damageMult = 1) {
+    /** 현재 속성의 브레스 한 발. seek 가 있으면 그 적을 따라간다 (모바일 유도탄) */
+    breathe(angle, damageMult = 1, seek = null) {
         const sc = this.stage.scale;
         const mx = this.x + Math.cos(angle) * MOUTH_OFFSET * sc;
         const my = this.y - 40 * sc + Math.sin(angle) * MOUTH_OFFSET * sc;
         const breathBonus = this.isPlayer ? 1 + stat('breath') : 1;   // 성장 트리 '타오르는 목'
         const damage = ELEMENTS[this.element].damage * this.damageMult * breathBonus * weatherDamageMult(this.element) * damageMult;
         const el = ELEMENTS[this.element];
-        addBullet(new Projectile(mx, my, angle, { faction: 'ALLY', element: this.element, damage, scale: 0.7 + sc * 0.3, pierce: !!el.pierce && this.stageIndex >= (el.pierceFromStage || 0), fromPlayer: true }));
+        addBullet(new Projectile(mx, my, angle, { faction: 'ALLY', element: this.element, damage, scale: 0.7 + sc * 0.3, pierce: !!el.pierce && this.stageIndex >= (el.pierceFromStage || 0), fromPlayer: true, homing: seek ? TOUCH_HOMING : 0, homingTarget: seek }));
     }
 
     /** 필살기: 삼원 융합 브레스. 세 숨결을 하나로 뭉쳐 2.6초 동안 앞을 쓸어버린다 (삼원룡 전용) */
