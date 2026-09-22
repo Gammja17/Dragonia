@@ -22,6 +22,8 @@ import { raidStatusText } from '../systems/raid.js';
 import { eventName } from '../systems/events.js';
 import { momentum, momentumTier, momentumName, TIER_COLORS } from '../systems/flow.js';
 import { flushQuestBanner } from './questBanner.js';
+import { RELICS, KINS, equippedRelics, resonates } from '../systems/relics.js';
+import { SKILLS as SKILL_DEFS } from '../data/skills.js';
 
 const $ = (id) => document.getElementById(id);
 const strong = (text) => { const e = document.createElement('b'); e.textContent = text; return e; };
@@ -103,6 +105,7 @@ export function updateHud() {
     $('twig-slot').style.display = state.den.built ? 'none' : '';
     $('ui-twigs').textContent = `${state.den.twigs}/8`;
     flushQuestBanner();
+    refreshRelicChips();
     const m = momentum(), tier = momentumTier();
     $('flow-bar').classList.toggle('on', m > 1);
     $('flow-fill').style.width = m + '%';
@@ -235,6 +238,26 @@ function refreshQuestTracker() {
     el.tracker.appendChild(div);
     el.questMore.textContent = line.more > 0 ? `+ 맡은 일 ${line.more}개 · [J] 일지` : '[J] 일지';
     refreshJournal();
+}
+
+let lastChips = '';
+function refreshRelicChips() {
+    const ids = equippedRelics();
+    const key = ids.join(',') + '|' + Object.keys(KINS).filter(resonates).join(',');
+    if (key === lastChips) return;
+    lastChips = key;
+    const box = $('relic-chips');
+    box.innerHTML = '';
+    for (const id of ids) {
+        const r = RELICS[id];
+        if (!r) continue;
+        const d = document.createElement('div');
+        d.className = 'relic-chip' + (r.kin ? ` kin-${r.kin}` : '');
+        d.textContent = r.name;
+        if (r.skill && SKILL_DEFS[r.skill]) { const s = document.createElement('small'); s.textContent = SKILL_DEFS[r.skill].name; d.appendChild(s); }
+        else if (r.kin && resonates(r.kin)) { const s = document.createElement('small'); s.textContent = `${KINS[r.kin].name} 공명`; d.appendChild(s); }
+        box.appendChild(d);
+    }
 }
 
 /** 보스 체력 바. name 이 null 이면 숨긴다 */

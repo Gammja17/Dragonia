@@ -21,6 +21,7 @@ import { drawCrosshair } from './render/cursor.js';
 import { applyHitStop, updateFeedback, drawFeedback, flashAmount } from './render/feedback.js';
 import { updateFlow, worldTimeScale } from './systems/flow.js';
 import { updateAmbush } from './systems/ambush.js';
+import { updateRelicOffer } from './systems/relicOffer.js';
 import { initPostFx, resizePostFx, renderPostFx } from './render/postfx.js';
 import { setCrispLayer, beginCrispWorld, endCrispWorld } from './render/overlay.js';
 import { toggleDebug, updateDebug, drawDebug } from './render/debugOverlay.js';
@@ -123,7 +124,7 @@ function loop(now) {
 
     if (input.pressed('zoom')) showToast(`시점: ${cycleZoom(canvas.width, canvas.height)}`, '🔍');
     if (input.pressed('debug')) showToast(`밸런스 오버레이 ${toggleDebug() ? '켬' : '끔'}`, '🛠️');
-    if (mouse.wheel) showToast(`시점: ${stepZoom(mouse.wheel, canvas.width, canvas.height)}`, '🔍');
+    if (mouse.wheel) stepZoom(mouse.wheel, canvas.width, canvas.height);   // 휠은 조용히 (알림이 정신 사납다고 해서)
     // [Esc]: 하던 것부터 닫고, 닫을 게 없으면 설정 창
     if (input.pressed('cancel')) {
         if (state.prologue) skipPrologue();
@@ -165,6 +166,7 @@ function update(dt) {
     if (state.rally > 0) state.rally -= dt;
 
     updateFlow(dt);
+    updateRelicOffer();
     state.player.update(dt);
     // 간발 직후에는 나만 빼고 세상이 느려진다 (systems/flow.js). 내 숨결도 제 빠르기로 나간다
     const wdt = dt * worldTimeScale();

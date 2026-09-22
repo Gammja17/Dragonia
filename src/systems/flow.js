@@ -96,7 +96,8 @@ export function tryPerfectDodge(p) {
     const near = E.bullets.some(b => !b.remove && b.faction === 'ENEMY' && dist(b, { x: p.x, y: p.y - 30 }) < EDGE_RANGE)
         || E.enemies.some(e => !e.remove && e.ai && (e.ai.s === 'act' || (e.ai.s === 'tell' && e.ai.t < 0.25)) && dist(e, p) < 120)
         || E.humans.some(h => !h.remove && ((h.swing > 0 && h.swing < 0.25 && dist(h, p) < 120) || (h.charge && h.charge.windup > 0 && h.charge.windup < 0.3 && dist(h, p) < 520)));
-    if (!near) return;
+    const bossAttacking = E.bosses.some(b => !b.remove && b.awake && !b.hidden && dist(b, p) < 760 && ((b.charge && !(b.charge.windup > 0)) || b.beam || b.spiral || b.blizzard || b.patternTimer > 2.2));
+    if (!near && !bossAttacking) return;
     p.dashEdge = true;
     const f = F();
     f.slow = hasRelic('FROZEN_CLOCK') ? 1.6 : 0.8;
@@ -107,6 +108,15 @@ export function tryPerfectDodge(p) {
     spawnEffect('RING', p.x, p.y - 40, { size: 1.8, color: '#9fe3ff' });
     flash(0.35, '160,220,255');
     play('crit');
+    // 보스의 큰 공격을 간발로 피하면 보스가 비틀거린다. 그동안 두 배로 맞는다 (entities/Boss.js)
+    for (const b of E.bosses) {
+        if (b.remove || !b.awake || b.hidden || dist(b, p) > 760) continue;
+        const attacking = (b.charge && !(b.charge.windup > 0)) || b.beam || b.spiral || b.blizzard || b.patternTimer > 2.2;
+        if (!attacking || b.stagger > 0) continue;
+        b.stagger = 2.4; b.opening = true;
+        spawnText(b.x, b.y - 90 * (b.def.scale || 1), '빈틈!', '#9fe3ff', 20);
+        once('flowBoss', '빈틈! 보스의 큰 공격을 간발로 피하면 잠깐 비틀거린다. 그동안 두 배로 맞는다.', '💥');
+    }
     // 유물 '폭풍의 눈': 간발로 피한 자리에 번개가 떨어진다
     if (hasRelic('STORM_EYE')) {
         for (const e of [...E.enemies, ...E.humans, ...E.bosses]) {

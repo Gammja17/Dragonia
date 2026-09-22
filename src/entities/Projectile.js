@@ -104,6 +104,15 @@ export class Projectile extends Entity {
         }
         if (this.fromPlayer && canFuse(state.player)) state.player.ult = Math.min(100, state.player.ult + 1.5);
         if (this.fromPlayer) onPlayerHitEnemy();
+        // 유물 '갈고리 숨결': 맞은 자리에서 가까운 다른 적에게 한 번 더 튄다
+        if (this.fromPlayer && this.kind === 'BREATH' && !this.ricochet && hasRelic('RICOCHET')) {
+            const next = targets.filter(t => t !== target && !t.remove && dist(t, target) < 260).sort((a, b) => dist(a, target) - dist(b, target))[0];
+            if (next) {
+                const c = new Projectile(this.x, this.y, Math.atan2(next.y - 20 - this.y, next.x - this.x), { faction: 'ALLY', element: this.element, damage: this.damage * 0.7, scale: this.scale * 0.8, fromPlayer: true });
+                c.ricochet = true; c.hitSet.add(target);
+                addBullet(c);
+            }
+        }
         // 유물 '갈라진 비늘': 숨결이 맞은 자리에서 작은 조각 둘로 갈라져 나간다 (조각은 다시 갈라지지 않는다)
         if (this.fromPlayer && this.kind === 'BREATH' && !this.shard && hasRelic('SPLIT_SCALE')) {
             for (const side of [-1, 1]) {

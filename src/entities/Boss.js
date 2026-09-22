@@ -18,6 +18,7 @@ import { spawnEffect } from '../render/vfx.js';
 import { updateStatus, statusTint } from '../systems/status.js';
 import { notify } from '../systems/quests.js';
 import { grantRelic, bossRelic } from '../systems/relics.js';
+import { offerRelics } from '../systems/relicOffer.js';
 import { learnSkill } from '../systems/skills.js';
 import { play } from '../systems/audio.js';
 import { showToast } from '../ui/toast.js';
@@ -94,7 +95,7 @@ export class Boss extends Entity {
         // 페이즈: 체력이 문턱 아래로 내려가면 판이 바뀐다. 넘어가는 동안은 공격을 멈추고, 날아오던 탄도 걷힌다
         const phases = this.def.phases;
         if (phases && phases[this.phase + 1] && this.hp <= this.def.hp * phases[this.phase + 1].at) this.enterPhase(this.phase + 1);
-        if (this.stagger > 0) { this.stagger -= dt; this.patternTimer = Math.max(this.patternTimer, 0.6); }
+        if (this.stagger > 0) { this.stagger -= dt; this.patternTimer = Math.max(this.patternTimer, 0.6); if (this.stagger <= 0) this.opening = false; }
 
         let moving = false;
         if (this.burrow) this.updateBurrow(dt);
@@ -348,6 +349,7 @@ export class Boss extends Entity {
 
     takeDamage(dmg, silent = false) {
         if (!this.awake || this.hidden) return;
+        if (this.opening) dmg *= 2;   // 간발로 만든 빈틈 (systems/flow.js)
         this.hp -= dmg;
         if (!silent) { this.hitFlash = 1; this.squash = 1; }
         if (this.hp > 0 || this.remove) return;
@@ -380,6 +382,7 @@ export class Boss extends Entity {
         if (BOSS_SKILLS[this.id]) learnSkill(BOSS_SKILLS[this.id]);
         grantRelic(bossRelic(this.id), this.x, this.y);
         player.gainXp(this.def.xp);
+        offerRelics(`${this.def.name}의 둥지에서`);
         notify('boss', this.id);
     }
 
@@ -407,6 +410,7 @@ export class Boss extends Entity {
         this.drawShadow(ctx, 40 * sc);
         ctx.restore();
 
+        if (this.opening) drawGlow(ctx, this.x, this.y - 40 * this.def.scale, 90 * this.def.scale, '#9fe3ff', 0.35 + Math.sin(state.gameTime * 14) * 0.15);
         if (this.charge && this.charge.windup > 0) {   // 돌진 예고선
             ctx.save();
             ctx.globalAlpha = 0.35 + Math.sin(state.gameTime * 30) * 0.15;

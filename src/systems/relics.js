@@ -43,6 +43,14 @@ export const RELICS = {
     BOILING_BLOOD: { name: '끓는 피',         desc: '맞아도 기세가 반이 아니라 오분의 일만 꺾인다', kin: 'flame' },               // systems/flow.js
     GREEDY_MAW:    { name: '탐식의 턱',       desc: '고기를 먹으면 12초 동안 주는 피해 +25%', kin: 'flame' },                     // entities/Dragon.js
     ECHO_SHELL:    { name: '메아리 소라',     desc: '기술을 쓰면 넷에 한 번은 재사용 대기 없이 바로 돌아온다', kin: 'flame' },     // systems/skills.js
+    // ---- 기술 하나를 통째로 바꾸는 것들 (systems/skills.js). skill: 어느 기술에 붙는지 (일지·HUD 가 보여 준다) ----
+    TAIL_TWIN:     { name: '두 번 치는 꼬리',   desc: '[꼬리 후려치기] 한 번 더 휘두른다 (두 번째는 60%)', skill: 'TAIL_SWIPE', kin: 'fang' },
+    METEOR_RAIN:   { name: '별 부스러기',       desc: '[운석 낙하] 둘레에 작은 운석 셋이 더 떨어진다', skill: 'METEOR', kin: 'flame' },
+    ROAR_FLAME:    { name: '불타는 목청',       desc: '[포효] 닿은 적이 4초 동안 불탄다', skill: 'ROAR', kin: 'flame' },
+    GUST_BLADE:    { name: '칼바람 깃',         desc: '[날개 돌풍] 피해가 3배가 되고 날려 보낸 적이 벽에 부딪히듯 기절한다', skill: 'WING_GUST', kin: 'wing' },
+    LONG_BREATH:   { name: '긴 숨',             desc: '[화염 방사] 3초 동안 이어지고 부채꼴이 넓어진다', skill: 'FLAME_BREATH', kin: 'flame' },
+    POUNCE_QUAKE:  { name: '무거운 착지',       desc: '[덮치기] 내려앉는 자리가 울려 둘레의 적이 기절한다', skill: 'POUNCE', kin: 'scale' },
+    RICOCHET:      { name: '갈고리 숨결',       desc: '숨결이 맞으면 가까운 다른 적에게 한 번 더 튄다', kin: 'fang' },
     TWIN_SOUL:     { name: '쌍둥이 혼',       desc: '곁에서 싸우는 짝과 동료의 숨결이 +50% 세진다' },                             // entities/Dragon.js
 };
 

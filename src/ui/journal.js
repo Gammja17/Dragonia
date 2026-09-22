@@ -283,7 +283,7 @@ function renderRelics(body) {
         const btn = document.createElement('button');
         btn.className = 'relic-row' + (on ? ' on' : '');
         btn.innerHTML = '<b></b><i></i><em></em>';
-        btn.querySelector('b').textContent = r.kin ? `${r.name} · ${KINS[r.kin].name}` : r.name;
+        btn.querySelector('b').textContent = (r.skill && SKILLS[r.skill] ? `[${SKILLS[r.skill].name}] ` : '') + (r.kin ? `${r.name} · ${KINS[r.kin].name}` : r.name);
         btn.querySelector('i').textContent = r.desc;
         btn.querySelector('em').textContent = on ? '장착 중' : '끼우기';
         btn.addEventListener('click', () => { toggleRelic(id); render(); });

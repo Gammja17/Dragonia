@@ -562,6 +562,18 @@ body.cutscene #flow-bar { display: none; }
 /* ==========================================================================
    도움말
    ========================================================================== */
+/* 끼운 유물: 도움말 칩 위에 작은 칩으로 늘 보인다. 뭘 끼웠는지 잊지 않게 */
+#relic-chips { position: absolute; bottom: 52px; left: 18px; z-index: 40; display: flex; flex-direction: column; gap: 3px; pointer-events: none; }
+#relic-chips:empty { display: none; }
+.relic-chip {
+    font-size: 0.68rem; color: var(--parch); background: rgba(14, 13, 22, 0.82); border: 1px solid var(--gold-dim); border-left: 3px solid var(--gold);
+    padding: 3px 9px; font-family: var(--font-ko); white-space: nowrap;
+}
+.relic-chip small { color: var(--parch-dim); margin-left: 6px; }
+.relic-chip.kin-fang { border-left-color: #ff8a6a; } .relic-chip.kin-scale { border-left-color: #9fe07a; }
+.relic-chip.kin-wing { border-left-color: #9fe3ff; } .relic-chip.kin-flame { border-left-color: #ff9a3c; }
+body.touch #relic-chips, body.cutscene #relic-chips { display: none; }
+
 #help-chip {
     position: absolute; bottom: 18px; left: 18px; z-index: 40;
     color: var(--parch-mid); font-size: 0.73rem;

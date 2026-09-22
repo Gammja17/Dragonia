@@ -90,6 +90,10 @@ const CAST = {
         spawnEffect('SLASH', p.x, p.y - 30, { size: 3.2, color: '#ffffff' });
         spawnEffect('SLASH', p.x, p.y - 30, { size: 3.2, angle: Math.PI, color: '#ffe9a0' });
         shake(5); play('slash');
+        if (hasRelic('TAIL_TWIN') && !p.tailTwin) {   // 유물 '두 번 치는 꼬리'
+            p.tailTwin = true;
+            setTimeout(() => { p.tailTwin = false; if (state.player === p) { CAST.TAIL_SWIPE(p, m * 0.6); } }, 260);
+        }
     },
     ROAR(p, m) {
         for (const e of foes()) {
@@ -97,6 +101,7 @@ const CAST = {
             if (d > 340) continue;
             hurt(e, 15 * power(p, null, m));
             applyStatus(e, 'STUN', 1.8);
+            if (hasRelic('ROAR_FLAME')) { applyStatus(e, 'BURN', 4); spawnEffect('FLAMES', e.x, e.y, { size: 0.9 }); }   // 유물 '불타는 목청'
             if (!e.statusImmune) { e.x += ((e.x - p.x) / (d || 1)) * 90; e.y += ((e.y - p.y) / (d || 1)) * 90; }
         }
         p.fury = 6;
@@ -109,6 +114,10 @@ const CAST = {
         addHazard(x, y, { faction: 'ALLY', r: 185, delay: 0.6, linger: 2.5, damage: 48 * power(p, 'FIRE', m), dps: 6 * power(p, 'FIRE', m),
             color: '#ff6a2a', effect: 'FIRE_HIT', effectSize: 2.8, sound: 'boom', shake: 12, status: { type: 'BURN', duration: 4 } });
         spawnEffect('MAGIC_CIRCLE', x, y, { size: 1.6, color: '#ff9a3c' });
+        if (hasRelic('METEOR_RAIN')) for (let i = 0; i < 3; i++) {   // 유물 '별 부스러기'
+            const a = (i / 3) * Math.PI * 2 + 0.5, r = 190;
+            addHazard(x + Math.cos(a) * r, y + Math.sin(a) * r * 0.7, { faction: 'ALLY', r: 95, delay: 0.9 + i * 0.15, linger: 1, damage: 22 * power(p, 'FIRE', m), color: '#ff8a4a', effect: 'FIRE_HIT', effectSize: 1.6, sound: 'boom', shake: 4, status: { type: 'BURN', duration: 3 } });
+        }
         setTimeout(() => spawnEffect('SCORCH', x, y, { size: 1.3, color: '#1a0d08' }), 600);
         play('flame');
     },
@@ -118,9 +127,10 @@ const CAST = {
             const d = dist(p, e);
             let da = Math.atan2(e.y - p.y, e.x - p.x) - angle; da = Math.atan2(Math.sin(da), Math.cos(da));
             if (d > 380 || Math.abs(da) > 0.9) continue;
-            hurt(e, 12 * power(p, null, m));
+            hurt(e, 12 * power(p, null, m) * (hasRelic('GUST_BLADE') ? 3 : 1));
             if (!e.statusImmune) { e.x += Math.cos(angle) * 230; e.y += Math.sin(angle) * 230; }
             applyStatus(e, 'SLOW', 2);
+            if (hasRelic('GUST_BLADE')) { applyStatus(e, 'STUN', 1.2); spawnEffect('HIT_SPARK', e.x, e.y - 20, { size: 1.4, color: '#dff4ff' }); }   // 유물 '칼바람 깃'
         }
         for (const b of state.entities.bullets) if (b.faction === 'ENEMY' && dist(p, b) < 340) { b.remove = true; burst(b.x, b.y, '#cfe9ff', 0.4, 2); }
         for (let i = 1; i <= 3; i++) spawnEffect('GUST', p.x + Math.cos(angle) * i * 90, p.y - 30 + Math.sin(angle) * i * 90, { size: 0.8 + i * 0.4, angle, color: '#dff4ff' });
@@ -147,7 +157,7 @@ const CAST = {
         play('heal');
     },
     FLAME_BREATH(p, m) {
-        p.channels.push({ id: 'FLAME_BREATH', m, time: 1.8, tick: 0 });
+        p.channels.push({ id: 'FLAME_BREATH', m, time: hasRelic('LONG_BREATH') ? 3 : 1.8, tick: 0 });   // 유물 '긴 숨'
     },
     IRON_SCALE(p) {
         p.guard = 5;
@@ -292,7 +302,7 @@ export function updateChannels(p, dt) {
             for (const e of foes()) {
                 const d = dist(p, e);
                 let da = Math.atan2(e.y - p.y, e.x - p.x) - angle; da = Math.atan2(Math.sin(da), Math.cos(da));
-                if (d > 330 || Math.abs(da) > 0.55) continue;
+                if (d > 330 || Math.abs(da) > (hasRelic('LONG_BREATH') ? 0.8 : 0.55)) continue;
                 e.takeDamage(7 * power(p, 'FIRE', m));
                 applyStatus(e, 'BURN', 3);
             }
@@ -317,6 +327,10 @@ export function updateChannels(p, dt) {
             p.diveHeight = Math.sin(k * Math.PI) * (big ? 160 : 45);   // 그릴 때 이만큼 떠오른다
             if (c.time <= 0) {
                 p.diveHeight = 0;
+                if (!big && hasRelic('POUNCE_QUAKE')) {   // 유물 '무거운 착지'
+                    for (const e of foes()) if (dist(p, e) < 200) applyStatus(e, 'STUN', 1.3);
+                    spawnEffect('SHOCKWAVE', p.x, p.y, { size: 1.8, color: '#c9a06a' }); shake(6);
+                }
                 for (const e of foes()) if (dist(p, e) < (big ? 210 : 130)) {
                     hurt(e, (big ? 42 : 28) * power(p, null, m));
                     applyStatus(e, 'STUN', big ? 1.2 : 0.6);

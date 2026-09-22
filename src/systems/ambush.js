@@ -7,6 +7,7 @@ import { spawnEffect, spawnText } from '../render/vfx.js';
 import { shake } from '../core/camera.js';
 import { playScene, addClue } from './chronicle.js';
 import { grantRelic, ownsRelic } from './relics.js';
+import { offerRelics } from './relicOffer.js';
 import { play } from './audio.js';
 import { saveGame } from './save.js';
 
@@ -125,7 +126,7 @@ export function onCaptainDown(cap) {
     playScene('사냥꾼 대장', lines, () => {
         if (first) { addClue('map'); showToast('일지 [기록]에 단서가 적혔다: 하늘에서 본 지도', '📖'); }
         if (!ownsRelic('CAPTAIN_HORN')) grantRelic('CAPTAIN_HORN', state.player.x, state.player.y);
-        else { state.player.gold += 120; showToast('베르단이 떨어뜨리고 간 것: 120G', '💰'); }
+        else offerRelics('베르단이 떨어뜨리고 간 것');
         state.raidTimer = Math.max(state.raidTimer, 180);   // 대장이 다쳤으니 한동안 습격이 뜸하다
         saveGame();
     });

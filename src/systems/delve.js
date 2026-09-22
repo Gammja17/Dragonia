@@ -8,6 +8,7 @@ import { Enemy } from '../entities/Enemy.js';
 import { Prop } from '../entities/Prop.js';
 import { Item } from '../entities/Item.js';
 import { grantPoints } from './growth.js';
+import { offerRelics } from './relicOffer.js';
 import { BIOME_ENEMIES } from '../data/enemies.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
@@ -176,7 +177,7 @@ export function leaveDungeon() {
             if (depth < m.depth || rec.claimed.includes(m.depth)) continue;
             rec.claimed.push(m.depth);
             if (m.points) grantPoints(m.points, `${def.name} 지하 ${m.depth}층`);
-            if (m.relic) { const id = randomRelic(); if (id) grantRelic(id, p.x, p.y); }
+            if (m.relic) offerRelics(`${def.name} 지하 ${m.depth}층에서`);
             showToast(`${def.name} 지하 ${m.depth}층에 처음 닿았다: ${m.text}`, '🏅');
         }
         spawnEffect('RING', p.x, p.y - 30, { size: 1.6, color: '#ffd84a' });
