@@ -82,7 +82,7 @@ window.addEventListener('beforeunload', saveGame);
 // 캔버스 글씨는 CSS 처럼 글꼴을 알아서 기다려 주지 않는다. 미리 받아 둬야 이름표가 기본 글꼴로 한 번 깜빡이지 않는다
 function preloadFonts() {
     if (!document.fonts) return Promise.resolve();
-    const faces = ['12px "Bookk Myungjo"', '600 12px "Bookk Myungjo"', '900 30px "KOTRA LEAP"'];
+    const faces = ['12px "Galmuri11"', '700 12px "Galmuri11"', '10px "Galmuri9"'];
     return Promise.all(faces.map(f => document.fonts.load(f, '용 0'))).catch(() => {});
 }
 

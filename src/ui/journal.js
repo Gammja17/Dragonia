@@ -562,7 +562,7 @@ function renderMap(body) {
         g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke();
     }
     // 마디
-    g.font = '600 12px "Bookk Myungjo", serif'; g.textAlign = 'center';
+    g.font = '700 12px "Galmuri11", sans-serif'; g.textAlign = 'center';
     for (const [id, spec] of Object.entries(MAPS)) {
         const { x, y } = pos(id);
         const seen = state.visited.includes(id), here = state.mapId === id;

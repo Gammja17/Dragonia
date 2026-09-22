@@ -5,23 +5,13 @@
    둥근 모서리와 네온 광택은 쓰지 않는다 (픽셀 테두리와 부딪힌다).
    ========================================================================== */
 
-/* 글꼴 — 제목·수치는 코트라 도약체(각지고 힘있는 고딕), 본문은 부크크 명조(양피지 글씨).
-   한글 11,172자를 다 담고 woff2 로 줄여서 넣었다. assets/fonts/ 참고 (CREDITS.md 에 출처) */
-@font-face {
-    font-family: 'Bookk Myungjo';
-    src: url('../assets/fonts/bookk-myungjo-light.woff2') format('woff2');
-    font-weight: 100 400; font-style: normal; font-display: swap;
-}
-@font-face {
-    font-family: 'Bookk Myungjo';
-    src: url('../assets/fonts/bookk-myungjo-bold.woff2') format('woff2');
-    font-weight: 500 900; font-style: normal; font-display: swap;
-}
-@font-face {
-    font-family: 'KOTRA LEAP';
-    src: url('../assets/fonts/kotra-leap.woff2') format('woff2');
-    font-weight: 100 900; font-style: normal; font-display: swap;
-}
+/* 글꼴 — 갈무리(Galmuri). 닌텐도 DS 글꼴에서 온 한글 비트맵 폰트 (OFL, assets/fonts/Galmuri-LICENSE.txt).
+   Galmuri11 은 12px 이 원래 크기라 12·24·36px 에서만 픽셀이 딱 맞는다. 아래의 글자 크기는 전부 그 배수다.
+   아주 작은 글씨는 Galmuri9(10px). 렌더러가 글자를 뭉개지 않게 안티에일리어싱도 끈다 */
+@font-face { font-family: 'Galmuri11'; src: url('../assets/fonts/Galmuri11.woff2') format('woff2'); font-weight: 100 500; font-display: swap; }
+@font-face { font-family: 'Galmuri11'; src: url('../assets/fonts/Galmuri11-Bold.woff2') format('woff2'); font-weight: 600 900; font-display: swap; }
+@font-face { font-family: 'Galmuri9';  src: url('../assets/fonts/Galmuri9.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: 'Galmuri14'; src: url('../assets/fonts/Galmuri14.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
 
 :root {
     /* 판 */
@@ -48,14 +38,15 @@
     --bad:        #ff8a7a;
     --cold:       #7fd4ff;
 
-    --font-ko:    'Bookk Myungjo', serif;          /* 본문 */
-    --font-title: 'KOTRA LEAP', 'Bookk Myungjo', sans-serif;  /* 제목·강조 */
-    --font-num:   'KOTRA LEAP', 'Bookk Myungjo', sans-serif;  /* 숫자·수치 */
+    --font-ko:    'Galmuri11', 'Galmuri9', sans-serif;   /* 본문 (12·24px) */
+    --font-title: 'Galmuri11', 'Galmuri14', sans-serif;  /* 제목·강조 (굵게, 24·36px) */
+    --font-num:   'Galmuri11', sans-serif;               /* 숫자·수치 */
 }
 
 * { box-sizing: border-box; }
 
 body {
+    -webkit-font-smoothing: none; font-smooth: never; text-rendering: optimizeSpeed;
     margin: 0; padding: 0;
     background-color: #050505;
     overflow: hidden;
@@ -107,11 +98,11 @@ body {
 }
 .panel-title {
     font-family: var(--font-title);
-    color: var(--gold-lit); font-weight: 700; font-size: 0.95rem; letter-spacing: 0.5px;
+    color: var(--gold-lit); font-weight: 700; font-size: 24px; letter-spacing: 0.5px;
 }
 .panel-close {
     background: var(--ink-raise); border: 1px solid var(--gold-dim); color: var(--parch-mid);
-    font-family: var(--font-ko); font-size: 0.72rem; padding: 4px 9px; cursor: pointer;
+    font-family: var(--font-ko); font-size: 12px; padding: 4px 9px; cursor: pointer;
 }
 .panel-close:hover { background: var(--ink-hover); color: var(--parch); border-color: var(--gold); }
 .panel-body { flex: 1; min-height: 0; overflow-y: auto; padding-right: 5px; }
@@ -119,13 +110,13 @@ body {
 /* 목록 한 줄 (이름 ......... 값) */
 .journal-title {
     font-family: var(--font-title);
-    color: var(--gold-lit); font-weight: 700; font-size: 0.86rem;
+    color: var(--gold-lit); font-weight: 700; font-size: 12px;
     border-bottom: 1px solid var(--gold-dim); padding-bottom: 3px; margin: 14px 0 6px;
 }
 .journal-title:first-child { margin-top: 0; }
 .journal-row {
     display: flex; justify-content: space-between; gap: 12px;
-    font-size: 0.78rem; padding: 3px 0; line-height: 1.4;
+    font-size: 12px; padding: 3px 0; line-height: 1.4;
 }
 .journal-row span:last-child { color: var(--parch-mid); text-align: right; }
 .journal-row.dim { opacity: 0.42; }
@@ -146,7 +137,7 @@ body {
     background: var(--gold); border: 1px solid var(--ink-solid);
 }
 .journal-slider i {
-    font-style: normal; font-family: var(--font-num); font-size: 0.72rem;
+    font-style: normal; font-family: var(--font-num); font-size: 12px;
     color: var(--parch-mid); width: 24px; text-align: right;
 }
 
@@ -164,19 +155,19 @@ body {
     position: absolute; top: 18px; left: 18px; z-index: 50; display: none;
     padding: 6px 12px; cursor: pointer; pointer-events: auto;
     background: rgba(14, 13, 22, 0.86); border: 1px solid var(--gold);
-    color: var(--parch); font-family: var(--font-ko); font-size: 0.75rem;
+    color: var(--parch); font-family: var(--font-ko); font-size: 12px;
 }
 #hud-show-btn:hover { background: rgba(216, 178, 90, 0.22); }
 #right-show-btn {
     position: absolute; top: 18px; right: 18px; z-index: 50; display: none;
     padding: 6px 12px; cursor: pointer; pointer-events: auto;
     background: rgba(14, 13, 22, 0.86); border: 1px solid var(--gold);
-    color: var(--parch); font-family: var(--font-ko); font-size: 0.75rem;
+    color: var(--parch); font-family: var(--font-ko); font-size: 12px;
 }
 #right-collapse-btn {
     align-self: flex-end; margin-top: -4px; padding: 3px 9px; cursor: pointer; pointer-events: auto;
     background: rgba(14, 13, 22, 0.7); border: 1px solid var(--gold-dim);
-    color: var(--parch-dim); font-family: var(--font-ko); font-size: 0.66rem;
+    color: var(--parch-dim); font-family: var(--font-ko); font-size: 12px;
 }
 #right-collapse-btn:hover { color: var(--parch); border-color: var(--gold); }
 
@@ -185,9 +176,9 @@ body {
     padding-bottom: 8px; margin-bottom: 9px;
     border-bottom: 1px solid var(--gold-dim);
 }
-.hud-name { font-family: var(--font-title); font-weight: 700; font-size: 1.02rem; color: var(--parch); line-height: 1.2; }
-.hud-lvl { font-size: 0.74rem; color: var(--gold-lit); margin-top: 2px; }
-.hud-partner { font-size: 0.68rem; color: var(--parch-dim); margin-top: 1px; }
+.hud-name { font-family: var(--font-title); font-weight: 700; font-size: 24px; color: var(--parch); line-height: 1.2; }
+.hud-lvl { font-size: 12px; color: var(--gold-lit); margin-top: 2px; }
+.hud-partner { font-size: 12px; color: var(--parch-dim); margin-top: 1px; }
 
 .portrait {
     width: 52px; height: 52px; flex: none;
@@ -199,10 +190,10 @@ body {
 .stat-group { margin-bottom: 7px; }
 .stat-header {
     display: flex; justify-content: space-between; align-items: baseline;
-    font-size: 0.66rem; color: var(--parch-dim); margin-bottom: 3px;
+    font-size: 12px; color: var(--parch-dim); margin-bottom: 3px;
     letter-spacing: 1.2px; font-family: var(--font-num);
 }
-.stat-header span:last-child { color: var(--parch); font-size: 0.72rem; }
+.stat-header span:last-child { color: var(--parch); font-size: 12px; }
 .progress-track {
     width: 100%; height: 9px;
     background: rgba(0, 0, 0, 0.55);
@@ -218,7 +209,7 @@ body {
 #buff-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 7px; }
 #buff-row:empty { display: none; }
 .buff {
-    font-size: 0.66rem; padding: 2px 7px;
+    font-size: 12px; padding: 2px 7px;
     background: rgba(255, 216, 74, 0.14); border: 1px solid rgba(255, 216, 74, 0.45);
     color: #ffe9a0;
 }
@@ -230,9 +221,9 @@ body {
     display: flex; align-items: baseline; justify-content: center; gap: 5px;
     min-width: 0; white-space: nowrap;
     background: var(--ink-raise); border: 1px solid var(--gold-dim);
-    padding: 5px 4px; font-size: 0.7rem; color: var(--parch-mid);
+    padding: 5px 4px; font-size: 12px; color: var(--parch-mid);
 }
-.inv-slot span:last-child { font-family: var(--font-num); font-weight: 600; font-size: 0.82rem; color: var(--parch); }
+.inv-slot span:last-child { font-family: var(--font-num); font-weight: 600; font-size: 12px; color: var(--parch); }
 #ui-meat { color: var(--food) !important; }
 #ui-gold { color: var(--gold-lit) !important; }
 
@@ -240,7 +231,7 @@ body {
 .hud-buttons button {
     flex: 1; padding: 6px 0; cursor: pointer;
     background: var(--ink-raise); border: 1px solid var(--gold-dim);
-    color: var(--parch-mid); font-family: var(--font-ko); font-size: 0.72rem;
+    color: var(--parch-mid); font-family: var(--font-ko); font-size: 12px;
 }
 .hud-buttons button:hover { background: var(--ink-hover); color: var(--parch); border-color: var(--gold); }
 
@@ -256,8 +247,8 @@ body {
     border-left: 3px solid var(--good);
     padding: 6px 11px 7px; pointer-events: auto; text-align: right;
 }
-.biome-badge b { display: block; color: var(--parch); font-weight: 600; font-size: 0.8rem; }
-.biome-badge i { display: block; font-style: normal; color: var(--parch-dim); font-size: 0.7rem; margin-top: 1px; }
+.biome-badge b { display: block; color: var(--parch); font-weight: 600; font-size: 12px; }
+.biome-badge i { display: block; font-style: normal; color: var(--parch-dim); font-size: 12px; margin-top: 1px; }
 #minimap {
     width: 100%; aspect-ratio: 1; height: auto; image-rendering: pixelated;
     border: 2px solid var(--gold); background: #0c1020;
@@ -265,7 +256,7 @@ body {
 }
 #raid-info {
     background: rgba(14, 13, 22, 0.86); border-left: 3px solid var(--parch-dim);
-    color: var(--parch-mid); font-size: 0.72rem; padding: 5px 10px; text-align: right;
+    color: var(--parch-mid); font-size: 12px; padding: 5px 10px; text-align: right;
 }
 #raid-info:empty { display: none; }
 #raid-info.active { color: #fff; background: rgba(150, 32, 32, 0.9); border-left-color: var(--hp); font-weight: 700; }
@@ -273,19 +264,19 @@ body {
 #quest-tracker { display: flex; flex-direction: column; gap: 5px; }
 .quest-line {
     background: rgba(14, 13, 22, 0.9); border-left: 3px solid var(--gold-lit); border-top: 1px solid var(--gold-dim);
-    color: var(--parch-mid); padding: 7px 10px 8px; font-size: 0.72rem; line-height: 1.4; min-width: 200px;
+    color: var(--parch-mid); padding: 7px 10px 8px; font-size: 12px; line-height: 1.4; min-width: 200px;
 }
-.quest-line .ql-kind { display: block; font-size: 0.62rem; letter-spacing: 2px; color: var(--gold); margin-bottom: 2px; }
-.quest-line b { display: block; color: var(--gold-lit); font-size: 0.82rem; margin-bottom: 3px; }
-.quest-line i { display: block; font-style: normal; color: var(--parch); font-size: 0.74rem; margin-bottom: 3px; }
-.quest-line .ql-where { display: block; color: var(--parch-mid); font-size: 0.7rem; }
+.quest-line .ql-kind { display: block; font-size: 10px; font-family: 'Galmuri9', sans-serif; letter-spacing: 2px; color: var(--gold); margin-bottom: 2px; }
+.quest-line b { display: block; color: var(--gold-lit); font-size: 12px; margin-bottom: 3px; }
+.quest-line i { display: block; font-style: normal; color: var(--parch); font-size: 12px; margin-bottom: 3px; }
+.quest-line .ql-where { display: block; color: var(--parch-mid); font-size: 12px; }
 .quest-line .ql-where::before { content: '📍 '; }
-.quest-line .ql-prog { display: block; color: var(--parch-dim); font-size: 0.68rem; font-family: var(--font-num); }
+.quest-line .ql-prog { display: block; color: var(--parch-dim); font-size: 12px; font-family: var(--font-num); }
 .quest-line.complete { border-left-color: var(--good); }
 .quest-line.complete b, .quest-line.complete .ql-kind { color: var(--good); }
 .quest-line.flash { animation: ql-flash 1.6s ease-out; }
 @keyframes ql-flash { 0% { background: rgba(255, 216, 74, 0.45); } 100% { background: rgba(14, 13, 22, 0.9); } }
-#quest-more { color: var(--parch-dim); font-size: 0.68rem; text-align: right; text-shadow: 0 1px 3px #000; }
+#quest-more { color: var(--parch-dim); font-size: 12px; text-align: right; text-shadow: 0 1px 3px #000; }
 #quest-more:empty { display: none; }
 
 /* ==========================================================================
@@ -298,7 +289,7 @@ body {
 #boss-name {
     font-family: var(--font-title);
     color: var(--parch); font-weight: 700; letter-spacing: 1px;
-    text-shadow: 0 2px 6px #000; margin-bottom: 5px; font-size: 0.92rem;
+    text-shadow: 0 2px 6px #000; margin-bottom: 5px; font-size: 12px;
 }
 .boss-track { height: 13px; background: rgba(0, 0, 0, 0.7); border: 2px solid var(--gold); overflow: hidden; }
 #boss-fill { height: 100%; width: 100%; background: linear-gradient(180deg, #ff6b5e, #8a1220); transition: width 0.15s; }
@@ -316,7 +307,7 @@ body {
 #flow-fill { height: 100%; width: 0; background: #ffd07a; transition: width 0.12s, background 0.2s; }
 #flow-label {
     position: absolute; left: 50%; bottom: 11px; transform: translateX(-50%); white-space: nowrap;
-    font-size: 0.68rem; letter-spacing: 0.08em; color: var(--parch); text-shadow: 0 1px 2px #000;
+    font-size: 12px; letter-spacing: 0.08em; color: var(--parch); text-shadow: 0 1px 2px #000;
 }
 body.touch #flow-bar { bottom: auto; top: 40px; width: 200px; }
 body.cutscene #flow-bar { display: none; }
@@ -332,10 +323,10 @@ body.cutscene #flow-bar { display: none; }
     color: var(--parch-mid); transition: border-color 0.12s, transform 0.12s;
 }
 .slot-key {
-    font-family: var(--font-num); font-weight: 600; font-size: 1rem; line-height: 1;
+    font-family: var(--font-num); font-weight: 600; font-size: 24px; line-height: 1;
     color: var(--parch);
 }
-.slot-name { font-size: 0.6rem; white-space: nowrap; max-width: 58px; overflow: hidden; text-overflow: ellipsis; }
+.slot-name { font-size: 10px; font-family: 'Galmuri9', sans-serif; white-space: nowrap; max-width: 58px; overflow: hidden; text-overflow: ellipsis; }
 .slot.locked { opacity: 0.5; filter: grayscale(0.85); }
 /* 새 마을에서 받는 숨결은 받기 전까지 칸이 보이지 않는다 */
 .slot.el.locked[data-el="WATER"], .slot.el.locked[data-el="EARTH"], .slot.el.locked[data-el="GRASS"] { display: none; }
@@ -361,7 +352,7 @@ body.cutscene #flow-bar { display: none; }
 .toast {
     background: rgba(14, 13, 22, 0.94); color: #ffe9a0;
     border: 1px solid var(--gold); border-left-width: 3px;
-    padding: 7px 14px; font-weight: 500; font-size: 0.82rem; line-height: 1.4;
+    padding: 7px 14px; font-weight: 500; font-size: 12px; line-height: 1.4;
     animation: toast-fade 3.4s forwards; max-width: 100%; text-align: center;
 }
 @keyframes toast-fade {
@@ -373,7 +364,7 @@ body.cutscene #flow-bar { display: none; }
 
 #raid-warning {
     position: absolute; top: 18%; left: 50%; transform: translate(-50%, -50%);
-    color: #ff5a4d; font-size: 2.6rem; font-weight: 900; letter-spacing: 6px;
+    color: #ff5a4d; font-size: 36px; font-weight: 900; letter-spacing: 6px;
     text-shadow: 0 0 24px rgba(255, 0, 0, 0.7), 0 3px 0 #2a0000;
     display: none; animation: shake 0.5s infinite;
     text-align: center; width: 100%; z-index: 20;
@@ -386,7 +377,7 @@ body.cutscene #flow-bar { display: none; }
 
 .interaction-prompt {
     position: absolute; background: rgba(14, 13, 22, 0.88); color: var(--gold-lit);
-    padding: 4px 9px; font-size: 0.7rem; border: 1px solid var(--gold);
+    padding: 4px 9px; font-size: 12px; border: 1px solid var(--gold);
     pointer-events: none; transform: translate(-50%, -100%);
     white-space: nowrap; display: none; z-index: 150;
 }
@@ -414,16 +405,16 @@ body.cutscene #flow-bar { display: none; }
 #d-who { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 #d-name {
     font-family: var(--font-title);
-    color: var(--gold-lit); font-size: 1.18rem; font-weight: 700; letter-spacing: 0.3px;
+    color: var(--gold-lit); font-size: 24px; font-weight: 700; letter-spacing: 0.3px;
 }
-#d-meta { display: flex; gap: 8px; font-size: 0.72rem; color: var(--parch-dim); }
+#d-meta { display: flex; gap: 8px; font-size: 12px; color: var(--parch-dim); }
 #d-meta #d-tier { color: var(--parch-mid); }
 /* 사이가 얼마나 깊은지 한 줄로. 숫자를 보여 주는 대신 눈으로 보이게 */
 #d-rel { width: 168px; height: 5px; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--gold-dim); display: none; }
 #d-rel.show { display: block; }
 #d-rel i { display: block; height: 100%; background: linear-gradient(90deg, #d86a8a, #ff9ab4); }
 #d-text {
-    color: var(--parch); font-size: 1rem; line-height: 1.62;
+    color: var(--parch); font-size: 24px; line-height: 1.62;
     margin-bottom: 11px; min-height: 2.9em; white-space: pre-wrap;
 }
 /* 세로로 한 줄씩. 방향키로 오르내리고 [Space] 로 고른다 (번호는 붙이지 않는다) */
@@ -435,13 +426,13 @@ body.cutscene #flow-bar { display: none; }
     position: relative;
     background: var(--ink-raise); color: var(--parch);
     border: 1px solid var(--gold-dim); border-left: 3px solid transparent;
-    padding: 8px 12px 8px 28px; cursor: pointer; font-size: 0.88rem; text-align: left;
+    padding: 8px 12px 8px 28px; cursor: pointer; font-size: 12px; text-align: left;
     font-family: var(--font-ko); line-height: 1.35;
     transition: background 0.1s, border-color 0.1s;
 }
 .d-btn::before {
     content: '▶'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-    color: var(--gold-lit); font-size: 0.7rem; opacity: 0;
+    color: var(--gold-lit); font-size: 12px; opacity: 0;
 }
 .d-btn.selected {
     background: rgba(255, 216, 74, 0.16); border-color: var(--gold);
@@ -474,18 +465,18 @@ body.cutscene #flow-bar { display: none; }
 }
 #help-panel .panel-body { width: min(860px, 100%); margin: 0 auto; }
 #settings-panel .panel-body { width: min(520px, 100%); margin: 0 auto; }
-#settings-panel .journal-row { padding: 7px 0; font-size: 0.86rem; align-items: center; }
+#settings-panel .journal-row { padding: 7px 0; font-size: 12px; align-items: center; }
 #settings-panel .journal-slider input[type="range"] { width: 200px; }
-.settings-btn { padding: 5px 12px; cursor: pointer; background: var(--ink-raise); border: 1px solid var(--gold-dim); color: var(--parch); font-family: var(--font-ko); font-size: 0.78rem; }
+.settings-btn { padding: 5px 12px; cursor: pointer; background: var(--ink-raise); border: 1px solid var(--gold-dim); color: var(--parch); font-family: var(--font-ko); font-size: 12px; }
 .settings-btn:hover { background: var(--ink-hover); border-color: var(--gold); }
-.settings-note { margin-top: 18px; color: var(--parch-dim); font-size: 0.74rem; line-height: 1.5; white-space: pre-line; }
+.settings-note { margin-top: 18px; color: var(--parch-dim); font-size: 12px; line-height: 1.5; white-space: pre-line; }
 #help-panel .panel-body { columns: 2; column-gap: 34px; }
 #help-panel .help-row, #help-panel .help-sep { break-inside: avoid; }
 #journal-tabs { display: flex; gap: 4px; margin-bottom: 9px; }
 .journal-tab {
     /* 탭이 여덟 칸이라 좁다. 글자는 한 줄로 두고 칸만 줄어들게 한다 */
     flex: 1; min-width: 0; white-space: nowrap; letter-spacing: -0.3px;
-    padding: 6px 2px; cursor: pointer; font-size: 0.74rem;
+    padding: 6px 2px; cursor: pointer; font-size: 12px;
     font-family: var(--font-ko); color: var(--parch-dim);
     background: var(--ink-raise); border: 1px solid var(--gold-dim);
 }
@@ -493,7 +484,7 @@ body.cutscene #flow-bar { display: none; }
 .journal-tab.on { color: #1a1206; background: var(--gold); border-color: var(--gold-lit); font-weight: 700; }
 
 /* 퀘스트 로그 */
-.q-empty { color: var(--parch-dim); font-size: 0.8rem; padding: 22px 4px; text-align: center; line-height: 1.6; }
+.q-empty { color: var(--parch-dim); font-size: 12px; padding: 22px 4px; text-align: center; line-height: 1.6; }
 .q-item { border-left: 3px solid var(--gold-lit); background: var(--ink-raise); margin-bottom: 4px; }
 .q-item.ready    { border-left-color: var(--good); }
 .q-item.done     { border-left-color: #4e5560; opacity: 0.5; }
@@ -501,15 +492,15 @@ body.cutscene #flow-bar { display: none; }
 .q-head {
     display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left; cursor: pointer;
     background: none; border: 0; color: var(--parch); padding: 8px 10px;
-    font-family: var(--font-ko); font-size: 0.82rem;
+    font-family: var(--font-ko); font-size: 12px;
 }
 .q-item.upcoming .q-head { cursor: default; }
 .q-head:hover { background: var(--ink-hover); }
 .q-mark { color: var(--gold-lit); width: 11px; flex: none; }
 .q-item.ready .q-mark { color: var(--good); }
 .q-title { flex: 1; font-family: var(--font-title); font-weight: 700; }
-.q-prog { color: var(--parch-mid); font-size: 0.72rem; flex: none; font-family: var(--font-num); }
-.q-body { padding: 0 12px 10px 24px; font-size: 0.76rem; color: var(--parch-mid); }
+.q-prog { color: var(--parch-mid); font-size: 12px; flex: none; font-family: var(--font-num); }
+.q-body { padding: 0 12px 10px 24px; font-size: 12px; color: var(--parch-mid); }
 .q-item.upcoming .q-body { color: var(--parch-dim); padding-top: 0; }
 .q-summary {
     color: var(--parch); line-height: 1.6; margin: 4px 0 9px;
@@ -518,7 +509,7 @@ body.cutscene #flow-bar { display: none; }
 .q-line { display: flex; gap: 9px; margin: 4px 0; line-height: 1.5; }
 .q-line b { color: var(--gold-lit); flex: none; min-width: 60px; font-weight: 400; }
 .q-track {
-    margin-top: 10px; padding: 6px 11px; cursor: pointer; font-size: 0.73rem;
+    margin-top: 10px; padding: 6px 11px; cursor: pointer; font-size: 12px;
     font-family: var(--font-ko); color: var(--parch-mid);
     background: var(--ink-raise); border: 1px solid var(--gold-dim);
 }
@@ -532,7 +523,7 @@ body.cutscene #flow-bar { display: none; }
 .q-step.done { color: var(--parch-mid); } .q-step.done .q-step-mark { color: var(--good); }
 .q-step.now { color: var(--parch); } .q-step.now .q-step-mark { color: var(--gold-lit); }
 .q-step .q-replay {
-    flex: none; margin-left: auto; padding: 1px 7px; cursor: pointer; font-size: 0.68rem; font-family: var(--font-ko);
+    flex: none; margin-left: auto; padding: 1px 7px; cursor: pointer; font-size: 12px; font-family: var(--font-ko);
     color: var(--parch-mid); background: var(--ink-raise); border: 1px solid var(--gold-dim);
 }
 .q-step .q-replay:hover { color: var(--parch); background: var(--ink-hover); }
@@ -540,17 +531,17 @@ body.cutscene #flow-bar { display: none; }
 
 /* 도감: 얼굴 격자. 못 만난 놈은 실루엣만 */
 .codex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; margin-bottom: 8px; }
-.codex-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; background: var(--ink-raise); font-size: 0.72rem; text-align: center; }
+.codex-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; background: var(--ink-raise); font-size: 12px; text-align: center; }
 .codex-cell b { color: var(--parch); font-weight: 700; }
-.codex-cell span { color: var(--parch-dim); font-size: 0.66rem; }
+.codex-cell span { color: var(--parch-dim); font-size: 12px; }
 .codex-cell.dim .codex-face { filter: brightness(0) opacity(0.35); }
 .codex-face { width: 48px; height: 48px; image-rendering: pixelated; }
 
 /* 유물 장착 */
-.relic-note { color: var(--parch-dim); font-size: 0.72rem; line-height: 1.55; margin: 0 0 8px; }
+.relic-note { color: var(--parch-dim); font-size: 12px; line-height: 1.55; margin: 0 0 8px; }
 .relic-slots { display: flex; gap: 5px; margin-bottom: 4px; }
 .relic-slot {
-    flex: 1; text-align: center; padding: 11px 4px; font-size: 0.73rem; color: var(--parch-dim);
+    flex: 1; text-align: center; padding: 11px 4px; font-size: 12px; color: var(--parch-dim);
     border: 1px dashed var(--gold-dim); background: rgba(255, 255, 255, 0.025);
 }
 .relic-slot.filled {
@@ -561,32 +552,32 @@ body.cutscene #flow-bar { display: none; }
 .relic-row {
     display: flex; align-items: baseline; gap: 9px; width: 100%; text-align: left; cursor: pointer;
     background: var(--ink-raise); border: 0; border-left: 3px solid transparent; color: var(--parch);
-    padding: 7px 10px; margin-bottom: 3px; font-family: var(--font-ko); font-size: 0.78rem;
+    padding: 7px 10px; margin-bottom: 3px; font-family: var(--font-ko); font-size: 12px;
 }
 .relic-row:hover { background: var(--ink-hover); }
 .relic-row.on { border-left-color: var(--gold-lit); background: rgba(255, 216, 74, 0.1); }
 .relic-row b { flex: none; min-width: 104px; font-weight: 600; }
-.relic-row i { flex: 1; font-style: normal; color: var(--parch-mid); font-size: 0.72rem; }
-.relic-row em { flex: none; font-style: normal; font-size: 0.69rem; color: var(--parch-dim); }
+.relic-row i { flex: 1; font-style: normal; color: var(--parch-mid); font-size: 12px; }
+.relic-row em { flex: none; font-style: normal; font-size: 12px; color: var(--parch-dim); }
 .relic-row.on em { color: var(--gold-lit); }
 
 /* ==========================================================================
    가족 패널
    ========================================================================== */
 
-.kids-meta { font-size: 0.72rem; color: var(--parch-dim); margin-bottom: 7px; }
-.kids-empty { color: var(--parch-dim); font-size: 0.78rem; line-height: 1.7; padding: 14px 4px; text-align: center; }
+.kids-meta { font-size: 12px; color: var(--parch-dim); margin-bottom: 7px; }
+.kids-empty { color: var(--parch-dim); font-size: 12px; line-height: 1.7; padding: 14px 4px; text-align: center; }
 .kid-row {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 7px 9px; background: var(--ink-raise); margin-bottom: 4px; font-size: 0.82rem;
+    padding: 7px 9px; background: var(--ink-raise); margin-bottom: 4px; font-size: 12px;
     border-left: 2px solid var(--gold-dim);
 }
-.kid-stage { font-size: 0.72rem; color: var(--parch-dim); }
+.kid-stage { font-size: 12px; color: var(--parch-dim); }
 .kid-heart { color: #ff7aa8; margin-left: 4px; }
 .kid-actions { display: flex; align-items: center; gap: 5px; }
 .kid-btn {
     background: var(--ink-raise); color: var(--parch-mid); border: 1px solid var(--gold-dim);
-    font-size: 0.7rem; padding: 4px 8px; cursor: pointer; font-family: var(--font-ko);
+    font-size: 12px; padding: 4px 8px; cursor: pointer; font-family: var(--font-ko);
 }
 .kid-btn:hover { background: var(--ink-hover); color: var(--parch); border-color: var(--gold); }
 
@@ -597,7 +588,7 @@ body.cutscene #flow-bar { display: none; }
 #relic-chips { position: absolute; bottom: 52px; left: 18px; z-index: 40; display: flex; flex-direction: column; gap: 3px; pointer-events: none; }
 #relic-chips:empty { display: none; }
 .relic-chip {
-    font-size: 0.68rem; color: var(--parch); background: rgba(14, 13, 22, 0.82); border: 1px solid var(--gold-dim); border-left: 3px solid var(--gold);
+    font-size: 12px; color: var(--parch); background: rgba(14, 13, 22, 0.82); border: 1px solid var(--gold-dim); border-left: 3px solid var(--gold);
     padding: 3px 9px; font-family: var(--font-ko); white-space: nowrap;
 }
 .relic-chip small { color: var(--parch-dim); margin-left: 6px; }
@@ -607,24 +598,24 @@ body.touch #relic-chips, body.cutscene #relic-chips { display: none; }
 
 #help-chip {
     position: absolute; bottom: 18px; left: 18px; z-index: 40;
-    color: var(--parch-mid); font-size: 0.73rem;
+    color: var(--parch-mid); font-size: 12px;
     background: rgba(14, 13, 22, 0.8); border: 1px solid var(--gold-dim);
     padding: 5px 11px; font-family: var(--font-ko);
 }
 
 .help-row {
     display: grid; grid-template-columns: 74px 1fr; gap: 10px;
-    font-size: 0.77rem; line-height: 1.5; padding: 3px 0;
+    font-size: 12px; line-height: 1.5; padding: 3px 0;
     color: var(--parch-mid);
 }
 .help-row > b {
     color: var(--gold-lit); font-family: var(--font-num); font-weight: 600;
-    font-size: 0.78rem; text-align: right;
+    font-size: 12px; text-align: right;
 }
 .help-row b.inline { color: var(--gold-lit); font-family: var(--font-num); text-align: left; }
 .help-sep {
     margin-top: 11px; padding-top: 8px; border-top: 1px solid var(--gold-dim);
-    color: var(--gold-lit); font-weight: 700; font-size: 0.8rem; margin-bottom: 4px;
+    color: var(--gold-lit); font-weight: 700; font-size: 12px; margin-bottom: 4px;
 }
 .controls-hint { display: none; }
 
@@ -640,7 +631,7 @@ body.touch #relic-chips, body.cutscene #relic-chips { display: none; }
     pointer-events: auto; z-index: 100;
 }
 .title-logo {
-    font-family: var(--font-title); font-size: 3.1rem; font-weight: 700;
+    font-family: var(--font-title); font-size: 36px; font-weight: 700;
     letter-spacing: 9px; text-indent: 9px; margin: 0 0 6px;
     color: var(--gold-lit);
     text-shadow: 0 3px 0 #6d4f19, 0 0 30px rgba(255, 216, 74, 0.32);
@@ -648,7 +639,7 @@ body.touch #relic-chips, body.cutscene #relic-chips { display: none; }
 .subtitle {
     font-family: var(--font-title);
     color: var(--parch-mid); margin: 0 0 18px;
-    font-size: 0.86rem; letter-spacing: 5px; text-indent: 5px;
+    font-size: 12px; letter-spacing: 5px; text-indent: 5px;
 }
 .subtitle::before, .subtitle::after { content: '·'; color: var(--gold-dim); margin: 0 10px; }
 .card {
@@ -658,11 +649,11 @@ body.touch #relic-chips, body.cutscene #relic-chips { display: none; }
 }
 .card .row {
     display: flex; justify-content: space-between; align-items: center;
-    color: var(--parch-mid); font-size: 0.82rem;
+    color: var(--parch-mid); font-size: 12px;
 }
 .card select {
     background: var(--ink-raise); color: var(--parch); border: 1px solid var(--gold-dim);
-    padding: 6px 9px; font-family: var(--font-ko); font-size: 0.8rem;
+    padding: 6px 9px; font-family: var(--font-ko); font-size: 12px;
 }
 .card input[type="color"] {
     background: none; border: 1px solid var(--gold-dim); width: 44px; height: 28px;
@@ -670,11 +661,11 @@ body.touch #relic-chips, body.cutscene #relic-chips { display: none; }
 }
 .name-input {
     padding: 11px; border: 1px solid var(--gold-dim); background: rgba(0, 0, 0, 0.35);
-    color: var(--parch); font-size: 1.05rem; text-align: center;
+    color: var(--parch); font-size: 24px; text-align: center;
     font-family: var(--font-ko); letter-spacing: 1px;
 }
 .name-input:focus { outline: none; border-color: var(--gold-lit); }
-.look-title { color: var(--parch-mid); font-weight: 600; font-size: 0.84rem; }
+.look-title { color: var(--parch-mid); font-weight: 600; font-size: 12px; }
 #c-look-name { color: var(--gold-lit); }
 #c-gallery {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
@@ -692,7 +683,7 @@ body.touch #relic-chips, body.cutscene #relic-chips { display: none; }
 
 button.start-btn, .continue-btn {
     padding: 13px; cursor: pointer; font-weight: 700;
-    font-family: var(--font-title); font-size: 1rem; letter-spacing: 2px;
+    font-family: var(--font-title); font-size: 24px; letter-spacing: 2px;
     background: linear-gradient(180deg, #e6c169, #b88f3c);
     color: #2a1d06; border: 2px solid #f2dc9a;
     transition: filter 0.15s, transform 0.12s;
@@ -700,7 +691,7 @@ button.start-btn, .continue-btn {
 button.start-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
 .continue-btn {
     background: var(--ink-raise); color: var(--parch); border: 2px solid var(--gold-dim);
-    font-size: 0.88rem; letter-spacing: 1px; padding: 11px;
+    font-size: 12px; letter-spacing: 1px; padding: 11px;
 }
 .continue-btn:hover { background: var(--ink-hover); border-color: var(--gold); }
 
@@ -713,7 +704,7 @@ button.start-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
     display: flex; align-items: center; justify-content: center; transition: opacity 0.9s ease;
 }
 #fade-screen.on { opacity: 1; pointer-events: auto; }
-#fade-text { color: var(--gold-lit); font-size: 1.5rem; letter-spacing: 6px; }
+#fade-text { color: var(--gold-lit); font-size: 24px; letter-spacing: 6px; }
 
 /* ==========================================================================
    모바일(터치)
@@ -743,9 +734,9 @@ body.touch.playing #touch-layer { display: block; }   /* 시작 화면에서는 
     position: absolute; border-radius: 50%;
     background: rgba(14, 13, 22, 0.6); border: 2px solid rgba(216, 178, 90, 0.8);
     color: var(--parch); text-align: center; font-weight: 700;
-    font-family: var(--font-ko); font-size: 0.78rem; pointer-events: auto;
+    font-family: var(--font-ko); font-size: 12px; pointer-events: auto;
 }
-.touch-btn.big { font-size: 0.95rem; background: rgba(120, 40, 20, 0.45); border-color: rgba(255, 170, 80, 0.9); }
+.touch-btn.big { font-size: 24px; background: rgba(120, 40, 20, 0.45); border-color: rgba(255, 170, 80, 0.9); }
 .touch-btn.down { background: rgba(255, 216, 74, 0.42); color: #2a1d06; }
 #touch-top {
     position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
@@ -754,14 +745,14 @@ body.touch.playing #touch-layer { display: block; }   /* 시작 화면에서는 
 .touch-chip {
     padding: 6px 9px; background: rgba(14, 13, 22, 0.78);
     border: 1px solid rgba(216, 178, 90, 0.7); color: var(--parch);
-    font-size: 0.7rem; font-family: var(--font-ko); white-space: nowrap; line-height: 1;
+    font-size: 12px; font-family: var(--font-ko); white-space: nowrap; line-height: 1;
 }
 .touch-chip.down { background: rgba(255, 216, 74, 0.4); color: #2a1d06; }
 /* 터치에서는 Q·F·R·X 가 버튼으로 있으니 스킬 칸 줄은 치운다. 속성 1·2·3 은 위 칩으로 */
 body.touch #skill-bar { display: none; }
 body.touch #help-chip, body.touch #help-panel { display: none !important; }
 body.touch #toast-box { top: 44px; width: min(420px, 60vw); }
-body.touch .toast { font-size: 0.74rem; padding: 5px 10px; }
+body.touch .toast { font-size: 12px; padding: 5px 10px; }
 body.touch #interact-tip { bottom: calc(3.6 * var(--u) + 24px); }
 body.touch #quest-more { display: none; }
 
@@ -780,10 +771,10 @@ body.touch #quest-more { display: none; }
     #dialogue-overlay, body.cutscene #dialogue-overlay { max-height: 88vh; bottom: 0; padding: 4px 5% 8px; }
     #d-header { gap: 10px; margin-bottom: 4px; }
     #d-portrait.portrait { width: 54px; height: 54px; }
-    #d-text, body.cutscene #d-text { font-size: 0.86rem; line-height: 1.45; margin-bottom: 6px; min-height: 0; }
+    #d-text, body.cutscene #d-text { font-size: 12px; line-height: 1.45; margin-bottom: 6px; min-height: 0; }
     #d-options { flex-direction: row; flex-wrap: wrap; gap: 4px; width: 100%; }
-    #d-options .d-btn { flex: 1 1 45%; padding: 5px 8px; font-size: 0.82rem; }
-    #scene-title { top: 24%; font-size: 1rem; padding: 4px 12px; }
+    #d-options .d-btn { flex: 1 1 45%; padding: 5px 8px; font-size: 12px; }
+    #scene-title { top: 24%; font-size: 24px; padding: 4px 12px; }
     .right-column { transform: scale(0.58); }
     .hud-panel { transform: scale(0.6); }
     body.touch #toast-box { top: 40px; }
@@ -802,9 +793,9 @@ body.touch #quest-more { display: none; }
     #dialogue-overlay { max-height: 62vh; }
     #d-options { grid-template-columns: 1fr; }
     #journal-tabs { flex-wrap: wrap; gap: 3px; }
-    .journal-tab { flex: 1 1 auto; padding: 5px 4px; font-size: 0.7rem; }
+    .journal-tab { flex: 1 1 auto; padding: 5px 4px; font-size: 12px; }
     #region-banner { top: 30%; }
-    #scene-title { top: 40%; font-size: 1.1rem; letter-spacing: 2px; padding: 6px 14px; }
+    #scene-title { top: 40%; font-size: 24px; letter-spacing: 2px; padding: 6px 14px; }
 }
 
 /* ── 컷씬 ────────────────────────────────────────────────────────────────
@@ -854,7 +845,7 @@ body.cutscene #dialogue-overlay {
     background-color: rgba(10, 9, 18, 0.95);
 }
 body.cutscene #d-options { width: 100%; align-items: flex-start; }
-body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
+body.cutscene #d-text { font-size: 24px; line-height: 1.7; }
 
 /* 일지 [마을 용들] 탭: 지금 누가 어디서 무엇을 하는지 */
 .folk-card {
@@ -865,10 +856,10 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 }
 .folk-card.here { border-left-color: var(--gold-lit); background: var(--ink-hover); }
 .folk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.folk-name { font-family: var(--font-title); color: var(--gold-lit); font-size: 0.92rem; }
-.folk-job { color: var(--parch-dim); font-size: 0.68rem; }
-.folk-where { color: var(--parch-mid); font-size: 0.74rem; margin-top: 3px; }
-.folk-doing { color: var(--parch); font-size: 0.78rem; margin-top: 2px; line-height: 1.45; }
+.folk-name { font-family: var(--font-title); color: var(--gold-lit); font-size: 12px; }
+.folk-job { color: var(--parch-dim); font-size: 12px; }
+.folk-where { color: var(--parch-mid); font-size: 12px; margin-top: 3px; }
+.folk-doing { color: var(--parch); font-size: 12px; margin-top: 2px; line-height: 1.45; }
 
 /* ── 굴 꾸미기 판 ───────────────────────────────────────────────────────── */
 
@@ -877,8 +868,8 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
     margin-bottom: 8px; padding-bottom: 7px;
     border-bottom: 1px solid var(--gold-dim);
 }
-.den-meta b { color: var(--gold-lit); font-size: 0.88rem; }
-.den-meta span { color: var(--parch-dim); font-size: 0.72rem; }
+.den-meta b { color: var(--gold-lit); font-size: 12px; }
+.den-meta span { color: var(--parch-dim); font-size: 12px; }
 
 .den-item {
     display: flex; align-items: center; gap: 10px; width: 100%;
@@ -895,15 +886,15 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
     border: 1px solid var(--gold-dim);
 }
 .den-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.den-info b  { color: var(--gold-lit); font-size: 0.85rem; }
-.den-info i  { color: var(--parch-mid); font-size: 0.68rem; font-style: normal; }
-.den-info em { color: var(--parch-dim); font-size: 0.68rem; font-style: normal; }
+.den-info b  { color: var(--gold-lit); font-size: 12px; }
+.den-info i  { color: var(--parch-mid); font-size: 12px; font-style: normal; }
+.den-info em { color: var(--parch-dim); font-size: 12px; font-style: normal; }
 
 /* 놓을 자리를 고르는 중 */
 #den-hint {
     position: absolute; left: 50%; bottom: 12vh; transform: translateX(-50%);
     z-index: 195; pointer-events: none; display: none;
-    font-family: var(--font-ko); font-size: 0.82rem; color: var(--parch);
+    font-family: var(--font-ko); font-size: 12px; color: var(--parch);
     background: rgba(10, 9, 18, 0.92); border: 1px solid var(--gold-dim);
     padding: 7px 14px; white-space: pre;
 }
@@ -914,11 +905,11 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 .panel { box-shadow: 0 0 0 100vmax rgba(3, 4, 9, 0.72); }
 
 
-#journal-points { font-size: 0.74rem; color: var(--gold-lit); font-family: var(--font-num); white-space: nowrap; }
+#journal-points { font-size: 12px; color: var(--gold-lit); font-family: var(--font-num); white-space: nowrap; }
 
 .tree-note { background: var(--ink-raise); border-left: 3px solid var(--gold); padding: 7px 12px; margin-bottom: 4px; }
-.tree-note-title { font-family: var(--font-title); color: var(--gold-lit); font-weight: 700; font-size: 0.88rem; }
-.tree-note-text { color: var(--parch-mid); font-size: 0.74rem; margin-top: 3px; line-height: 1.5; }
+.tree-note-title { font-family: var(--font-title); color: var(--gold-lit); font-weight: 700; font-size: 12px; }
+.tree-note-text { color: var(--parch-mid); font-size: 12px; margin-top: 3px; line-height: 1.5; }
 
 /* flex: 1 0 auto — 남는 자리는 채우되 내용보다 작아지지 않는다 (작아지면 나무가 설명 위로 넘친다) */
 .tree-wrap {
@@ -933,9 +924,9 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 .tree-canopy { position: relative; z-index: 1; display: flex; gap: 10px; align-items: flex-end; justify-content: center; width: 100%; }
 .tree-branch { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .branch-head { display: flex; align-items: baseline; gap: 6px; border-bottom: 3px solid var(--c); padding: 0 14px 5px; white-space: nowrap; }
-.branch-glyph { font-size: 0.78rem; color: var(--c); }
-.branch-name { font-family: var(--font-title); font-size: 0.92rem; font-weight: 700; color: var(--parch); letter-spacing: 1px; }
-.branch-sub { font-size: 0.68rem; color: var(--c); }
+.branch-glyph { font-size: 12px; color: var(--c); }
+.branch-name { font-family: var(--font-title); font-size: 12px; font-weight: 700; color: var(--parch); letter-spacing: 1px; }
+.branch-sub { font-size: 12px; color: var(--c); }
 
 .branch-rows { display: flex; flex-direction: column-reverse; align-items: center; gap: 22px; }
 .branch-row { display: flex; gap: 14px; justify-content: center; }
@@ -951,14 +942,14 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 }
 .tnode-rank {
     transform: rotate(-45deg); font-family: var(--font-num);
-    font-size: 0.7rem; font-weight: 600; color: var(--parch-dim); letter-spacing: -0.5px; white-space: nowrap;
+    font-size: 12px; font-weight: 600; color: var(--parch-dim); letter-spacing: -0.5px; white-space: nowrap;
 }
 .tnode-slot {
     position: absolute; top: -10px; right: -10px; transform: rotate(-45deg);
-    background: var(--good); color: #0b1a10; font-size: 0.6rem; font-weight: 700;
+    background: var(--good); color: #0b1a10; font-size: 10px; font-family: 'Galmuri9', sans-serif; font-weight: 700;
     width: 16px; height: 16px; line-height: 16px; text-align: center; border: 1px solid #0b1a10;
 }
-.tnode-name { font-size: 0.68rem; color: var(--parch-mid); text-align: center; line-height: 1.3; }
+.tnode-name { font-size: 12px; color: var(--parch-mid); text-align: center; line-height: 1.3; }
 
 .tnode.on .tnode-gem { background: #1d2033; border-color: var(--c); box-shadow: inset 0 0 12px rgba(255,255,255,0.12), 0 0 12px -2px var(--c); }
 .tnode.on .tnode-rank { color: var(--parch); }
@@ -986,8 +977,8 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
     background: var(--ink-solid); border: 3px solid var(--gold); padding: 7px 20px;
     box-shadow: 0 0 22px -4px rgba(216, 178, 90, 0.8);
 }
-.root-glyph { color: var(--gold-lit); font-size: 0.92rem; }
-.root-label { font-size: 0.78rem; font-weight: 700; color: var(--parch); letter-spacing: 1px; }
+.root-glyph { color: var(--gold-lit); font-size: 12px; }
+.root-label { font-size: 12px; font-weight: 700; color: var(--parch); letter-spacing: 1px; }
 
 /* 나무 아래 자세히 보기 줄 */
 #journal-detail {
@@ -995,13 +986,13 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
     border-top: 1px solid var(--gold-dim); padding: 10px 2px 0; margin-top: 8px; min-height: 54px;
 }
 .detail-info { flex: 1; min-width: 0; }
-.detail-name { font-family: var(--font-title); font-size: 0.88rem; font-weight: 700; color: var(--gold-lit); }
-.detail-text { font-size: 0.75rem; color: var(--parch-mid); margin-top: 3px; line-height: 1.45; }
+.detail-name { font-family: var(--font-title); font-size: 12px; font-weight: 700; color: var(--gold-lit); }
+.detail-text { font-size: 12px; color: var(--parch-mid); margin-top: 3px; line-height: 1.45; }
 .detail-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-.detail-hint { font-size: 0.73rem; color: var(--parch-dim); }
+.detail-hint { font-size: 12px; color: var(--parch-dim); }
 .detail-btn {
     background: rgba(255, 216, 74, 0.14); color: var(--parch); border: 1px solid var(--gold);
-    padding: 8px 14px; font-size: 0.76rem; font-weight: 700; cursor: pointer;
+    padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
     font-family: var(--font-ko); white-space: nowrap;
 }
 .detail-btn:hover { background: rgba(255, 216, 74, 0.28); }
@@ -1014,24 +1005,24 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 #points-chip {
     width: 100%; margin-bottom: 8px; padding: 6px 8px; cursor: pointer; white-space: nowrap;
     background: rgba(255, 216, 74, 0.16); border: 1px solid var(--gold);
-    color: var(--gold-lit); font-size: 0.72rem; font-family: var(--font-ko);
+    color: var(--gold-lit); font-size: 12px; font-family: var(--font-ko);
     animation: point-pulse 1.6s infinite alternate;
 }
-#points-chip b { color: var(--parch); font-size: 0.9rem; }
+#points-chip b { color: var(--parch); font-size: 12px; }
 #points-chip:hover { background: rgba(255, 216, 74, 0.3); }
 @keyframes point-pulse { from { box-shadow: 0 0 0 rgba(255,216,74,0); } to { box-shadow: 0 0 14px rgba(255,216,74,0.5); } }
-.slot-rank { position: absolute; top: 2px; right: 4px; font-size: 0.55rem; color: var(--gold-lit); letter-spacing: -1px; }
+.slot-rank { position: absolute; top: 2px; right: 4px; font-size: 10px; font-family: 'Galmuri9', sans-serif; color: var(--gold-lit); letter-spacing: -1px; }
 
 @media (max-width: 900px), (max-height: 620px) {
     #journal-panel, #help-panel, #den-panel, #kids-panel, #settings-panel { width: 97vw; height: 92vh; max-height: 92vh; }
     .tree-canopy { gap: 2px; }
     .tnode { width: 62px; }
     .tnode-gem { width: 38px; height: 38px; border-width: 2px; }
-    .tnode-rank, .tnode-name { font-size: 0.6rem; }
+    .tnode-rank, .tnode-name { font-size: 10px; font-family: 'Galmuri9', sans-serif; }
     .branch-rows { gap: 16px; }
     .branch-row { gap: 6px; }
     .branch-head { padding: 0 6px 4px; }
-    .branch-name { font-size: 0.78rem; }
+    .branch-name { font-size: 12px; }
     .branch-sub { display: none; }
     #journal-detail { flex-direction: column; align-items: stretch; gap: 8px; }
     .detail-actions { justify-content: flex-start; }
@@ -1056,13 +1047,13 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
     82%  { opacity: 1; }
     100% { opacity: 0; }
 }
-#qb-kind { font-family: var(--font-title); font-size: 0.7rem; letter-spacing: 4px; color: var(--gold-lit); text-shadow: 0 1px 3px #000; }
-#qb-title { font-family: var(--font-title); font-size: 1.3rem; font-weight: 700; color: var(--parch); text-shadow: 0 2px 0 #1a1206, 0 0 18px rgba(216, 178, 90, 0.45); margin: 2px 0; }
-#qb-goal { font-size: 0.82rem; color: var(--parch-mid); text-shadow: 0 1px 3px #000; }
+#qb-kind { font-family: var(--font-title); font-size: 12px; letter-spacing: 4px; color: var(--gold-lit); text-shadow: 0 1px 3px #000; }
+#qb-title { font-family: var(--font-title); font-size: 24px; font-weight: 700; color: var(--parch); text-shadow: 0 2px 0 #1a1206, 0 0 18px rgba(216, 178, 90, 0.45); margin: 2px 0; }
+#qb-goal { font-size: 12px; color: var(--parch-mid); text-shadow: 0 1px 3px #000; }
 #quest-banner.done #qb-kind { color: var(--good); }
 #quest-banner.done::before, #quest-banner.done::after { background: linear-gradient(90deg, transparent, var(--good), transparent); }
 body.cutscene #quest-banner { display: none; }
-@media (max-width: 900px) { #qb-title { font-size: 1rem; } #qb-goal { font-size: 0.72rem; } }
+@media (max-width: 900px) { #qb-title { font-size: 24px; } #qb-goal { font-size: 12px; } }
 
 /* ---------- 지역 이름 배너 (지도를 옮길 때 위쪽에 잠깐) ---------- */
 #region-banner {
@@ -1080,10 +1071,10 @@ body.cutscene #quest-banner { display: none; }
 }
 #region-name {
     font-family: var(--font-title);
-    font-size: 2rem; font-weight: 700; color: var(--parch);
+    font-size: 36px; font-weight: 700; color: var(--parch);
     text-shadow: 0 2px 0 #1a1206, 0 0 22px rgba(216, 178, 90, 0.55);
 }
-#region-sub { font-family: var(--font-title); font-size: 0.82rem; color: var(--gold-lit); letter-spacing: 3px; text-shadow: 0 2px 4px #000; }
+#region-sub { font-family: var(--font-title); font-size: 12px; color: var(--gold-lit); letter-spacing: 3px; text-shadow: 0 2px 4px #000; }
 /* 이름 위아래로 가늘게 긋는 금선. 가운데가 밝고 끝으로 갈수록 사라진다 */
 .region-rule {
     width: min(360px, 62vw); height: 2px;
@@ -1091,14 +1082,14 @@ body.cutscene #quest-banner { display: none; }
     opacity: 0.85;
 }
 @media (max-width: 900px) {
-    #region-name { font-size: 1.4rem; }
-    #region-sub { font-size: 0.7rem; }
+    #region-name { font-size: 24px; }
+    #region-sub { font-size: 12px; }
     .region-rule { width: 70vw; }
 }
 
 /* 달 밝은 밤의 모임 안내 (일지 [마을 용들] 탭) */
 .folk-moon {
-    color: var(--parch-mid); font-size: 0.74rem; line-height: 1.5;
+    color: var(--parch-mid); font-size: 12px; line-height: 1.5;
     background: var(--ink-raise); border: 1px solid var(--gold-dim);
     padding: 6px 10px; margin-bottom: 8px;
 }

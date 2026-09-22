@@ -435,7 +435,7 @@ export class Boss extends Entity {
         ctx.globalAlpha = 1;
 
         if (!this.awake) {
-            ctx.fillStyle = '#fff'; ctx.font = '600 14px "Bookk Myungjo", serif'; ctx.textAlign = 'center';
+            ctx.fillStyle = '#fff'; ctx.font = '700 12px "Galmuri11", sans-serif'; ctx.textAlign = 'center';
             ctx.fillText('z z z', this.x, this.y - 130 * sc + Math.sin(state.gameTime * 2) * 4);
         }
     }
