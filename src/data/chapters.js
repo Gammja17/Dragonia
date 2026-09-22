@@ -25,7 +25,7 @@ export const CHAPTERS = [
     },
     {
         id: 'c3', title: '3장', name: '골짜기의 옛 수호룡', done: s => !!s.bossesDefeated.MORGATH,
-        maps: ['HOLLOW', 'MORGATH_LAIR'],
+        maps: ['HOLLOW', 'HOLLOW_DEEP', 'MORGATH_LAIR'],
         blocked: "거기까지 갈 일은 아직 없다.",
     },
     {
@@ -37,12 +37,12 @@ export const CHAPTERS = [
     },
     {
         id: 'c4', title: '4장', name: '굶는 계절', done: done('m5g'),
-        maps: ['JUNGLE', 'ZALGORA_LAIR', 'ROOTVALE', 'CLOUDTOP', 'SKY_RUINS'],
+        maps: ['JUNGLE', 'JUNGLE_DEEP', 'ZALGORA_LAIR', 'ROOTVALE', 'CLOUDTOP', 'SKY_RUINS'],
         blocked: "거기까지 갈 일은 아직 없다.",
     },
     {
         id: 'c5', title: '5장', name: '맡긴 알', done: done('m5a'),
-        maps: ['SNOW_ROAD', 'GLACIA_LAIR'],
+        maps: ['SNOW_ROAD', 'SNOW_RIDGE', 'GLACIA_LAIR'],
         blocked: "거기까지 갈 일은 아직 없다.",
     },
     {
@@ -52,12 +52,12 @@ export const CHAPTERS = [
     },
     {
         id: 'c7', title: '7장', name: '사막 길', done: done('m5c'),
-        maps: ['DESERT', 'BASIL_LAIR', 'STONEBACK', 'ASH_CITY', 'AUTUMN'],
+        maps: ['DESERT', 'DESERT_BONES', 'BASIL_LAIR', 'STONEBACK', 'ASH_CITY', 'AUTUMN'],
         blocked: "화산 쪽은 아직 아무도 보내 주지 않는다.",
     },
     {
         id: 'c8', title: '8장', name: '잿마루', done: s => s.quests.done.includes('m6') || s.quests.done.includes('m7d'),
-        maps: ['VOLCANO', 'IGNAR_LAIR'],
+        maps: ['VOLCANO', 'VOLCANO_PATH', 'IGNAR_LAIR'],
         blocked: '',
     },
 ];

@@ -131,6 +131,7 @@ export const MAPS = {
         ],
         fixtures: [
             { t: 'WAYSTONE', at: [11, 4] },   // 늘 지나다니는 길이라 여기서도 건너뛸 수 있게
+            { t: 'PROP', type: 'WELL', at: [4, 4] }, { t: 'PROP', type: 'STONE_WALL', at: [18, 5] }, { t: 'PROP', type: 'STONE_WALL', at: [18, 9] },   // 옛 우물, 골짜기 어귀의 돌담
             { t: 'PROP', type: 'SIGN', at: [11, 8] },
             { t: 'CAVE', id: 'FOREST_HOLE', at: [17, 11] },   // 처음 만나는 굴
         ],
@@ -158,18 +159,35 @@ export const MAPS = {
         portals: [
             { side: 'W', to: 'EAST_ROAD', name: '동쪽 숲길' },
             { side: 'N', to: 'SNOW_ROAD', name: '서리 고개' },
-            { side: 'E', to: 'MORGATH_LAIR', name: '뼈용의 둥지' },
+            { side: 'E', to: 'HOLLOW_DEEP', name: '뼈의 골짜기' },
         ],
         fixtures: [
             { t: 'CAVE', id: 'HOLLOW_BARROW', at: [5, 12] },
             { t: 'WAYSTONE', at: [11, 9] },
+            { t: 'PROP', type: 'CAVE_ARCH', at: [19, 8] }, { t: 'PROP', type: 'RUIN', at: [4, 4] }, { t: 'PROP', type: 'BANNER', at: [15, 5] },
+        ],
+    },
+    // 골짜기 안쪽. 삼백 년 전 굴이 골짜기마다 있었다는 그 골짜기. 길이 꺾이며 옛 굴 터를 지난다
+    HOLLOW_DEEP: {
+        name: '뼈의 골짜기', biome: 'HOLLOW', cw: 22, ch: 16, seed: 161, trees: 0.55, enemyCap: 11, chests: 4,
+        ponds: [[3, 13, 2]],
+        roads: [[[1, 8], [6, 8], [6, 3], [12, 3], [12, 12], [18, 12], [18, 8], [20, 8]]],
+        portals: [
+            { side: 'W', to: 'HOLLOW', name: '달빛 골짜기' },
+            { side: 'E', to: 'MORGATH_LAIR', name: '뼈용의 둥지' },
+        ],
+        fixtures: [
+            { t: 'WAYSTONE', at: [12, 7] },
+            { t: 'PROP', type: 'RUIN', at: [7, 5] }, { t: 'PROP', type: 'RUIN', at: [9, 5] }, { t: 'PROP', type: 'RUIN', at: [14, 10] },   // 옛 굴 터
+            { t: 'PROP', type: 'CAVE_ARCH', at: [16, 13] }, { t: 'PROP', type: 'STONE_WALL', at: [11, 2] }, { t: 'PROP', type: 'STONE_WALL', at: [13, 2] },
+            { t: 'PROP', type: 'BANNER', at: [6, 9] }, { t: 'PROP', type: 'CAMPFIRE', at: [9, 11] },
         ],
     },
     MORGATH_LAIR: {
         name: '뼈용의 둥지', biome: 'HOLLOW', cw: 18, ch: 13, seed: 107, trees: 0.25,
         clearings: [[10, 6, 5]],
         roads: [[[1, 6], [10, 6]]],
-        portals: [{ side: 'W', to: 'HOLLOW', name: '달빛 골짜기' }],
+        portals: [{ side: 'W', to: 'HOLLOW_DEEP', name: '뼈의 골짜기' }],
         fixtures: [
             { t: 'BOSS', id: 'MORGATH', at: [10, 6] },
             { t: 'PROP', type: 'CAMPFIRE', at: [5, 9] }, { t: 'PROP', type: 'CAMPFIRE', at: [14, 9] },
@@ -181,15 +199,30 @@ export const MAPS = {
         roads: [[[9, 13], [9, 1]]],
         portals: [
             { side: 'S', to: 'HOLLOW', name: '달빛 골짜기' },
+            { side: 'N', to: 'SNOW_RIDGE', name: '얼음 능선' },
+        ],
+        fixtures: [{ t: 'WAYSTONE', at: [11, 7] }, { t: 'PROP', type: 'STONE_WALL', at: [8, 3] }, { t: 'PROP', type: 'STONE_WALL', at: [10, 3] }, { t: 'PROP', type: 'CAMPFIRE', at: [15, 10] }],
+    },
+    // 서리 고개 위. 얼어붙은 망루와 버려진 야영지를 지나 봉우리로 오른다
+    SNOW_RIDGE: {
+        name: '얼음 능선', biome: 'SNOW', cw: 20, ch: 18, seed: 162, trees: 0.4, enemyCap: 11, chests: 4,
+        ponds: [[16, 15, 2]],
+        roads: [[[10, 17], [10, 13], [4, 13], [4, 7], [15, 7], [15, 3], [10, 3], [10, 1]]],
+        portals: [
+            { side: 'S', to: 'SNOW_ROAD', name: '서리 고개' },
             { side: 'N', to: 'GLACIA_LAIR', name: '얼어붙은 봉우리' },
         ],
-        fixtures: [{ t: 'WAYSTONE', at: [11, 7] }],
+        fixtures: [
+            { t: 'WAYSTONE', at: [10, 9] },
+            { t: 'PROP', type: 'RUIN', at: [4, 5] }, { t: 'PROP', type: 'STONE_WALL', at: [3, 8] }, { t: 'PROP', type: 'STONE_WALL', at: [5, 8] },   // 얼어붙은 망루
+            { t: 'PROP', type: 'GATE', at: [15, 5] }, { t: 'PROP', type: 'CAMPFIRE', at: [14, 9] }, { t: 'PROP', type: 'BANNER', at: [12, 12] },
+        ],
     },
     GLACIA_LAIR: {
         name: '얼어붙은 봉우리', biome: 'SNOW', cw: 18, ch: 13, seed: 109, trees: 0.2,
         clearings: [[9, 7, 5]],
         roads: [[[9, 12], [9, 7]]],
-        portals: [{ side: 'S', to: 'SNOW_ROAD', name: '서리 고개' }],
+        portals: [{ side: 'S', to: 'SNOW_RIDGE', name: '얼음 능선' }],
         fixtures: [
             { t: 'BOSS', id: 'GLACIA', at: [9, 6] },
             { t: 'PROP', type: 'CAMPFIRE', at: [5, 10] }, { t: 'PROP', type: 'CAMPFIRE', at: [13, 10] },
@@ -215,20 +248,37 @@ export const MAPS = {
         roads: [[[11, 1], [11, 14]], [[11, 8], [20, 8]]],
         portals: [
             { side: 'N', to: 'SOUTH_ROAD', name: '남쪽 숲길' },
-            { side: 'E', to: 'ZALGORA_LAIR', name: '쌍두룡의 둥지' },
+            { side: 'E', to: 'JUNGLE_DEEP', name: '뿌리 미궁' },
             { side: 'W', to: 'ROOTVALE', name: '뿌리골' },
             { side: 'S', to: 'AUTUMN', name: '단풍 골' },
         ],
         fixtures: [
             { t: 'CAVE', id: 'JUNGLE_HOLLOW', at: [6, 12] },
             { t: 'WAYSTONE', at: [12, 9] },
+            { t: 'PROP', type: 'VINE_PILLAR', at: [16, 4] }, { t: 'PROP', type: 'VINE_PILLAR', at: [18, 4] }, { t: 'PROP', type: 'GARDEN', at: [4, 9] },
+        ],
+    },
+    // 밀림 동쪽 깊은 곳. 뿌리에 삼켜진 사당을 지나 잘고라의 사냥터로
+    JUNGLE_DEEP: {
+        name: '뿌리 미궁', biome: 'JUNGLE', cw: 22, ch: 16, seed: 163, trees: 0.75, enemyCap: 12, chests: 4,
+        ponds: [[8, 11, 2], [14, 4, 2]],
+        roads: [[[1, 8], [5, 8], [5, 3], [10, 3], [10, 13], [16, 13], [16, 8], [20, 8]]],
+        portals: [
+            { side: 'W', to: 'JUNGLE', name: '환영의 밀림' },
+            { side: 'E', to: 'ZALGORA_LAIR', name: '쌍두룡의 둥지' },
+        ],
+        fixtures: [
+            { t: 'WAYSTONE', at: [10, 6] },
+            { t: 'PROP', type: 'TEMPLE', at: [10, 8] },   // 묻힌 사당
+            { t: 'PROP', type: 'VINE_PILLAR', at: [9, 7] }, { t: 'PROP', type: 'VINE_PILLAR', at: [11, 7] }, { t: 'PROP', type: 'VINE_PILLAR', at: [9, 9] }, { t: 'PROP', type: 'VINE_PILLAR', at: [11, 9] },
+            { t: 'PROP', type: 'GARDEN', at: [17, 10] }, { t: 'PROP', type: 'STUMP', at: [3, 11] }, { t: 'PROP', type: 'STUMP', at: [18, 4] }, { t: 'PROP', type: 'STUMP', at: [4, 12] },
         ],
     },
     ZALGORA_LAIR: {
         name: '쌍두룡의 둥지', biome: 'JUNGLE', cw: 18, ch: 13, seed: 112, trees: 0.25,
         clearings: [[10, 6, 5]],
         roads: [[[1, 6], [10, 6]]],
-        portals: [{ side: 'W', to: 'JUNGLE', name: '환영의 밀림' }],
+        portals: [{ side: 'W', to: 'JUNGLE_DEEP', name: '뿌리 미궁' }],
         fixtures: [
             { t: 'BOSS', id: 'ZALGORA', at: [10, 6] },
             { t: 'PROP', type: 'CAMPFIRE', at: [5, 9] }, { t: 'PROP', type: 'CAMPFIRE', at: [14, 9] },
@@ -239,16 +289,31 @@ export const MAPS = {
         roads: [[[20, 7], [11, 7], [11, 14]]],
         portals: [
             { side: 'E', to: 'SOUTH_ROAD', name: '남쪽 숲길' },
-            { side: 'S', to: 'BASIL_LAIR', name: '모래 폭군의 둥지' },
+            { side: 'S', to: 'DESERT_BONES', name: '뼈 사구' },
             { side: 'W', to: 'STONEBACK', name: '돌등' },
         ],
-        fixtures: [{ t: 'WAYSTONE', at: [12, 7] }, { t: 'PROP', type: 'ROCK', at: [7, 5] }],
+        fixtures: [{ t: 'WAYSTONE', at: [12, 7] }, { t: 'PROP', type: 'ROCK', at: [7, 5] }, { t: 'PROP', type: 'RUIN', at: [5, 12] }, { t: 'PROP', type: 'BANNER', at: [17, 4] }, { t: 'PROP', type: 'STONE_WALL', at: [16, 12] }],
+    },
+    // 사구 남쪽. 모래에 반쯤 묻힌 폐허와, 그론의 동료 셋이 마지막으로 선 자리
+    DESERT_BONES: {
+        name: '뼈 사구', biome: 'DESERT', cw: 22, ch: 16, seed: 164, trees: 0.15, enemyCap: 11, chests: 4,
+        roads: [[[11, 1], [11, 5], [4, 5], [4, 11], [16, 11], [16, 7], [11, 7], [11, 14]]],
+        portals: [
+            { side: 'N', to: 'DESERT', name: '죽은 사구' },
+            { side: 'S', to: 'BASIL_LAIR', name: '모래 폭군의 둥지' },
+        ],
+        fixtures: [
+            { t: 'WAYSTONE', at: [11, 8] },
+            { t: 'PROP', type: 'RUIN', at: [4, 4] }, { t: 'PROP', type: 'STONE_WALL', at: [4, 12] },
+            { t: 'PROP', type: 'BANNER', at: [15, 10] }, { t: 'PROP', type: 'BANNER', at: [16, 10] }, { t: 'PROP', type: 'BANNER', at: [17, 10] },   // 세 개의 깃발 (그론의 못 세 개)
+            { t: 'PROP', type: 'ROCK', at: [7, 8] }, { t: 'PROP', type: 'ROCK', at: [14, 3] }, { t: 'PROP', type: 'ROCK', at: [18, 13] }, { t: 'PROP', type: 'ROCK', at: [8, 13] },
+        ],
     },
     BASIL_LAIR: {
         name: '모래 폭군의 둥지', biome: 'DESERT', cw: 18, ch: 13, seed: 114, trees: 0.1,
         clearings: [[9, 7, 5]],
         roads: [[[9, 1], [9, 7]]],
-        portals: [{ side: 'N', to: 'DESERT', name: '죽은 사구' }, { side: 'S', to: 'ASH_CITY', name: '불탄 도시' }],
+        portals: [{ side: 'N', to: 'DESERT_BONES', name: '뼈 사구' }, { side: 'S', to: 'ASH_CITY', name: '불탄 도시' }],
         fixtures: [
             { t: 'BOSS', id: 'BASIL', at: [9, 7] },
             { t: 'PROP', type: 'CAMPFIRE', at: [5, 10] }, { t: 'PROP', type: 'CAMPFIRE', at: [13, 10] },
@@ -304,14 +369,14 @@ export const MAPS = {
             { side: 'N', to: 'JUNGLE', name: '환영의 밀림' },
             { side: 'E', to: 'VOLCANO', name: '잿빛 화산' },
         ],
-        fixtures: [{ t: 'WAYSTONE', at: [9, 8] }],
+        fixtures: [{ t: 'WAYSTONE', at: [9, 8] }, { t: 'PROP', type: 'GATE', at: [16, 7] }, { t: 'PROP', type: 'STUMP_TABLE', at: [5, 11] }, { t: 'PROP', type: 'RUIN', at: [4, 4] }],
     },
     VOLCANO: {
         name: '잿빛 화산', biome: 'VOLCANO', cw: 22, ch: 16, seed: 116, trees: 0.15, safe: true, wanderer: false,   // 기슭에 잿마루가 있다. 예순 해 동안 아무것도 이 마을을 건드리지 못했다
         roads: [[[1, 8], [20, 8]]],
         portals: [
             { side: 'W', to: 'AUTUMN', name: '단풍 골' },
-            { side: 'E', to: 'IGNAR_LAIR', name: '화산 정상' },
+            { side: 'E', to: 'VOLCANO_PATH', name: '잿길' },
         ],
         fixtures: [
             { t: 'CAVE', id: 'EMBER_SHAFT', at: [6, 12] },
@@ -324,11 +389,25 @@ export const MAPS = {
             { t: 'PROP', type: 'CAMPFIRE', at: [10, 8] }, { t: 'PROP', type: 'CAMPFIRE', at: [14, 8] },
         ],
     },
+    // 잿마루에서 정상으로 오르는 잿길. 잿마루가 세운 검은 문을 지난다
+    VOLCANO_PATH: {
+        name: '잿길', biome: 'VOLCANO', cw: 22, ch: 14, seed: 165, trees: 0.1, enemyCap: 10, chests: 3,
+        roads: [[[1, 7], [6, 7], [6, 3], [12, 3], [12, 11], [18, 11], [18, 7], [20, 7]]],
+        portals: [
+            { side: 'W', to: 'VOLCANO', name: '잿빛 화산' },
+            { side: 'E', to: 'IGNAR_LAIR', name: '화산 정상' },
+        ],
+        fixtures: [
+            { t: 'WAYSTONE', at: [12, 7] },
+            { t: 'PROP', type: 'GATE', at: [6, 5] }, { t: 'PROP', type: 'BANNER', at: [5, 6] }, { t: 'PROP', type: 'BANNER', at: [7, 6] },   // 잿마루의 문
+            { t: 'PROP', type: 'STONE_WALL', at: [10, 2] }, { t: 'PROP', type: 'STONE_WALL', at: [14, 2] }, { t: 'PROP', type: 'RUIN', at: [17, 12] }, { t: 'PROP', type: 'CAMPFIRE', at: [13, 10] },
+        ],
+    },
     IGNAR_LAIR: {
         name: '화산 정상', biome: 'VOLCANO', cw: 18, ch: 13, seed: 117, trees: 0.05,
         clearings: [[10, 6, 6]],
         roads: [[[1, 6], [10, 6]]],
-        portals: [{ side: 'W', to: 'VOLCANO', name: '잿빛 화산' }],
+        portals: [{ side: 'W', to: 'VOLCANO_PATH', name: '잿길' }],
         fixtures: [
             { t: 'BOSS', id: 'IGNAR', at: [10, 6] },
             { t: 'PROP', type: 'CAMPFIRE', at: [5, 9] }, { t: 'PROP', type: 'CAMPFIRE', at: [15, 9] },
@@ -338,18 +417,18 @@ export const MAPS = {
 
 /** 이야기가 흐르는 차례. 미니맵의 '가 볼 곳' 과 빠른 이동 목록을 이 순서로 보여 준다 */
 export const MAP_ORDER = [
-    'VILLAGE', 'LAKE', 'FALLS', 'CLOUDTOP', 'SKY_RUINS', 'EAST_ROAD', 'DOJO', 'HOLLOW', 'MORGATH_LAIR',
-    'SNOW_ROAD', 'GLACIA_LAIR', 'SOUTH_ROAD', 'JUNGLE', 'ZALGORA_LAIR',
-    'DESERT', 'BASIL_LAIR', 'AUTUMN', 'VOLCANO', 'IGNAR_LAIR',
+    'VILLAGE', 'LAKE', 'FALLS', 'CLOUDTOP', 'SKY_RUINS', 'EAST_ROAD', 'DOJO', 'HOLLOW', 'HOLLOW_DEEP', 'MORGATH_LAIR',
+    'SNOW_ROAD', 'SNOW_RIDGE', 'GLACIA_LAIR', 'SOUTH_ROAD', 'JUNGLE', 'JUNGLE_DEEP', 'ZALGORA_LAIR',
+    'DESERT', 'DESERT_BONES', 'BASIL_LAIR', 'AUTUMN', 'VOLCANO', 'VOLCANO_PATH', 'IGNAR_LAIR',
 ];
 
 // 일지 [지도] 탭에 그릴 자리 (0~1). 이어진 모양이 손에 잡히게만 잡았다
 export const MAP_POS = {
     SKY_RUINS: [0.30, 0.06], CLOUDTOP: [0.12, 0.10], FALLS: [0.12, 0.32], LAKE: [0.12, 0.55], VILLAGE: [0.32, 0.55],
-    EAST_ROAD: [0.52, 0.55], DOJO: [0.52, 0.30], HOLLOW: [0.72, 0.55], MORGATH_LAIR: [0.92, 0.55],
-    SNOW_ROAD: [0.72, 0.30], GLACIA_LAIR: [0.72, 0.08],
-    SOUTH_ROAD: [0.32, 0.78], DESERT: [0.12, 0.90], BASIL_LAIR: [0.12, 0.99 - 0.02],
-    JUNGLE: [0.52, 0.78], ZALGORA_LAIR: [0.72, 0.78], AUTUMN: [0.52, 0.97], VOLCANO: [0.72, 0.97], IGNAR_LAIR: [0.92, 0.97],
+    EAST_ROAD: [0.52, 0.55], DOJO: [0.52, 0.30], HOLLOW: [0.68, 0.55], HOLLOW_DEEP: [0.82, 0.55], MORGATH_LAIR: [0.95, 0.55],
+    SNOW_ROAD: [0.68, 0.34], SNOW_RIDGE: [0.68, 0.19], GLACIA_LAIR: [0.68, 0.06],
+    SOUTH_ROAD: [0.32, 0.78], DESERT: [0.12, 0.86], DESERT_BONES: [0.12, 0.93], BASIL_LAIR: [0.12, 0.99],
+    JUNGLE: [0.52, 0.78], JUNGLE_DEEP: [0.66, 0.78], ZALGORA_LAIR: [0.80, 0.78], AUTUMN: [0.52, 0.97], VOLCANO: [0.68, 0.97], VOLCANO_PATH: [0.82, 0.97], IGNAR_LAIR: [0.95, 0.97],
 };
 
 // 굴(data/dens.js)도 지도 하나로 친다. 이름은 여기서 함께 풀어 준다
