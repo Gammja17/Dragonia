@@ -121,6 +121,34 @@ export const ROUTINES = {
         ] }],
     },
 
+    // ── 도란 · 미루: 마을의 부부. 낮에는 떨어져 있다가 저녁에 같이 앉는다 ──────────
+    Doran: {
+        job: '낚시꾼',
+        day: [
+            { h: 0,  map: 'VILLAGE', spot: [5, 9],   doing: '집 앞 평상에서 코를 골고 있다' },
+            { h: 6,  map: 'LAKE',    spot: [6, 10],  doing: '호숫가에 낚싯줄을 드리우고 꾸벅꾸벅 존다' },
+            { h: 12, map: 'LAKE',    spot: [7, 10],  doing: '잡은 고기를 세어 보고 다시 낚싯줄을 던진다' },
+            { h: 17, map: 'VILLAGE', spot: [5, 9],   doing: '고기 꾸러미를 들고 집으로 돌아왔다' },
+            { h: 19, map: 'VILLAGE', spot: [11, 10], doing: '모닥불 곁에서 미루와 나란히 앉아 있다' },
+            { h: 22, map: 'VILLAGE', spot: [5, 9],   doing: '집 앞 평상에서 코를 골고 있다' },
+        ],
+        rain: { map: 'VILLAGE', spot: [5, 9], doing: '비 오는 날은 낚시가 안 된다며 처마 밑에 앉아 있다' },
+        raid: { map: 'VILLAGE', spot: [6, 9], doing: '미루 앞을 막고 서 있다' },
+    },
+    Miru: {
+        job: '살림',
+        day: [
+            { h: 0,  map: 'VILLAGE', spot: [6, 9],   doing: '집 안에서 자고 있다' },
+            { h: 7,  map: 'VILLAGE', spot: [6, 9],   doing: '집 앞에 고기를 널어 말리고 있다' },
+            { h: 11, map: 'VILLAGE', spot: [12, 8],  doing: '분수에서 물을 긷고 있다' },
+            { h: 15, map: 'VILLAGE', spot: [6, 9],   doing: '널어 둔 고기를 뒤집으며 호수 쪽을 본다' },
+            { h: 19, map: 'VILLAGE', spot: [12, 10], doing: '모닥불 곁에서 도란과 나란히 앉아 있다' },
+            { h: 22, map: 'VILLAGE', spot: [6, 9],   doing: '집 안으로 들어간다' },
+        ],
+        rain: { map: 'VILLAGE', spot: [6, 9], doing: '젖기 전에 널어 둔 고기를 걷고 있다' },
+        raid: { map: 'VILLAGE', spot: [6, 9], doing: '도란 뒤에서 돌멩이를 골라 쥐고 있다' },
+    },
+
     // ── 엠버: 그론의 조수. 제 굴이 없다. 대장간 구석에서 잔다 ─────────────
     Ember: {
         job: '대장간 조수',

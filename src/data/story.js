@@ -39,12 +39,7 @@ export const TRIALS = [
         why: '몸만 크다고 어른이냐. 수련 둘은 마치고, 마을 일도 하나 네 손으로 끝내고 와라.',
         intro: "[성체] 시험이다. 오늘은 봐주는 거 없으니까 단단히 마음먹고 덤벼라.",
     },
-    {
-        stage: 3, hp: 480,
-        needs: (s) => s.story.lessons.length >= 6 && Object.keys(s.bossesDefeated).length >= 1,
-        why: '고룡은 마을 안에서 안 나온다. 바깥의 큰 놈을 하나는 잡고 와라.',
-        intro: "[고룡]은 나도 못 가 본 자리다. 거기 가고 싶으면 나를 넘어서 가라.",
-    },
+    // 고룡 시험은 없다. 구름 위 빈 둥지에서 스스로 깨어난다 (systems/story.js 의 tryAwaken)
 ];
 
 // ---- 프롤로그 ----

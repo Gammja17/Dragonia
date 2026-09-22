@@ -5,7 +5,7 @@ export const NPC_NAMES_KO = {
     Riun: '리운', Seiran: '세이란', Haru: '하루', Yuan: '유안',
     Kirin: '키린', Raze: '레이즈', Mira: '미라', Dusk: '더스크',
     Iro: '이로', Sora: '소라', Flint: '플린트', Ember: '엠버',
-    Vesna: '베스나', IGNAR: '이그나르', Ignar: '이그나르',
+    Vesna: '베스나', IGNAR: '이그나르', Ignar: '이그나르', Doran: '도란', Miru: '미루',
     Moss: '모스', Fern: '펀', Garam: '가람', Dol: '돌',
 };
 export const npcName = (id) => NPC_NAMES_KO[id] || id || '???';
@@ -22,7 +22,7 @@ export const KID_NAMES = [
 // 마을 고정 NPC
 export const FIXED_NPCS = [
     {
-        name: 'Elder', personality: 'WISE', role: 'ELDER', canPartner: true,
+        name: 'Elder', personality: 'WISE', role: 'ELDER', canPartner: true, elder: true,
         species: 'LOOK', look: 12, accessory: 'CROWN', scale: 1.15, colors: { body: '#7d4fb3', belly: '#af7ac5', wing: '#d4a017' }, element: 'ICE', maxHp: 420, power: 14,
         x: 1200, y: 1200,
     },
@@ -48,7 +48,7 @@ export const FIXED_NPCS = [
         x: 2300, y: 1320,   // 수련장 한켠
     },
     {
-        name: 'Kairon', personality: 'WISE', role: 'MASTER', canPartner: true,
+        name: 'Kairon', personality: 'WISE', role: 'MASTER', canPartner: true, elder: true,
         species: 'LOOK', look: 22, accessory: 'HAT', colors: { body: '#8a2f2a', belly: '#d8a24a', wing: '#3a2a2a' }, element: 'FIRE', maxHp: 600, power: 16, scale: 1.18,
         x: 2448, y: 1000,   // 수련장
     },
@@ -73,13 +73,24 @@ export const FIXED_NPCS = [
     {
         // 결말 뒤의 이그나르. 교화 결말이면 웨스턴 마을 밖 호숫가에, 어둠의 결말이면 잿마루에 산다 (data/routines.js 의 when)
         // 곁에 두고 다닐 수도 있고(의탁), 마음을 나눌 수도 있다
-        name: 'Ignar', personality: 'WISE', role: 'FALLEN', canPartner: true,
+        name: 'Ignar', personality: 'WISE', role: 'FALLEN', canPartner: true, elder: true,
         species: 'SHADOW', accessory: null, scale: 0.62, colors: { body: '#3a2a4a', belly: '#5a4a6a', wing: '#ff5a1f' }, element: 'FIRE', maxHp: 900, power: 22,
+        x: 0, y: 0,
+    },
+    // ---- 웨스턴의 부부. 도란은 호숫가에서 낚시를 하고 미루는 마을에서 살림을 한다. 둘 다 짝은 안 된다 (이미 부부다) ----
+    {
+        name: 'Doran', personality: 'WISE', canPartner: false,
+        species: 'LOOK', look: 13, accessory: 'HAT', scale: 1.0, colors: { body: '#4a6f8a', belly: '#9ab8c8', wing: '#6a8a9a' }, element: 'ICE', maxHp: 260, power: 9,
+        x: 0, y: 0,
+    },
+    {
+        name: 'Miru', personality: 'PLAYFUL', canPartner: false,
+        species: 'LOOK', look: 19, accessory: 'FLOWER', scale: 0.95, colors: { body: '#c87a5a', belly: '#f0c8a0', wing: '#e8a878' }, element: 'FIRE', maxHp: 240, power: 8,
         x: 0, y: 0,
     },
     // ---- 뿌리골: 밀림 깊은 곳, 풀의 용들 ----
     {
-        name: 'Moss', personality: 'WISE', role: 'ELDER_ROOT', canPartner: false,
+        name: 'Moss', personality: 'WISE', role: 'ELDER_ROOT', canPartner: false, elder: true,
         species: 'LOOK', look: 5, accessory: 'LEAF', scale: 1.12, colors: { body: '#5f8f4a', belly: '#cfe0a0', wing: '#8a6a3a' }, element: 'ICE', maxHp: 400, power: 12,
         x: 0, y: 0,
     },
@@ -90,7 +101,7 @@ export const FIXED_NPCS = [
     },
     // ---- 돌등: 사막의 바위 고원, 땅의 용들 ----
     {
-        name: 'Garam', personality: 'GRUMPY', role: 'ELDER_STONE', canPartner: false,
+        name: 'Garam', personality: 'GRUMPY', role: 'ELDER_STONE', canPartner: false, elder: true,
         species: 'LOOK', look: 24, accessory: 'HELM', scale: 1.2, colors: { body: '#7a5a3a', belly: '#c9a06a', wing: '#5a4030' }, element: 'FIRE', maxHp: 520, power: 15,
         x: 0, y: 0,
     },
@@ -104,7 +115,7 @@ export const FIXED_NPCS = [
     // 우리 마을과는 오래 서로를 모른 척해 왔다. 몸이 길고, 날개보다 물을 탄다.
     {
         // 리운: 구름마루의 어른. 물이 하는 말을 듣는다는 소문이 있다
-        name: 'Riun', personality: 'WISE', role: 'ELDER_EAST', canPartner: false, east: true,
+        name: 'Riun', personality: 'WISE', role: 'ELDER_EAST', canPartner: false, east: true, elder: true,
         species: 'LOOK', look: 3, accessory: null, scale: 1.22, colors: { body: '#2a5f8f', belly: '#7fc4e8', wing: '#d8b25a' }, element: 'ICE', maxHp: 440, power: 15,
         x: 0, y: 0,
     },
@@ -131,7 +142,7 @@ export const FIXED_NPCS = [
 export const WANDER_NAMES = ['Kirin', 'Raze', 'Dusk', 'Iro', 'Sora', 'Flint'];   // 나라·엠버·미라·구름마루 용들은 고정 NPC라 뺀다
 // 몸이 긴 동양용 외형(3 · 8 · 12 · 14 · 16)은 떠돌이에게 주지 않는다.
 // 12는 엘더, 나머지는 구름마루 용들 것이고, 9는 나라 것이다
-export const WANDER_LOOKS = [0, 1, 2, 10, 13, 19];   // 5는 모스, 7은 미라, 11은 엠버, 15는 펀, 20은 베스나, 24·25는 돌등
+export const WANDER_LOOKS = [0, 1, 2, 10];   // 13은 도란, 19는 미루   // 5는 모스, 7은 미라, 11은 엠버, 15는 펀, 20은 베스나, 24·25는 돌등
 export const WANDER_ACCESSORIES = [null, null, 'LEAF', 'FLOWER', 'PLUME'];
 export const WANDER_PERSONALITIES = ['WISE', 'BRAVE', 'PLAYFUL', 'GRUMPY'];
 // 'RIVAL' 은 나라 전용 성격이라 떠돌이에게는 주지 않는다

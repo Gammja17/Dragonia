@@ -93,6 +93,33 @@ function say(npc, text, then) {
     dialogueUI.show({ name: npcName(npc.config.name), text, sheet: npc.sheet, onClose: close, options: [{ label: then ? '시작한다!' : '알겠습니다.', onSelect: () => { close(); if (then) then(); } }] });
 }
 
+// ---------- 고룡의 깨어남 ----------
+/** 구름 위 폐허의 빈 둥지 앞에서 [Space]. 처리했으면 true (entities/Dragon.js 의 interact) */
+export function tryAwaken() {
+    if (state.mapId !== 'SKY_RUINS') return false;
+    const p = state.player;
+    const nest = state.entities.props.find(x => x.type === 'RUIN' && dist(p, x) < 130);
+    if (!nest) return false;
+    if (p.stageIndex >= 3) { showToast('빈 둥지는 조용하다. 여기서 받을 것은 다 받았다.', '🪹'); return true; }
+    if (p.stageIndex < 2) { showToast('둥지 안이 희미하게 따뜻하다. 아직 이 온기를 받을 몸이 아니다.', '🪹'); return true; }
+    const lacks = [];
+    if (p.elements.length < 3) lacks.push(`숨결 셋 (지금 ${p.elements.length})`);
+    if (p.level < STAGES[3].minLevel) lacks.push(`레벨 ${STAGES[3].minLevel} (지금 ${p.level})`);
+    if (lacks.length) { showToast(`둥지 안이 따뜻하다. 무언가 모자란다: ${lacks.join(' · ')}`, '🪹'); return true; }
+    playScene('빈 둥지', [
+        { who: '나', text: '(둥지 안에 손을 대자 돌이 따뜻했다. 삼백 년 전에도, 얼마 전에도 누가 여기서 태어났다.)' },
+        { who: '나', text: '(품고 있던 숨결들이 한꺼번에 뜨거워진다. 불과 얼음과 번개가 서로 밀어내지 않고 하나로 엮인다.)' },
+        { who: '나', text: '(등이 갈라지는 것 같더니 날개가 한 뼘 더 자랐다. 이건 누가 시험을 내서 얻은 게 아니라, 원래 내 것이었던 것 같다.)' },
+    ], () => {
+        p.evolve(3);
+        spawnEffect('BLOOM', p.x, p.y - 40, { size: 1.8, color: '#fff2b0' });
+        spawnEffect('RUNE', p.x, p.y, { size: 2.6, color: '#ffe9a0' });
+        for (let i = 0; i < 14; i++) setTimeout(() => spawnEffect('SPARKLE', p.x + rand(-90, 90), p.y - rand(0, 80), { size: 1.2, color: '#fff2b0' }), i * 90);
+        saveGame();
+    });
+    return true;
+}
+
 // ---------- 수련 ----------
 /** extra.rival: 같이 허수아비를 깨는 맞수 · extra.onEnd(win): 끝났을 때 보상 대신 부를 것 */
 export function startDrill(npc, drill, extra) {

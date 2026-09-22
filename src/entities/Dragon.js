@@ -12,7 +12,7 @@ import { ELEMENTS, STAGES, canFuse } from '../data/elements.js';
 import { SKILL_SLOTS, ELEMENT_SKILLS } from '../data/skills.js';
 import { useSlot, updateChannels, checkSkillUnlocks, learnSkill } from '../systems/skills.js';
 import { stat, hasPerk, grantPoints, POINTS_PER_LEVEL, POINTS_PER_STAGE } from '../systems/growth.js';
-import { openNestMenu, pendingTrial } from '../systems/story.js';
+import { openNestMenu, pendingTrial, tryAwaken } from '../systems/story.js';
 import { applyStatus } from '../systems/status.js';
 import { notify, questMarker } from '../systems/quests.js';
 import { weatherDamageMult } from '../systems/weather.js';
@@ -387,6 +387,7 @@ export class Dragon extends Entity {
         this.angle = Math.atan2(dy, dx);
         this.facing = facingFromVector(dx, dy, this.facing);
         this.moving = true;
+        if ((this.stageIndex >= 3 || this.config.elder) && Math.random() < 0.35) burst(this.x - dx * 26, this.y - 8 - dy * 10, '#ffe6a8', 0.3, 1);   // 고룡의 자취
     }
 
     // ---------- 비행 ----------
@@ -748,6 +749,8 @@ export class Dragon extends Entity {
 
         // 0) 수련장 시험 표지 (systems/arena.js)
         if (!this.fishing && nearbyArena()) { openArena(); return; }
+        // 0) 구름 위 빈 둥지 — 고룡의 깨어남 (systems/story.js)
+        if (!this.fishing && tryAwaken()) return;
 
         // 0) 보금자리 굴 — 들어가기 / 안에서는 꾸미기 (systems/denEnter.js)
         if (!this.fishing && tryDenInteract()) return;
@@ -961,6 +964,21 @@ export class Dragon extends Entity {
             });
             ctx.strokeStyle = '#fff'; ctx.lineWidth = 18 * k; ctx.globalAlpha = 0.95;
             ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + Math.cos(b.angle) * 950, oy + Math.sin(b.angle) * 950); ctx.stroke();
+            ctx.restore();
+        }
+        // 고룡의 기운: 발밑의 넓은 빛과, 둘레를 도는 불티 셋 (마을의 고룡들도 같다)
+        if (this.stageIndex >= 3 || this.config.elder) {
+            const sc = this.stage ? this.stage.scale : 1, t = state.gameTime;
+            drawGlow(ctx, this.x, this.y - 30 * sc, 120 * sc, this.isPlayer ? '#ffe6a8' : '#d8b25a', 0.12 + Math.sin(t * 2.2) * 0.04);
+            ctx.save(); ctx.globalCompositeOperation = 'lighter';
+            for (let i = 0; i < 3; i++) {
+                const a = t * 1.4 + i * 2.094, r = 62 * sc;
+                const x = this.x + Math.cos(a) * r, y = this.y - 40 * sc + Math.sin(a) * r * 0.45 - Math.sin(t * 3 + i) * 8;
+                ctx.fillStyle = 'rgba(255, 230, 160, 0.85)';
+                ctx.beginPath(); ctx.arc(x, y, 2.6, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'rgba(255, 200, 90, 0.25)';
+                ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2); ctx.fill();
+            }
             ctx.restore();
         }
         // 내 용은 발밑에 은은한 빛을 깔아, 용이 여럿 뒤엉켜 있어도 어느 쪽이 나인지 바로 보이게 한다

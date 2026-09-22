@@ -38,6 +38,7 @@ export const MAPS = {
             { t: 'NPC', name: 'Gron', at: [15, 7] },
             { t: 'NPC', name: 'Poco', at: [8, 13] },   // 집 바로 뒤 칸(8,11)에 세우면 집 그림에 가려 안 보인다
             { t: 'NPC', name: 'Tiamat', at: [17, 10] },
+            { t: 'NPC', name: 'Doran', at: [5, 9] }, { t: 'NPC', name: 'Miru', at: [6, 9] },
             { t: 'PROP', type: 'FOUNTAIN', at: [12, 7] },
             { t: 'PROP', type: 'HOUSE', at: [7, 6] }, { t: 'PROP', type: 'HOUSE', at: [16, 6] },
             { t: 'PROP', type: 'HOUSE', at: [9, 12] }, { t: 'PROP', type: 'HOUSE', at: [16, 12] },
@@ -111,6 +112,8 @@ export const MAPS = {
         portals: [{ side: 'S', to: 'CLOUDTOP', name: '구름마루 마을' }],
         fixtures: [
             { t: 'WAYSTONE', at: [11, 7] },
+            { t: 'PROP', type: 'RUIN', at: [11, 4] },   // 빈 둥지 — 하늘의 용이 태어난 자리. 성체가 여기 서면 고룡으로 깨어난다 (systems/story.js)
+            { t: 'PROP', type: 'STONE_WALL', at: [9, 4] }, { t: 'PROP', type: 'STONE_WALL', at: [13, 4] },
             { t: 'PROP', type: 'ROCK', at: [10, 6] }, { t: 'PROP', type: 'ROCK', at: [12, 6] },
             { t: 'PROP', type: 'STUMP', at: [3, 8] }, { t: 'PROP', type: 'STUMP', at: [19, 8] },
         ],
@@ -118,7 +121,7 @@ export const MAPS = {
 
     // ---------------- 동쪽: 수련장 · 달빛 골짜기 · 서리 봉우리 ----------------
     EAST_ROAD: {
-        name: '동쪽 숲길', biome: 'FOREST', cw: 22, ch: 15, seed: 104, trees: 0.55, enemyCap: 6,
+        name: '동쪽 숲길', biome: 'FOREST', cw: 22, ch: 15, seed: 104, trees: 0.55, enemyCap: 9,
         ponds: [[5, 11, 2]],
         roads: [[[1, 7], [20, 7]], [[11, 7], [11, 1]]],
         portals: [
@@ -195,7 +198,7 @@ export const MAPS = {
 
     // ---------------- 남쪽: 밀림 · 사막 ----------------
     SOUTH_ROAD: {
-        name: '남쪽 숲길', biome: 'FOREST', cw: 22, ch: 15, seed: 110, trees: 0.55, enemyCap: 6,
+        name: '남쪽 숲길', biome: 'FOREST', cw: 22, ch: 15, seed: 110, trees: 0.55, enemyCap: 9,
         ponds: [[17, 4, 2]],
         roads: [[[11, 1], [11, 13]], [[11, 7], [1, 7]]],
         portals: [

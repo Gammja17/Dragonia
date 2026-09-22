@@ -87,7 +87,8 @@ export class Prop extends Entity {
         items.push(new Item(this.x, this.y + 30, 'GOLD', gold));
         if (Math.random() < 0.6) items.push(new Item(this.x - 30, this.y + 20, 'MEAT'));
         for (let i = 0; i < 1 + Math.floor(Math.random() * 2); i++) items.push(new Item(this.x - 50 - i * 24, this.y + 26, 'MAT', 'ORE'));
-        if (Math.random() < 0.12) { items.push(new Item(this.x + 30, this.y + 20, 'EGG')); showToast('상자 안에 용의 알이 있습니다!', '🥚'); }
+        // 알은 귀하다. 예전엔 상자 여덟에 하나꼴이라 어린 용이 부모가 됐다. 성체가 된 뒤에만, 쉰에 하나
+        if (state.player.stageIndex >= 2 && Math.random() < 0.02) { items.push(new Item(this.x + 30, this.y + 20, 'EGG')); showToast('상자 안에 용의 알이 있습니다!', '🥚'); }
         spawnEffect('STAR', this.x, this.y - 20);
         play('pickup');
         if (Math.random() < 0.22) { const id = randomRelic(); if (id) grantRelic(id, this.x, this.y); }
