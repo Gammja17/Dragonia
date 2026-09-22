@@ -132,7 +132,7 @@ export const FIXED_NPCS = [
         species: 'LOOK', look: 1, accessory: 'LEAF', scale: 1.0, colors: { body: '#4a7a4a', belly: '#c8e0a0', wing: '#8aa860' }, element: 'ICE', maxHp: 260, power: 8,
         x: 0, y: 0,
     },
-    // ---- 돌등: 사막의 바위 고원, 땅의 용들 ----
+    // ---- 바윗골: 사막의 바위 고원, 땅의 용들 ----
     {
         name: 'Garam', personality: 'GRUMPY', role: 'ELDER_STONE', canPartner: false, elder: true,
         species: 'LOOK', look: 24, accessory: 'HELM', scale: 1.2, colors: { body: '#7a5a3a', belly: '#c9a06a', wing: '#5a4030' }, element: 'FIRE', maxHp: 520, power: 15,
@@ -145,7 +145,7 @@ export const FIXED_NPCS = [
     },
 
     {
-        // 자갈: 돌의 할머니. 돌등에서 제일 오래 살았고, 제일 말이 많다
+        // 자갈: 돌의 할머니. 바윗골에서 제일 오래 살았고, 제일 말이 많다
         name: 'Jagal', personality: 'WISE', canPartner: false,
         species: 'LOOK', look: 0, accessory: 'HAT', scale: 0.9, colors: { body: '#9a8a6a', belly: '#e0d0b0', wing: '#7a6a50' }, element: 'FIRE', maxHp: 240, power: 7,
         x: 0, y: 0,
@@ -194,7 +194,7 @@ export const FIXED_NPCS = [
 export const WANDER_NAMES = ['Kirin', 'Raze', 'Dusk', 'Iro', 'Sora', 'Flint'];   // 나라·엠버·미라·구름마루 용들은 고정 NPC라 뺀다
 // 몸이 긴 동양용 외형(3 · 8 · 12 · 14 · 16)은 떠돌이에게 주지 않는다.
 // 12는 엘더, 나머지는 구름마루 용들 것이고, 9는 나라 것이다
-export const WANDER_LOOKS = [0, 1, 2, 10];   // 고정 인물과 겹치는 칸은 색을 달리 쓴다   // 5는 모스, 7은 미라, 11은 엠버, 15는 펀, 20은 베스나, 24·25는 돌등
+export const WANDER_LOOKS = [0, 1, 2, 10];   // 고정 인물과 겹치는 칸은 색을 달리 쓴다   // 5는 모스, 7은 미라, 11은 엠버, 15는 펀, 20은 베스나, 24·25는 바윗골
 export const WANDER_ACCESSORIES = [null, null, 'LEAF', 'FLOWER', 'PLUME'];
 export const WANDER_PERSONALITIES = ['WISE', 'BRAVE', 'PLAYFUL', 'GRUMPY'];
 // 'RIVAL' 은 나라 전용 성격이라 떠돌이에게는 주지 않는다

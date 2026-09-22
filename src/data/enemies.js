@@ -45,7 +45,7 @@ export const BIOME_ENEMIES = {
 export const BOSSES = {
     MORGATH: {
         needs: 'ev_morgath',   // 이 사건을 겪기 전에는 둥지가 비어 있다
-        name: '뼈용 모르가스', title: '달빛 골짜기의 주인', species: 'BONE', colors: { body: '#ffffff', wing: '#ffffff' },
+        name: '옛 수호룡 모르가스', title: '달빛 골짜기의 주인', species: 'BONE', colors: { body: '#ffffff', wing: '#ffffff' },
         x: 4400, y: 1500, scale: 2.0, hp: 1100, speed: 120, contact: 18, xp: 600,
         element: 'ICE', unlock: 'ICE', revive: true, patterns: ['RING', 'SUMMON', 'AIMED', 'BONE_RAIN'],
         phases: [

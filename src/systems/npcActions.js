@@ -2,7 +2,7 @@ import { state } from '../core/state.js';
 import { inMyDen, visitLine } from './den.js';
 import { npcName } from '../data/npcs.js';
 import { clamp, dist, pick, rand } from '../core/utils.js';
-import { NPC_TALK, TIER_NAMES, SITUATION_LINES, DATES, CONFESSION, FAMILY_TALK, BOND_SCENES, ROMANCE_GATES, relationTier } from '../data/npcTalk.js';
+import { NPC_TALK, TIER_NAMES, SITUATION_LINES, DATES, CONFESSION, FAMILY_TALK, BOND_SCENES, ROMANCE_GATES, KID_NPC_PLAY, relationTier } from '../data/npcTalk.js';
 import { MAX_KIDS } from '../core/config.js';
 import { mixGenes } from './kids.js';
 import { fadeScreen } from '../ui/hud.js';
@@ -17,6 +17,8 @@ import { offerFor, heldOffer, runningFor, reportableFor, talkQuestFor, bringQues
          notify } from './quests.js';
 import { playScene } from './chronicle.js';
 import { isDead } from './routine.js';
+import { anyNpc } from './world.js';
+import { play } from './audio.js';
 import { canOuting, outingWait, goOuting } from './family.js';
 import { loveIntercept, moodGreeting, heartClosed, isSulking, onDate, onPartnered, apologize, breakUp, canVow, vowHint, vowed, makeVow } from './romance.js';
 import { ownsRelic, grantRelic } from './relics.js';
@@ -136,6 +138,16 @@ function ownMenu(npc, name) {
     if (name === 'Kairon') return { label: '🎓 가르침을 청한다', onSelect: () => show(npc, '무엇을 배우러 왔느냐.', [...masterOptions(npc), { label: '돌아간다', onSelect: back }]) };
     if (name === 'Tiamat') sub.push({ label: '⚔️ 대련을 신청한다', onSelect: () => startSpar(npc) });
     if (name === 'Poco') sub.push({ label: '🎾 술래잡기 하자!', onSelect: () => startTag(npc) });
+    // 마을 아이들: 성체가 돼야 놀아 줄 수 있다. 놀아 주면 부모의 호감도 같이 오른다
+    const kp = KID_NPC_PLAY[name];
+    if (kp) {
+        if (state.player.stageIndex < 2) sub.push({ label: '🐉 등에 태워 준다 (성체부터)', onSelect: () => show(npc, kp.tooYoung, [{ label: '…', onSelect: back }]) });
+        else {
+            sub.push({ label: npc.lastRideDay === state.day ? '(오늘은 이미 태워 줬다)' : '🐉 등에 태워 준다', onSelect: () => npc.lastRideDay === state.day ? back() : kidPlay(npc, kp, 'ride') });
+            sub.push({ label: '📖 하늘 이야기를 들려준다', onSelect: () => kidPlay(npc, kp, 'story') });
+            sub.push({ label: '🎾 술래잡기 하자!', onSelect: () => startTag(npc) });
+        }
+    }
     if (name === 'Gron') sub.push({ label: '🔨 모루 앞에 선다', onSelect: () => openForge(npc) });
     if (name === 'Ember' && isDead('Gron')) sub.push({ label: '🔨 모루 앞에 선다', onSelect: () => emberForge(npc) });
     // 동행. 짝도 오늘은 혼자 다녀오겠다고 할 수 있다
@@ -331,6 +343,18 @@ function receivePresent(npc) {
 
 // systems/romance.js 에 넘겨 주는 대화 도구 (서로 불러들이지 않게 이쪽 것을 건넨다)
 const loveUi = { show: (...a) => show(...a), close: () => close(), playLines: (...a) => playLines(...a), hub: (npc) => openNpcHub(npc) };
+
+/** 아이와 놀아 준다. 아이의 호감이 오르고, 그 부모도 조금 좋아한다 */
+function kidPlay(npc, kp, kind) {
+    if (kind === 'ride') npc.lastRideDay = state.day;
+    playLines(npc, kp[kind], () => {
+        addRelation(npc, kind === 'ride' ? 8 : 4);
+        for (const pn of kp.parents) { const par = anyNpc(pn); if (par) addRelation(par, 3); }
+        for (let i = 0; i < 3; i++) spawnEffect('HEART', npc.x + rand(-30, 30), npc.y - 50 - rand(0, 30), { color: '#ffd07a', size: 1 });
+        showToast(`${npcName(npc.config.name)}와(과) 놀아 줬다. ${kp.parents.map(npcName).join('·')}의 호감도 조금 올랐다.`, '🐉');
+        play('quest');
+    });
+}
 
 /** 여러 줄짜리 장면을 차례로 보여 주고 끝나면 then */
 function playLines(npc, lines, then) {
@@ -536,7 +560,7 @@ function startTag(npc) {
     close();
     state.activity = { type: 'TAG', npc, time: TAG_TIME, max: TAG_TIME, juke: 0, jukeAngle: 0 };
     npc.say('나 잡아 봐라~!');
-    showToast(`술래잡기! ${TAG_TIME}초 안에 포코를 잡으세요. (Shift 달리기)`, '🏃');
+    showToast(`술래잡기! ${TAG_TIME}초 안에 ${npcName(npc.config.name)}를 잡으세요. (Shift 달리기)`, '🏃');
 }
 
 function endActivity(win) {
@@ -563,12 +587,15 @@ function endActivity(win) {
     } else if (win) {
         addRelation(npc, first ? 8 : 2);
         p.gold += first ? 25 : 5;
-        npc.say('으악 잡혔다! 한 판 더!');
-        showToast('포코를 잡았습니다!' + (first ? ' (25G, 호감 ↑)' : ' (5G)'), '🎉');
+        const kp = KID_NPC_PLAY[npc.config.name];
+        npc.say(kp ? kp.tagWin : '으악 잡혔다! 한 판 더!');
+        showToast(`${npcName(npc.config.name)}를 잡았습니다!` + (first ? ' (25G, 호감 ↑)' : ' (5G)'), '🎉');
+        if (kp) for (const pn of kp.parents) { const par = anyNpc(pn); if (par) addRelation(par, 2); }
         notify('tag');
     } else {
-        npc.say('헤헤, 내가 이겼다!');
-        showToast('시간 초과! 포코가 도망쳤습니다.', '⏱️');
+        const kp = KID_NPC_PLAY[npc.config.name];
+        npc.say(kp ? kp.tagLose : '헤헤, 내가 이겼다!');
+        showToast(`시간 초과! ${npcName(npc.config.name)}가 도망쳤습니다.`, '⏱️');
     }
 }
 

@@ -161,7 +161,7 @@ export const MAPS = {
         portals: [
             { side: 'W', to: 'EAST_ROAD', name: '동쪽 숲길' },
             { side: 'N', to: 'SNOW_ROAD', name: '서리 고개' },
-            { side: 'E', to: 'HOLLOW_DEEP', name: '뼈의 골짜기' },
+            { side: 'E', to: 'HOLLOW_DEEP', name: '잊힌 골짜기' },
         ],
         fixtures: [
             { t: 'CAVE', id: 'HOLLOW_BARROW', at: [5, 12] },
@@ -171,12 +171,12 @@ export const MAPS = {
     },
     // 골짜기 안쪽. 삼백 년 전 굴이 골짜기마다 있었다는 그 골짜기. 길이 꺾이며 옛 굴 터를 지난다
     HOLLOW_DEEP: {
-        name: '뼈의 골짜기', biome: 'HOLLOW', cw: 22, ch: 16, seed: 161, trees: 0.55, enemyCap: 11, chests: 4,
+        name: '잊힌 골짜기', biome: 'HOLLOW', cw: 22, ch: 16, seed: 161, trees: 0.55, enemyCap: 11, chests: 4,
         ponds: [[3, 13, 2]],
         roads: [[[1, 8], [6, 8], [6, 3], [12, 3], [12, 12], [18, 12], [18, 8], [20, 8]]],
         portals: [
             { side: 'W', to: 'HOLLOW', name: '달빛 골짜기' },
-            { side: 'E', to: 'MORGATH_LAIR', name: '뼈용의 둥지' },
+            { side: 'E', to: 'MORGATH_LAIR', name: '옛 수호룡의 무덤' },
         ],
         fixtures: [
             { t: 'WAYSTONE', at: [12, 7] },
@@ -186,10 +186,10 @@ export const MAPS = {
         ],
     },
     MORGATH_LAIR: {
-        name: '뼈용의 둥지', biome: 'HOLLOW', cw: 18, ch: 13, seed: 107, trees: 0.25,
+        name: '옛 수호룡의 무덤', biome: 'HOLLOW', cw: 18, ch: 13, seed: 107, trees: 0.25,
         clearings: [[10, 6, 5]],
         roads: [[[1, 6], [10, 6]]],
-        portals: [{ side: 'W', to: 'HOLLOW_DEEP', name: '뼈의 골짜기' }],
+        portals: [{ side: 'W', to: 'HOLLOW_DEEP', name: '잊힌 골짜기' }],
         fixtures: [
             { t: 'BOSS', id: 'MORGATH', at: [10, 6] },
             { t: 'PROP', type: 'CAMPFIRE', at: [5, 9] }, { t: 'PROP', type: 'CAMPFIRE', at: [14, 9] },
@@ -291,14 +291,14 @@ export const MAPS = {
         roads: [[[20, 7], [11, 7], [11, 14]]],
         portals: [
             { side: 'E', to: 'SOUTH_ROAD', name: '남쪽 숲길' },
-            { side: 'S', to: 'DESERT_BONES', name: '뼈 사구' },
-            { side: 'W', to: 'STONEBACK', name: '돌등' },
+            { side: 'S', to: 'DESERT_BONES', name: '세 깃발 사구' },
+            { side: 'W', to: 'STONEBACK', name: '바윗골' },
         ],
         fixtures: [{ t: 'WAYSTONE', at: [12, 7] }, { t: 'PROP', type: 'ROCK', at: [7, 5] }, { t: 'PROP', type: 'RUIN', at: [5, 12] }, { t: 'PROP', type: 'BANNER', at: [17, 4] }, { t: 'PROP', type: 'STONE_WALL', at: [16, 12] }],
     },
     // 사구 남쪽. 모래에 반쯤 묻힌 폐허와, 그론의 동료 셋이 마지막으로 선 자리
     DESERT_BONES: {
-        name: '뼈 사구', biome: 'DESERT', cw: 22, ch: 16, seed: 164, trees: 0.15, enemyCap: 11, chests: 4,
+        name: '세 깃발 사구', biome: 'DESERT', cw: 22, ch: 16, seed: 164, trees: 0.15, enemyCap: 11, chests: 4,
         roads: [[[11, 1], [11, 5], [4, 5], [4, 11], [16, 11], [16, 7], [11, 7], [11, 14]]],
         portals: [
             { side: 'N', to: 'DESERT', name: '죽은 사구' },
@@ -315,7 +315,7 @@ export const MAPS = {
         name: '모래 폭군의 둥지', biome: 'DESERT', cw: 18, ch: 13, seed: 114, trees: 0.1,
         clearings: [[9, 7, 5]],
         roads: [[[9, 1], [9, 7]]],
-        portals: [{ side: 'N', to: 'DESERT_BONES', name: '뼈 사구' }, { side: 'S', to: 'ASH_CITY', name: '불탄 도시' }],
+        portals: [{ side: 'N', to: 'DESERT_BONES', name: '세 깃발 사구' }, { side: 'S', to: 'ASH_CITY', name: '불탄 도시' }],
         fixtures: [
             { t: 'BOSS', id: 'BASIL', at: [9, 7] },
             { t: 'PROP', type: 'CAMPFIRE', at: [5, 10] }, { t: 'PROP', type: 'CAMPFIRE', at: [13, 10] },
@@ -336,7 +336,7 @@ export const MAPS = {
     },
     // 사막 서쪽의 바위 고원, 땅의 용들이 사는 마을. 바실 때문에 예순 해 동안 바깥과 끊겨 있었다
     STONEBACK: {
-        name: '돌등', biome: 'DESERT', cw: 18, ch: 13, seed: 142, trees: 0.04, safe: true, wanderer: false,
+        name: '바윗골', biome: 'DESERT', cw: 18, ch: 13, seed: 142, trees: 0.04, safe: true, wanderer: false,
         clearings: [[9, 6, 4]],
         roads: [[[17, 6], [9, 6]]],
         portals: [{ side: 'E', to: 'DESERT', name: '죽은 사구' }],

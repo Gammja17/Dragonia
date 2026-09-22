@@ -50,7 +50,7 @@ export const SKILLS = {
     TIDE:         { name: '해일',         branch: 'BREATH', tier: 2, cooldown: 8,  desc: '앞쪽의 적을 멀리 쓸어 내고 흠뻑 적신다. 젖은 적은 번개와 냉기에 약하다', element: 'WATER',
                     source: { type: 'GIFT', hint: '구름마루에서 물의 숨결을 맡겨 받으면' } },
     UPHEAVAL:     { name: '지각 융기',     branch: 'BREATH', tier: 2, cooldown: 10, desc: '내 둘레로 바위가 솟아올라 닿은 적을 기절시킨다', element: 'EARTH',
-                    source: { type: 'GIFT', hint: '돌등에서 땅의 숨결을 맡겨 받으면' } },
+                    source: { type: 'GIFT', hint: '바윗골에서 땅의 숨결을 맡겨 받으면' } },
     BRAMBLE:      { name: '가시덤불',     branch: 'BREATH', tier: 2, cooldown: 9,  desc: '겨눈 자리에 가시덤불이 자라 5초 동안 적을 붙들고 독을 묻힌다', element: 'GRASS',
                     source: { type: 'GIFT', hint: '뿌리골에서 풀의 숨결을 맡겨 받으면' } },
     FLAME_BREATH: { name: '화염 방사',     branch: 'BREATH', tier: 2, cooldown: 8,  desc: '1.8초 동안 앞쪽 부채꼴을 불태운다. 움직이며 쓸 수 있다', element: 'FIRE',
