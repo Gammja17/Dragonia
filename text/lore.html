@@ -1,0 +1,249 @@
+<title>드래고니아 설정집</title>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root {
+    --ink: #13121d; --ink-2: #1b1a28; --raise: rgba(255,255,255,0.055); --line: rgba(216,178,90,0.28);
+    --gold: #d8b25a; --gold-lit: #ffd84a; --parch: #ece3cf; --mid: #b6ae9a; --dim: #857e6e;
+    --hp: #e0453a; --cold: #7fd4ff; --good: #7dd36a; --food: #f0913c; --xp: #b06bff;
+    --serif: "Gowun Batang", "Nanum Myeongjo", serif; --sans: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ink); color: var(--parch); font-family: var(--sans); font-size: 15px; line-height: 1.75; }
+a { color: var(--gold); text-decoration: none; }
+.wrap { display: grid; grid-template-columns: 200px minmax(0, 720px); gap: 48px; max-width: 1000px; margin: 0 auto; padding: 32px 20px 80px; }
+nav { position: sticky; top: 24px; align-self: start; font-size: 13px; }
+nav .brand { font-family: var(--serif); font-size: 20px; color: var(--gold); margin-bottom: 4px; }
+nav .sub { color: var(--dim); font-size: 12px; margin-bottom: 18px; }
+nav a { display: block; color: var(--mid); padding: 3px 0 3px 10px; border-left: 2px solid transparent; }
+nav a:hover { color: var(--parch); border-left-color: var(--gold); }
+main { min-width: 0; }
+h1 { font-family: var(--serif); font-weight: 700; font-size: 34px; line-height: 1.25; margin: 0 0 6px; text-wrap: balance; }
+.lead { color: var(--mid); font-size: 15px; margin-bottom: 40px; border-bottom: 1px solid var(--line); padding-bottom: 24px; }
+h2 { font-family: var(--serif); font-size: 24px; color: var(--gold); margin: 56px 0 16px; padding-top: 16px; border-top: 1px solid var(--line); text-wrap: balance; }
+h3 { font-size: 16px; font-weight: 700; margin: 26px 0 8px; color: var(--parch); }
+p { margin: 0 0 12px; max-width: 66ch; }
+ul { margin: 0 0 12px; padding-left: 20px; max-width: 66ch; }
+li { margin-bottom: 4px; }
+.quote { font-family: var(--serif); font-size: 17px; line-height: 1.7; color: var(--parch); border-left: 3px solid var(--gold); padding: 6px 0 6px 16px; margin: 16px 0 20px; max-width: 62ch; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 8px 0 16px; }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+th { color: var(--dim); font-weight: 500; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+td:first-child { color: var(--gold); white-space: nowrap; }
+.scroll { overflow-x: auto; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin: 14px 0 8px; }
+.card { background: var(--raise); border: 1px solid rgba(255,255,255,0.07); padding: 16px 18px; }
+.card .name { font-family: var(--serif); font-size: 19px; color: var(--parch); }
+.card .name small { font-family: var(--sans); font-size: 12px; color: var(--dim); margin-left: 8px; }
+.card .role { color: var(--gold); font-size: 12px; letter-spacing: 0.06em; margin-bottom: 8px; }
+.card ul { padding-left: 16px; font-size: 14px; margin-bottom: 8px; }
+.card .voice { font-size: 13px; color: var(--mid); border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 8px; }
+.card .voice b { color: var(--parch); font-weight: 500; }
+.tag { display: inline-block; font-size: 11px; padding: 1px 7px; border: 1px solid var(--line); color: var(--gold); border-radius: 2px; margin-left: 6px; vertical-align: middle; }
+.chapters { list-style: none; padding: 0; max-width: none; }
+.chapters li { display: grid; grid-template-columns: 74px 1fr; gap: 14px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.07); margin: 0; }
+.chapters .n { font-family: var(--serif); color: var(--gold); font-size: 18px; line-height: 1.3; }
+.chapters .t { font-weight: 700; margin-bottom: 2px; }
+.chapters .m { color: var(--dim); font-size: 12px; }
+.chapters p { font-size: 14px; color: var(--mid); margin: 0; }
+.endings { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.endings div { padding: 14px 16px; border: 1px solid var(--line); }
+.endings b { display: block; font-family: var(--serif); font-size: 18px; margin-bottom: 4px; }
+.endings .guardian b { color: var(--gold-lit); } .endings .redeem b { color: var(--cold); } .endings .dark b { color: var(--hp); }
+.endings p { font-size: 14px; color: var(--mid); margin: 0; }
+.el { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.note { font-size: 13px; color: var(--dim); }
+@media (max-width: 760px) { .wrap { grid-template-columns: 1fr; gap: 20px; } nav { position: static; } nav a { display: inline-block; margin-right: 10px; border-left: 0; padding-left: 0; } h1 { font-size: 28px; } }
+</style>
+
+<div class="wrap">
+<nav>
+    <div class="brand">드래고니아</div>
+    <div class="sub">설정집 · 2026-09-23 기준</div>
+    <a href="#summary">한 줄 요약</a>
+    <a href="#history">연표</a>
+    <a href="#villages">마을들</a>
+    <a href="#chars">인물</a>
+    <a href="#hero">주인공은 무엇인가</a>
+    <a href="#bosses">보스</a>
+    <a href="#chapters">장 구성</a>
+    <a href="#endings">세 갈래 결말</a>
+    <a href="#love">연애와 가족</a>
+    <a href="#systems">싸움과 하루</a>
+    <a href="#open">아직 안 정한 것</a>
+</nav>
+
+<main>
+<h1>하늘에서 떨어진 용</h1>
+<div class="lead">드래고니아의 세계·인물·이야기를 한자리에 모은 설정집. 지금 게임에 들어가 있는 것을 기준으로 적었다.</div>
+
+<h2 id="summary">한 줄 요약</h2>
+<p class="quote">사람과 싸우고 용끼리도 싸우다 쪼그라든 <b>웨스턴 마을</b>에, 어느 밤 하늘에서 새끼 용 하나가 떨어진다. 마을의 어느 용과도 닮지 않았고, 한 몸에 숨결을 여럿 품는다. 그 용이 마을의 묵은 문제를 풀고, 어른들의 숙원을 들어주고, 갈라선 마을들을 다시 잇는다 — 혹은, 삼백 년 전 똑같이 하늘에서 떨어졌던 용 <b>이그나르</b>의 손을 잡고 그 마을을 무너뜨린다.</p>
+
+<h2 id="history">연표</h2>
+<div class="scroll"><table>
+<tr><th>때</th><th>일</th></tr>
+<tr><td>약 300년 전</td><td>용들이 알음알음 모여 웨스턴 마을이 생긴다. 같은 무렵 하늘에서 새끼 용 하나가 떨어진다 — 이그나르. 카이론의 부모가 거둬 카이론과 한 둥지에서 자라고, 수호룡 모르가스가 둘을 같이 가르친다.</td></tr>
+<tr><td>번영기</td><td>마을이 커진다. 굴이 골짜기마다 있었다. 엘더가 촌장이 된다(약 200년 전).</td></tr>
+<tr><td>약 60년 전</td><td><b>인간과의 전쟁.</b> 이기긴 했다. 이그나르가 인간의 도시를 통째로 태워서 끝냈고, 말리러 간 모르가스가 그 자리에서 죽는다. 구름마루는 폭포 위에서 내려오지 않았다.</td></tr>
+<tr><td>전쟁 직후</td><td>이그나르: "흩어져 살면 또 당한다. 용의 마을은 하나여야 한다. 내 밑으로." 엘더·카이론과 갈라서서 따르는 용들을 데리고 화산으로 간다 → <b>잿마루</b>. 이때 잘고라 형제가 따라갔고, 뿌리골·돌등은 숨결을 빼앗겼다.</td></tr>
+<tr><td>그 뒤</td><td>도시를 잃은 인간들의 원한이 사냥꾼이 되어 돌아온다. 티아맷의 가족 여섯이 이 시기에 죽는다.</td></tr>
+<tr><td>약 20년 전</td><td><b>구름마루와의 전쟁.</b> 옛 원한에 사냥터와 물길 다툼이 겹쳤다. 엘더의 메이트(나라의 어머니)가 죽는다. 카이론은 제 손으로 가르친 제자들이 양쪽에 서서 서로 죽이는 걸 보고 그 뒤로 제자를 받지 않는다. 유안은 누이를 잃고, 다친 채 웨스턴으로 잘못 실려 와 어린 미라에게 목숨을 빚진다. 폭포 아래 길이 얼어붙는다.</td></tr>
+<tr><td>요즘</td><td>삼백 년 동안 들키지 않던 숲에 사냥꾼이 길을 알고 찾아온다. 지도는 하늘에서 내려다본 모양 — 잿마루가 흘린 것이다. 마을을 몰아붙여 제 밑으로 들어오게 하려고.</td></tr>
+<tr><td>지금</td><td>주인공이 광장에 떨어진다. 그날 밤 하늘은 두 번 붉어졌다.</td></tr>
+</table></div>
+
+<h2 id="villages">마을들</h2>
+<h3>웨스턴 마을 — 우리 마을</h3>
+<p>숲 한가운데. 빈 굴이 많다. 어른은 지쳤고 아이는 겁이 많다. 그래도 밥때가 되면 시끄럽다. 촌장 엘더, 스승 카이론, 망루지기 티아맷, 대장장이 그론과 조수 엠버, 약초꾼 미라, 아이들 나라와 포코가 산다.</p>
+<h3>구름마루 — 폭포 위</h3>
+<p>물을 타는 몸 긴 용들. 어른 리운, 물점 치는 세이란, 또래 하루, 경계를 도는 유안. 웨스턴과는 스무 해째 서로 모른 척했고, 사이 길목(골짜기)에 모르가스가 떠돌아 오갈 수도 없었다. 3장에서 길이 열리고, 5장에서 두 마을이 처음 같이 움직였다가 6장에서 피를 보고, 7장에서 주인공이 다리가 되어 화해한다. 물의 숨결은 이 마을이 맡긴다.</p>
+<h3>잿마루 — 화산 기슭</h3>
+<p>이그나르를 따라간 용들과 그 자식들. 악당 소굴이 아니라 "다시는 안 당하겠다"는 용들의 마을이다. 규율이 세고, 굶지 않고, 아무도 습격당하지 않는다 — 그래서 어둠의 길에 설득력이 생긴다. 문지기 베스나는 웨스턴에서 난 용이다. 나팔이 없는 마을.</p>
+<h3>뿌리골 — 밀림 서쪽</h3>
+<p>풀의 용들. 어른 모스, 젊은 펀. 예순 해 전 이그나르에게 숨결을 빼앗긴 적이 있어 바깥 용을 경계하지만, 4장부터 찾아가면 풀의 숨결을 <b>맡겨 준다</b>.</p>
+<h3>돌등 — 사막의 바위 고원</h3>
+<p>땅의 용들. 어른 가람, 젊은 돌. 바깥 용이 올라온 건 예순 해 만이다. 7장(바실을 잡은 뒤)부터 땅의 숨결을 맡겨 준다.</p>
+<h3>불탄 도시 — 사막 너머</h3>
+<p>예순 해 전 이그나르가 태운 인간의 도시. 벽에 아이가 그린 검은 용 — 목에 주인공과 같은 무늬가 있고 세 빛깔의 불을 뿜는다. 인간 쪽에서 본 그 전쟁이 여기 있다.</p>
+
+<h2 id="chars">인물</h2>
+<p class="note">말투는 대사를 쓸 때마다 본다. 기획자가 직접 쓴 엘더의 대사가 기준이다.</p>
+<div class="cards">
+<div class="card"><div class="name">엘더 <small>Elder</small></div><div class="role">촌장 · 300살 넘음 · 짝 가능</div>
+<ul><li>나라의 아버지. 메이트는 스무 해 전 전쟁에서 죽었다. 카이론과는 오랜 친구.</li><li>나라 얘기만 나오면 팔불출. 주인공을 보면 이그나르가 겹쳐 보여 가끔 말이 멎는다. 그래도 거둔다.</li><li>주인공과 마음을 나누면 나라가 수련장에서 따져 묻는다 — 웃기게.</li></ul>
+<div class="voice"><b>말투</b> ‑단다 / ‑구나 / ‑게야 / ‑하려무나. 말끝을 흐린다(…). 무릎·기침 농담. 잔소리에 생활 요령이 섞인다.</div></div>
+
+<div class="card"><div class="name">카이론 <small>Kairon</small></div><div class="role">스승 · 짝 가능</div>
+<ul><li>이그나르와 한 둥지에서 자란 의형제. 예전엔 제자를 백 명 넘게 길렀다.</li><li>스무 해 전 전쟁 뒤로 제자를 안 받는다. 주인공이 스무 해 만의 첫 제자. 나라는 "친구 딸이 멋대로 와서 허수아비 치는 것".</li><li>신파 금지. 사연은 쉬는 날 잡담에 한 조각씩, 별일 아닌 듯.</li><li>어둠의 길 끝에서 마을 어귀를 막아서는 것도, 교화 결말에서 형과 삼백 년 만에 마주 서는 것도 그다.</li></ul>
+<div class="voice"><b>말투</b> 엘더에게는 "영감", ‑소/‑오. 제자에게는 반말, 잔소리가 길다. 칭찬은 돌려서.</div></div>
+
+<div class="card"><div class="name">나라 <small>Nara</small></div><div class="role">엘더의 딸 · 또래 · 짝 가능</div>
+<ul><li>밝고 승부욕이 세다. 지면 분해서 밥을 두 그릇 먹는다.</li><li>어머니 기억이 거의 없어 남들 얘기로만 안다 — "나 엄마 닮았대. 정신없는 게."</li><li>티아맷과 사이가 좋다. 둘의 대련이 마을 구경거리. 맨날 지면서 맨날 덤빈다.</li><li>어둠의 결말에서는 다음 날 말없이 마을을 떠나 구름마루로 간다.</li></ul>
+<div class="voice"><b>말투</b> 빠르고 말이 많다. 야 / 됐고 / 아 짜증 나 / ‑거든? 허세 부리다 바로 자백한다.</div></div>
+
+<div class="card"><div class="name">티아맷 <small>Tiamat</small></div><div class="role">망루지기 · 짝 가능</div>
+<ul><li>가족 여섯을 사냥꾼에게 잃었다. 강해져야 한다고 스스로를 몰아붙인다. 성격은 좋다.</li><li>나라를 동생처럼 챙긴다. 대련은 안 봐준다.</li><li>잘고라 형제의 이름(릭과 록)을 기억해 주겠다고 약속한다.</li></ul>
+<div class="voice"><b>말투</b> 짧고 직설. 나라·포코 앞에서는 풀어진다.</div></div>
+
+<div class="card"><div class="name">포코 <small>Poco</small></div><div class="role">겁 많은 아이 · 짝 가능</div>
+<ul><li>특별한 사연은 없다. 되풀이되는 나팔 소리에 그냥 지쳤다. 주인공을 처음 발견한 아이.</li><li>무서우면 말이 많아지고 딴 얘기로 도망간다. 대장간 모루 밑에 숨는다 — 그론이 모른 척 자리를 내준다.</li><li>6장에서 그론이 포코를 감싸다 죽는다. 그 뒤로 나팔이 울려도 숨지 않는다.</li></ul>
+<div class="voice"><b>말투</b> 저기… / 있잖아 / 그치? / 아 몰라. 묻고는 제가 대답한다.</div></div>
+
+<div class="card"><div class="name">그론 <small>Gron</small></div><div class="role">대장장이 · 6장에서 죽는다 · 짝 가능</div>
+<ul><li>젊을 때 동료 셋과 사막에 갔다가 혼자 기어 돌아왔다(바실). 벽에 못 세 개가 비어 있다.</li><li>포코에게만 무르다. 조수 엠버를 구박하면서 다 가르친다.</li><li>주인공에게 뭔가 만들어 주겠다고 약속하고 못 끝낸다 → 엠버가 완성한다(그론의 비늘갑).</li></ul>
+<div class="voice"><b>말투</b> 투덜투덜, 일 얘기로 빠진다. 고맙단 말을 못 해서 고기를 던져 준다.</div></div>
+
+<div class="card"><div class="name">엠버 <small>Ember</small></div><div class="role">그론의 조수</div>
+<ul><li>떠돌다 눌러앉았다. 손이 빠르고 입도 빠르다.</li><li>그론이 죽은 뒤 대장간을 잇는다. 사흘은 불을 못 피운다.</li></ul></div>
+
+<div class="card"><div class="name">미라 <small>Mira</small></div><div class="role">약초꾼</div>
+<ul><li>약초를 캔다는 핑계로 폭포 쪽에 자주 간다. 길이 얼어 있던 스무 해 동안 그 끝까지 가서 올려다보기만 했다.</li><li>상대는 유안. 마을 안의 밀회 줄기(퀘스트 s1). 덮어 줄지·말릴지·이를지를 6장이 기억한다.</li></ul></div>
+
+<div class="card"><div class="name">리운 · 세이란 · 하루 · 유안</div><div class="role">구름마루</div>
+<ul><li><b>리운</b> 어른. 7장 뒤 물의 숨결을 맡긴다.</li><li><b>세이란</b> 물점을 친다. 주인공을 "두 겹으로" 본다. 동족 찾기의 첫 실마리. 짝 가능. 남의 앞일은 읽어도 제 앞일은 안 읽는다.</li><li><b>하루</b> 밝고 궁금한 게 많다. 주인공의 <b>밀회 상대</b>: 해 질 녘 폭포 아래 바위틈에서 유안의 순찰을 피해 만난다. 세 번째에 세이란에게 들키지만 못 본 척해 준다. 짝 가능.</li><li><b>유안</b> 경계를 돈다. 누이를 아랫마을 용에게 잃었는데 목숨은 아랫마을 용(미라)에게 빚졌다. "경계를 세 번씩 도는 건 너희를 막으려는 게 아니라 나를 막아 보려는 거다."</li></ul></div>
+
+<div class="card"><div class="name">이그나르 <small>Ignar</small></div><div class="role">삼백 년 전에 떨어진 용 · 결말 뒤 짝 가능</div>
+<ul><li>주인공과 핏줄은 없다. <b>같은 종류</b>다. 세상에 둘뿐.</li><li>숨결을 <b>빼앗아서</b> 모았다. 주인공은 <b>받아서</b> 모은다. 이 차이가 이야기 전체다.</li><li>틀린 말만 하는 용이 아니다. "저들은 네가 쓸모 있을 때만 너를 제 식구라 부른다."</li><li>꿈 셋과 밤의 사자(베스나)로 천천히 다가온다. 정상에서는 먼저 말을 건다.</li><li>결말 뒤: 교화면 호숫가 빈 굴에, 어둠이면 잿마루에 산다. 포코가 볼 때마다 고기를 놓고 도망간다.</li></ul></div>
+
+<div class="card"><div class="name">모스 · 펀 / 가람 · 돌 / 베스나</div><div class="role">뿌리골 · 돌등 · 잿마루</div>
+<ul><li><b>모스</b> 뿌리골 어른, 풀의 숨결을 맡긴다. <b>펀</b> 젊고 날개 큰 바깥 용이 신기하다.</li><li><b>가람</b> 돌등 어른, 땅의 숨결을 맡긴다. <b>돌</b> 모래 폭군 잡은 용과 한판 붙고 싶어 한다.</li><li><b>베스나</b> 잿마루 문지기. "여기서는 아무도 너를 해치지 않는다. 너도 아무도 해치지 마라."</li></ul></div>
+
+<div class="card"><div class="name">베르단 <small>Verdan</small></div><div class="role">사냥꾼 대장 · 인간</div>
+<ul><li>마을에서는 늘 졌으니 길에서 기다린다. 3장 뒤 마을 밖에서 주인공을(짝과 함께) 포위한다.</li><li>지휘 → 그물 → 부하를 물리고 혼자 돌진. 쓰러지면 부하가 끌고 물러난다.</li><li>떨어뜨리고 간 지도는 하늘에서 본 모양이고 구석에 발톱 자국이 있다 — 인간이 그린 게 아니다.</li></ul></div>
+</div>
+
+<h2 id="hero">주인공은 무엇인가 — 동족 찾기</h2>
+<p>엘더: "드래곤들은 불, 얼음, 번개 중 하나의 속성을 가지고 태어난단다." 주인공만 다르다. 숨결이 하나씩 <b>늘어난다</b>. 마을은 신기해하고, 어른들은 굳는다. 이그나르도 그랬으니까.</p>
+<p>답: <b>하늘의 용은 제 숨결 없이 태어나, 다른 용이 맡긴 숨결을 품는 종</b>이다. 구름 위 폐허에는 빈 둥지뿐이고, 떨어진 것은 이그나르와 주인공 둘뿐. 모르가스가 냉기를 "물려준" 것이 본래 방식이다. 빼앗긴 숨결은 주인을 죽이지만 건네준 숨결은 양쪽을 다 살린다.</p>
+<div class="scroll"><table>
+<tr><th>단서</th><th>어디서</th></tr>
+<tr><td>무늬</td><td>목 아래 비늘 한 장 밑. 떨어지던 날엔 없었다</td></tr>
+<tr><td>숨결</td><td>둘이 되었다. 엘더는 "딱 한 번을 빼고는"</td></tr>
+<tr><td>하늘</td><td>세이란의 물점: 구름 위 돌로 지은 빈 둥지, 알 껍데기 둘</td></tr>
+<tr><td>두 번</td><td>포코: 떨어지던 밤 하늘이 두 번 붉어졌다</td></tr>
+<tr><td>형</td><td>카이론: 같은 무늬가 형 이그나르의 목에도</td></tr>
+<tr><td>도시</td><td>불탄 도시 벽 그림의 검은 용, 같은 무늬, 세 빛깔의 불</td></tr>
+<tr><td>지도</td><td>베르단의 지도: 하늘에서 본 모양, 발톱 자국</td></tr>
+<tr><td>화산</td><td>화산 벽에 같은 무늬 수백 개 — 이그나르도 찾고 있었다</td></tr>
+<tr><td>보내진 것</td><td>이그나르: 우리는 떨어진 게 아니라 보내진 것이다</td></tr>
+</table></div>
+<p>단서가 셋 이상이면 밤의 사자가 오고(히든), 넷 이상이면 이그나르를 살려 데려올 수 있다.</p>
+<p><span class="el" style="background:#ff6a3c"></span>불 <span class="el" style="background:#7fd4ff"></span>냉기(모르가스가 물려준다) <span class="el" style="background:#ffe27a"></span>번개(잘고라 형제가 남긴다) <span class="el" style="background:#4aa3ff"></span>물(리운) <span class="el" style="background:#c9a06a"></span>땅(가람) <span class="el" style="background:#6fcf5a"></span>풀(모스). 숨결이 셋 이상 모이면 융합 브레스가 열린다. 삼원룡 단계는 없다.</p>
+
+<h2 id="bosses">보스 — 왜 잡아야 하는가</h2>
+<div class="scroll"><table>
+<tr><th>보스</th><th>누구였나</th><th>잡아야 하는 이유</th><th>남기는 것</th></tr>
+<tr><td>모르가스</td><td>옛 수호룡. 카이론·이그나르의 스승. 이그나르를 막다 죽었다</td><td>폭포 아래 길목을 떠돌아 구름마루와 오갈 수가 없다. 보내 드려야 길이 열린다</td><td>냉기를 물려준다</td></tr>
+<tr><td>잘고라</td><td>이그나르 편에 섰던 형제 릭과 록. 저주로 한 몸</td><td>남쪽 사냥터를 차지했다. 마을이 굶는다</td><td>번개 — 이그나르가 빼앗고 남긴 것</td></tr>
+<tr><td>글라시아</td><td>전쟁 때 두 마을이 알을 맡긴 어미</td><td>맡긴 알을 되찾으러. 한여름 눈으로 마을이 언다</td><td>알은 다 얼어 죽어 있었다 → 두 마을이 서로를 탓한다 → 전쟁</td></tr>
+<tr><td>바실</td><td>사막 길의 폭군. 그론의 동료 셋을 죽였다</td><td>사막 너머(인간의 땅·동족의 실마리)로 가는 길</td><td>부러진 창 — 그론의 무덤에 놓는다</td></tr>
+<tr><td>이그나르</td><td>삼백 년 전에 떨어진 용</td><td>8장. 먼저 말을 건다</td><td>세 갈래 결말</td></tr>
+</table></div>
+<p class="note">보스는 2~3 페이즈. 페이즈는 체력통이 아니라 판이 바뀌는 것이고, 넘어갈 때 그 보스의 사연이 한마디로 드러난다. 쓰러지면 처음부터.</p>
+
+<h2 id="chapters">장 구성</h2>
+<ul class="chapters">
+<li><div class="n">서장</div><div><div class="t">별이 떨어진 밤</div><p>포코가 발견하고 엘더가 알아본다. 하늘이 두 번 붉어졌다.</p></div></li>
+<li><div class="n">1장</div><div><div class="t">웨스턴 마을</div><div class="m">마을 · 동쪽 숲길 · 수련장</div><p>눈을 뜬다 → 포코가 끌고 다니며 마을 구경 → 첫 사냥, 슬라임 뱃속의 덫 → 첫 밤 → 엘더와 카이론의 티격태격 → 첫 수련, 나라 → 첫 승급.</p></div></li>
+<li><div class="n">2장</div><div><div class="t">나팔 소리</div><div class="m">호수 · 남쪽 숲길</div><p>엘더의 부탁을 받은 그날 밤 나팔이 울린다 → 사냥꾼의 지도 → 티아맷 → 대장간, 그론과 엠버. 이때부터 일상 습격이 돈다.</p></div></li>
+<li><div class="n">3장</div><div><div class="t">골짜기의 옛 수호룡</div><div class="m">골짜기 → 폭포</div><p>모르가스를 보내 드리고 냉기를 물려받는다 → 엘더의 굳은 얼굴 → 얼음이 녹아 구름마루와 첫 만남(하루는 반기고 유안은 막는다) → 세이란의 물점. 이 뒤로 베르단이 길에서 기다린다.</p></div></li>
+<li><div class="n">4장</div><div><div class="t">굶는 계절</div><div class="m">밀림 · 구름마루 · 뿌리골</div><p>잘고라 → 번개 → 달이 가장 밝은 밤의 모임 → 밀회: 해 질 녘의 폭포. 하루와 가까워지는 중이면 미라가 덮어 주고, 아니면 미라와 유안을 목격한다.</p></div></li>
+<li><div class="n">5장</div><div><div class="t">맡긴 알</div><div class="m">서리 고개 · 봉우리</div><p>두 마을이 처음으로 같이 움직인다 → 글라시아 → 알은 전부 죽어 있다 → 누구 탓이냐 → 폭포에서 피가 난다.</p></div></li>
+<li><div class="n">6장</div><div><div class="t">전쟁</div><div class="m">폭포 · 마을</div><p>구름마루와 대치 → 그 틈에 두 방향의 대습격 → <b>그론이 포코를 감싸다 죽는다</b> → 장례 → 엘더가 마침내 이그나르의 이름을 말한다 → (히든) 잿마루의 사자.</p></div></li>
+<li><div class="n">7장</div><div><div class="t">사막 길</div><div class="m">사구 · 바실의 둥지 · 불탄 도시 · 돌등</div><p>바실 → 부러진 창을 무덤에 → 불탄 도시, 인간 쪽에서 본 그 전쟁 → 카이론이 형을 설명한다 → 두 마을의 화해, 물의 숨결.</p></div></li>
+<li><div class="n">8장</div><div><div class="t">잿마루</div><div class="m">잿빛 화산 · 정상</div><p>나팔이 없는 마을 → 정상의 대면. "그래도 나는 그 마을 용이다" → 싸움 / "…계속 말해 보라고 한다"(사자를 만났을 때만) → 어둠의 길: 잿마루의 밤 → 마을 어귀에서 카이론이 막아선다 → 결투.</p></div></li>
+</ul>
+<p class="note">지도는 장을 따라 열리고, 어린 용은 밤이 깊으면 알아서 잔다. 이야기 밖에서 따로 도는 시계는 없다.</p>
+
+<h2 id="endings">세 갈래 결말</h2>
+<div class="endings">
+<div class="guardian"><b>수호룡</b><p>이그나르를 끝내고 마을로. 엘더가 수호룡을 물려준다. "이그나르도 나처럼 떨어진 용이었다. 다른 게 있다면 나한테는 돌아올 마을이 있었다는 것뿐."</p></div>
+<div class="redeem"><b>교화 (히든)</b><p>단서 넷 이상. 이그나르를 죽이지 않고 업고 돌아온다. 카이론과 삼백 년 만의 대면. 마을 밖 호숫가 빈 굴에서 다시 시작한다. 포코가 고기를 내민다.</p></div>
+<div class="dark"><b>흑화 (히든)</b><p>사자를 만난 뒤에만. 잿마루 편에 서서 카이론을 이기면 마을이 넘어간다. 나팔은 다시 울리지 않고, 재가 내리고, 나라는 떠난다. 지면 카이론이 "집에 가자"며 끌고 돌아와 교화로 이어진다.</p></div>
+</div>
+
+<h2 id="love">연애와 가족</h2>
+<h3>마음을 나눌 수 있는 용</h3>
+<p>엘더 · 카이론 · 나라 · 티아맷 · 포코 · 그론 · 하루 · 세이란, 그리고 결말 뒤의 이그나르. 데이트 세 번 뒤 고백(성체부터). 엘더·카이론은 호감이 더 필요하고, 하루와의 만남은 밀회다.</p>
+<h3>뒷이야기</h3>
+<ul>
+<li><b>한눈팔기</b> 짝이 있거나 다른 용과도 데이트 중인데 또 데이트하면 그 용이 봤을 수 있다. 다음에 말을 걸면 따져 묻는다 — 사과 / "그냥 친구야"(반반) / 그쪽을 고른다.</li>
+<li><b>다툼</b> 짝이 토라지면 굴을 나가 제 일과로 돌아간다. 고기 세 개를 들고 가서 사과해야 풀린다. 엿새를 내버려 두거나 토라진 중에 또 들키면 떠난다. 마을이 다 안다.</li>
+<li><b>헤어짐</b> 내가 먼저 그만하자고 할 수도 있다. 한동안 인사가 서먹하다.</li>
+<li><b>순애</b> 한 번도 한눈팔지 않고 닷새를 함께 산 짝에게만 평생의 약속이 열린다(언약의 고리). 열흘마다 기념일.</li>
+<li><b>촌장과의 연애</b> 나라의 반응은 웃기게 간다. 짝이 된 뒤에도 끝까지 "야".</li>
+</ul>
+<h3>가족</h3>
+<ul>
+<li>알은 이레에 한 번. 곁에서 품으면 하루 반, 밤에 곁에서 자면 하룻밤에 크게 찬다.</li>
+<li>아이는 성격이 넷(씩씩이·수줍음쟁이·장난꾸러기·의젓이). 고기는 하루 두 번, 훈련, 자고 나면 조금 — 아기에서 성체까지 나흘쯤.</li>
+<li>다 자라면 촌장 앞에서 성년식을 하고 성격대로 일을 맡는다(망루·약초·대장간·수련장). 아침마다 뭔가를 들고 온다.</li>
+<li>사흘에 한 번 가족 나들이. 부모가 다투거나 헤어지거나 평생을 약속하면 아이들이 한마디씩 한다.</li>
+</ul>
+
+<h2 id="systems">싸움과 하루</h2>
+<h3>싸움의 흐름</h3>
+<ul>
+<li><b>기세</b> 맞히고 쓰러뜨릴수록 차오르고, 맞으면 반이 꺾인다. 찰수록 숨결이 세진다.</li>
+<li><b>간발</b> 날아오는 것을 아슬아슬하게 대시로 피하면 세상이 잠깐 느려지고 기세가 크게 찬다. 베르단의 돌진을 이렇게 피하면 빈틈이 난다.</li>
+<li><b>물어뜯기</b> 빈사의 적을 대시로 뚫고 지나가면 끝난다.</li>
+<li><b>속성 연계</b> 젖음+번개=감전 · 젖음+냉기=빙결 · 독+불=번지는 불 · 기절+땅=분쇄 · 화상+물=증기 · 젖음+풀=무성.</li>
+<li><b>유물</b> 갈래(송곳니·비늘·날개·불꽃)가 있고 같은 갈래 둘을 끼우면 공명한다. 보스가 남기는 것, 이야기에서 받는 것(그론의 비늘갑·언약의 고리·베르단의 뿔피리), 상자·정예·굴에서 나오는 것.</li>
+</ul>
+<h3>습격</h3>
+<p>장이 넘어갈 때마다 생김새가 바뀐다. 2장 정찰대 → 그물꾼 → 6장 두 방향의 대습격과 대장 → 그 뒤로는 구해 와야 하는 용, 대장을 잡으면 흩어지는 부하. 첫 습격은 이야기가 부른다. 어둠의 결말 뒤에는 오지 않는다.</p>
+<h3>카이론과의 하루</h3>
+<p>수련장에 가면 그날 할 일을 카이론이 정한다. 기본기 여덟은 일정에 날짜가 박혀 있고, 그 사이에 같이 사냥 · 정예 사냥 · 원정 · 굴 동행 · 나라와 내기 · 티아맷과 나라의 대련 구경 · 쉬는 날이 돈다. 사연은 쉬는 날 한 조각씩.</p>
+<h3>굴</h3>
+<p>들어갈 때마다 새로 그려진다. 층마다 파수꾼이 옛 비늘돌을 품고 있고(대장간에서만 쓴다), 굴마다 지하 3·5·8층에 처음 닿으면 유물과 성장 포인트.</p>
+
+<h2 id="open">아직 안 정한 것</h2>
+<ul>
+<li>파트너·아이 시스템이 6장(전쟁)과 어떻게 엮이는가</li>
+<li>티아맷 · 미라 · 엠버의 작은 이야기 세부</li>
+<li>습격 목표 더 (알 지키기 등)</li>
+<li>보스전을 기세·간발과 더 맞물리게</li>
+</ul>
+</main>
+</div>
