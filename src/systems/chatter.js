@@ -21,7 +21,7 @@ export function updateChatter(dt) {
         }
         return;
     }
-    if (state.mapId !== 'VILLAGE' || state.raid.active || state.isDialogueOpen || state.tour || state.prologue) return;
+    if (!['VILLAGE', 'CLOUDTOP', 'ROOTVALE', 'STONEBACK', 'VOLCANO'].includes(state.mapId) || state.raid.active || state.isDialogueOpen || state.tour || state.prologue) return;
     timer -= dt;
     if (timer > 0) return;
     timer = rand(18, 32);

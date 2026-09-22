@@ -149,6 +149,47 @@ export const ROUTINES = {
         raid: { map: 'VILLAGE', spot: [6, 9], doing: '도란 뒤에서 돌멩이를 골라 쥐고 있다' },
     },
 
+    // ── 단 · 소이 · 누리: 세 식구. 단은 숲에서 나무를 하고, 소이는 집 앞에서 아이를 보고, 누리는 포코 뒤를 따라다닌다 ──
+    Dan: {
+        job: '나무꾼',
+        day: [
+            { h: 0,  map: 'VILLAGE',   spot: [15, 13], doing: '집 안에서 자고 있다' },
+            { h: 6,  map: 'EAST_ROAD', spot: [6, 5],   doing: '숲 어귀에서 나무를 하고 있다' },
+            { h: 12, map: 'EAST_ROAD', spot: [8, 9],   doing: '그루터기에 앉아 도시락을 먹는다' },
+            { h: 16, map: 'VILLAGE',   spot: [15, 13], doing: '장작을 집 옆에 쌓고 있다' },
+            { h: 19, map: 'VILLAGE',   spot: [13, 10], doing: '모닥불 곁에서 누리를 무릎에 앉히고 있다' },
+            { h: 22, map: 'VILLAGE',   spot: [15, 13], doing: '집 안으로 들어간다' },
+        ],
+        rain: { map: 'VILLAGE', spot: [15, 13], doing: '비 오는 날은 집 앞에서 도끼를 손질한다' },
+        raid: { map: 'VILLAGE', spot: [16, 12], doing: '집 앞을 도끼를 들고 막아섰다' },
+    },
+    Soi: {
+        job: '살림',
+        day: [
+            { h: 0,  map: 'VILLAGE', spot: [17, 13], doing: '집 안에서 누리를 안고 자고 있다' },
+            { h: 7,  map: 'VILLAGE', spot: [17, 13], doing: '집 앞에서 누리 비늘을 닦아 주고 있다' },
+            { h: 11, map: 'VILLAGE', spot: [12, 8],  doing: '분수에서 물을 긷는다' },
+            { h: 14, map: 'VILLAGE', spot: [17, 13], doing: '집 앞에서 바느질을 하며 광장 쪽을 본다' },
+            { h: 19, map: 'VILLAGE', spot: [14, 10], doing: '모닥불 곁에서 단과 누리 옆에 앉아 있다' },
+            { h: 22, map: 'VILLAGE', spot: [17, 13], doing: '누리를 데리고 집으로 들어간다' },
+        ],
+        rain: { map: 'VILLAGE', spot: [17, 13], doing: '누리가 비 맞으러 나갈까 봐 문 앞을 지킨다' },
+        raid: { map: 'VILLAGE', spot: [17, 13], doing: '누리를 품에 안고 집 안에 있다' },
+    },
+    Nuri: {
+        job: '아이',
+        day: [
+            { h: 0,  map: 'VILLAGE', spot: [17, 13], doing: '엄마 품에서 자고 있다' },
+            { h: 8,  map: 'VILLAGE', spot: [9, 12],  doing: '포코 굴 앞에서 포코를 부르고 있다' },
+            { h: 11, map: 'VILLAGE', spot: [11, 8],  doing: '분수 둘레를 뱅뱅 돌고 있다' },
+            { h: 15, map: 'VILLAGE', spot: [16, 14], doing: '집 앞에서 작대기로 땅에 그림을 그린다' },
+            { h: 19, map: 'VILLAGE', spot: [13, 11], doing: '모닥불 곁에서 아빠 무릎에 앉아 졸고 있다' },
+            { h: 21, map: 'VILLAGE', spot: [17, 13], doing: '엄마한테 끌려 집으로 들어간다' },
+        ],
+        rain: { map: 'VILLAGE', spot: [17, 13], doing: '문틈으로 비를 구경한다' },
+        raid: { map: 'VILLAGE', spot: [17, 13], doing: '엄마 품에 안겨 있다' },
+    },
+
     // ── 엠버: 그론의 조수. 제 굴이 없다. 대장간 구석에서 잔다 ─────────────
     Ember: {
         job: '대장간 조수',

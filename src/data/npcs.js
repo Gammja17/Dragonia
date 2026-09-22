@@ -5,7 +5,7 @@ export const NPC_NAMES_KO = {
     Riun: '리운', Seiran: '세이란', Haru: '하루', Yuan: '유안',
     Kirin: '키린', Raze: '레이즈', Mira: '미라', Dusk: '더스크',
     Iro: '이로', Sora: '소라', Flint: '플린트', Ember: '엠버',
-    Vesna: '베스나', IGNAR: '이그나르', Ignar: '이그나르', Doran: '도란', Miru: '미루',
+    Vesna: '베스나', IGNAR: '이그나르', Ignar: '이그나르', Doran: '도란', Miru: '미루', Dan: '단', Soi: '소이', Nuri: '누리', On: '온', Biryu: '비류', Beodeul: '버들', Jagal: '자갈', Heukdan: '흑단', Jaetbyeol: '잿별',
     Moss: '모스', Fern: '펀', Garam: '가람', Dol: '돌',
 };
 export const npcName = (id) => NPC_NAMES_KO[id] || id || '???';
@@ -88,6 +88,33 @@ export const FIXED_NPCS = [
         species: 'LOOK', look: 19, accessory: 'FLOWER', scale: 0.95, colors: { body: '#c87a5a', belly: '#f0c8a0', wing: '#e8a878' }, element: 'FIRE', maxHp: 240, power: 8,
         x: 0, y: 0,
     },
+    // ---- 웨스턴의 세 식구. 단은 나무를 하고 소이는 아이를 보고, 누리는 포코 뒤를 졸졸 따라다닌다 ----
+    {
+        name: 'Dan', personality: 'GRUMPY', canPartner: false,
+        species: 'LOOK', look: 21, accessory: null, scale: 1.05, colors: { body: '#5a6a3a', belly: '#b8c890', wing: '#7a8a5a' }, element: 'FIRE', maxHp: 300, power: 11,
+        x: 0, y: 0,
+    },
+    {
+        name: 'Soi', personality: 'WISE', canPartner: false,
+        species: 'LOOK', look: 18, accessory: 'FLOWER', scale: 0.95, colors: { body: '#a86a8a', belly: '#f0c8e0', wing: '#c890b0' }, element: 'ICE', maxHp: 240, power: 8,
+        x: 0, y: 0,
+    },
+    {
+        name: 'Nuri', personality: 'PLAYFUL', canPartner: false, kid: true,
+        species: 'LOOK', look: 23, accessory: null, scale: 0.55, colors: { body: '#8aa86a', belly: '#e0f0b0', wing: '#a8c880' }, element: 'FIRE', maxHp: 90, power: 3,
+        x: 0, y: 0,
+    },
+    // ---- 잿마루: 이그나르를 따라간 용들 ----
+    {
+        name: 'Heukdan', personality: 'GRUMPY', canPartner: false,
+        species: 'LOOK', look: 4, accessory: 'HELM', scale: 1.1, colors: { body: '#2a2a30', belly: '#5a5058', wing: '#8a3a2a' }, element: 'FIRE', maxHp: 460, power: 15,
+        x: 0, y: 0,
+    },
+    {
+        name: 'Jaetbyeol', personality: 'PLAYFUL', canPartner: false, kid: true,
+        species: 'LOOK', look: 17, accessory: null, scale: 0.55, colors: { body: '#4a3a4a', belly: '#c8b0c0', wing: '#ff8a5a' }, element: 'FIRE', maxHp: 90, power: 3,
+        x: 0, y: 0,
+    },
     // ---- 뿌리골: 밀림 깊은 곳, 풀의 용들 ----
     {
         name: 'Moss', personality: 'WISE', role: 'ELDER_ROOT', canPartner: false, elder: true,
@@ -99,6 +126,12 @@ export const FIXED_NPCS = [
         species: 'LOOK', look: 15, accessory: 'FLOWER', scale: 0.82, colors: { body: '#8fcf6a', belly: '#f0e0b0', wing: '#c8e0a0' }, element: 'ICE', maxHp: 220, power: 8,
         x: 0, y: 0,
     },
+    {
+        // 버들: 펀의 어머니. 약초를 말리고 남의 집 아이까지 먹인다
+        name: 'Beodeul', personality: 'WISE', canPartner: false,
+        species: 'LOOK', look: 1, accessory: 'LEAF', scale: 1.0, colors: { body: '#4a7a4a', belly: '#c8e0a0', wing: '#8aa860' }, element: 'ICE', maxHp: 260, power: 8,
+        x: 0, y: 0,
+    },
     // ---- 돌등: 사막의 바위 고원, 땅의 용들 ----
     {
         name: 'Garam', personality: 'GRUMPY', role: 'ELDER_STONE', canPartner: false, elder: true,
@@ -108,6 +141,13 @@ export const FIXED_NPCS = [
     {
         name: 'Dol', personality: 'BRAVE', canPartner: false,
         species: 'LOOK', look: 25, accessory: null, scale: 0.85, colors: { body: '#8a6a4a', belly: '#d8b88a', wing: '#6a5040' }, element: 'FIRE', maxHp: 260, power: 9,
+        x: 0, y: 0,
+    },
+
+    {
+        // 자갈: 돌의 할머니. 돌등에서 제일 오래 살았고, 제일 말이 많다
+        name: 'Jagal', personality: 'WISE', canPartner: false,
+        species: 'LOOK', look: 0, accessory: 'HAT', scale: 0.9, colors: { body: '#9a8a6a', belly: '#e0d0b0', wing: '#7a6a50' }, element: 'FIRE', maxHp: 240, power: 7,
         x: 0, y: 0,
     },
 
@@ -132,6 +172,18 @@ export const FIXED_NPCS = [
         x: 0, y: 0,
     },
     {
+        // 온: 구름마루의 할머니. 스무 해 전 전쟁을 두 눈으로 봤고, 그 얘기를 아무한테나 한다
+        name: 'On', personality: 'WISE', canPartner: false, east: true,
+        species: 'LOOK', look: 2, accessory: 'HAT', scale: 0.95, colors: { body: '#3a5f7f', belly: '#a8c8e0', wing: '#c8d8e0' }, element: 'ICE', maxHp: 250, power: 7,
+        x: 0, y: 0,
+    },
+    {
+        // 비류: 물길을 달리는 젊은 용. 하루의 단짝이고 유안의 잔소리를 같이 듣는다
+        name: 'Biryu', personality: 'BRAVE', canPartner: false, east: true,
+        species: 'LOOK', look: 10, accessory: 'PLUME', scale: 0.92, colors: { body: '#2a7f9f', belly: '#9fe0f0', wing: '#e0f0f8' }, element: 'ICE', maxHp: 280, power: 11,
+        x: 0, y: 0,
+    },
+    {
         // 유안: 경계를 도는 자. 폭포 아래로 내려오는 것을 가장 싫어한다
         name: 'Yuan', personality: 'GRUMPY', canPartner: false, east: true,
         species: 'LOOK', look: 14, accessory: 'HELM', scale: 1.06, colors: { body: '#1f6f9f', belly: '#6fc0e0', wing: '#b8c8d0' }, element: 'ICE', maxHp: 360, power: 13,
@@ -142,7 +194,7 @@ export const FIXED_NPCS = [
 export const WANDER_NAMES = ['Kirin', 'Raze', 'Dusk', 'Iro', 'Sora', 'Flint'];   // 나라·엠버·미라·구름마루 용들은 고정 NPC라 뺀다
 // 몸이 긴 동양용 외형(3 · 8 · 12 · 14 · 16)은 떠돌이에게 주지 않는다.
 // 12는 엘더, 나머지는 구름마루 용들 것이고, 9는 나라 것이다
-export const WANDER_LOOKS = [0, 1, 2, 10];   // 13은 도란, 19는 미루   // 5는 모스, 7은 미라, 11은 엠버, 15는 펀, 20은 베스나, 24·25는 돌등
+export const WANDER_LOOKS = [0, 1, 2, 10];   // 고정 인물과 겹치는 칸은 색을 달리 쓴다   // 5는 모스, 7은 미라, 11은 엠버, 15는 펀, 20은 베스나, 24·25는 돌등
 export const WANDER_ACCESSORIES = [null, null, 'LEAF', 'FLOWER', 'PLUME'];
 export const WANDER_PERSONALITIES = ['WISE', 'BRAVE', 'PLAYFUL', 'GRUMPY'];
 // 'RIVAL' 은 나라 전용 성격이라 떠돌이에게는 주지 않는다

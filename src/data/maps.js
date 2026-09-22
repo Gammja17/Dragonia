@@ -39,6 +39,7 @@ export const MAPS = {
             { t: 'NPC', name: 'Poco', at: [8, 13] },   // 집 바로 뒤 칸(8,11)에 세우면 집 그림에 가려 안 보인다
             { t: 'NPC', name: 'Tiamat', at: [17, 10] },
             { t: 'NPC', name: 'Doran', at: [5, 9] }, { t: 'NPC', name: 'Miru', at: [6, 9] },
+            { t: 'NPC', name: 'Dan', at: [15, 13] }, { t: 'NPC', name: 'Soi', at: [17, 13] }, { t: 'NPC', name: 'Nuri', at: [16, 14] },
             { t: 'PROP', type: 'FOUNTAIN', at: [12, 7] },
             { t: 'PROP', type: 'HOUSE', at: [7, 6] }, { t: 'PROP', type: 'HOUSE', at: [16, 6] },
             { t: 'PROP', type: 'HOUSE', at: [9, 12] }, { t: 'PROP', type: 'HOUSE', at: [16, 12] },
@@ -94,6 +95,7 @@ export const MAPS = {
             { side: 'N', to: 'SKY_RUINS', name: '구름 위', needsFlight: true },   // 걸어서는 못 넘는다
         ],
         fixtures: [
+            { t: 'NPC', name: 'On', at: [10, 9] }, { t: 'NPC', name: 'Biryu', at: [13, 9] },
             { t: 'PROP', type: 'FOUNTAIN', at: [11, 8] },
             { t: 'PROP', type: 'HOUSE', at: [7, 6] }, { t: 'PROP', type: 'HOUSE', at: [15, 6] },
             { t: 'PROP', type: 'HOUSE', at: [8, 11] }, { t: 'PROP', type: 'HOUSE', at: [15, 11] },
@@ -327,7 +329,7 @@ export const MAPS = {
         roads: [[[17, 6], [9, 6]]],
         portals: [{ side: 'E', to: 'JUNGLE', name: '환영의 밀림' }],
         fixtures: [
-            { t: 'NPC', name: 'Moss', at: [8, 5] }, { t: 'NPC', name: 'Fern', at: [11, 8] },
+            { t: 'NPC', name: 'Moss', at: [8, 5] }, { t: 'NPC', name: 'Fern', at: [11, 8] }, { t: 'NPC', name: 'Beodeul', at: [6, 8] },
             { t: 'PROP', type: 'HOUSE', at: [6, 4] }, { t: 'PROP', type: 'HOUSE', at: [12, 4] },
             { t: 'PROP', type: 'CAMPFIRE', at: [9, 7] }, { t: 'WAYSTONE', at: [14, 7] },
         ],
@@ -339,7 +341,7 @@ export const MAPS = {
         roads: [[[17, 6], [9, 6]]],
         portals: [{ side: 'E', to: 'DESERT', name: '죽은 사구' }],
         fixtures: [
-            { t: 'NPC', name: 'Garam', at: [8, 5] }, { t: 'NPC', name: 'Dol', at: [11, 8] },
+            { t: 'NPC', name: 'Garam', at: [8, 5] }, { t: 'NPC', name: 'Dol', at: [11, 8] }, { t: 'NPC', name: 'Jagal', at: [13, 6] },
             { t: 'PROP', type: 'HOUSE', at: [6, 4] }, { t: 'PROP', type: 'HOUSE', at: [12, 4] },
             { t: 'PROP', type: 'ROCK', at: [5, 8] }, { t: 'PROP', type: 'ROCK', at: [13, 9] },
             { t: 'PROP', type: 'CAMPFIRE', at: [9, 7] }, { t: 'WAYSTONE', at: [14, 7] },
@@ -383,7 +385,7 @@ export const MAPS = {
             { t: 'WAYSTONE', at: [11, 9] },
             { t: 'PROP', type: 'ROCK', at: [15, 5] },
             // 잿마루: 같은 크기의 집이 같은 간격으로 늘어서 있다
-            { t: 'NPC', name: 'Vesna', at: [5, 8] },
+            { t: 'NPC', name: 'Vesna', at: [5, 8] }, { t: 'NPC', name: 'Heukdan', at: [11, 10] }, { t: 'NPC', name: 'Jaetbyeol', at: [15, 10] },
             { t: 'PROP', type: 'HOUSE', at: [8, 5] }, { t: 'PROP', type: 'HOUSE', at: [12, 5] }, { t: 'PROP', type: 'HOUSE', at: [16, 5] },
             { t: 'PROP', type: 'HOUSE', at: [8, 12] }, { t: 'PROP', type: 'HOUSE', at: [12, 12] }, { t: 'PROP', type: 'HOUSE', at: [16, 12] },
             { t: 'PROP', type: 'CAMPFIRE', at: [10, 8] }, { t: 'PROP', type: 'CAMPFIRE', at: [14, 8] },
