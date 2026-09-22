@@ -35,8 +35,8 @@ export const TRIALS = [
     },
     {
         stage: 2, hp: 300,
-        needs: (s) => s.story.lessons.length >= 3 && s.quests.done.includes('m3'),
-        why: '몸만 크다고 어른이냐. 수련 셋은 마치고, 마을 일도 하나 네 손으로 끝내고 와라.',
+        needs: (s) => s.story.lessons.length >= 2 && s.quests.done.includes('m3'),
+        why: '몸만 크다고 어른이냐. 수련 둘은 마치고, 마을 일도 하나 네 손으로 끝내고 와라.',
         intro: "[성체] 시험이다. 오늘은 봐주는 거 없으니까 단단히 마음먹고 덤벼라.",
     },
     {

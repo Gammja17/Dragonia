@@ -365,6 +365,19 @@ export const CHRONICLE = [
         ],
     },
 
+    // 티아맷의 망루의 밤 (퀘스트 t1). 습격 없는 밤에 위에서 보는 마을
+    {
+        id: 'ev_tower_night', title: '망루의 밤',
+        when: c => c.map === 'VILLAGE' && c.night && c.active('t1') && !c.s.raid.active && Math.hypot(c.s.player.x - (17 * 96 + 48), c.s.player.y - (7 * 96 + 48)) < 300,
+        lines: [
+            { who: 'Tiamat', text: "올라왔네. 조심해, 여기 난간이 낮아." },
+            { who: 'Tiamat', text: "봐, 위에서 보면 마을이 손바닥만 해. 굴마다 불이 켜지는 순서도 다 보이고. 촌장님 굴은 늘 제일 늦게 꺼져." },
+            { who: 'Tiamat', text: "나는 습격이 없는 밤에도 여기 있어. 아무 일도 없는 밤을 위에서 세는 게, 이상하게 마음이 놓이거든." },
+            { who: '나', text: "(티아맷은 한참 동안 마을을 내려다보다가, 입술만 조금 움직였다. 뭔가를 세는 것 같았다.)" },
+            { who: 'Tiamat', text: "…아, 미안. 내려가서 얘기하자. 여기서는 말이 잘 안 나와." },
+        ],
+    },
+
     // 사냥꾼 대장 베르단. 습격은 늘 마을에서였는데, 이번에는 길에서 혼자 둘러싸인다
     {
         id: 'ev_ambush', title: '길을 막은 자', ambush: true,
