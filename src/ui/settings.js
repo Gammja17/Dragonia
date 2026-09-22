@@ -30,6 +30,18 @@ export function closeTopPanel() {
     return false;
 }
 
+// 대사 글자 크기. 12px 의 배수(1~4)로만 둔다 — 픽셀 글꼴이라 그 사이 크기는 뭉개진다
+const DLG_KEY = 'dragonia-dlg-size';
+const DLG_NAMES = { 1: '작게', 2: '보통', 3: '크게', 4: '아주 크게' };
+let dlgStep = [1, 2, 3, 4].includes(Number(localStorage.getItem(DLG_KEY))) ? Number(localStorage.getItem(DLG_KEY)) : 2;
+function applyDlgSize() { document.documentElement.style.setProperty('--dlg-step', dlgStep); }
+function cycleDlgSize() {
+    dlgStep = dlgStep % 4 + 1;
+    try { localStorage.setItem(DLG_KEY, dlgStep); } catch { /* 사생활 보호 모드 */ }
+    applyDlgSize();
+    showToast(`대사 글자: ${DLG_NAMES[dlgStep]}`, '🔤');
+}
+
 export function toggleSettings() {
     const panel = $('settings-panel');
     if (panel.style.display === 'flex') { panel.style.display = 'none'; return; }
@@ -80,6 +92,7 @@ function render() {
     body.append(section('화면'));
     body.append(row('시점 (V · 휠)', button(zoomName(), () => cycleZoom(window.innerWidth, window.innerHeight))));
     body.append(row('좌우 정보 창 (U)', button('접기 · 펴기', toggleUi)));
+    body.append(row('대사 글자 크기', button(DLG_NAMES[dlgStep], cycleDlgSize)));
     body.append(section('길잡이'));
     body.append(row('목표 화살표 · 자동 이동', button(GUIDE_LEVELS[guideLevel()], cycleGuideLevel)));
     const gnote = document.createElement('div');
@@ -117,4 +130,5 @@ function render() {
 
 export function initSettings() {
     $('settings-close').addEventListener('click', toggleSettings);
+    applyDlgSize();
 }

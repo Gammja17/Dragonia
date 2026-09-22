@@ -423,8 +423,9 @@ body.cutscene #flow-bar { display: none; }
 #d-rel { width: 168px; height: 5px; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--gold-dim); display: none; }
 #d-rel.show { display: block; }
 #d-rel i { display: block; height: 100%; background: linear-gradient(90deg, #d86a8a, #ff9ab4); }
+/* 대사 글자 크기는 설정에서 고른다 (ui/settings.js 가 --dlg-step 을 1~4 로 둔다. 12px 의 배수라야 픽셀 글꼴이 안 뭉개진다) */
 #d-text {
-    color: var(--parch); font-size: 24px; line-height: 1.62;
+    color: var(--parch); font-size: calc(12px * var(--dlg-step, 2)); line-height: 1.62;
     margin-bottom: 11px; min-height: 2.9em; white-space: pre-wrap;
 }
 /* 세로로 한 줄씩. 방향키로 오르내리고 [Space] 로 고른다 (번호는 붙이지 않는다) */
@@ -436,7 +437,7 @@ body.cutscene #flow-bar { display: none; }
     position: relative;
     background: var(--ink-raise); color: var(--parch);
     border: 1px solid var(--gold-dim); border-left: 3px solid transparent;
-    padding: 8px 12px 8px 28px; cursor: pointer; font-size: 12px; text-align: left;
+    padding: 8px 12px 8px 28px; cursor: pointer; font-size: calc(12px * max(1, var(--dlg-step, 2) - 1)); text-align: left;
     font-family: var(--font-ko); line-height: 1.35;
     transition: background 0.1s, border-color 0.1s;
 }
@@ -764,6 +765,13 @@ body.touch.playing #touch-layer { display: block; }   /* 시작 화면에서는 
 }
 .touch-btn.big { font-size: 24px; background: rgba(120, 40, 20, 0.45); border-color: rgba(255, 170, 80, 0.9); }
 .touch-btn.down { background: rgba(255, 216, 74, 0.42); color: #2a1d06; }
+/* 설정 하나짜리 톱니 버튼. 왼쪽 가운데, 스틱 자리와 위쪽 칩들 사이 */
+#touch-settings {
+    position: absolute; left: 8px; top: 42%; pointer-events: auto;
+    width: 38px; height: 38px; line-height: 36px; text-align: center; font-size: 24px;
+    background: rgba(14, 13, 22, 0.78); border: 1px solid rgba(216, 178, 90, 0.7); color: var(--parch);
+}
+#touch-settings.down { background: rgba(255, 216, 74, 0.4); }
 #touch-top {
     position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
     display: flex; gap: 4px; pointer-events: auto; flex-wrap: nowrap;
@@ -800,9 +808,9 @@ body.touch #quest-more { display: none; }
     #dialogue-overlay, body.cutscene #dialogue-overlay { max-height: 88vh; bottom: 0; padding: 4px 5% 8px; }
     #d-header { gap: 10px; margin-bottom: 4px; }
     #d-portrait.portrait { width: 54px; height: 54px; }
-    #d-text, body.cutscene #d-text { font-size: 12px; line-height: 1.45; margin-bottom: 6px; min-height: 0; }
+    #d-text, body.cutscene #d-text { font-size: calc(12px * max(1, var(--dlg-step, 2) - 1)); line-height: 1.45; margin-bottom: 6px; min-height: 0; }
     #d-options { flex-direction: row; flex-wrap: wrap; gap: 4px; width: 100%; }
-    #d-options .d-btn { flex: 1 1 45%; padding: 5px 8px; font-size: 12px; }
+    #d-options .d-btn { flex: 1 1 45%; padding: 5px 8px; font-size: calc(12px * max(1, var(--dlg-step, 2) - 1)); }
     #scene-title { top: 24%; font-size: 24px; padding: 4px 12px; }
     .right-column { transform: scale(0.58); }
     .hud-panel { transform: scale(0.6); }
@@ -812,7 +820,14 @@ body.touch #quest-more { display: none; }
 @media (max-width: 520px) and (orientation: portrait) {
     .hud-panel   { transform: scale(0.54); top: 4px; left: 4px; }
     .right-column { transform: scale(0.54); top: 4px; right: 4px; }
-    #touch-top {
+    /* 설정 하나짜리 톱니 버튼. 왼쪽 가운데, 스틱 자리와 위쪽 칩들 사이 */
+#touch-settings {
+    position: absolute; left: 8px; top: 42%; pointer-events: auto;
+    width: 38px; height: 38px; line-height: 36px; text-align: center; font-size: 24px;
+    background: rgba(14, 13, 22, 0.78); border: 1px solid rgba(216, 178, 90, 0.7); color: var(--parch);
+}
+#touch-settings.down { background: rgba(255, 216, 74, 0.4); }
+#touch-top {
         top: calc(4px + 0.54 * 300px); left: 6px; transform: none;
         flex-direction: column; gap: 3px; width: max-content;
     }
@@ -875,7 +890,7 @@ body.cutscene #dialogue-overlay {
     background-color: rgba(10, 9, 18, 0.95);
 }
 body.cutscene #d-options { width: 100%; align-items: flex-start; }
-body.cutscene #d-text { font-size: 24px; line-height: 1.7; }
+body.cutscene #d-text { font-size: calc(12px * var(--dlg-step, 2)); line-height: 1.7; }
 
 /* 일지 [마을 용들] 탭: 지금 누가 어디서 무엇을 하는지 */
 .folk-card {

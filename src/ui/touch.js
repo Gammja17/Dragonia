@@ -2,6 +2,7 @@ import { input } from '../core/input.js';
 import { state } from '../core/state.js';
 import { canFuse, ELEMENTS } from '../data/elements.js';
 import { SKILLS } from '../data/skills.js';
+import { toggleSettings } from './settings.js';
 
 // 모바일(터치) 조작: 왼쪽 아래 가상 스틱 + 오른쪽 아래 버튼 무리. 터치 기기에서만 나타난다.
 // 버튼은 키보드와 같은 동작 이름(core/input.js)을 누른 것처럼 처리한다.
@@ -25,7 +26,7 @@ const BUTTONS = [
     ['ultimate', 'X',    1.75, 2.55, 0.8],
 ];
 const TOP_BUTTONS = [
-    ['journal', '일지'], ['nextElement', '속성'], ['eat', '먹기'], ['fly', '비행'], ['kids', '가족'], ['cancel', '설정'],
+    ['journal', '일지'], ['nextElement', '속성'], ['eat', '먹기'], ['fly', '비행'], ['kids', '가족'],
 ];
 
 export function isTouchDevice() { return 'ontouchstart' in window || navigator.maxTouchPoints > 0; }
@@ -124,6 +125,13 @@ export function initTouch() {
         btn[action] = b;
     }
     layer.appendChild(top);
+    // 설정은 톱니 하나. 칩 줄에 섞여 있으면 눈에 안 띄고, [설정]이 Esc 노릇까지 겸해서 헷갈렸다
+    const gear = document.createElement('div');
+    gear.id = 'touch-settings';
+    gear.textContent = '⚙';
+    gear.addEventListener('touchstart', (e) => { e.preventDefault(); gear.classList.add('down'); }, { passive: false });
+    gear.addEventListener('touchend', (e) => { e.preventDefault(); gear.classList.remove('down'); toggleSettings(); }, { passive: false });
+    layer.appendChild(gear);
     updateTouch();
 }
 
