@@ -1032,8 +1032,8 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
     82%  { opacity: 1; }
     100% { opacity: 0; }
 }
-#qb-kind { font-size: 0.7rem; letter-spacing: 4px; color: var(--gold-lit); text-shadow: 0 1px 3px #000; }
-#qb-title { font-size: 1.3rem; font-weight: 700; color: var(--parch); text-shadow: 0 2px 0 #1a1206, 0 0 18px rgba(216, 178, 90, 0.45); margin: 2px 0; }
+#qb-kind { font-family: var(--font-title); font-size: 0.7rem; letter-spacing: 4px; color: var(--gold-lit); text-shadow: 0 1px 3px #000; }
+#qb-title { font-family: var(--font-title); font-size: 1.3rem; font-weight: 700; color: var(--parch); text-shadow: 0 2px 0 #1a1206, 0 0 18px rgba(216, 178, 90, 0.45); margin: 2px 0; }
 #qb-goal { font-size: 0.82rem; color: var(--parch-mid); text-shadow: 0 1px 3px #000; }
 #quest-banner.done #qb-kind { color: var(--good); }
 #quest-banner.done::before, #quest-banner.done::after { background: linear-gradient(90deg, transparent, var(--good), transparent); }
