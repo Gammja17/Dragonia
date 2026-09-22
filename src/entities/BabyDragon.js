@@ -54,7 +54,7 @@ export class BabyDragon extends Entity {
         addAffection(this, 20);
         showToast("아기에게 고기를 먹였습니다!", "🍖");
         burst(this.x, this.y, '#2ecc71', 0.8, 10);
-        this.grow(34);
+        this.grow(6);   // 예전엔 34 라 고기 다섯 개면 그 자리에서 성체가 됐다
     }
 
     /** 성장치를 올리고, 문턱을 넘으면 다음 단계로 자란다 */

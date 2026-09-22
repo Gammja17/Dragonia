@@ -15,6 +15,9 @@ import { notify } from '../systems/quests.js';
 import { xpMult } from '../systems/events.js';
 import { showToast } from '../ui/toast.js';
 import { onKill } from '../systems/flow.js';
+import { onCaptainDown } from '../systems/ambush.js';
+import { shake } from '../core/camera.js';
+import { burst } from './Particle.js';
 
 /** 마을을 습격하는 사냥꾼. type: data/enemies.js 의 HUNTERS 키 */
 export class Human extends Entity {
@@ -27,6 +30,14 @@ export class Human extends Entity {
         this.hitFlash = 0;
         this.cooldown = 1;
         this.power = 1;   // 습격 회차에 따른 공격력 배율 (systems/raid.js)
+        this.swing = 0;   // 내려치기 예고 (초)
+        this.stagger = 0; // 돌진이 빗나가 비틀거리는 시간. 그동안 두 배로 맞는다 (systems/ambush.js)
+    }
+
+    /** 머리 위에 한마디. 대장의 외침은 화면 위에도 띄운다 */
+    say(text) {
+        spawnText(this.x, this.y - 70, text.length > 12 ? text.slice(0, 12) + '…' : text, '#ffd8c0', 14);
+        if (this.type === 'CAPTAIN') showToast(text, '📣');
     }
 
     /** 알이 있는 둥지가 가까우면 둥지, 아니면 가장 가까운 용(플레이어·마을 용·동료) */
@@ -48,6 +59,16 @@ export class Human extends Entity {
         this.cooldown -= dt;
         const speed = this.def.speed * updateStatus(this, dt);
         if (this.remove || speed === 0) return;
+        // 달아난다: 플레이어에게서 멀어지다가 화면 밖으로 나가면 사라진다
+        if (this.fleeing) {
+            const a = Math.atan2(this.y - state.player.y, this.x - state.player.x);
+            this.angle = a + Math.PI;
+            slideMove(this, this.x + Math.cos(a) * speed * 1.4 * dt, this.y + Math.sin(a) * speed * 1.4 * dt, 14);
+            if (dist(this, state.player) > 1000) this.remove = true;
+            return;
+        }
+        if (this.stagger > 0) { this.stagger -= dt; return; }
+        if (this.charge) { this.updateCharge(dt); return; }
 
         const target = this.pickTarget();
         const d = dist(this, target);
@@ -60,6 +81,11 @@ export class Human extends Entity {
                 if (dist(this, this.swingAt) < this.def.range + 34) this.attack(this.swingAt);
                 this.cooldown = this.def.cooldown;
             }
+            return;
+        }
+        // 뒤에서 지휘만 하는 대장 (포위 1페): 너무 가까워지면 물러선다
+        if (this.holdBack) {
+            if (d < 330) slideMove(this, this.x - Math.cos(this.angle) * speed * dt, this.y - Math.sin(this.angle) * speed * dt, 14);
             return;
         }
         if (d > this.def.range) {
@@ -87,7 +113,28 @@ export class Human extends Entity {
         }
     }
 
+    /** 돌진: 예고 뒤에 한 방향으로 내달린다. 맞히지 못하면 비틀거린다 (간발로 피할 수 있다) */
+    updateCharge(dt) {
+        const c = this.charge, p = state.player;
+        if (c.windup > 0) { c.windup -= dt; this.angle = c.dir; return; }
+        c.t -= dt;
+        slideMove(this, this.x + Math.cos(c.dir) * c.speed * dt, this.y + Math.sin(c.dir) * c.speed * dt, 14);
+        if (Math.random() < 0.5) burst(this.x, this.y, '#c9a24a', 0.6, 2);
+        if (!c.hit && dist(this, { x: p.x, y: p.y }) < 70) {
+            c.hit = true;
+            p.takeDamage(this.def.damage * this.power * 1.6);
+            p.x += Math.cos(c.dir) * 90; p.y += Math.sin(c.dir) * 90;
+            shake(10);
+        }
+        if (c.t <= 0) {
+            this.charge = null;
+            if (!c.hit) { this.stagger = 2.4; spawnText(this.x, this.y - 80, '비틀!', '#9fe3ff', 16); spawnEffect('PUFF', this.x, this.y - 10, { size: 1.4 }); }
+            this.cooldown = 1;
+        }
+    }
+
     takeDamage(dmg, silent = false) {
+        if (this.stagger > 0) dmg *= 2;   // 빈틈
         this.hp -= dmg;
         if (!silent) this.hitFlash = 1;
         if (this.hp <= 0 && !this.remove) this.die();
@@ -96,7 +143,8 @@ export class Human extends Entity {
     die() {
         this.remove = true;
         onKill(this.type === 'CAPTAIN');
-        if (this.type === 'CAPTAIN') state.raid.captainFell = true;   // 남은 사냥꾼이 흔들린다 (systems/raid.js)
+        if (this.type === 'CAPTAIN') state.raid.captainFell = true;
+        if (this.type === 'CAPTAIN' && state.ambush) onCaptainDown(this);   // 남은 사냥꾼이 흔들린다 (systems/raid.js)
         state.player.gainXp(this.def.xp * xpMult());
         state.stats.kills.HUNTER = (state.stats.kills.HUNTER || 0) + 1;
         notify('kill', 'HUNTER');
@@ -125,6 +173,15 @@ export class Human extends Entity {
         if (!sheet) return;
         const tint = statusTint(this);
         if (tint) drawGlow(ctx, this.x, this.y - 18, 34 * scale / 3, tint, 0.55);
+        if (this.charge && this.charge.windup > 0) {   // 돌진 예고: 붉은 선
+            const k = 1 - this.charge.windup / 0.75;
+            ctx.save();
+            ctx.strokeStyle = `rgba(255,90,60,${(0.3 + k * 0.5).toFixed(2)})`;
+            ctx.lineWidth = 8 + k * 10; ctx.setLineDash([18, 10]);
+            ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x + Math.cos(this.charge.dir) * 520, this.y + Math.sin(this.charge.dir) * 520); ctx.stroke();
+            ctx.restore();
+        }
+        if (this.stagger > 0) drawGlow(ctx, this.x, this.y - 18, 40, '#9fe3ff', 0.4 + Math.sin(state.gameTime * 14) * 0.2);
         if (this.swing > 0) {   // 치켜든 칼: 닿는 범위가 붉게 차오른다
             const k = 1 - this.swing / 0.45;
             ctx.save();

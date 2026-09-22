@@ -30,6 +30,7 @@ import { saveGame } from './save.js';
 import { play } from './audio.js';
 import { raidWanted, triggerRaid } from './raid.js';
 import { familyMorning } from './family.js';
+import { hasRelic } from './relics.js';
 import { isGatherNow } from './gathering.js';
 
 // 스승의 수련 · 승급 시험 · 잠 · 아침 장면.
@@ -295,6 +296,10 @@ function sleep() {
         p.hunger = Math.max(30, p.hunger - Math.round(25 * (1 - rest.heal)));
         for (const n of state.entities.npcs) if (n.config.fixed) { n.x = n.homeX; n.y = n.homeY; n.hp = n.maxHp; n.downTimer = 0; }
         for (const n of [state.partner, state.companion]) if (n && n.state !== 'WANDER') { n.x = p.x + 70; n.y = p.y + 20; }
+        // 알은 밤에 곁에서 품는 게 제일 빠르다. 아이들은 자고 나면 조금 자라 있다 (entities/BabyDragon.js 의 grow)
+        const nest = state.entities.nests[0];
+        if (nest && nest.hasEgg) { nest.progress = Math.min(100, nest.progress + 25 * (hasRelic('NEST_CHARM') ? 1.5 : 1)); if (nest.progress >= 100) nest.hatch(); else showToast('밤새 알을 품었다. 껍데기가 조금 따뜻해졌다.', '🥚'); }
+        for (const k of state.kids) if (k.entity && k.stage !== 'ADULT') k.entity.grow(10);
         state.story.yesterday = state.story.today;   // 오늘 있었던 일은 내일 아침의 "어제"가 된다
         state.story.today = {};
         notify('sleep');           // "하룻밤 자고 나서" 로 이어지는 대목
@@ -407,7 +412,7 @@ export function updateBedtime() {
     if (!(t >= BEDTIME || t < 0.2)) return;
     // 한창 일이 벌어지는 중에는 재우지 않는다. 습격을 기다리는 밤도 마찬가지다
     if (isGatherNow()) return;   // 달맞이 모임은 밤에 선다
-    if (state.raid.active || raidWanted() || state.activity || state.dungeon || state.tour || state.prologue || state.entities.bosses.some(b => b.awake)) return;
+    if (state.raid.active || state.ambush || raidWanted() || state.activity || state.dungeon || state.tour || state.prologue || state.entities.bosses.some(b => b.awake)) return;
     const near = state.entities.npcs.find(n => BEDTIME_LINES[n.config.name] && dist(n, p) < 500);
     const lines = near ? [{ who: near.config.name, text: BEDTIME_LINES[near.config.name] }] : [];
     lines.push({ who: '나', text: '(눈꺼풀이 무겁다. 더는 못 버티겠다.)' });

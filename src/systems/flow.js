@@ -54,10 +54,9 @@ export function addMomentum(n) {
     f.idle = 0;
     const now = momentumTier(), p = state.player;
     if (now > before && p) {
-        once('flowTier', '기세가 올랐다! 맞지 않고 계속 맞히면 더 차오르고, 찰수록 숨결이 세진다. 맞으면 반이 꺾인다.', '🔥');
-        spawnText(p.x, p.y - 120 * p.stage.scale, TIER_NAMES[now] + '!', TIER_COLORS[now], 18);
-        spawnEffect('AURA', p.x, p.y - 40, { size: 1 + now * 0.4, color: TIER_COLORS[now] });
-        if (now === 3) play('evolve');
+        once('flowTier', '기세: 맞지 않고 계속 맞히면 게이지가 차고 숨결이 세진다. 아슬아슬하게 대시로 피하면(간발) 한꺼번에 많이 찬다.', '🔥');
+        spawnEffect('AURA', p.x, p.y - 40, { size: 0.8 + now * 0.3, color: TIER_COLORS[now] });
+        if (now === 3) { spawnText(p.x, p.y - 120 * p.stage.scale, '절정!', TIER_COLORS[now], 18); play('evolve'); }
     }
 }
 
@@ -96,14 +95,13 @@ export function tryPerfectDodge(p) {
     const E = state.entities;
     const near = E.bullets.some(b => !b.remove && b.faction === 'ENEMY' && dist(b, { x: p.x, y: p.y - 30 }) < EDGE_RANGE)
         || E.enemies.some(e => !e.remove && e.ai && (e.ai.s === 'act' || (e.ai.s === 'tell' && e.ai.t < 0.25)) && dist(e, p) < 120)
-        || E.humans.some(h => !h.remove && h.swing > 0 && h.swing < 0.25 && dist(h, p) < 120);
+        || E.humans.some(h => !h.remove && ((h.swing > 0 && h.swing < 0.25 && dist(h, p) < 120) || (h.charge && h.charge.windup > 0 && h.charge.windup < 0.3 && dist(h, p) < 520)));
     if (!near) return;
     p.dashEdge = true;
     const f = F();
     f.slow = hasRelic('FROZEN_CLOCK') ? 1.6 : 0.8;
     f.edge = 3;
     p.dashCd = 0;
-    once('flowEdge', '간발! 아슬아슬하게 피하면 세상이 잠깐 느려지고, 3초 동안 숨결이 훨씬 세진다.', '💨');
     addMomentum(25);
     spawnText(p.x, p.y - 130 * p.stage.scale, '간발!', '#9fe3ff', 22);
     spawnEffect('RING', p.x, p.y - 40, { size: 1.8, color: '#9fe3ff' });
@@ -131,7 +129,6 @@ export function tryBite(p) {
         const heal = p.maxHp * (hasRelic('RED_MOON_TOOTH') ? 0.09 : 0.03);
         p.hp = Math.min(p.maxHp, p.hp + heal);
         p.dashCd = 0;
-        once('flowBite', '물어뜯기! 체력이 얼마 안 남은 적은 [Shift] 대시로 뚫고 지나가면 끝장난다. 체력도 조금 돌아온다.', '🦷');
         addMomentum(12);
         spawnText(e.x, e.y - 70, '물어뜯기!', '#ff8a6a', 18);
         spawnText(p.x, p.y - 100 * p.stage.scale, `+${Math.round(heal)}`, '#9fe08a', 14);

@@ -57,7 +57,7 @@ export function saveGame() {
         nest: { hasEgg: nest.hasEgg, progress: nest.progress, genes: nest.genes },
         kids: state.kids.map(k => ({
             name: k.name, stage: k.stage, affection: k.affection, mode: k.mode, personality: k.personality,
-            lastPlayDay: k.lastPlayDay ?? null, lastTrainDay: k.lastTrainDay ?? null, job: k.job ?? null, element: k.entity.element,
+            lastPlayDay: k.lastPlayDay ?? null, lastTrainDay: k.lastTrainDay ?? null, job: k.job ?? null, fedDay: k.fedDay ?? null, fedCount: k.fedCount ?? 0, element: k.entity.element,
             growth: k.entity.growth, genes: k.entity.genes, x: k.entity.x, y: k.entity.y,
         })),
     };
@@ -150,7 +150,7 @@ export function applySave(data) {
         baby.stage = k.stage;
         const kid = registerKid(baby);
         baby.element = k.element || 'FIRE';
-        Object.assign(kid, { name: k.name, affection: k.affection, mode: k.mode, personality: k.personality || kid.personality, lastPlayDay: k.lastPlayDay, lastTrainDay: k.lastTrainDay, job: k.job || null });
+        Object.assign(kid, { name: k.name, affection: k.affection, mode: k.mode, personality: k.personality || kid.personality, lastPlayDay: k.lastPlayDay, lastTrainDay: k.lastTrainDay, job: k.job || null, fedDay: k.fedDay, fedCount: k.fedCount || 0 });
         setKidStage(baby, k.stage);
     }
 

@@ -45,7 +45,8 @@ export class Nest extends Entity {
     update(dt) {
         if (!this.hasEgg) return;
         const near = dist(this, state.player) < 120;
-        this.progress += (near ? dt * 18 : dt * 3) * (hasRelic('NEST_CHARM') ? 1.5 : 1);
+        // 예전엔 곁에 서 있으면 6초 만에 깼다. 이제 곁에서 품으면 하루 반, 밤에 곁에서 자면 하룻밤에 +25 (systems/story.js 의 sleep)
+        this.progress += (near ? dt * 0.25 : dt * 0.05) * (hasRelic('NEST_CHARM') ? 1.5 : 1);
         if (this.progress > 100) this.hatch();
     }
     hatch() {

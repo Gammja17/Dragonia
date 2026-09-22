@@ -20,6 +20,7 @@ import { updateLighting, drawLighting } from './render/lighting.js';
 import { drawCrosshair } from './render/cursor.js';
 import { applyHitStop, updateFeedback, drawFeedback, flashAmount } from './render/feedback.js';
 import { updateFlow, worldTimeScale } from './systems/flow.js';
+import { updateAmbush } from './systems/ambush.js';
 import { initPostFx, resizePostFx, renderPostFx } from './render/postfx.js';
 import { setCrispLayer, beginCrispWorld, endCrispWorld } from './render/overlay.js';
 import { toggleDebug, updateDebug, drawDebug } from './render/debugOverlay.js';
@@ -156,7 +157,7 @@ function update(dt) {
     const E = state.entities;
     state.gameTime += dt;
     const outside = !inDungeon();
-    if (outside) updateRaid(dt);   // 굴 속에서는 마을 습격도, 야생 적의 보충도 없다
+    if (outside) { updateRaid(dt); updateAmbush(dt); }   // 굴 속에서는 마을 습격도, 야생 적의 보충도 없다
     const prevDayTime = state.dayTime;
     updateLighting(dt);
     updateEvents(dt, prevDayTime);

@@ -1,3 +1,4 @@
+import { maybeAmbush } from './ambush.js';
 import { state, emptyPools } from '../core/state.js';
 import { mulberry32, dist, pick, rand } from '../core/utils.js';
 import { TILE } from '../data/tiles.js';
@@ -340,6 +341,7 @@ function clearSpot(x, y, map) {
 }
 
 export function enterMap(id, { from = null, spot = null } = {}) {
+    maybeAmbush(id);   // 베르단을 한 번 만난 뒤로는 길에서 또 마주칠 수 있다 (systems/ambush.js)
     // 떠나기 전에 둥지 상태를 갈무리한다 (아지트 지도에만 있다)
     const leaving = state.entities && state.entities.nests && state.entities.nests[0];
     if (leaving) state.denNest = { hasEgg: leaving.hasEgg, progress: leaving.progress, genes: leaving.genes };

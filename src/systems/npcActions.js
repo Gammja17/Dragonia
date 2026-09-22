@@ -386,7 +386,7 @@ function familyTalk(npc) {
     if (!nest) { show(npc, '여기선 좀… 우리 굴로 가자. 둥지가 있어야지.', back); return; }
     if (nest.hasEgg) { show(npc, '둥지에 이미 알이 있어. 저 아이부터 잘 품어 주자.', back); return; }
     if (state.kids.length >= MAX_KIDS) { show(npc, '우리 집, 이미 북적북적해. 이 아이들부터 잘 키우자.', back); return; }
-    if (npc.lastEggDay && state.day - npc.lastEggDay < 3) { show(npc, '조금만 더 있다가. 몸을 추슬러야 해. (사흘에 한 번)', back); return; }
+    if (npc.lastEggDay && state.day - npc.lastEggDay < 7) { show(npc, `조금만 더 있다가. 몸을 추슬러야 해. (이레에 한 번. ${7 - (state.day - npc.lastEggDay)}일 뒤)`, back); return; }
     playLines(npc, FAMILY_TALK[npc.config.name], () => {
         npc.lastEggDay = state.day;
         nest.layEgg(state.player, npc);

@@ -40,7 +40,10 @@ export function openKidHub(baby) {
         { label: '이야기를 나눈다', onSelect: () => show(baby, kid, line(kid, 'chat'), [{ label: '그랬구나.', onSelect: back }]) },
         { label: '쓰다듬어 준다', onSelect: () => { show(baby, kid, baby.pet() ? line(kid, 'pet') : '(방금 쓰다듬어 줘서 시큰둥하다.)', [{ label: '귀여워.', onSelect: back }]); } },
     ];
-    if (p.inventory.meat > 0) opts.push({ label: '고기를 먹인다 (고기 -1)', onSelect: () => { p.inventory.meat--; baby.feed(); show(baby, kid, line(kid, 'feed'), [{ label: '많이 먹어.', onSelect: back }]); } });
+    // 하루에 두 번까지. 배가 부르면 더 안 먹는다 (고기를 연타해서 키우던 것)
+    const fed = kid.fedDay === state.day ? (kid.fedCount || 0) : 0;
+    if (p.inventory.meat > 0 && fed < 2) opts.push({ label: `고기를 먹인다 (고기 -1, 오늘 ${fed}/2)`, onSelect: () => { p.inventory.meat--; kid.fedDay = state.day; kid.fedCount = fed + 1; baby.feed(); show(baby, kid, line(kid, 'feed'), [{ label: '많이 먹어.', onSelect: back }]); } });
+    else if (p.inventory.meat > 0) opts.push({ label: '(오늘은 배가 불러서 더 안 먹는다)', onSelect: back });
     if (kid.lastPlayDay !== state.day) opts.push({ label: '놀아 준다 (하루 한 번)', onSelect: () => play(baby, kid, back) });
     if (kid.lastTrainDay !== state.day && kid.stage !== 'ADULT') opts.push({ label: '훈련시킨다 (하루 한 번)', onSelect: () => train(baby, kid, back) });
     if (kid.stage !== 'BABY' && baby.element !== p.element) {
@@ -71,7 +74,7 @@ function play(baby, kid, back) {
 function train(baby, kid, back) {
     kid.lastTrainDay = state.day;
     addAffection(baby, 4);
-    baby.grow(22);
-    showToast(`${kid.name}의 훈련: 성장 +22`, '💪');
+    baby.grow(15);
+    showToast(`${kid.name}의 훈련: 성장 +15`, '💪');
     show(baby, kid, line(kid, 'train'), [{ label: '대견하구나.', onSelect: back }]);
 }
