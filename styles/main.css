@@ -251,13 +251,19 @@ body {
 
 #quest-tracker { display: flex; flex-direction: column; gap: 5px; }
 .quest-line {
-    background: rgba(14, 13, 22, 0.86); border-left: 3px solid var(--gold-lit);
-    color: var(--parch-mid); padding: 7px 10px; font-size: 0.72rem; line-height: 1.35;
+    background: rgba(14, 13, 22, 0.9); border-left: 3px solid var(--gold-lit); border-top: 1px solid var(--gold-dim);
+    color: var(--parch-mid); padding: 7px 10px 8px; font-size: 0.72rem; line-height: 1.4; min-width: 200px;
 }
-.quest-line b { display: block; color: var(--gold-lit); font-size: 0.8rem; margin-bottom: 2px; }
-.quest-line i { display: block; font-style: normal; color: var(--parch); font-size: 0.72rem; margin-bottom: 2px; }
+.quest-line .ql-kind { display: block; font-size: 0.62rem; letter-spacing: 2px; color: var(--gold); margin-bottom: 2px; }
+.quest-line b { display: block; color: var(--gold-lit); font-size: 0.82rem; margin-bottom: 3px; }
+.quest-line i { display: block; font-style: normal; color: var(--parch); font-size: 0.74rem; margin-bottom: 3px; }
+.quest-line .ql-where { display: block; color: var(--parch-mid); font-size: 0.7rem; }
+.quest-line .ql-where::before { content: '📍 '; }
+.quest-line .ql-prog { display: block; color: var(--parch-dim); font-size: 0.68rem; font-family: var(--font-num); }
 .quest-line.complete { border-left-color: var(--good); }
-.quest-line.complete b { color: var(--good); }
+.quest-line.complete b, .quest-line.complete .ql-kind { color: var(--good); }
+.quest-line.flash { animation: ql-flash 1.6s ease-out; }
+@keyframes ql-flash { 0% { background: rgba(255, 216, 74, 0.45); } 100% { background: rgba(14, 13, 22, 0.9); } }
 #quest-more { color: var(--parch-dim); font-size: 0.68rem; text-align: right; text-shadow: 0 1px 3px #000; }
 #quest-more:empty { display: none; }
 
@@ -495,6 +501,19 @@ body.cutscene #flow-bar { display: none; }
 }
 .q-track:hover { background: var(--ink-hover); color: var(--parch); }
 .q-track.on { background: rgba(255, 216, 74, 0.18); border-color: var(--gold); color: var(--gold-lit); }
+
+/* 일지의 대목 목록: 지나온 대목은 ✔, 지금 대목은 ▸ */
+.q-steps { margin: 6px 0 4px; }
+.q-step { display: flex; gap: 8px; align-items: flex-start; padding: 3px 0; line-height: 1.5; color: var(--parch-dim); }
+.q-step .q-step-mark { flex: none; width: 12px; color: var(--parch-dim); }
+.q-step.done { color: var(--parch-mid); } .q-step.done .q-step-mark { color: var(--good); }
+.q-step.now { color: var(--parch); } .q-step.now .q-step-mark { color: var(--gold-lit); }
+.q-step .q-replay {
+    flex: none; margin-left: auto; padding: 1px 7px; cursor: pointer; font-size: 0.68rem; font-family: var(--font-ko);
+    color: var(--parch-mid); background: var(--ink-raise); border: 1px solid var(--gold-dim);
+}
+.q-step .q-replay:hover { color: var(--parch); background: var(--ink-hover); }
+.q-done-text { color: var(--parch-mid); font-style: italic; line-height: 1.55; margin: 4px 0 6px; padding-left: 9px; border-left: 2px solid #4e5560; }
 
 /* 유물 장착 */
 .relic-note { color: var(--parch-dim); font-size: 0.72rem; line-height: 1.55; margin: 0 0 8px; }
@@ -969,6 +988,33 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
     #journal-detail { flex-direction: column; align-items: stretch; gap: 8px; }
     .detail-actions { justify-content: flex-start; }
 }
+
+/* ---------- 퀘스트 배너: 이야기가 시작·진행·완료될 때 화면 위쪽에 잠깐 ---------- */
+#quest-banner {
+    position: absolute; top: 25%; left: 50%; transform: translateX(-50%);
+    min-width: min(420px, 80vw); max-width: 90vw; padding: 10px 26px 12px;
+    background: linear-gradient(90deg, transparent, rgba(14, 13, 22, 0.92) 12%, rgba(14, 13, 22, 0.92) 88%, transparent);
+    text-align: center; pointer-events: none; z-index: 190; opacity: 0;
+}
+#quest-banner::before, #quest-banner::after {
+    content: ''; position: absolute; left: 8%; right: 8%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+#quest-banner::before { top: 0; } #quest-banner::after { bottom: 0; }
+#quest-banner.on { animation: qb-in 3.6s ease-out forwards; }
+@keyframes qb-in {
+    0%   { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    10%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+    82%  { opacity: 1; }
+    100% { opacity: 0; }
+}
+#qb-kind { font-size: 0.7rem; letter-spacing: 4px; color: var(--gold-lit); text-shadow: 0 1px 3px #000; }
+#qb-title { font-size: 1.3rem; font-weight: 700; color: var(--parch); text-shadow: 0 2px 0 #1a1206, 0 0 18px rgba(216, 178, 90, 0.45); margin: 2px 0; }
+#qb-goal { font-size: 0.82rem; color: var(--parch-mid); text-shadow: 0 1px 3px #000; }
+#quest-banner.done #qb-kind { color: var(--good); }
+#quest-banner.done::before, #quest-banner.done::after { background: linear-gradient(90deg, transparent, var(--good), transparent); }
+body.cutscene #quest-banner { display: none; }
+@media (max-width: 900px) { #qb-title { font-size: 1rem; } #qb-goal { font-size: 0.72rem; } }
 
 /* ---------- 지역 이름 배너 (지도를 옮길 때 위쪽에 잠깐) ---------- */
 #region-banner {

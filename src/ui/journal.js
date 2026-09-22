@@ -12,6 +12,7 @@ import { matCount } from '../systems/smithing.js';
 import { isMuted, sfxVolume, setSfxVolume } from '../systems/audio.js';
 import { musicVolume, setMusicVolume } from '../systems/music.js';
 import { questLog, setTracked } from '../systems/quests.js';
+import { playScene } from '../systems/chronicle.js';
 import { takenChores } from '../systems/chores.js';
 import { BRANCHES, GROWTH_NODES, NODES_BY_ID } from '../data/growth.js';
 import { SKILLS, SKILL_BRANCHES, SKILL_SLOTS, MAX_SKILL_RANK } from '../data/skills.js';
@@ -68,6 +69,13 @@ function section(title, rows) {
 }
 
 /** 퀘스트 한 줄. 누르면 펼쳐진다 */
+/** 일지를 닫고 그 장면을 다시 튼다 (컷씬 없이) */
+function replay(title, scene) {
+    toggleJournal();
+    play('ui');
+    playScene(title, scene, null, { cinematic: false });
+}
+
 function questRow(r) {
     const wrap = document.createElement('div');
     wrap.className = 'q-item' + (r.done ? ' done' : '') + (r.complete ? ' ready' : '') + (r.upcoming ? ' upcoming' : '');
@@ -110,8 +118,34 @@ function questRow(r) {
         body.appendChild(s);
     }
     if (r.chapter) line('진행', r.chapter);
-    line('목표', r.goal);
+    // 지나온 대목과 지금 대목. 장면이 있던 대목은 다시 볼 수 있다 (한 번 놓치면 못 찾던 것)
+    if (r.steps && r.steps.length) {
+        const list = document.createElement('div');
+        list.className = 'q-steps';
+        for (const s of r.steps) {
+            const d = document.createElement('div');
+            d.className = 'q-step' + (s.now ? ' now' : s.done ? ' done' : '');
+            d.innerHTML = '<span class="q-step-mark"></span><span class="q-step-text"></span>';
+            d.querySelector('.q-step-mark').textContent = s.now ? '▸' : '✔';
+            d.querySelector('.q-step-text').textContent = s.hint;
+            if (s.done && s.scene) {
+                const rb = document.createElement('button');
+                rb.className = 'q-replay'; rb.textContent = '다시 보기';
+                rb.addEventListener('click', (e) => { e.stopPropagation(); replay(r.title, s.scene); });
+                d.appendChild(rb);
+            }
+            list.appendChild(d);
+        }
+        body.appendChild(list);
+    }
     if (!r.done) line('해야 할 일', r.hint);
+    if (r.doneText) {
+        const t = document.createElement('div');
+        t.className = 'q-done-text';
+        t.textContent = r.doneText;
+        body.appendChild(t);
+        if (r.endScene) { const rb = document.createElement('button'); rb.className = 'q-track'; rb.textContent = '마무리 장면 다시 보기'; rb.addEventListener('click', () => replay(r.title, r.endScene)); body.appendChild(rb); }
+    }
     line('보상', r.reward);
     if (!r.done) {
         const btn = document.createElement('button');

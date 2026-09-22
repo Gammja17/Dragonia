@@ -21,6 +21,7 @@ import { points, skillRank } from '../systems/growth.js';
 import { raidStatusText } from '../systems/raid.js';
 import { eventName } from '../systems/events.js';
 import { momentum, momentumTier, momentumName, TIER_COLORS } from '../systems/flow.js';
+import { flushQuestBanner } from './questBanner.js';
 
 const $ = (id) => document.getElementById(id);
 const strong = (text) => { const e = document.createElement('b'); e.textContent = text; return e; };
@@ -101,6 +102,7 @@ export function updateHud() {
     el.gold.textContent = p.gold;
     $('twig-slot').style.display = state.den.built ? 'none' : '';
     $('ui-twigs').textContent = `${state.den.twigs}/8`;
+    flushQuestBanner();
     const m = momentum(), tier = momentumTier();
     $('flow-bar').classList.toggle('on', m > 1);
     $('flow-fill').style.width = m + '%';
@@ -207,19 +209,29 @@ function drawMinimap() {
 }
 
 /** 추적창에는 추적 중인 퀘스트 하나만. 나머지는 [J] 일지에서 본다 */
+let lastTrackerKey = '';
 function refreshQuestTracker() {
     if (!state.player) return;
     el.tracker.innerHTML = '';
     el.questMore.textContent = '';
     const line = trackedLine();
-    if (!line) return;
+    if (!line) { lastTrackerKey = ''; return; }
     const div = document.createElement('div');
     div.className = 'quest-line' + (line.complete ? ' complete' : '');
+    const kind = document.createElement('span');
+    kind.className = 'ql-kind';
+    kind.textContent = line.complete ? '보고하러 간다' : line.training ? '오늘의 수련' : '지금 할 일';
     const b = document.createElement('b');
     b.textContent = line.title;
     const goal = document.createElement('i');
     goal.textContent = line.goal;
-    div.append(b, goal, line.text);
+    div.append(kind, b, goal);
+    if (line.where) { const w = document.createElement('span'); w.className = 'ql-where'; w.textContent = line.where; div.appendChild(w); }
+    if (line.text) { const pr = document.createElement('span'); pr.className = 'ql-prog'; pr.textContent = line.text; div.appendChild(pr); }
+    // 할 일이 바뀌면 한 번 번쩍여서 눈길을 끈다
+    const key = line.title + '|' + line.goal;
+    if (lastTrackerKey && key !== lastTrackerKey) div.classList.add('flash');
+    lastTrackerKey = key;
     el.tracker.appendChild(div);
     el.questMore.textContent = line.more > 0 ? `+ 맡은 일 ${line.more}개 · [J] 일지` : '[J] 일지';
     refreshJournal();

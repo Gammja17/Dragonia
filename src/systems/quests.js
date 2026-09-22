@@ -7,6 +7,7 @@ import { ENEMIES, BOSSES } from '../data/enemies.js';
 import { mapName } from '../data/maps.js';
 import { STAGES } from '../data/elements.js';
 import { showToast } from '../ui/toast.js';
+import { questBanner } from '../ui/questBanner.js';
 
 // 퀘스트 하나는 여러 '대목'으로 이어진다.
 //
@@ -135,8 +136,8 @@ export function completeStep(q, { quiet = false } = {}) {
     if (!quiet && st.scene) queueScene(q.title, st.scene);
     if (st.flag) onFlag(st.flag);
     if (st.toast) showToast(st.toast, st.icon || '📜');
-    if (isComplete(q)) showToast(`[${q.title}] → ${npcName(turnInNpc(q))}에게 돌아가자`, '📜');
-    else if (!st.scene || quiet) showToast(`[${q.title}] ${stepGoalText(q)}`, '📜');
+    if (isComplete(q)) questBanner('다음 할 일', q.title, `${npcName(turnInNpc(q))}에게 돌아간다${whereIs(turnInNpc(q))}`);
+    else questBanner('다음 할 일', q.title, curStep(q).hint || stepGoalText(q));
     catchUp(q);
     onChange();
     return st;
@@ -240,6 +241,22 @@ function findOffer(npc) {
         && (!q.needs || q.needs(state)));      // 스승의 부탁은 수련 진도를 따라 열린다
 }
 
+/** 그 용이 지금 어디 있는지 (' (지금 수련장)') · 일과를 모르는 용이면 빈 문자열 */
+function whereIs(name) {
+    const plan = planFor(name);
+    return plan ? ` (지금 ${plan.mapName})` : '';
+}
+
+/** 추적창의 📍 줄: 이 대목에서 찾아가야 할 용이 지금 어디 있는지 */
+function whereLine(q) {
+    let who = null;
+    if (isComplete(q)) who = turnInNpc(q);
+    else { const g = curStep(q).goal; if (g.type === 'talk' || g.type === 'bring') who = g.target; }
+    if (!who) return '';
+    const plan = planFor(who);
+    return plan ? `${npcName(who)} · ${plan.mapName}` : '';
+}
+
 /** 의뢰인 이름과, 일과를 아는 용이라면 지금 어디 있는지까지 */
 function giverLine(name) {
     const plan = planFor(name);
@@ -277,7 +294,7 @@ export function acceptQuest(q) {
     state.quests.active[q.id] = { step: 0, n: 0 };
     catchUp(q);
     if (!state.quests.tracked) state.quests.tracked = q.id;
-    showToast(`퀘스트 수락: ${q.title}. [J] 일지에서 볼 수 있습니다`, '📜');
+    questBanner('새 이야기', q.title, isComplete(q) ? `${npcName(turnInNpc(q))}에게 돌아간다` : (curStep(q).hint || stepGoalText(q)));
     onChange();
 }
 
@@ -304,7 +321,7 @@ export function turnInQuest(q, npc, choiceId = null) {
     if (r.relation && npc) npc.relation = clamp((npc.relation || 0) + r.relation, 0, 100);
     if (r.clue) addClue(r.clue);
     if (r.element) p.unlockElement(r.element);      // 싸워서 얻는 게 아니라 맡겨 받는 숨결 (text/story-bible.md 5절)
-    showToast(`퀘스트 완료: ${q.title} (${rewardText(q)})`, '🎉');
+    questBanner('이야기 완료', q.title, rewardText(q));
     if (r.xp) p.gainXp(r.xp);
     // 고른 선택지에 딸린 장면이 먼저, 그다음이 퀘스트 마무리 장면
     const opt = (q.choice && (q.choice.options || []).find(o => o.id === choiceId)) || null;
@@ -316,13 +333,14 @@ export function turnInQuest(q, npc, choiceId = null) {
 /** 추적창에 보여 줄 한 개 (없으면 null) */
 export function trackedLine() {
     const q = trackedQuest();
-    if (!q) return training.line();
+    if (!q) { const t = training.line(); return t ? { ...t, training: true } : null; }
     const total = steps(q).length;
     const done = isComplete(q);
     return {
         title: total > 1 ? `${q.title} (${Math.min(stepIndex(q) + 1, total)}/${total})` : q.title,
         goal: done ? `${npcName(turnInNpc(q))}에게 돌아간다` : (curStep(q).hint || stepGoalText(q)),
-        text: done ? `완료! → ${npcName(turnInNpc(q))}에게 보고` : `${questProgress(q)} / ${stepTotal(q)}`,
+        text: done ? '' : stepTotal(q) > 1 ? `${questProgress(q)} / ${stepTotal(q)}` : '',
+        where: whereLine(q),
         complete: done,
         more: activeQuests().length - 1,
     };
@@ -350,6 +368,10 @@ export function questLog() {
             reward: rewardText(q),
             progress: done ? '완료' : complete ? '보고 대기' : `${questProgress(q)} / ${stepTotal(q)}`,
             chapter: total > 1 && active ? `대목 ${Math.min(stepIndex(q) + 1, total)} / ${total}` : '',
+            // 지나온 대목과 지금 대목. 앞으로 올 대목은 숨긴다 (이야기를 미리 보이지 않게)
+            steps: steps(q).map((st, i) => ({ hint: st.hint || goalText(st.goal), scene: st.scene || null, done: done || i < stepIndex(q), now: active && i === stepIndex(q) })).filter(s => s.done || s.now),
+            doneText: done ? q.done : '',
+            endScene: done && q.reward && q.reward.scene ? q.reward.scene : null,
             done, complete,
             tracked: Q.tracked === q.id,
         });
