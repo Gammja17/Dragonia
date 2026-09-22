@@ -5,6 +5,24 @@
    둥근 모서리와 네온 광택은 쓰지 않는다 (픽셀 테두리와 부딪힌다).
    ========================================================================== */
 
+/* 글꼴 — 제목·수치는 코트라 도약체(각지고 힘있는 고딕), 본문은 부크크 명조(양피지 글씨).
+   한글 11,172자를 다 담고 woff2 로 줄여서 넣었다. assets/fonts/ 참고 (CREDITS.md 에 출처) */
+@font-face {
+    font-family: 'Bookk Myungjo';
+    src: url('../assets/fonts/bookk-myungjo-light.woff2') format('woff2');
+    font-weight: 100 400; font-style: normal; font-display: swap;
+}
+@font-face {
+    font-family: 'Bookk Myungjo';
+    src: url('../assets/fonts/bookk-myungjo-bold.woff2') format('woff2');
+    font-weight: 500 900; font-style: normal; font-display: swap;
+}
+@font-face {
+    font-family: 'KOTRA LEAP';
+    src: url('../assets/fonts/kotra-leap.woff2') format('woff2');
+    font-weight: 100 900; font-style: normal; font-display: swap;
+}
+
 :root {
     /* 판 */
     --ink:        #13121d;
@@ -30,8 +48,9 @@
     --bad:        #ff8a7a;
     --cold:       #7fd4ff;
 
-    --font-ko:    'Noto Sans KR', sans-serif;
-    --font-num:   'Fredoka', 'Noto Sans KR', sans-serif;
+    --font-ko:    'Bookk Myungjo', serif;          /* 본문 */
+    --font-title: 'KOTRA LEAP', 'Bookk Myungjo', sans-serif;  /* 제목·강조 */
+    --font-num:   'KOTRA LEAP', 'Bookk Myungjo', sans-serif;  /* 숫자·수치 */
 }
 
 * { box-sizing: border-box; }
@@ -87,6 +106,7 @@ body {
     border-bottom: 1px solid var(--gold-dim);
 }
 .panel-title {
+    font-family: var(--font-title);
     color: var(--gold-lit); font-weight: 700; font-size: 0.95rem; letter-spacing: 0.5px;
 }
 .panel-close {
@@ -98,6 +118,7 @@ body {
 
 /* 목록 한 줄 (이름 ......... 값) */
 .journal-title {
+    font-family: var(--font-title);
     color: var(--gold-lit); font-weight: 700; font-size: 0.86rem;
     border-bottom: 1px solid var(--gold-dim); padding-bottom: 3px; margin: 14px 0 6px;
 }
@@ -164,7 +185,7 @@ body {
     padding-bottom: 8px; margin-bottom: 9px;
     border-bottom: 1px solid var(--gold-dim);
 }
-.hud-name { font-weight: 700; font-size: 1rem; color: var(--parch); line-height: 1.2; }
+.hud-name { font-family: var(--font-title); font-weight: 700; font-size: 1.02rem; color: var(--parch); line-height: 1.2; }
 .hud-lvl { font-size: 0.74rem; color: var(--gold-lit); margin-top: 2px; }
 .hud-partner { font-size: 0.68rem; color: var(--parch-dim); margin-top: 1px; }
 
@@ -275,6 +296,7 @@ body {
     width: min(500px, 42vw); display: none; text-align: center;
 }
 #boss-name {
+    font-family: var(--font-title);
     color: var(--parch); font-weight: 700; letter-spacing: 1px;
     text-shadow: 0 2px 6px #000; margin-bottom: 5px; font-size: 0.92rem;
 }
@@ -391,6 +413,7 @@ body.cutscene #flow-bar { display: none; }
 }
 #d-who { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 #d-name {
+    font-family: var(--font-title);
     color: var(--gold-lit); font-size: 1.18rem; font-weight: 700; letter-spacing: 0.3px;
 }
 #d-meta { display: flex; gap: 8px; font-size: 0.72rem; color: var(--parch-dim); }
@@ -484,7 +507,7 @@ body.cutscene #flow-bar { display: none; }
 .q-head:hover { background: var(--ink-hover); }
 .q-mark { color: var(--gold-lit); width: 11px; flex: none; }
 .q-item.ready .q-mark { color: var(--good); }
-.q-title { flex: 1; font-weight: 700; }
+.q-title { flex: 1; font-family: var(--font-title); font-weight: 700; }
 .q-prog { color: var(--parch-mid); font-size: 0.72rem; flex: none; font-family: var(--font-num); }
 .q-body { padding: 0 12px 10px 24px; font-size: 0.76rem; color: var(--parch-mid); }
 .q-item.upcoming .q-body { color: var(--parch-dim); padding-top: 0; }
@@ -597,12 +620,13 @@ body.cutscene #flow-bar { display: none; }
     pointer-events: auto; z-index: 100;
 }
 .title-logo {
-    font-family: var(--font-ko); font-size: 2.9rem; font-weight: 700;
+    font-family: var(--font-title); font-size: 3.1rem; font-weight: 700;
     letter-spacing: 9px; text-indent: 9px; margin: 0 0 6px;
     color: var(--gold-lit);
     text-shadow: 0 3px 0 #6d4f19, 0 0 30px rgba(255, 216, 74, 0.32);
 }
 .subtitle {
+    font-family: var(--font-title);
     color: var(--parch-mid); margin: 0 0 18px;
     font-size: 0.86rem; letter-spacing: 5px; text-indent: 5px;
 }
@@ -648,7 +672,7 @@ body.cutscene #flow-bar { display: none; }
 
 button.start-btn, .continue-btn {
     padding: 13px; cursor: pointer; font-weight: 700;
-    font-family: var(--font-ko); font-size: 1rem; letter-spacing: 2px;
+    font-family: var(--font-title); font-size: 1rem; letter-spacing: 2px;
     background: linear-gradient(180deg, #e6c169, #b88f3c);
     color: #2a1d06; border: 2px solid #f2dc9a;
     transition: filter 0.15s, transform 0.12s;
@@ -767,7 +791,7 @@ body.touch #quest-more { display: none; }
     position: absolute; left: 50%; top: 27%;   /* 지역 이름 배너(12%)와 겹치지 않게 그 아래 */
     transform: translate(-50%, -50%) scale(0.96);
     z-index: 205; pointer-events: none;
-    font-family: var(--font-ko);
+    font-family: var(--font-title);
     color: var(--gold-lit);
     font-size: clamp(1.15rem, 3.1vw, 1.9rem);
     font-weight: 700; letter-spacing: 3px; text-align: center;
@@ -817,7 +841,7 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 }
 .folk-card.here { border-left-color: var(--gold-lit); background: var(--ink-hover); }
 .folk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.folk-name { color: var(--gold-lit); font-size: 0.92rem; }
+.folk-name { font-family: var(--font-title); color: var(--gold-lit); font-size: 0.92rem; }
 .folk-job { color: var(--parch-dim); font-size: 0.68rem; }
 .folk-where { color: var(--parch-mid); font-size: 0.74rem; margin-top: 3px; }
 .folk-doing { color: var(--parch); font-size: 0.78rem; margin-top: 2px; line-height: 1.45; }
@@ -869,7 +893,7 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 #journal-points { font-size: 0.74rem; color: var(--gold-lit); font-family: var(--font-num); white-space: nowrap; }
 
 .tree-note { background: var(--ink-raise); border-left: 3px solid var(--gold); padding: 7px 12px; margin-bottom: 4px; }
-.tree-note-title { color: var(--gold-lit); font-weight: 700; font-size: 0.88rem; }
+.tree-note-title { font-family: var(--font-title); color: var(--gold-lit); font-weight: 700; font-size: 0.88rem; }
 .tree-note-text { color: var(--parch-mid); font-size: 0.74rem; margin-top: 3px; line-height: 1.5; }
 
 /* flex: 1 0 auto — 남는 자리는 채우되 내용보다 작아지지 않는다 (작아지면 나무가 설명 위로 넘친다) */
@@ -886,7 +910,7 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
 .tree-branch { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .branch-head { display: flex; align-items: baseline; gap: 6px; border-bottom: 3px solid var(--c); padding: 0 14px 5px; white-space: nowrap; }
 .branch-glyph { font-size: 0.78rem; color: var(--c); }
-.branch-name { font-size: 0.92rem; font-weight: 700; color: var(--parch); letter-spacing: 1px; }
+.branch-name { font-family: var(--font-title); font-size: 0.92rem; font-weight: 700; color: var(--parch); letter-spacing: 1px; }
 .branch-sub { font-size: 0.68rem; color: var(--c); }
 
 .branch-rows { display: flex; flex-direction: column-reverse; align-items: center; gap: 22px; }
@@ -947,7 +971,7 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
     border-top: 1px solid var(--gold-dim); padding: 10px 2px 0; margin-top: 8px; min-height: 54px;
 }
 .detail-info { flex: 1; min-width: 0; }
-.detail-name { font-size: 0.88rem; font-weight: 700; color: var(--gold-lit); }
+.detail-name { font-family: var(--font-title); font-size: 0.88rem; font-weight: 700; color: var(--gold-lit); }
 .detail-text { font-size: 0.75rem; color: var(--parch-mid); margin-top: 3px; line-height: 1.45; }
 .detail-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .detail-hint { font-size: 0.73rem; color: var(--parch-dim); }
@@ -1031,10 +1055,11 @@ body.cutscene #quest-banner { display: none; }
     100% { opacity: 0; letter-spacing: 7px; }
 }
 #region-name {
+    font-family: var(--font-title);
     font-size: 2rem; font-weight: 700; color: var(--parch);
     text-shadow: 0 2px 0 #1a1206, 0 0 22px rgba(216, 178, 90, 0.55);
 }
-#region-sub { font-size: 0.82rem; color: var(--gold-lit); letter-spacing: 3px; text-shadow: 0 2px 4px #000; }
+#region-sub { font-family: var(--font-title); font-size: 0.82rem; color: var(--gold-lit); letter-spacing: 3px; text-shadow: 0 2px 4px #000; }
 /* 이름 위아래로 가늘게 긋는 금선. 가운데가 밝고 끝으로 갈수록 사라진다 */
 .region-rule {
     width: min(360px, 62vw); height: 2px;
