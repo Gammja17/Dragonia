@@ -15,7 +15,7 @@ export const DENS = {
         id: 'DEN_MINE', name: '나의 굴', owner: null, mine: true,   // 마을 안, 다른 용들 곁에 산다
         outer: 'VILLAGE', at: [5, 10], tw: 19, th: 13, seed: 401, torches: 3,
         decor: [],
-        intro: '(내 굴이다. 누가 마른 풀 잠자리를 하나 깔아 놓았다. 나머지는 하나씩 들여놓으면 될 일이다.)',
+        intro: '(내 굴이다. 누가 가운데에 잠자리를 하나 깔아 놓았다. 나머지는 하나씩 들여놓으면 될 일이다.)',
     },
     DEN_ELDER: {
         id: 'DEN_ELDER', name: '엘더의 굴', owner: 'Elder',

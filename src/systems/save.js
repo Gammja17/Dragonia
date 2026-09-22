@@ -106,6 +106,8 @@ export function applySave(data) {
     state.waystones = data.waystones || [];
     state.furniture = data.furniture || {};
     state.denDecor = data.denDecor || [];
+    // 옛 세이브: 굴 가운데 잠자리가 없으면 하나 놓아 준다 (마른 풀만 구석에 있어 처음 온 사람은 침대가 있는지도 몰랐다)
+    if (!state.denDecor.some(d => d.id === 'BED') && !state.denDecor.some(d => d.tx >= 8 && d.tx <= 10 && d.ty >= 4 && d.ty <= 8)) state.denDecor.push({ id: 'BED', tx: 9, ty: 5 });
     state.densSeen = data.densSeen || [];
     state.growth = data.growth || { points: 0, nodes: {}, ranks: {} };
     state.revivedDay = data.revivedDay || 0;

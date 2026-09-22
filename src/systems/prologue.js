@@ -6,7 +6,7 @@ import { spawnEffect } from '../render/vfx.js';
 import { burst } from '../entities/Particle.js';
 import { beginCutscene, focusOn, endCutscene } from './cutscene.js';
 import { playScene } from './chronicle.js';
-import { anyNpc } from './world.js';
+import { anyNpc, fixedNpcs } from './world.js';
 import { play } from './audio.js';
 import { fadeScreen } from '../ui/hud.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
@@ -56,7 +56,8 @@ export function startPrologue(done) {
  * 되지 않는다. 자리는 그대로 두고 그리지만 않는다 (render 가 hidden 을 거른다).
  */
 function hideVillage(hide) {
-    for (const n of state.entities.npcs) n.hidden = hide;
+    // 풀 때는 지도에 있는 용만이 아니라 캐시된 용 전부를 푼다. 감춰진 사이에 일과대로 문을 나선 용(23시의 그론)이 영영 투명인간으로 남았다
+    for (const n of hide ? state.entities.npcs : fixedNpcs()) n.hidden = hide;
 }
 
 /** main.js 루프에서 매 프레임. 대화창이 떠 있어도 돌아야 한다 */

@@ -231,6 +231,7 @@ function populate(id) {
             const npc = getNpc(f.name, pos);
             npc.x = pos.x; npc.y = pos.y;
             npc.homeX = pos.x; npc.homeY = pos.y;
+            npc.hidden = false; npc.remove = false;
             pools.npcs.push(npc);
         }
     }
@@ -393,7 +394,7 @@ export function initWorld(config) {
     primeNpcs();
     // 첫 잠자리 한 벌은 마을에서 챙겨서 굴에 깔아 놓아 준다 (빈 굴에 혼자 들어서면 휑하다)
     state.furniture = {};
-    state.denDecor = [{ id: 'STRAW', tx: 2, ty: 4 }];
+    state.denDecor = [{ id: 'BED', tx: 9, ty: 5 }, { id: 'STRAW', tx: 2, ty: 4 }];   // 가운데에 잠자리 하나는 눈에 띄어야 처음 온 사람이 안다
     enterMap(START_MAP, {});
     const v = getMap(START_MAP);
     state.player.x = v.w / 2; state.player.y = v.h * 0.62;
