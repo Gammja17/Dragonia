@@ -251,7 +251,7 @@ class FloatText {
     draw(ctx) {
         ctx.save();
         ctx.globalAlpha = Math.min(1, (0.9 - this.t) * 3);
-        ctx.font = `700 ${this.size >= 18 ? 24 : 12}px "Galmuri11", sans-serif`;
+        ctx.font = `700 ${this.size >= 18 ? 24 : 12}px "Mulmaru", sans-serif`;
         ctx.textAlign = 'center';
         ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,0.75)';
         ctx.strokeText(this.text, this.x, this.y);

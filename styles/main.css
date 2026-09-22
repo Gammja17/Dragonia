@@ -5,13 +5,10 @@
    둥근 모서리와 네온 광택은 쓰지 않는다 (픽셀 테두리와 부딪힌다).
    ========================================================================== */
 
-/* 글꼴 — 갈무리(Galmuri). 닌텐도 DS 글꼴에서 온 한글 비트맵 폰트 (OFL, assets/fonts/Galmuri-LICENSE.txt).
-   Galmuri11 은 12px 이 원래 크기라 12·24·36px 에서만 픽셀이 딱 맞는다. 아래의 글자 크기는 전부 그 배수다.
-   아주 작은 글씨는 Galmuri9(10px). 렌더러가 글자를 뭉개지 않게 안티에일리어싱도 끈다 */
-@font-face { font-family: 'Galmuri11'; src: url('../assets/fonts/Galmuri11.woff2') format('woff2'); font-weight: 100 500; font-display: swap; }
-@font-face { font-family: 'Galmuri11'; src: url('../assets/fonts/Galmuri11-Bold.woff2') format('woff2'); font-weight: 600 900; font-display: swap; }
-@font-face { font-family: 'Galmuri9';  src: url('../assets/fonts/Galmuri9.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
-@font-face { font-family: 'Galmuri14'; src: url('../assets/fonts/Galmuri14.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+/* 글꼴 — 물마루(Mulmaru). 게임용 한글 픽셀 폰트, 세로획이 굵고 모서리가 둥글다 (OFL, assets/fonts/Mulmaru-LICENSE.txt).
+   12px 이 원래 크기라 12·24·36px 에서만 픽셀이 딱 맞는다. 아래의 글자 크기는 전부 그 배수다.
+   굵기는 하나뿐이라 font-weight:700 은 브라우저가 1px 두껍게 그린다. 렌더러가 글자를 뭉개지 않게 안티에일리어싱도 끈다 */
+@font-face { font-family: 'Mulmaru'; src: url('../assets/fonts/Mulmaru.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
 
 :root {
     /* 판 */
@@ -38,9 +35,9 @@
     --bad:        #ff8a7a;
     --cold:       #7fd4ff;
 
-    --font-ko:    'Galmuri11', 'Galmuri9', sans-serif;   /* 본문 (12·24px) */
-    --font-title: 'Galmuri11', 'Galmuri14', sans-serif;  /* 제목·강조 (굵게, 24·36px) */
-    --font-num:   'Galmuri11', sans-serif;               /* 숫자·수치 */
+    --font-ko:    'Mulmaru', sans-serif;   /* 본문 (12·24px) */
+    --font-title: 'Mulmaru', sans-serif;   /* 제목·강조 (굵게, 24·36px) */
+    --font-num:   'Mulmaru', sans-serif;   /* 숫자·수치 */
 }
 
 * { box-sizing: border-box; }
@@ -266,7 +263,7 @@ body {
     background: rgba(14, 13, 22, 0.9); border-left: 3px solid var(--gold-lit); border-top: 1px solid var(--gold-dim);
     color: var(--parch-mid); padding: 7px 10px 8px; font-size: 12px; line-height: 1.4; min-width: 200px;
 }
-.quest-line .ql-kind { display: block; font-size: 10px; font-family: 'Galmuri9', sans-serif; letter-spacing: 2px; color: var(--gold); margin-bottom: 2px; }
+.quest-line .ql-kind { display: block; font-size: 12px; letter-spacing: 2px; color: var(--gold); margin-bottom: 2px; }
 .quest-line b { display: block; color: var(--gold-lit); font-size: 12px; margin-bottom: 3px; }
 .quest-line i { display: block; font-style: normal; color: var(--parch); font-size: 12px; margin-bottom: 3px; }
 .quest-line .ql-where { display: block; color: var(--parch-mid); font-size: 12px; }
@@ -326,7 +323,7 @@ body.cutscene #flow-bar { display: none; }
     font-family: var(--font-num); font-weight: 600; font-size: 24px; line-height: 1;
     color: var(--parch);
 }
-.slot-name { font-size: 10px; font-family: 'Galmuri9', sans-serif; white-space: nowrap; max-width: 58px; overflow: hidden; text-overflow: ellipsis; }
+.slot-name { font-size: 12px; white-space: nowrap; max-width: 58px; overflow: hidden; text-overflow: ellipsis; }
 .slot.locked { opacity: 0.5; filter: grayscale(0.85); }
 /* 새 마을에서 받는 숨결은 받기 전까지 칸이 보이지 않는다 */
 .slot.el.locked[data-el="WATER"], .slot.el.locked[data-el="EARTH"], .slot.el.locked[data-el="GRASS"] { display: none; }
@@ -946,7 +943,7 @@ body.cutscene #d-text { font-size: 24px; line-height: 1.7; }
 }
 .tnode-slot {
     position: absolute; top: -10px; right: -10px; transform: rotate(-45deg);
-    background: var(--good); color: #0b1a10; font-size: 10px; font-family: 'Galmuri9', sans-serif; font-weight: 700;
+    background: var(--good); color: #0b1a10; font-size: 12px; font-weight: 700;
     width: 16px; height: 16px; line-height: 16px; text-align: center; border: 1px solid #0b1a10;
 }
 .tnode-name { font-size: 12px; color: var(--parch-mid); text-align: center; line-height: 1.3; }
@@ -1011,14 +1008,14 @@ body.cutscene #d-text { font-size: 24px; line-height: 1.7; }
 #points-chip b { color: var(--parch); font-size: 12px; }
 #points-chip:hover { background: rgba(255, 216, 74, 0.3); }
 @keyframes point-pulse { from { box-shadow: 0 0 0 rgba(255,216,74,0); } to { box-shadow: 0 0 14px rgba(255,216,74,0.5); } }
-.slot-rank { position: absolute; top: 2px; right: 4px; font-size: 10px; font-family: 'Galmuri9', sans-serif; color: var(--gold-lit); letter-spacing: -1px; }
+.slot-rank { position: absolute; top: 2px; right: 4px; font-size: 12px; color: var(--gold-lit); letter-spacing: -1px; }
 
 @media (max-width: 900px), (max-height: 620px) {
     #journal-panel, #help-panel, #den-panel, #kids-panel, #settings-panel { width: 97vw; height: 92vh; max-height: 92vh; }
     .tree-canopy { gap: 2px; }
     .tnode { width: 62px; }
     .tnode-gem { width: 38px; height: 38px; border-width: 2px; }
-    .tnode-rank, .tnode-name { font-size: 10px; font-family: 'Galmuri9', sans-serif; }
+    .tnode-rank, .tnode-name { font-size: 12px; }
     .branch-rows { gap: 16px; }
     .branch-row { gap: 6px; }
     .branch-head { padding: 0 6px 4px; }

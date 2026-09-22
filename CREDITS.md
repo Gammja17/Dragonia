@@ -96,7 +96,7 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 
 | 파일 | 원작 | 라이선스 | 출처 |
 |---|---|---|---|
-| `Galmuri9/11/14.woff2`, `Galmuri11-Bold.woff2` (assets/fonts) | "갈무리 Galmuri" by quiple — 한글 비트맵 폰트 | SIL OFL 1.1 | https://github.com/quiple/galmuri |
+| `Mulmaru.woff2` (assets/fonts) | "물마루 Mulmaru" by Mushsooni — 게임용 한글 픽셀 폰트 | SIL OFL 1.1 | https://github.com/mushsooni/mulmaru |
 
 변경 사항: 원본 ttf/otf 를 게임에 쓰는 글자(라틴, 한글 11,172자, 문장부호·괘선)만 남겨
 서브셋한 뒤 woff2 로 압축했다. 글꼴 파일 자체를 따로 배포하거나 팔지 않는다.

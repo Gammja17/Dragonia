@@ -198,7 +198,7 @@ export class Prop extends Entity {
         // 이름표는 줌과 무관하게
         ctx.scale(k, k);           // 여기부터는 화면 픽셀 단위
         ctx.textAlign = 'center';
-        ctx.font = '700 12px "Galmuri11", sans-serif';
+        ctx.font = '700 12px "Mulmaru", sans-serif';
         const label = this.portal ? this.portal.name : '';
         const w = Math.ceil(ctx.measureText(label).width) + 16;
         ctx.fillStyle = 'rgba(10, 9, 16, 0.85)';
@@ -226,7 +226,7 @@ export class Prop extends Entity {
         const k = 1 / cam.zoom;
         ctx.scale(k, k);
         ctx.textAlign = 'center';
-        ctx.font = '700 12px "Galmuri11", sans-serif';
+        ctx.font = '700 12px "Mulmaru", sans-serif';
         const w = Math.ceil(ctx.measureText(label).width) + 16;
         ctx.fillStyle = 'rgba(10, 9, 16, 0.85)';
         ctx.fillRect(-w / 2, -126, w, 19);

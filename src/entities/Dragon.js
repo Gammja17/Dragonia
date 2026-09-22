@@ -1030,7 +1030,7 @@ export class Dragon extends Entity {
             ctx.fillStyle = '#ff4d4d'; ctx.fillRect(f.x - 4, f.y - 5 + bob, 8, 5);
             ctx.fillStyle = '#fff'; ctx.fillRect(f.x - 4, f.y + bob, 8, 5);
             if (f.bite > 0) {
-                ctx.font = '700 36px "Galmuri11", sans-serif'; ctx.textAlign = 'center';
+                ctx.font = '700 36px "Mulmaru", sans-serif'; ctx.textAlign = 'center';
                 ctx.strokeStyle = 'rgba(0,0,0,0.75)'; ctx.lineWidth = 5; ctx.strokeText('!', f.x, f.y - 22);
                 ctx.fillStyle = '#ffd84a'; ctx.fillText('!', f.x, f.y - 22);
             }
@@ -1090,7 +1090,7 @@ export class Dragon extends Entity {
 
         // 이름
         const name = this.isPlayer ? (this.config.name || '용') : npcName(this.config.name);
-        ctx.font = '700 12px "Galmuri11", sans-serif';
+        ctx.font = '700 12px "Mulmaru", sans-serif';
         const nw = Math.ceil(ctx.measureText(name).width) + 16;
         ctx.fillStyle = 'rgba(10, 9, 16, 0.78)';
         ctx.fillRect(-nw / 2, -16, nw, 21);
@@ -1102,7 +1102,7 @@ export class Dragon extends Entity {
         // 퀘스트 표시 (! 새 부탁 / ? 보고할 것)
         const mark = questMarker(this);
         if (mark) {
-            ctx.font = '700 36px "Galmuri11", sans-serif';
+            ctx.font = '700 36px "Mulmaru", sans-serif';
             ctx.fillStyle = mark === '?' ? '#7dd36a' : '#ffd84a';
             ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 5;
             const my = -26 + Math.sin(state.gameTime * 4) * 3;
@@ -1112,7 +1112,7 @@ export class Dragon extends Entity {
         // 말풍선. 길면 줄을 나눈다
         if (this.chatFade > 0 && this.currentChat) {
             ctx.globalAlpha = Math.min(1, this.chatFade);
-            ctx.font = '12px "Galmuri11", sans-serif';
+            ctx.font = '12px "Mulmaru", sans-serif';
             const lines = wrapText(ctx, this.currentChat, 230);
             const lh = 19, padX = 12, padY = 9;
             const w = Math.max(...lines.map(l => ctx.measureText(l).width)) + padX * 2;

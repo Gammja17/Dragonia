@@ -246,7 +246,7 @@ export function drawCutscene(ctx, w, h) {
         ctx.ellipse(sp.x, sp.y + 34 * cam.zoom, (74 + beat * 10) * cam.zoom, (30 + beat * 4) * cam.zoom, 0, 0, Math.PI * 2);
         ctx.stroke();
         if (scene.poi.label) {
-            ctx.font = `700 ${cam.zoom >= 1.5 ? 36 : 24}px "Galmuri11", sans-serif`;
+            ctx.font = `700 ${cam.zoom >= 1.5 ? 36 : 24}px "Mulmaru", sans-serif`;
             ctx.textAlign = 'center';
             const tw = ctx.measureText(scene.poi.label).width + 22;
             const ty = sp.y - 78 * cam.zoom;

@@ -155,7 +155,7 @@ export class Enemy extends Entity {
         ctx.translate(Math.round(this.x), Math.round(this.y - top));
         ctx.scale(k, k);
         ctx.textAlign = 'center';
-        ctx.font = '700 12px "Galmuri11", sans-serif';
+        ctx.font = '700 12px "Mulmaru", sans-serif';
         const name = (this.elite ? '★ ' : '') + this.def.name;
         const w = Math.ceil(ctx.measureText(name).width) + 12;
         ctx.fillStyle = 'rgba(8,7,14,0.72)';
@@ -165,7 +165,7 @@ export class Enemy extends Entity {
         if (this.affix) {
             const ax = AFFIXES[this.affix.id];
             const tag = ax.name + (this.affix.element ? `·${{ FIRE: '불', ICE: '얼음', THUNDER: '번개' }[this.affix.element]}` : '');
-            ctx.font = '10px "Galmuri9", sans-serif';
+            ctx.font = '12px "Mulmaru", sans-serif';
             const tw = Math.ceil(ctx.measureText(tag).width) + 10;
             ctx.fillStyle = 'rgba(8,7,14,0.72)';
             ctx.fillRect(-tw / 2, -30, tw, 14);
