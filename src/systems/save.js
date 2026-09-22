@@ -1,3 +1,4 @@
+import { NAME_OVERRIDES } from '../data/npcs.js';
 import { state } from '../core/state.js';
 import { BabyDragon } from '../entities/BabyDragon.js';
 import { registerKid, setKidStage } from './kids.js';
@@ -115,6 +116,7 @@ export function applySave(data) {
     state.eggSitting = data.eggSitting || null;
     p.ult = data.ult || 0;
     state.story = data.story || { scenes: [], lessons: [], lessonDay: 0 };
+    Object.assign(NAME_OVERRIDES, state.story.npcNames || {});   // 이야기 속에서 지어 준 이름
     state.story.rites = state.story.rites || [];
     state.story.clues = state.story.clues || [];
     state.story.today = state.story.today || {};

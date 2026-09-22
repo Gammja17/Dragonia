@@ -134,6 +134,13 @@ export const ROUTINES = {
         ],
         rain: { map: 'VILLAGE', spot: [5, 9], doing: '비 오는 날은 낚시가 안 된다며 처마 밑에 앉아 있다' },
         raid: { map: 'VILLAGE', spot: [6, 9], doing: '미루 앞을 막고 서 있다' },
+        // 알을 품는 엿새: 낚시를 반나절로 줄이고 집 앞을 서성인다
+        variants: [{ when: s => (s.story.flags || {}).couple_egg && !(s.story.flags || {}).couple_hatched, day: [
+            { h: 0,  map: 'VILLAGE', spot: [5, 9],  doing: '알 옆에서 코를 골다가 자꾸 깬다' },
+            { h: 6,  map: 'LAKE',    spot: [6, 10], doing: '낚싯줄을 던져 놓고 자꾸 마을 쪽을 돌아본다' },
+            { h: 11, map: 'VILLAGE', spot: [5, 9],  doing: '집 앞을 서성이며 알을 들여다본다' },
+            { h: 22, map: 'VILLAGE', spot: [5, 9],  doing: '알 옆에서 코를 골다가 자꾸 깬다' },
+        ] }],
     },
     Miru: {
         job: '살림',
@@ -147,6 +154,27 @@ export const ROUTINES = {
         ],
         rain: { map: 'VILLAGE', spot: [6, 9], doing: '젖기 전에 널어 둔 고기를 걷고 있다' },
         raid: { map: 'VILLAGE', spot: [6, 9], doing: '도란 뒤에서 돌멩이를 골라 쥐고 있다' },
+        // 알을 품는 엿새: 집 앞을 떠나지 않는다
+        variants: [{ when: s => (s.story.flags || {}).couple_egg && !(s.story.flags || {}).couple_hatched, day: [
+            { h: 0,  map: 'VILLAGE', spot: [6, 9], doing: '집 안에서 알을 품고 있다' },
+            { h: 7,  map: 'VILLAGE', spot: [6, 9], doing: '집 앞에 알을 내놓고 햇볕을 쬐어 주고 있다' },
+            { h: 18, map: 'VILLAGE', spot: [6, 9], doing: '알을 안고 집으로 들어간다' },
+        ] }],
+    },
+    // ── 이슬: 도란과 미루의 아이. 알이 깬 다음부터만 있다 ──────────
+    Iseul: {
+        job: '아이',
+        when: s => !!(s.story.flags || {}).couple_hatched,
+        day: [
+            { h: 0,  map: 'VILLAGE', spot: [6, 9],   doing: '엄마 품에서 자고 있다' },
+            { h: 8,  map: 'VILLAGE', spot: [6, 10],  doing: '집 앞에서 도란이 놓고 간 고기를 툭툭 건드리고 있다' },
+            { h: 11, map: 'VILLAGE', spot: [11, 9],  doing: '누리 뒤를 아장아장 따라다닌다' },
+            { h: 15, map: 'VILLAGE', spot: [6, 10],  doing: '집 앞 그늘에서 낮잠을 잔다' },
+            { h: 19, map: 'VILLAGE', spot: [12, 11], doing: '모닥불 곁에서 도란 무릎에 앉아 있다' },
+            { h: 21, map: 'VILLAGE', spot: [6, 9],   doing: '미루한테 안겨 집으로 들어간다' },
+        ],
+        rain: { map: 'VILLAGE', spot: [6, 9], doing: '문틈으로 빗방울을 세고 있다' },
+        raid: { map: 'VILLAGE', spot: [6, 9], doing: '미루 품에 안겨 있다' },
     },
 
     // ── 단 · 소이 · 누리: 세 식구. 단은 숲에서 나무를 하고, 소이는 집 앞에서 아이를 보고, 누리는 포코 뒤를 따라다닌다 ──

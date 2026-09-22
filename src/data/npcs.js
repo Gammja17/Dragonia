@@ -5,10 +5,12 @@ export const NPC_NAMES_KO = {
     Riun: '리운', Seiran: '세이란', Haru: '하루', Yuan: '유안',
     Kirin: '키린', Raze: '레이즈', Mira: '미라', Dusk: '더스크',
     Iro: '이로', Sora: '소라', Flint: '플린트', Ember: '엠버',
-    Vesna: '베스나', IGNAR: '이그나르', Ignar: '이그나르', Doran: '도란', Miru: '미루', Dan: '단', Soi: '소이', Nuri: '누리', On: '온', Biryu: '비류', Beodeul: '버들', Jagal: '자갈', Heukdan: '흑단', Jaetbyeol: '잿별',
+    Vesna: '베스나', IGNAR: '이그나르', Ignar: '이그나르', Doran: '도란', Miru: '미루', Dan: '단', Soi: '소이', Nuri: '누리', On: '온', Biryu: '비류', Beodeul: '버들', Jagal: '자갈', Heukdan: '흑단', Jaetbyeol: '잿별', Iseul: '이슬',
     Moss: '모스', Fern: '펀', Garam: '가람', Dol: '돌',
 };
-export const npcName = (id) => NPC_NAMES_KO[id] || id || '???';
+// 이야기 속에서 플레이어가 지어 준 이름 (이슬). state.story.npcNames 에 남고, 불러올 때 systems/save.js 가 채운다
+export const NAME_OVERRIDES = {};
+export const npcName = (id) => NAME_OVERRIDES[id] || NPC_NAMES_KO[id] || id || '???';
 
 // 태어난 아이에게 붙여 줄 이름.
 // 마을 용들(엘더 · 티아맷 · 포코 · 그론 · 나라 · 카이론)과 같은 결로 맞춘다.
@@ -86,6 +88,12 @@ export const FIXED_NPCS = [
     {
         name: 'Miru', personality: 'PLAYFUL', canPartner: false,
         species: 'LOOK', look: 19, accessory: 'FLOWER', scale: 0.95, colors: { body: '#c87a5a', belly: '#f0c8a0', wing: '#e8a878' }, element: 'FIRE', maxHp: 240, power: 8,
+        x: 0, y: 0,
+    },
+    {
+        // 이슬: 도란과 미루의 아이. 4장 뒤에 알이 생기고 엿새 뒤 아침에 깬다 (data/chronicle.js). 이름은 플레이어가 지어 준다
+        name: 'Iseul', personality: 'PLAYFUL', canPartner: false, kid: true,
+        species: 'LOOK', look: 23, accessory: null, scale: 0.5, colors: { body: '#6a8fa8', belly: '#d8ecf0', wing: '#a8c8d8' }, element: 'ICE', maxHp: 80, power: 3,
         x: 0, y: 0,
     },
     // ---- 웨스턴의 세 식구. 단은 나무를 하고 소이는 아이를 보고, 누리는 포코 뒤를 졸졸 따라다닌다 ----

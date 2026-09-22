@@ -378,6 +378,30 @@ export const CHRONICLE = [
         ],
     },
 
+    // 도란과 미루의 알. 달이 가장 밝은 밤의 모임(4장) 뒤 아침에 알려 주고, 엿새 뒤에 깬다. 깨지 않았던 첫 알 이야기가 여기서 풀린다
+    {
+        id: 'ev_couple_egg', title: '도란과 미루의 알', flag: 'couple_egg',
+        when: c => c.map === 'VILLAGE' && c.done('m5g') && c.hour >= 7 && c.hour < 18 && !c.s.raid.active && !c.flag('couple_egg'),
+        lines: [
+            { who: 'Miru', text: "저기, 너 잠깐만. …있잖아, 남한테 먼저 말하는 건 처음인데, 우리한테 알이 생겼어." },
+            { who: 'Doran', text: "(도란이 고기 꾸러미를 든 채로 멀뚱히 서 있다.) 낚시하다 말고 뛰어왔어. 고기는 세 마리여. 아니, 그게 중요한 게 아니고." },
+            { who: 'Miru', text: "스무 해 전에 하나 품었다가 깨지 않았어. 그 뒤로는 우리 둘 다 말을 안 꺼냈지. 이번에는… 이번에는 잘 됐으면 좋겠어." },
+            { who: 'Doran', text: "알은 낚시랑 같아서 서두르면 안 되는 거여. 내가 옆에서 기다릴 거고. 자네도 가끔 들여다봐 주게. 그러면 잘 깰 것 같아." },
+        ],
+        toast: '도란과 미루의 알. 며칠 뒤에 다시 들여다보자.', icon: '🥚',
+    },
+    {
+        id: 'ev_couple_hatch', title: '깨어난 아침', flag: 'couple_hatched',
+        when: c => c.map === 'VILLAGE' && c.flag('couple_egg') && !c.flag('couple_hatched') && c.day - (c.s.story.coupleEggDay || 0) >= 6 && c.hour >= 7 && c.hour < 18 && !c.s.raid.active,
+        lines: [
+            { who: '나', text: "(도란네 집 앞이 시끄럽다. 미루가 알 껍데기를 두 손에 든 채 울고 있고, 도란은 웃는 건지 우는 건지 모를 얼굴이다.)" },
+            { who: 'Miru', text: "깼어. 깼어! 새벽에 톡톡 소리가 나더니… 이것 봐, 이 조그만 게 나를 보고 하품을 했어." },
+            { who: 'Doran', text: "스무 해를 기다렸어. 낚시로 치면… 아니여, 낚시로 칠 게 아니지. 이건 그냥 내 새끼여." },
+            { who: 'Miru', text: "네가 들여다봐 준 덕이야. 그러니까 네가 이름을 지어 줘. 우리는 스무 해 동안 이름을 못 지어서, 이번에도 못 짓겠어." },
+        ],
+        toast: '도란과 미루의 아이가 태어났다. 성체가 되면 놀아 줄 수 있다.', icon: '🐣',
+    },
+
     // 사냥꾼 대장 베르단. 습격은 늘 마을에서였는데, 이번에는 길에서 혼자 둘러싸인다
     {
         id: 'ev_ambush', title: '길을 막은 자', ambush: true,

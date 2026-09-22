@@ -4,7 +4,7 @@ import { MY_DEN } from '../data/dens.js';
 import { travelTo } from './world.js';
 import { openDecorPanel } from '../ui/denPanel.js';
 import { RITES } from '../data/ceremony.js';
-import { npcName } from '../data/npcs.js';
+import { npcName, NAME_OVERRIDES } from '../data/npcs.js';
 import { playScene, addClue } from './chronicle.js';
 import { dist, rand, pick } from '../core/utils.js';
 
@@ -358,6 +358,13 @@ setFlagListener((flag) => {
         for (const b of state.entities.bosses) if (b.id === 'IGNAR') b.reset();
     }
     if (flag === 'dark_duel') darkDuel();
+    if (flag === 'couple_egg') state.story.coupleEggDay = state.day;
+    if (flag === 'couple_hatched') {   // 도란과 미루의 아이. 이름은 플레이어가 짓는다 (data/npcs.js 의 NAME_OVERRIDES)
+        const n = (prompt('도란과 미루의 아이 이름을 지어 주세요 (6자까지)', '이슬') || '이슬').trim().slice(0, 6) || '이슬';
+        state.story.npcNames = { ...(state.story.npcNames || {}), Iseul: n };
+        NAME_OVERRIDES.Iseul = n;
+        showToast(`아이의 이름은 ${n}. 내일부터 마을을 뛰어다닌다.`, '🐣');
+    }
     saveGame();
 });
 
