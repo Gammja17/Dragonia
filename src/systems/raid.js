@@ -8,8 +8,12 @@ import { showRaidWarning } from '../ui/hud.js';
 import { notify, activeQuests, curStep } from './quests.js';
 import { CHAPTERS, currentChapter } from '../data/chapters.js';
 import { npcName } from '../data/npcs.js';
+import { KID_RAID_PERKS, WAR_PARTNER_SAY } from '../data/war.js';
 import { isDead } from './routine.js';
 import { play } from './audio.js';
+import { addMomentum } from './flow.js';
+import { addMaterial } from './smithing.js';
+import { objectiveText, myDenMouth, towerProp, returnLostKids } from './objectives.js';
 
 // 습격은 회차(state.raid.count)가 오를수록 인원이 늘고 새 병종이 섞인다. 3회차마다 대장이 온다.
 const SIDES = {
@@ -36,7 +40,9 @@ export function updateRaid(dt) {
         if (raid.captainFell) { raid.captainFell = false; captainDown(); }
         // 지켜야 하는 용이 쓰러졌는지 본다
         const ob = raid.objective;
-        if (ob && !ob.failed) { const n = state.entities.npcs.find(x => x.config.name === ob.name); if (n && n.downTimer > 0) { ob.failed = true; showToast(`${npcName(ob.name)}가 쓰러졌다…`, '💫'); } }
+        if (ob && ob.type === 'RESCUE' && !ob.failed) { const n = state.entities.npcs.find(x => x.config.name === ob.name); if (n && n.downTimer > 0) { ob.failed = true; showToast(`${npcName(ob.name)}가 쓰러졌다…`, '💫'); } }
+        // 망루를 빼앗기면 원군이 한 번 든다
+        if (ob && ob.type === 'TOWER' && ob.failed && !ob.reinforced) { ob.reinforced = true; reinforce(['KNIGHT', 'ARCHER', 'KNIGHT', 'HEAVY']); }
         // 지도를 옮기면 사냥꾼도 같이 사라진다. 그걸 "격퇴"로 쳐 주면 굴에 들어갔다 나오는 것만으로 이긴다
         if (state.mapId !== 'VILLAGE') abandonRaid();
         else if (state.entities.humans.length === 0) endRaid();
@@ -78,23 +84,63 @@ function roster(count) {
 }
 
 /**
- * 습격마다 목표가 하나 붙기도 한다 (3장부터, 절반쯤).
- *   RESCUE  사냥꾼 몇이 싸우지 못하는 용 하나를 노린다. 그 용이 쓰러지지 않게 지켜 내면 덤이 붙는다
+ * 습격마다 목표가 하나 붙기도 한다 (3장부터, 절반쯤). 어떤 목표가 붙을 수 있는지는 장과 지금 형편을 본다.
+ *   RESCUE (3장~) 싸우지 못하는 용 하나를 노린다
+ *   EGG    (3장~) 둥지에 알이 있으면 알 도둑이 굴 입구로 뛴다
+ *   KID    (4장~) 따라다니는 아기 용이 있으면 잡아채 간다
+ *   TOWER  (5장~) 궁수들이 망루에 오르려 한다
  * 대장이 낀 습격에서는 대장을 먼저 쓰러뜨리면 남은 사냥꾼 절반이 달아난다 (entities/Human.js 가 깃발을 세운다)
  */
-function pickObjective(list) {
-    if (chapterNo() < 3 || Math.random() < 0.5) return null;
+function pickObjective() {
+    const ch = chapterNo();
+    if (ch < 3 || Math.random() < 0.4) return null;
+    const cands = [];
     const weak = ['Poco', 'Mira', 'Ember'].filter(n => !isDead(n));
     const npc = state.entities.npcs.find(n => weak.includes(n.config.name) && !(n.downTimer > 0));
-    if (!npc) return null;
-    return { type: 'RESCUE', name: npc.config.name, failed: false };
+    if (npc) cands.push({ type: 'RESCUE', name: npc.config.name, failed: false });
+    if (state.denNest && state.denNest.hasEgg && myDenMouth()) cands.push({ type: 'EGG', failed: false, dug: 0 });
+    const baby = babyOnMap();
+    if (ch >= 4 && baby) cands.push({ type: 'KID', kidId: baby.kid.id, failed: false });
+    if (ch >= 5 && towerProp()) cands.push({ type: 'TOWER', failed: false, perched: 0 });
+    return cands.length ? pick(cands) : null;
+}
+
+/** 지금 마을에 따라와 있는 아기 용 (싸우지 못하는 아이만 노린다) */
+function babyOnMap() {
+    for (const kid of state.kids) {
+        const e = kid.entity;
+        if (e && kid.stage === 'BABY' && !e.hidden && state.entities.babies.includes(e)) return { kid, entity: e };
+    }
+    return null;
+}
+
+/** 목표를 사냥꾼들에게 나눠 준다. 셋 중 하나쯤이 그것만 노린다 */
+function assignObjective(ob, humans) {
+    if (!ob) return;
+    const pickers = humans.filter(h => h.type !== 'CAPTAIN');
+    const some = pickers.filter((h, i) => i % 3 === 0);
+    if (ob.type === 'RESCUE') for (const h of some) h.hunts = ob.name;
+    if (ob.type === 'EGG') for (const h of some) { h.raids = 'DEN'; h.hunts = null; }
+    if (ob.type === 'KID') { const b = babyOnMap(); if (b) for (const h of some.slice(0, 2)) h.huntsKid = b.entity; }
+    if (ob.type === 'TOWER') for (const h of pickers.filter(h => h.type === 'ARCHER' || h.type === 'TRAPPER').slice(0, 4)) h.raids = 'TOWER';
+}
+
+function objectiveIntro(ob) {
+    if (!ob) return;
+    const say = {
+        RESCUE: `사냥꾼 몇이 ${npcName(ob.name)} 쪽으로 몰려간다. 쓰러지지 않게 지켜 주자!`,
+        EGG: '알 도둑이 섞여 있다! 내 굴 입구로 뛰는 놈들을 먼저 잡자.',
+        KID: `사냥꾼이 아기를 노린다! ${(state.kids.find(k => k.id === ob.kidId) || {}).name}를 지키자.`,
+        TOWER: '궁수들이 망루로 향한다. 셋이 올라서면 망루를 빼앗긴다!',
+    }[ob.type];
+    if (say) showToast(say, '🛡️');
 }
 
 /** 대장이 쓰러졌다: 남은 사냥꾼의 절반이 도망친다 */
 function captainDown() {
     const raid = state.raid;
     if (!raid.active) return;
-    const rest = state.entities.humans.filter(h => !h.remove && h.type !== 'CAPTAIN');
+    const rest = state.entities.humans.filter(h => !h.remove && h.type !== 'CAPTAIN' && !h.carrying);
     const flee = rest.slice(0, Math.floor(rest.length / 2));
     for (const h of flee) h.remove = true;
     if (flee.length) showToast(`대장이 쓰러지자 사냥꾼 ${flee.length}명이 달아났다!`, '🏃');
@@ -109,6 +155,53 @@ function raidSides() {
     return [SIDES[first], SIDES[second]];
 }
 
+/** 가장자리 바깥, 그 변을 따라 흩어져서 사냥꾼 하나를 세운다 */
+function spawnAt(side, type) {
+    const b = currentMapBounds();
+    const cx = b.w / 2, cy = b.h / 2, spread = rand(-260, 260);
+    const x = cx + side.dx * (b.w * 0.38) + (side.dx ? rand(-60, 60) : spread);
+    const y = cy + side.dy * (b.h * 0.36) + (side.dy ? rand(-60, 60) : spread);
+    const h = new Human(x, y, type);
+    state.entities.humans.push(h);
+    return h;
+}
+
+function reinforce(types) {
+    const side = pick(Object.values(SIDES));
+    for (const t of types) { const h = spawnAt(side, t); h.power = 1 + 0.08 * (state.raid.count - 1); }
+    showToast(`사냥꾼 원군 ${types.length}명이 ${side.name}에서 들어온다!`, '⚔️');
+}
+
+// ---------- 아이들의 일이 습격에서 힘이 된다 ----------
+
+/** 일을 맡은 다 자란 아이들: 성격(=일) → 아이 */
+function workingKids() {
+    const out = {};
+    for (const k of state.kids) if (k.stage === 'ADULT' && k.job && !out[k.job]) out[k.job] = k;
+    return out;
+}
+const fillKid = (text, kid) => text.replace(/\{kid\}/g, kid.name);
+
+/** 습격이 시작될 때 */
+function kidPerksStart(humans) {
+    const jobs = workingKids();
+    if (jobs.BRAVE) { for (const h of humans) h.hp = Math.round(h.hp * 0.85); showToast(fillKid(KID_RAID_PERKS.BRAVE.start, jobs.BRAVE), '🐉'); }
+    if (jobs.CALM) { addMomentum(30); showToast(fillKid(KID_RAID_PERKS.CALM.start, jobs.CALM), '🔥'); }
+}
+/** 막아 낸 뒤 */
+function kidPerksEnd() {
+    const jobs = workingKids(), p = state.player;
+    if (jobs.SHY) { p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.4); showToast(fillKid(KID_RAID_PERKS.SHY.end, jobs.SHY), '🌿'); }
+    if (jobs.PLAYFUL) { addMaterial('ORE', 2); showToast(fillKid(KID_RAID_PERKS.PLAYFUL.end, jobs.PLAYFUL), '⚙️'); }
+}
+
+/** 곁에 있는 짝이 한마디 한다 */
+function partnerSay() {
+    const n = state.partner;
+    if (!n || n.state === 'WANDER' || !state.entities.npcs.includes(n)) return;
+    n.say(WAR_PARTNER_SAY[n.config.name] || WAR_PARTNER_SAY.default);
+}
+
 /** 6장의 대습격. 싸울 수 있는 용들이 폭포에 가 있는 틈을 알고 온다. 두 방향에서, 대장까지 */
 const WAR_ROSTER = ['KNIGHT', 'KNIGHT', 'KNIGHT', 'ARCHER', 'ARCHER', 'ARCHER', 'MAGE', 'MAGE', 'HEAVY', 'HEAVY', 'CAPTAIN'];
 
@@ -118,6 +211,7 @@ export function triggerRaid(kind = null) {
     raid.count++;
     raid.active = true;
     raid.kind = kind;
+    raid.objective = null;
     if (kind === 'war') return spawnWar();
     const sides = raidSides();
     const where = sides.map(s => s.name).join('과 ');
@@ -126,37 +220,37 @@ export function triggerRaid(kind = null) {
     showToast(`사냥꾼 습격 ${raid.count}차! ${where}에서 몰려옵니다. 마을 용들과 함께 막아내세요!`, '⚔️');
     const list = roster(raid.count);
     if (list.includes('TRAPPER') && !state.story.flags?.sawTrapper) { (state.story.flags = state.story.flags || {}).sawTrapper = true; showToast('그물꾼이 섞여 있다. 느리게 날아오는 그물은 보고 피하자.', '🕸️'); }
-    raid.objective = pickObjective(list);
-    if (raid.objective) showToast(`사냥꾼 몇이 ${npcName(raid.objective.name)} 쪽으로 몰려간다. 쓰러지지 않게 지켜 주자!`, '🛡️');
     if (list.includes('CAPTAIN')) showToast('대장이 섞여 있다. 대장을 먼저 쓰러뜨리면 나머지가 흔들린다.', '⚔️');
-    list.forEach((type, i) => {
-        const side = sides[i % sides.length];
-        // 마을 가장자리 바깥, 그 변을 따라 흩어져서 등장
-        const spread = rand(-260, 260);
-        const b = currentMapBounds();
-        const cx = b.w / 2, cy = b.h / 2;
-        const x = cx + side.dx * (b.w * 0.38) + (side.dx ? rand(-60, 60) : spread);
-        const y = cy + side.dy * (b.h * 0.36) + (side.dy ? rand(-60, 60) : spread);
-        const h = new Human(x, y, type);
+    const humans = list.map((type, i) => {
+        const h = spawnAt(sides[i % sides.length], type);
         h.maxHp = h.hp = Math.round(h.hp * (1 + 0.12 * (raid.count - 1)));   // 회차가 오를수록 단단해진다
         h.power = 1 + 0.08 * (raid.count - 1);
-        if (raid.objective && i % 3 === 0 && type !== 'CAPTAIN') h.hunts = raid.objective.name;   // 셋 중 하나는 그 용만 노린다
-        state.entities.humans.push(h);
+        return h;
     });
+    raid.objective = pickObjective();
+    assignObjective(raid.objective, humans);
+    objectiveIntro(raid.objective);
+    kidPerksStart(humans);
+    partnerSay();
 }
 
 function spawnWar() {
     showRaidWarning('마을이 습격당하고 있다!');
     play('raid');
     showToast('사냥꾼들이 두 방향에서 몰려온다. 싸울 수 있는 용들은 전부 폭포에 가 있다!', '⚔️');
-    const b = currentMapBounds(), cx = b.w / 2, cy = b.h / 2;
     const two = [SIDES.E, SIDES.S];
-    WAR_ROSTER.forEach((type, i) => {
-        const side = two[i % 2], spread = rand(-260, 260);
-        const x = cx + side.dx * (b.w * 0.38) + (side.dx ? rand(-60, 60) : spread);
-        const y = cy + side.dy * (b.h * 0.36) + (side.dy ? rand(-60, 60) : spread);
-        state.entities.humans.push(new Human(x, y, type));
-    });
+    const humans = WAR_ROSTER.map((type, i) => spawnAt(two[i % 2], type));
+    // 각본: 사냥꾼 몇은 포코를 노린다. 그론이 그 앞을 막는다
+    if (!isDead('Poco')) for (const h of humans.filter(h => h.type === 'ARCHER')) h.hunts = 'Poco';
+    // 따라다니던 아기가 있으면 그 밤에 아이를 잡아채려는 놈도 섞인다
+    const baby = babyOnMap();
+    if (baby) {
+        state.raid.objective = { type: 'KID', kidId: baby.kid.id, failed: false };
+        for (const h of humans.filter(h => h.type === 'KNIGHT').slice(0, 2)) h.huntsKid = baby.entity;
+        showToast(`사냥꾼이 ${baby.kid.name}를 노린다! 놓치면 안 된다.`, '⚠️');
+    }
+    kidPerksStart(humans);
+    partnerSay();
 }
 
 function endRaid() {
@@ -170,8 +264,18 @@ function endRaid() {
     showToast(`습격 ${raid.count}차 격퇴! (${gold}G, 마을 용들의 호감 ↑)`, '🛡️');
     p.gainXp(60 + raid.count * 30);
     state.story.today.raid = true;   // 내일 아침 "어제 습격" 이야기가 나올 수 있다
-    const ob = raid.objective;
-    if (ob) {
+    settleObjective();
+    kidPerksEnd();
+    returnLostKids();
+    notify('raid');
+}
+
+/** 목표를 지켜 냈으면 덤이 붙는다 */
+function settleObjective() {
+    const raid = state.raid, p = state.player, ob = raid.objective;
+    raid.objective = null;
+    if (!ob) return;
+    if (ob.type === 'RESCUE') {
         const npc = state.entities.npcs.find(n => n.config.name === ob.name);
         if (npc && !ob.failed) {
             npc.relation = Math.min(100, (npc.relation || 0) + 8);
@@ -179,15 +283,37 @@ function endRaid() {
             showToast(`${npcName(ob.name)}를 끝까지 지켜 냈다! (40G, 호감 ↑)`, '🛡️');
             npc.say(ob.name === 'Poco' ? '고, 고마워… 나 진짜 무서웠어.' : '덕분에 살았어. 고마워.');
         }
-        raid.objective = null;
+    } else if (ob.type === 'EGG') {
+        const nest = state.denNest;
+        if (!ob.failed && nest && nest.hasEgg) {
+            if (!ob.dug) { nest.progress = Math.min(100, nest.progress + 15); showToast('알을 지켜 냈다! 놀란 만큼 더 꼭 품었다 (부화 +15, 60G)', '🥚'); }
+            else showToast('알은 무사하다. 다음엔 입구까지 못 오게 하자 (60G)', '🥚');
+            p.gold += 60; p.gainXp(80);
+        }
+    } else if (ob.type === 'KID') {
+        const kid = state.kids.find(k => k.id === ob.kidId);
+        if (kid && !ob.failed) {
+            kid.affection = Math.min(100, kid.affection + 12);
+            p.gold += 50; p.gainXp(80);
+            showToast(`${kid.name}를 지켜 냈다! (50G, 애정 ↑)`, '💗');
+            if (kid.entity) kid.entity.say(ob.freed ? '…나 안 울었어.' : '엄마아빠 세다!');
+        }
+    } else if (ob.type === 'TOWER') {
+        const t = state.entities.npcs.find(n => n.config.name === 'Tiamat');
+        if (!ob.failed) {
+            if (t) { t.relation = Math.min(100, (t.relation || 0) + 8); t.say('망루는 넘겨주지 않았네. 고마워.'); }
+            p.gold += 60; p.gainXp(80);
+            showToast('망루를 지켜 냈다! (60G, 티아맷의 호감 ↑)', '🏹');
+        }
     }
-    notify('raid');
 }
 
 /** 싸우다 말고 마을을 떠났다. 보상도, 막아 냈다는 기록도 없다 */
 function abandonRaid() {
     state.raid.active = false;
+    state.raid.objective = null;
     state.raidTimer = RAID_INTERVAL;
+    returnLostKids();
     showToast('마을을 비운 사이 습격이 지나갔다. 남은 용들이 겨우 막아 냈다.', '🛡️');
 }
 
@@ -195,7 +321,7 @@ function abandonRaid() {
 export function raidStatusText() {
     if (state.dungeon) return '';   // 굴 속에서는 습격 시계가 멈춘다
     if (!state.raid.active && state.raid.count === 0) return '';   // 아직 습격을 겪기 전
-    if (state.raid.active) return `습격 중! 남은 사냥꾼 ${state.entities.humans.length}` + (state.raid.objective && !state.raid.objective.failed ? ` · ${npcName(state.raid.objective.name)}를 지켜라` : '');
+    if (state.raid.active) { const ob = objectiveText(); return `습격 중! 남은 사냥꾼 ${state.entities.humans.length}` + (ob ? ` · ${ob}` : ''); }
     if (state.story.route === 'dark' && state.quests.done.includes('m7d')) return '';   // 나팔은 다시 울리지 않는다
     const t = Math.max(0, Math.ceil(state.raidTimer));
     return `다음 습격 ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;

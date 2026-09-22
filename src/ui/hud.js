@@ -96,7 +96,12 @@ export function updateHud() {
     el.name.textContent = p.config.name || 'Player';
     el.lvl.textContent = p.level;
     el.stage.textContent = p.stage.name;
-    el.partner.textContent = state.partner ? npcName(state.partner.config.name) : '없음';
+    // 짝이 지금 어디 있는지까지 (따라오는 중 · 마을에 · 토라져서 나갔다)
+    if (state.partner) {
+        const n = state.partner, mood = state.story.love && state.story.love.mood[n.config.name];
+        const where = mood && mood.kind === 'SULK' ? ' (토라짐)' : n.state === 'WANDER' ? ' (마을에)' : ' (함께)';
+        el.partner.textContent = npcName(n.config.name) + where;
+    } else el.partner.textContent = '없음';
     el.meat.textContent = p.inventory.meat;
     el.gold.textContent = p.gold;
     $('twig-slot').style.display = state.den.built ? 'none' : '';

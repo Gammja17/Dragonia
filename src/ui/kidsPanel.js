@@ -1,8 +1,12 @@
 import { state } from '../core/state.js';
 import { MAX_KIDS } from '../core/config.js';
 import { renameKid, toggleKidMode } from '../systems/kids.js';
+import { KID_PERSONALITIES } from '../data/npcTalk.js';
+import { KID_JOBS } from '../data/family.js';
 
-const STAGE_NAMES = { BABY: '아기', TEEN: '청소년 (전투 가능)', ADULT: '성체 (둥지 수호)' };
+const STAGE_NAMES = { BABY: '아기', TEEN: '청소년 (전투 가능)', ADULT: '성체' };
+// 다음 단계까지의 성장 (entities/BabyDragon.js 의 grow 문턱)
+const GROW_NEXT = { BABY: [0, 70, '청소년까지'], TEEN: [70, 140, '성체까지'], ADULT: null };
 
 const $ = (id) => document.getElementById(id);
 
@@ -27,8 +31,18 @@ export function refreshKidsPanel() {
     for (const k of state.kids) {
         const row = document.createElement('div');
         row.className = 'kid-row';
-        const hearts = '♥'.repeat(Math.min(5, Math.round(k.affection / 20)));
-        row.innerHTML = `<div><strong></strong><div class="kid-stage">${STAGE_NAMES[k.stage]}</div></div>` +
+        const n = Math.min(5, Math.round(k.affection / 20));
+        const hearts = '♥'.repeat(n) + `<i>${'♥'.repeat(5 - n)}</i>`;
+        const growth = k.entity ? k.entity.growth : 0;
+        const next = GROW_NEXT[k.stage];
+        const pct = next ? Math.max(0, Math.min(100, ((growth - next[0]) / (next[1] - next[0])) * 100)) : 100;
+        const tags = [`<span class="kid-tag">${KID_PERSONALITIES[k.personality] || ''}</span>`];
+        if (k.job) tags.push(`<span class="kid-tag job">${KID_JOBS[k.job].name}</span>`);
+        if (k.stage !== 'ADULT') tags.push(`<span class="kid-tag">${k.mode === 'FOLLOW' ? '따라오는 중' : '둥지 지키는 중'}</span>`);
+        if (k.scaredDay != null && state.day - k.scaredDay < 2) tags.push('<span class="kid-tag scared">겁먹음</span>');
+        row.innerHTML = `<div><strong></strong><div class="kid-stage">${STAGE_NAMES[k.stage]}${next ? ` · ${next[2]} ${Math.round(pct)}%` : ' · 다 자랐다'}</div>` +
+                        (next ? `<div class="kid-grow"><i style="width:${pct}%"></i></div>` : '') +
+                        `<div class="kid-tags">${tags.join('')}</div></div>` +
                         `<div class="kid-actions"><span class="kid-heart">${hearts}</span></div>`;
         row.querySelector('strong').textContent = k.name;
         const actions = row.querySelector('.kid-actions');

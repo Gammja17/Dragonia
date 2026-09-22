@@ -23,6 +23,10 @@
 //     hint     지금 뭘 해야 하는지 (추적창·로그의 '해야 할 일')
 //     scene    이 대목을 끝내면 재생되는 장면 [{ who, text }]
 import { mapOpen } from './chapters.js';
+import { FUNERAL_PARTNER, FUNERAL_KID } from './war.js';
+
+/** 곁에 있는 짝 (따라다니는 중). 없으면 null */
+const partnerOf = (s) => (s.partner && s.partner.state !== 'WANDER') ? s.partner.config.name : null;
 
 export const QUESTS = [
     // ================= 본 이야기 =================
@@ -389,8 +393,9 @@ export const QUESTS = [
                 goal: { type: 'raid', count: 1 },
                 hint: "마을이 습격당하고 있다! 싸울 수 있는 용들은 전부 폭포에 가 있다.",
                 flag: 'gron_dead',
-                scene: [
+                scene: (s) => [
                     { who: '나', text: "(마지막 사냥꾼이 쓰러졌다. 광장이 조용하다. 너무 조용하다.)" },
+                    s.kids.length ? { who: '나', text: `(${s.kids[0].name}${s.kids.length > 1 ? '와 아이들' : ''}이 내 다리 뒤에 붙어 있다. 무사하다. …무사하다.)` } : null,
                     { who: 'Ember', text: "아저씨! 아저씨, 일어나 봐요! 아저씨!!" },
                     { who: '나', text: "(대장간 앞에 그론이 엎드려 있다. 등에 화살이 여러 대 꽂혀 있고, 그 밑에서 뭔가 꿈틀거린다.)" },
                     { who: 'Poco', text: "(그론의 날개 밑에서 기어 나온다.) …아저씨가, 아저씨가 나 덮었어. 모루 밑에 있으랬는데 내가, 내가 무서워서 나왔는데…" },
@@ -404,16 +409,23 @@ export const QUESTS = [
             {
                 goal: { type: 'sleep', count: 1 },
                 hint: "…오늘은 아무것도 할 수 없다. 굴로 돌아가 눕는다.",
-                scene: [
-                    { who: '나', text: "(아침. 마을 용들이 전부 대장간 앞에 모여 있다. 구름마루에서도 몇이 내려와, 멀찍이 서 있다.)" },
-                    { who: 'Elder', text: "그론은 말이다… 이 마을에 제일 먼저 굴을 판 용이었단다. 투덜대면서, 남의 굴까지 다 파 줬지." },
-                    { who: 'Kairon', text: "영감. 어제 우리가 폭포에 안 갔으면—" },
-                    { who: 'Elder', text: "그만해라, 카이론. 그 말은 나도 밤새 했다." },
-                    { who: 'Riun', text: "…우리가 그대들을 폭포에 묶어 두었소. 그 틈에 이리 되었으니, 구름마루도 빚을 졌소." },
-                    { who: '나', text: "(유안이 무리에서 나와 미라 옆에 가서 선다. 아무도 뭐라고 하지 않았다.)" },
-                    { who: '나', text: "(포코는 아무 말도 안 한다. 그론의 망치를 두 발로 꼭 쥐고 있다.)" },
-                    { who: '나', text: "(엠버는 화덕 앞에 쪼그리고 앉아 부싯돌만 치고 있다. 불이 안 붙는다.)" },
-                ],
+                // 곁에 선 짝과 아이들이 그 아침을 조금 다르게 만든다 (data/war.js)
+                scene: (s) => {
+                    const partner = partnerOf(s), kid = s.kids[0];
+                    const pline = partner && partner !== 'Gron' ? (FUNERAL_PARTNER[partner] || FUNERAL_PARTNER.default) : '';
+                    return [
+                        { who: '나', text: "(아침. 마을 용들이 전부 대장간 앞에 모여 있다. 구름마루에서도 몇이 내려와, 멀찍이 서 있다.)" },
+                        { who: 'Elder', text: "그론은 말이다… 이 마을에 제일 먼저 굴을 판 용이었단다. 투덜대면서, 남의 굴까지 다 파 줬지." },
+                        { who: 'Kairon', text: "영감. 어제 우리가 폭포에 안 갔으면—" },
+                        { who: 'Elder', text: "그만해라, 카이론. 그 말은 나도 밤새 했다." },
+                        { who: 'Riun', text: "…우리가 그대들을 폭포에 묶어 두었소. 그 틈에 이리 되었으니, 구름마루도 빚을 졌소." },
+                        { who: '나', text: "(유안이 무리에서 나와 미라 옆에 가서 선다. 아무도 뭐라고 하지 않았다.)" },
+                        pline ? { who: partner, text: pline } : null,
+                        kid ? { who: '나', text: FUNERAL_KID[kid.personality].replace(/\{kid\}/g, kid.name) } : null,
+                        { who: '나', text: "(포코는 아무 말도 안 한다. 그론의 망치를 두 발로 꼭 쥐고 있다.)" },
+                        { who: '나', text: "(엠버는 화덕 앞에 쪼그리고 앉아 부싯돌만 치고 있다. 불이 안 붙는다.)" },
+                    ];
+                },
             },
         ],
         done: "…와 주었구나. 앉거라.",

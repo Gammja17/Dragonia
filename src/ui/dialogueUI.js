@@ -9,6 +9,7 @@ const tierOf = (r) => (r >= 75 ? 3 : r >= 50 ? 2 : r >= 25 ? 1 : 0);
 
 let selected = 0;
 let typer = null;
+let fullText = '';   // 지금 찍는 중인 글. 누르면 한 번에 다 보여 준다
 
 /** 대사 속 {name} 을 주인공 이름으로 바꾼다. "{name}(이)" 의 '이'는 받침이 있을 때만 붙는다 */
 function fillName(text) {
@@ -24,13 +25,25 @@ function typeText(text) {
     clearInterval(typer);
     const el = $('d-text');
     let i = 0;
+    fullText = text;
     el.textContent = '';
+    el.classList.add('typing');
     typer = setInterval(() => {
         i += 2;
         el.textContent = text.slice(0, i);
         if (i % 6 === 0) play('talk');
-        if (i >= text.length) clearInterval(typer);
+        if (i >= text.length) { clearInterval(typer); typer = null; el.classList.remove('typing'); }
     }, 16);
+}
+
+/** 찍는 중이면 글을 한 번에 다 보여 주고 true. 이미 다 찍혔으면 false */
+function finishTyping() {
+    if (!typer) return false;
+    clearInterval(typer); typer = null;
+    const el = $('d-text');
+    el.textContent = fullText;
+    el.classList.remove('typing');
+    return true;
 }
 
 function highlight() {
@@ -53,6 +66,7 @@ export const dialogueUI = {
         bar.classList.toggle('show', rel !== null);
         if (rel !== null) $('d-rel-fill').style.width = Math.min(100, rel) + '%';
         typeText(text);
+        $('d-text').onclick = finishTyping;
         const box = $('d-options');
         box.innerHTML = '';
         const list = options.length ? options : [{ label: '닫기', onSelect: onClose }];
@@ -75,9 +89,12 @@ export const dialogueUI = {
         if (!buttons.length) return;
         if (input.pressed('down') || input.pressed('right')) { selected = (selected + 1) % buttons.length; play('ui'); highlight(); }
         if (input.pressed('up') || input.pressed('left')) { selected = (selected + buttons.length - 1) % buttons.length; play('ui'); highlight(); }
-        if (input.pressed('confirm') || input.pressed('interact') || input.pressed('talk')) buttons[selected].click();
+        // 글이 찍히는 중이면 첫 번째 누름은 글을 다 보여 주는 데 쓴다. 성급히 누르다 선택지를 넘겨 버리던 것
+        if (input.pressed('confirm') || input.pressed('interact') || input.pressed('talk')) { if (!finishTyping()) buttons[selected].click(); }
     },
     hide() {
+        clearInterval(typer); typer = null;
+        $('d-text').classList.remove('typing');
         $('dialogue-overlay').style.display = 'none';
         $('d-options').innerHTML = ''; // 숨겨진 버튼이 남아 다시 눌리는 일 방지
     },

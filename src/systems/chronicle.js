@@ -15,6 +15,7 @@ import { beginCutscene, focusOn, endCutscene, pointAt } from './cutscene.js';
 import { anyNpc, travelTo } from './world.js';
 import { triggerRaid } from './raid.js';
 import { startAmbush } from './ambush.js';
+import { ownsRelic } from './relics.js';
 
 // 사건. "가서 잡아라" 대신, 돌아다니다 보면 일이 벌어지고 그 자리에서 이야기가 열린다.
 //
@@ -55,7 +56,19 @@ function context() {
             const n = state.entities.npcs.find(x => x.config.name === name);
             return n ? (n.relation || 0) : 0;
         },
+        // 곁에 누가 있는가. 같은 사건도 짝과 아이가 있으면 조금 다르게 남는다 (data/war.js)
+        partner: state.partner ? state.partner.config.name : null,
+        kids: state.kids,
+        relic: (id) => ownsRelic(id),
+        dead: (name) => ((state.story && state.story.dead) || []).includes(name),
+        daysSince: (name) => { const d = (state.story.deathDay || {})[name]; return d == null ? -1 : state.day - d; },
     };
+}
+
+/** 사건의 대사. 배열이거나, 지금 형편을 보고 줄을 고르는 함수(ctx) → 배열 */
+function linesOf(ev) {
+    const raw = typeof ev.lines === 'function' ? ev.lines(context()) : ev.lines;
+    return (raw || []).filter(Boolean);
 }
 
 /** 정체의 단서를 하나 적어 둔다 (일지 [기록]) */
@@ -126,7 +139,7 @@ function choose(ev, done) {
 function fire(ev) {
     state.story.events.push(ev.id);
     playing = true;
-    playScene(ev.title, ev.lines, () => {
+    playScene(ev.title, linesOf(ev), () => {
         if (ev.choice) return choose(ev, () => finishEvent(ev));
         finishEvent(ev);
     });
@@ -143,6 +156,7 @@ function finishEvent(ev) {
     if (ev.raid) { if (state.mapId !== 'VILLAGE') travelTo('VILLAGE'); triggerRaid(ev.raid); }   // 6장: 나팔 소리에 마을로 뛰어 돌아온다
     if (ev.flag) raiseFlag(ev.flag);
     if (ev.ambush) startAmbush(true);   // 사냥꾼 대장의 포위 (systems/ambush.js)
+    if (ev.then) ev.then(state);        // 작은 이야기의 작은 보상 (호감·체력 같은 것)
     if (ev.toast) showToast(ev.toast, ev.icon || '📖');
     saveGame();
 }
@@ -188,11 +202,13 @@ export function playScene(title, lines, then, { cinematic = true, place = null }
         }
         const line = lines[i++];
         const speaker = find(line.who);
+        const partnerName = state.partner ? npcName(state.partner.config.name) : '짝';
+        const text = line.text.indexOf('{partner}') >= 0 ? line.text.replace(/\{partner\}/g, partnerName) : line.text;
         if (cinematic) { focusOn(speaker); pointAt(line.look ? lookTarget(line.look) : null, line.label || ''); }
         state.isDialogueOpen = true;
         dialogueUI.show({
             name: line.who === '나' ? state.player.config.name : npcName(line.who),
-            text: line.text,
+            text,
             sheet: line.who === '나' ? state.player.sheet : speaker ? speaker.sheet : null,
             onClose: step,
             options: [{ label: i < lines.length ? '다음' : '끝', onSelect: step }],

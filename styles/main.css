@@ -32,6 +32,8 @@
 
     --font-ko:    'Noto Sans KR', sans-serif;
     --font-num:   'Fredoka', 'Noto Sans KR', sans-serif;
+    /* 제목 서체. 이야기가 붙는 자리(로고 · 지역 이름 · 장면 제목 · 말하는 이 · 보스 이름)에만 쓴다 */
+    --font-title: 'Gowun Batang', 'Noto Sans KR', serif;
 }
 
 * { box-sizing: border-box; }
@@ -43,6 +45,8 @@ body {
     font-family: var(--font-ko);
     color: var(--parch);
     touch-action: none; user-select: none;
+    -webkit-font-smoothing: antialiased;
+    word-break: keep-all;   /* 한글 낱말이 줄 끝에서 조각나지 않게 */
 }
 
 #gameCanvas { display: block; }
@@ -87,7 +91,8 @@ body {
     border-bottom: 1px solid var(--gold-dim);
 }
 .panel-title {
-    color: var(--gold-lit); font-weight: 700; font-size: 0.95rem; letter-spacing: 0.5px;
+    color: var(--gold-lit); font-weight: 700; font-size: 1.02rem; letter-spacing: 0.5px;
+    font-family: var(--font-title);
 }
 .panel-close {
     background: var(--ink-raise); border: 1px solid var(--gold-dim); color: var(--parch-mid);
@@ -270,7 +275,8 @@ body {
 }
 #boss-name {
     color: var(--parch); font-weight: 700; letter-spacing: 1px;
-    text-shadow: 0 2px 6px #000; margin-bottom: 5px; font-size: 0.92rem;
+    text-shadow: 0 2px 6px #000; margin-bottom: 5px; font-size: 1rem;
+    font-family: var(--font-title);
 }
 .boss-track { height: 13px; background: rgba(0, 0, 0, 0.7); border: 2px solid var(--gold); overflow: hidden; }
 #boss-fill { height: 100%; width: 100%; background: linear-gradient(180deg, #ff6b5e, #8a1220); transition: width 0.15s; }
@@ -336,6 +342,9 @@ body.cutscene #flow-bar { display: none; }
     padding: 7px 14px; font-weight: 500; font-size: 0.82rem; line-height: 1.4;
     animation: toast-fade 3.4s forwards; max-width: 100%; text-align: center;
 }
+.toast.again { animation: toast-again 0.3s; }   /* 같은 알림이 또 오면 새로 띄우지 않고 한 번 튄다 */
+.toast .toast-n { color: var(--parch-mid); font-size: 0.72rem; margin-left: 6px; }
+@keyframes toast-again { 0% { transform: scale(1); } 40% { transform: scale(1.05); } 100% { transform: scale(1); } }
 @keyframes toast-fade {
     0%   { opacity: 0; transform: translateY(-10px); }
     8%   { opacity: 1; transform: translateY(0); }
@@ -385,7 +394,8 @@ body.cutscene #flow-bar { display: none; }
 }
 #d-who { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 #d-name {
-    color: var(--gold-lit); font-size: 1.18rem; font-weight: 700; letter-spacing: 0.3px;
+    color: var(--gold-lit); font-size: 1.24rem; font-weight: 700; letter-spacing: 0.3px;
+    font-family: var(--font-title);
 }
 #d-meta { display: flex; gap: 8px; font-size: 0.72rem; color: var(--parch-dim); }
 #d-meta #d-tier { color: var(--parch-mid); }
@@ -394,9 +404,16 @@ body.cutscene #flow-bar { display: none; }
 #d-rel.show { display: block; }
 #d-rel i { display: block; height: 100%; background: linear-gradient(90deg, #d86a8a, #ff9ab4); }
 #d-text {
-    color: var(--parch); font-size: 1rem; line-height: 1.62;
+    color: var(--parch); font-size: 1rem; line-height: 1.66;
     margin-bottom: 11px; min-height: 2.9em; white-space: pre-wrap;
+    cursor: pointer;   /* 찍히는 중에 누르면 글을 한 번에 다 보여 준다 (ui/dialogueUI.js) */
 }
+/* 아직 다 찍히지 않았다는 표시: 오른쪽 아래에서 깜빡이는 작은 삼각 */
+#d-text.typing::after {
+    content: '▼'; color: var(--gold-lit); font-size: 0.6rem; margin-left: 6px;
+    animation: type-blink 0.7s infinite alternate;
+}
+@keyframes type-blink { from { opacity: 0.2; } to { opacity: 1; } }
 /* 세로로 한 줄씩. 방향키로 오르내리고 [Space] 로 고른다 (번호는 붙이지 않는다) */
 #d-options {
     display: flex; flex-direction: column; gap: 4px;
@@ -531,8 +548,15 @@ body.cutscene #flow-bar { display: none; }
     padding: 7px 9px; background: var(--ink-raise); margin-bottom: 4px; font-size: 0.82rem;
     border-left: 2px solid var(--gold-dim);
 }
-.kid-stage { font-size: 0.72rem; color: var(--parch-dim); }
-.kid-heart { color: #ff7aa8; margin-left: 4px; }
+.kid-stage { font-size: 0.72rem; color: var(--parch-dim); margin-top: 2px; }
+.kid-heart { color: #ff7aa8; margin-left: 4px; letter-spacing: 1px; }
+.kid-heart i { color: #4a3a44; font-style: normal; }
+.kid-grow { height: 4px; width: 120px; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--gold-dim); margin-top: 5px; }
+.kid-grow i { display: block; height: 100%; background: linear-gradient(90deg, #7dd36a, #d8f090); }
+.kid-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
+.kid-tag { font-size: 0.64rem; color: var(--parch-mid); border: 1px solid var(--gold-dim); padding: 1px 6px; }
+.kid-tag.job { color: var(--gold-lit); }
+.kid-tag.scared { color: var(--bad); border-color: rgba(255, 138, 122, 0.5); }
 .kid-actions { display: flex; align-items: center; gap: 5px; }
 .kid-btn {
     background: var(--ink-raise); color: var(--parch-mid); border: 1px solid var(--gold-dim);
@@ -578,7 +602,7 @@ body.cutscene #flow-bar { display: none; }
     pointer-events: auto; z-index: 100;
 }
 .title-logo {
-    font-family: var(--font-ko); font-size: 2.9rem; font-weight: 700;
+    font-family: var(--font-title); font-size: 3rem; font-weight: 700;
     letter-spacing: 9px; text-indent: 9px; margin: 0 0 6px;
     color: var(--gold-lit);
     text-shadow: 0 3px 0 #6d4f19, 0 0 30px rgba(255, 216, 74, 0.32);
@@ -650,7 +674,7 @@ button.start-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
     display: flex; align-items: center; justify-content: center; transition: opacity 0.9s ease;
 }
 #fade-screen.on { opacity: 1; pointer-events: auto; }
-#fade-text { color: var(--gold-lit); font-size: 1.5rem; letter-spacing: 6px; }
+#fade-text { color: var(--gold-lit); font-size: 1.6rem; letter-spacing: 6px; font-family: var(--font-title); }
 
 /* ==========================================================================
    모바일(터치)
@@ -748,7 +772,7 @@ body.touch #quest-more { display: none; }
     position: absolute; left: 50%; top: 27%;   /* 지역 이름 배너(12%)와 겹치지 않게 그 아래 */
     transform: translate(-50%, -50%) scale(0.96);
     z-index: 205; pointer-events: none;
-    font-family: var(--font-ko);
+    font-family: var(--font-title);
     color: var(--gold-lit);
     font-size: clamp(1.15rem, 3.1vw, 1.9rem);
     font-weight: 700; letter-spacing: 3px; text-align: center;
@@ -985,10 +1009,11 @@ body.cutscene #d-text { font-size: 1.05rem; line-height: 1.7; }
     100% { opacity: 0; letter-spacing: 7px; }
 }
 #region-name {
-    font-size: 2rem; font-weight: 700; color: var(--parch);
+    font-family: var(--font-title);
+    font-size: 2.1rem; font-weight: 700; color: var(--parch);
     text-shadow: 0 2px 0 #1a1206, 0 0 22px rgba(216, 178, 90, 0.55);
 }
-#region-sub { font-size: 0.82rem; color: var(--gold-lit); letter-spacing: 3px; text-shadow: 0 2px 4px #000; }
+#region-sub { font-size: 0.82rem; color: var(--gold-lit); letter-spacing: 3px; text-shadow: 0 2px 4px #000; white-space: normal; max-width: 80vw; }
 /* 이름 위아래로 가늘게 긋는 금선. 가운데가 밝고 끝으로 갈수록 사라진다 */
 .region-rule {
     width: min(360px, 62vw); height: 2px;

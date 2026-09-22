@@ -15,6 +15,11 @@ import { showToast } from '../ui/toast.js';
 //   간발      날아오는 것을 아슬아슬하게 대시로 피하면 세상이 잠깐 느려지고 기세가 크게 찬다
 //   물어뜯기  숨이 붙어 있는 적을 대시로 뚫고 지나가면 끝장을 내고 체력을 조금 되찾는다
 //
+// 보스전도 같은 흐름을 탄다 (entities/Boss.js):
+//   보스의 돌진·광선·솟구침·장판을 간발로 피하면 보스가 잠깐 빈틈을 보인다 (exposed: 그동안 1.5배로 맞는다)
+//   빗나간 돌진도 빈틈이다. 페이즈가 넘어갈 때 기세가 거세면 그 숨 고르는 틈을 더 길게 몰아붙인다
+//   숨이 얼마 안 남은 보스는 기세가 있을 때 대시로 뚫고 지나가면 끝난다 (숨통 끊기)
+//
 // state.flow = { m: 기세 0~100, idle: 기세를 못 올린 시간, slow: 느려진 세상의 남은 시간, edge: 간발 뒤 강화 시간, stacks/stackT: 굶주린 불꽃 }
 
 const TIERS = [30, 60, 100];
@@ -88,16 +93,39 @@ export function updateFlow(dt) {
 
 const EDGE_RANGE = 78;        // 이만큼 가까이 스친 것을 피했으면 간발
 const BITE_RANGE = 62;
+const BOSS_FINISH = 0.07;     // 보스 체력이 이 아래면 숨통을 끊을 수 있다
+export const BOSS_EXPOSED_MULT = 1.5;
+
+/** 보스가 지금 막 큰 공격을 내지르려는 순간인가 (예고선의 끝자락). 이걸 스치듯 피한 것이 간발이다 */
+function bossThreat(b, p) {
+    if (b.remove || !b.awake) return false;
+    const c = b.charge, d = dist(b, p);
+    if (c && c.windup > 0 && c.windup < 0.3 && d < 640) return true;
+    if (b.beam && b.beam.warm > 0 && b.beam.warm < 0.3 && d < 760) return true;
+    if (b.burrow && b.burrow.erupting && b.burrow.time < 0.3 && d < 240) return true;
+    return false;
+}
+/** 곧 터질 장판 안에 서 있는가 (터지기 0.3초 전) */
+function hazardThreat(p) {
+    return state.entities.hazards.some(h => !h.remove && !h.burst && h.faction === 'ENEMY' && h.delay - h.t < 0.3
+        && (() => { const d = dist(h, p); return d <= h.r + 10 && d >= (h.inner || 0) - 10; })());
+}
 
 /** 간발: 대시 첫머리에 적의 탄이나 내려치는 공격을 스치듯 피했는가. 대시 한 번에 한 번만 */
 export function tryPerfectDodge(p) {
     if (p.dashEdge) return;
     const E = state.entities;
-    const near = E.bullets.some(b => !b.remove && b.faction === 'ENEMY' && dist(b, { x: p.x, y: p.y - 30 }) < EDGE_RANGE)
+    const boss = E.bosses.find(b => bossThreat(b, p)) || null;
+    const near = boss
+        || E.bullets.some(b => !b.remove && b.faction === 'ENEMY' && dist(b, { x: p.x, y: p.y - 30 }) < EDGE_RANGE)
         || E.enemies.some(e => !e.remove && e.ai && (e.ai.s === 'act' || (e.ai.s === 'tell' && e.ai.t < 0.25)) && dist(e, p) < 120)
-        || E.humans.some(h => !h.remove && ((h.swing > 0 && h.swing < 0.25 && dist(h, p) < 120) || (h.charge && h.charge.windup > 0 && h.charge.windup < 0.3 && dist(h, p) < 520)));
+        || E.humans.some(h => !h.remove && ((h.swing > 0 && h.swing < 0.25 && dist(h, p) < 120) || (h.charge && h.charge.windup > 0 && h.charge.windup < 0.3 && dist(h, p) < 520)))
+        || hazardThreat(p);
     if (!near) return;
     p.dashEdge = true;
+    // 보스의 큰 공격을 간발로 피하면 보스가 빈틈을 보인다
+    const target = boss || E.bosses.find(b => b.awake && !b.remove && dist(b, p) < 700);
+    if (target) exposeBoss(target, 2.4, '빈틈!');
     const f = F();
     f.slow = hasRelic('FROZEN_CLOCK') ? 1.6 : 0.8;
     f.edge = 3;
@@ -118,9 +146,44 @@ export function tryPerfectDodge(p) {
     }
 }
 
-/** 물어뜯기: 숨이 붙어 있는 적을 대시로 뚫고 지나가면 끝장을 낸다. 보스와 대장에게는 통하지 않는다 */
+/** 보스가 빈틈을 보인다: 그동안 1.5배로 맞는다 (entities/Boss.js 의 takeDamage) */
+export function exposeBoss(b, t = 2, text = '빈틈!') {
+    if (!b || b.hidden) return;
+    b.exposed = Math.max(b.exposed || 0, t);
+    spawnText(b.x, b.y - 150 * (b.def ? b.def.scale : 1), text, '#ffd84a', 20);
+    spawnEffect('RING', b.x, b.y - 40, { size: 2.2, color: '#ffd84a' });
+    once('bossExposed', '보스가 빈틈을 보였다. 이 동안은 숨결이 훨씬 아프게 들어간다. 큰 공격을 간발로 피할 때마다 생긴다.', '⚔️');
+}
+
+/**
+ * 페이즈가 넘어가는 순간 (entities/Boss.js 의 enterPhase). 기세가 거세면 숨 고르는 틈을 더 길게 몰아붙인다.
+ * 돌려주는 값은 보스가 멈춰 있을 시간
+ */
+export function onBossPhase(b) {
+    const tier = momentumTier();
+    if (tier < 2) return 1.4;
+    exposeBoss(b, 2.6, '몰아붙이기!');
+    play('crit');
+    return 2.6;
+}
+
+/** 물어뜯기: 숨이 붙어 있는 적을 대시로 뚫고 지나가면 끝장을 낸다. 대장에게는 통하지 않는다. 보스는 숨이 얼마 안 남았을 때만 (숨통 끊기) */
 export function tryBite(p) {
     const E = state.entities;
+    for (const b of E.bosses) {
+        if (b.remove || !b.awake || b.hidden) continue;
+        const low = b.hp <= b.def.hp * BOSS_FINISH;
+        if (low && !b.finishHint) { b.finishHint = true; showToast(`${b.def.name}의 숨이 얼마 안 남았다. 기세가 있을 때 대시로 뚫고 지나가면 끝난다!`, '🩸'); }
+        if (!low || momentumTier() < 1 || dist(b, p) > BITE_RANGE + 40 * b.def.scale) continue;
+        b.takeDamage(b.hp + 1, false, p);
+        spawnText(p.x, p.y - 140 * p.stage.scale, '숨통 끊기!', '#ff5a3c', 26);
+        spawnEffect('SLASH', b.x, b.y - 60, { size: 3, angle: Math.atan2(p.dashDir.y, p.dashDir.x), color: '#ffb0a0' });
+        burst(b.x, b.y - 40, '#ff6b5e', 1.6, 24);
+        hitStop(0.22); shake(14); flash(0.5, '255,120,90');
+        p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.15);
+        addMomentum(30);
+        return;
+    }
     const limit = hasRelic('RED_MOON_TOOTH') ? 0.45 : 0.25;
     for (const e of [...E.enemies, ...E.humans]) {
         if (e.remove || e.def.noLoot || e.def.scale || e.type === 'CAPTAIN') continue;

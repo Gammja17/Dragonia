@@ -42,6 +42,7 @@ export const MAPS = {
             { t: 'PROP', type: 'HOUSE', at: [7, 6] }, { t: 'PROP', type: 'HOUSE', at: [16, 6] },
             { t: 'PROP', type: 'HOUSE', at: [9, 12] }, { t: 'PROP', type: 'HOUSE', at: [16, 12] },
             { t: 'PROP', type: 'CAMPFIRE', at: [12, 10] },
+            { t: 'PROP', type: 'TOWER', at: [18, 6] },      // 망루. 티아맷의 자리 곁, 습격 때 궁수가 노린다 (systems/objectives.js)
             { t: 'PROP', type: 'BOARD', at: [11, 9] },      // 잡일 게시판 (systems/chores.js)
             { t: 'PROP', type: 'BARREL', at: [14, 6] }, { t: 'PROP', type: 'CRATE', at: [15, 11] },
             { t: 'WAYSTONE', at: [12, 12] },

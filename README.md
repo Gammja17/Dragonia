@@ -26,14 +26,15 @@ src/
                     story(수련·승급 시험·아침 장면), chronicle(돌아다니다 터지는 사건),
                     dungeons(굴 입구), materials(대장간 소재·조리법), maps(지도 19장 명세),
                     routines(용들의 하루 일과), dens(용마다의 보금자리 굴), furniture(살림살이),
-                    ceremony(이름을 얻는 의식)
+                    ceremony(이름을 얻는 의식), war(6장이 짝·아이를 기억하는 말)
   entities/         Dragon, BabyDragon, Enemy, Human, Nest, Projectile, Boss, Hazard, Particle, Item, Prop
   render/           assets, spritesheet, tint, dragonSprites, pixel(픽셀 아이콘), vfx,
-                    lighting(낮밤 조명), palette(지형 리컬러), cursor(마우스 조준점)
+                    lighting(낮밤 조명), palette(지형 리컬러), cursor(마우스 조준점), markers(습격 목표 표시)
   systems/          combat, raid, kids, dialogue, status, quests(퀘스트·추적),
                     weather, save, npcActions(NPC 상호작용), relics(유물 장착),
                     smithing(대장간), travel(이동 석비), delve(굴 탐험),
                     chronicle(사건·장면 재생), events(밤 이벤트), audio, kidActions, story,
+                    objectives(습격의 목표: 지키기·알·아이·망루),
                     world(지도 오가기·개체 배치), tutorial(길잡이),
                     cutscene(사건 연출), routine(일과대로 용 옮기기),
                     den(굴 살림살이·아늑함), denEnter(드나들기), denPlace(놓을 자리 고르기),

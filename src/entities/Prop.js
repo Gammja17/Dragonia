@@ -53,6 +53,7 @@ export class Prop extends Entity {
             case 'DEN_MOUTH': return { r: 190, color: '#ffc87a', intensity: 0.75, dy: -34, emissive: true };
             case 'FURNITURE': return furnitureLight(this);
             case 'PORTAL': return { r: 150, color: '#9fe3ff', intensity: 0.7, dy: -40, emissive: true };
+            case 'TOWER': return { r: 230, color: '#ffc87a', intensity: 0.7, dy: -150, emissive: true };   // 망루의 등불
             case 'WATERFALL': return { r: 260, color: '#bfe9ff', intensity: 0.45, dy: -160 };
             default: return null;
         }
@@ -109,6 +110,7 @@ export class Prop extends Entity {
         if (this.type === 'PORTAL') { this.drawPortal(ctx); return; }
         if (this.type === 'WAYSTONE') { this.drawWaystone(ctx); return; }
         if (this.type === 'CAVE') { this.drawCave(ctx); return; }
+        if (this.type === 'TOWER') { this.drawTower(ctx); return; }
         if (ICON_PROPS[this.type]) { drawIcon(ctx, this.type, this.x, this.y - ICON_PROPS[this.type][1], ICON_PROPS[this.type][0]); return; }
         if (this.sprite) { this.drawSprite(ctx); return; }
         // 모닥불: 장작(코드로 찍은 픽셀) + 불꽃 애니메이션
@@ -231,6 +233,51 @@ export class Prop extends Entity {
         ctx.fillRect(-w / 2, -126, w, 19);
         ctx.fillStyle = '#d9b8ff';
         ctx.fillText(label, 0, -112);
+        ctx.restore();
+    }
+
+    /**
+     * 망루. 티아맷이 밤을 지새우는 자리이자, 습격 때 궁수들이 오르려 드는 곳 (systems/objectives.js).
+     * 마을 시트에 망루가 없어서 기둥 넷과 마루, 지붕을 코드로 세운다.
+     */
+    drawTower(ctx) {
+        const x = Math.round(this.x), y = Math.round(this.y);
+        ctx.save();
+        ctx.translate(x, y);
+        this.drawShadow(ctx, 30);
+        ctx.restore();
+        const wood = '#6b4a22', dark = '#3f2a12', light = '#a07a3a';
+        // 기둥 넷 (뒤 둘은 어둡게)
+        ctx.fillStyle = dark; ctx.fillRect(x - 22, y - 132, 6, 128); ctx.fillRect(x + 16, y - 132, 6, 128);
+        ctx.fillStyle = wood; ctx.fillRect(x - 30, y - 124, 7, 124); ctx.fillRect(x + 23, y - 124, 7, 124);
+        // 가로대
+        ctx.fillStyle = dark; for (const dy of [-96, -60, -24]) ctx.fillRect(x - 30, y + dy, 60, 4);
+        // 사다리
+        ctx.fillStyle = light; for (let i = 0; i < 7; i++) ctx.fillRect(x - 6, y - 16 - i * 16, 12, 3);
+        // 마루와 난간
+        ctx.fillStyle = light; ctx.fillRect(x - 40, y - 140, 80, 10);
+        ctx.fillStyle = wood; ctx.fillRect(x - 40, y - 168, 4, 30); ctx.fillRect(x + 36, y - 168, 4, 30); ctx.fillRect(x - 40, y - 168, 80, 3);
+        // 지붕
+        ctx.fillStyle = '#8a2f2a';
+        ctx.beginPath(); ctx.moveTo(x - 50, y - 176); ctx.lineTo(x, y - 214); ctx.lineTo(x + 50, y - 176); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#5a1f1a'; ctx.fillRect(x - 50, y - 178, 100, 4);
+        // 등불 (밤이면 조명이 붙는다)
+        const f = 0.7 + Math.sin(state.gameTime * 6 + this.seed * 9) * 0.2;
+        ctx.fillStyle = `rgba(255,200,120,${f})`; ctx.fillRect(x - 4, y - 160, 8, 10);
+        ctx.fillStyle = '#fff2c8'; ctx.fillRect(x - 2, y - 158, 4, 5);
+        if (inCutscene()) return;
+        ctx.save();
+        ctx.translate(x, y);
+        const k = 1 / cam.zoom;
+        ctx.scale(k, k);
+        ctx.textAlign = 'center';
+        ctx.font = '600 12px "Noto Sans KR"';
+        const label = '망루';
+        const w = Math.ceil(ctx.measureText(label).width) + 16;
+        ctx.fillStyle = 'rgba(10, 9, 16, 0.85)';
+        ctx.fillRect(-w / 2, -240, w, 19);
+        ctx.fillStyle = '#ffe9a0';
+        ctx.fillText(label, 0, -226);
         ctx.restore();
     }
 

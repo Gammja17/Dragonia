@@ -58,6 +58,7 @@ export function saveGame() {
         kids: state.kids.map(k => ({
             name: k.name, stage: k.stage, affection: k.affection, mode: k.mode, personality: k.personality,
             lastPlayDay: k.lastPlayDay ?? null, lastTrainDay: k.lastTrainDay ?? null, job: k.job ?? null, fedDay: k.fedDay ?? null, fedCount: k.fedCount ?? 0, element: k.entity.element,
+            scaredDay: k.scaredDay ?? null, warTalked: !!k.warTalked,   // 습격에서 끌려갔던 날 · 대습격 얘기를 꺼냈는가 (systems/objectives.js · kidActions.js)
             growth: k.entity.growth, genes: k.entity.genes, x: k.entity.x, y: k.entity.y,
         })),
     };
@@ -150,7 +151,7 @@ export function applySave(data) {
         baby.stage = k.stage;
         const kid = registerKid(baby);
         baby.element = k.element || 'FIRE';
-        Object.assign(kid, { name: k.name, affection: k.affection, mode: k.mode, personality: k.personality || kid.personality, lastPlayDay: k.lastPlayDay, lastTrainDay: k.lastTrainDay, job: k.job || null, fedDay: k.fedDay, fedCount: k.fedCount || 0 });
+        Object.assign(kid, { name: k.name, affection: k.affection, mode: k.mode, personality: k.personality || kid.personality, lastPlayDay: k.lastPlayDay, lastTrainDay: k.lastTrainDay, job: k.job || null, fedDay: k.fedDay, fedCount: k.fedCount || 0, scaredDay: k.scaredDay ?? null, warTalked: !!k.warTalked });
         setKidStage(baby, k.stage);
     }
 

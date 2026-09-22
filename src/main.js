@@ -18,6 +18,7 @@ import { preloadDragonSprites } from './render/dragonSprites.js';
 import { preloadVfx } from './render/vfx.js';
 import { updateLighting, drawLighting } from './render/lighting.js';
 import { drawCrosshair } from './render/cursor.js';
+import { drawMarkers } from './render/markers.js';
 import { applyHitStop, updateFeedback, drawFeedback, flashAmount } from './render/feedback.js';
 import { updateFlow, worldTimeScale } from './systems/flow.js';
 import { updateAmbush } from './systems/ambush.js';
@@ -78,7 +79,9 @@ initMusic();
 window.addEventListener('beforeunload', saveGame);
 
 // 드래곤 시트와 타일셋은 페이지 로드 직후부터 받기 시작한다
-const assetsReady = Promise.all([preloadDragonSprites(), preloadTerrain(), preloadVfx()]).catch(err => { console.error(err); });
+// 서체도 같이 기다린다. 안 기다리면 첫 몇 초 동안 이름표·말풍선이 대체 서체로 찍혔다가 바뀐다
+const fontsReady = document.fonts ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 2500))]) : Promise.resolve();
+const assetsReady = Promise.all([preloadDragonSprites(), preloadTerrain(), preloadVfx(), fontsReady]).catch(err => { console.error(err); });
 
 let lastTime = 0;
 let hudAccumulator = 0;
@@ -212,6 +215,7 @@ function render() {
     ctx.globalCompositeOperation = 'lighter'; // 파티클은 빛 알갱이
     for (const p of E.particles) p.draw(ctx);
     ctx.globalCompositeOperation = 'source-over';
+    drawMarkers(ctx);                          // 습격의 목표 · 남은 사냥꾼 (또렷한 층)
     drawCrosshair(ctx);                        // 조준점은 파티클 위에
     ctx.restore();
     endCrispWorld();

@@ -36,6 +36,7 @@ export class BabyDragon extends Entity {
         this.angle = 0;
         this.home = null;     // 성체가 되면 둥지 주변을 배회
         this.wanderTimer = 0;
+        this.grabbedBy = null; // 사냥꾼에게 잡혀 끌려가는 중 (systems/objectives.js)
     }
 
     /** 쓰다듬기. 잠깐 쉬었다가 다시 할 수 있다 */
@@ -80,6 +81,14 @@ export class BabyDragon extends Entity {
         const px = this.x, py = this.y;
         if (this.petTimer > 0) this.petTimer -= dt;
         if (this.chatFade > 0) this.chatFade -= dt;
+        if (this.hidden) return;   // 숲으로 끌려가 있다 (습격이 끝나면 돌아온다)
+        // 잡혀 있는 동안은 끌려가기만 한다. 잡은 놈이 쓰러지면 풀려난다 (Human.die 가 알린다)
+        if (this.grabbedBy) {
+            if (this.grabbedBy.remove && this.grabbedBy.hp > 0) this.grabbedBy = null;   // 대장을 따라 달아나 버렸다
+            this.animator.playBase('hit');
+            this.animator.update(dt);
+            return;
+        }
         if (this.playTime > 0) {            // 신나서 제자리를 빙글빙글
             this.playTime -= dt;
             const a = state.gameTime * 7;

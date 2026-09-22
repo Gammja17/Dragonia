@@ -14,14 +14,15 @@ import { ELEMENTS } from '../data/elements.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
 import { Animator, drawFrame } from '../render/spritesheet.js';
 import { drawGlow } from '../render/pixel.js';
-import { spawnEffect } from '../render/vfx.js';
+import { spawnEffect, spawnText } from '../render/vfx.js';
 import { updateStatus, statusTint } from '../systems/status.js';
 import { notify } from '../systems/quests.js';
 import { grantRelic, bossRelic } from '../systems/relics.js';
 import { learnSkill } from '../systems/skills.js';
 import { play } from '../systems/audio.js';
 import { showToast } from '../ui/toast.js';
-import { setBossBar } from '../ui/hud.js';
+import { setBossBar, showRegionBanner } from '../ui/hud.js';
+import { onBossPhase, exposeBoss, BOSS_EXPOSED_MULT } from '../systems/flow.js';
 
 const WAKE_RANGE = 520;   // 이 안에 들어오면 깨어난다
 const LEASH_RANGE = 1100; // 결투장에서 이만큼 벗어나면 돌아가서 회복
@@ -56,6 +57,7 @@ export class Boss extends Entity {
         this.phase2 = false;
         this.phase = 0;        // 몇 번째 페이즈인가 (data/enemies.js 의 phases)
         this.stagger = 0;      // 페이즈가 넘어가는 동안 잠깐 숨을 고른다
+        this.exposed = 0;      // 빈틈: 간발로 큰 공격을 피했거나 돌진이 빗나갔다. 그동안 더 아프게 맞는다 (systems/flow.js)
         this.hidden = false;   // 땅속에 있는 동안: 안 보이고 안 맞는다
         this.spiral = null;    // { left, angle, timer }
         this.charge = null;    // { windup, time, angle, chain }
@@ -78,7 +80,8 @@ export class Boss extends Entity {
                 || ('m6' in state.quests.active && !(state.story.choices || {}).ev_ignar_meet));
             if (d < WAKE_RANGE && !held) {
                 this.awake = true;
-                showToast(`${this.def.name}, ${this.def.title}`, '⚔️');
+                showRegionBanner(this.def.name, this.def.title);
+                showToast('큰 공격은 전부 예고가 있다. 예고 끝자락에 대시로 스치면(간발) 보스가 빈틈을 보인다.', '⚔️');
                 spawnEffect('SHOCKWAVE', this.x, this.y, { size: 3, color: ELEMENTS[this.def.element].color });
                 shake(10); play('dieBig');
             }
@@ -95,6 +98,7 @@ export class Boss extends Entity {
         const phases = this.def.phases;
         if (phases && phases[this.phase + 1] && this.hp <= this.def.hp * phases[this.phase + 1].at) this.enterPhase(this.phase + 1);
         if (this.stagger > 0) { this.stagger -= dt; this.patternTimer = Math.max(this.patternTimer, 0.6); }
+        if (this.exposed > 0) this.exposed -= dt;
 
         let moving = false;
         if (this.burrow) this.updateBurrow(dt);
@@ -114,7 +118,10 @@ export class Boss extends Entity {
         if (this.spiral) this.updateSpiral(dt);
         if (this.blizzard) this.updateBlizzard(dt);
 
-        if (!this.hidden && d < 60 * this.def.scale) player.takeDamage(this.def.contact * dt * (this.charge && !this.charge.windup ? 4 : 1));
+        if (!this.hidden && d < 60 * this.def.scale) {
+            player.takeDamage(this.def.contact * dt * (this.charge && !this.charge.windup ? 4 : 1));
+            if (this.charge && !this.charge.windup) this.charge.hit = true;
+        }
 
         this.animator.playBase(moving ? 'move' : 'idle');
         this.animator.update(dt);
@@ -127,7 +134,7 @@ export class Boss extends Entity {
         this.x = this.home.x; this.y = this.home.y;
         this.hp = this.def.hp;
         this.hidden = this.phase2 = false;
-        this.phase = 0; this.stagger = 0;   // 쓰러지면 처음부터 다시다
+        this.phase = 0; this.stagger = 0; this.exposed = 0; this.finishHint = false;   // 쓰러지면 처음부터 다시다
         this.charge = this.spiral = this.beam = this.burrow = this.blizzard = null;
         setBossBar(null);
     }
@@ -137,12 +144,13 @@ export class Boss extends Entity {
         const ph = this.def.phases[i];
         this.phase = i;
         this.patternIndex = 0;
-        this.stagger = 1.4;
         this.charge = this.spiral = this.beam = this.burrow = this.blizzard = null;
         this.hidden = false;
         for (const b of state.entities.bullets) if (b.faction === 'ENEMY') b.remove = true;
         if (i === this.def.phases.length - 1) this.phase2 = !!this.def.glow;
-        showToast(ph.say ? `${ph.name} — ${ph.say}` : ph.name, '⚔️');
+        this.stagger = onBossPhase(this);   // 기세가 거세면 숨 고르는 틈이 더 길다 (systems/flow.js)
+        showRegionBanner(ph.name, ph.say || '');
+        if (ph.say) spawnText(this.x, this.y - 170 * this.def.scale, ph.say, '#ffe9a0', 16);
         spawnEffect('SHOCKWAVE', this.x, this.y, { size: 3.5, color: ELEMENTS[this.def.element].color });
         shake(12); play('dieBig');
         if (ph.summon) this.summon(ph.summon);
@@ -292,7 +300,10 @@ export class Boss extends Entity {
         if (c.time <= 0) {
             c.chain--;
             if (c.chain > 0) { c.windup = 0.45; c.time = 0.7; play('warn'); }   // 바실: 연속 돌진
-            else this.charge = null;
+            else {
+                this.charge = null;
+                if (!c.hit) exposeBoss(this, 1.8, '헛짚음!');   // 빗나간 돌진은 빈틈이다
+            }
         }
         return true;
     }
@@ -348,6 +359,7 @@ export class Boss extends Entity {
 
     takeDamage(dmg, silent = false) {
         if (!this.awake || this.hidden) return;
+        if (this.exposed > 0) dmg *= BOSS_EXPOSED_MULT;   // 빈틈
         this.hp -= dmg;
         if (!silent) { this.hitFlash = 1; this.squash = 1; }
         if (this.hp > 0 || this.remove) return;
@@ -420,6 +432,7 @@ export class Boss extends Entity {
         const tint = statusTint(this);
         if (tint) drawGlow(ctx, this.x, this.y - 60 * sc, 90 * sc, tint, 0.5);
         if (this.phase2) drawGlow(ctx, this.x, this.y - 60 * sc, 150 * sc, '#ff5a1f', 0.3 + Math.sin(state.gameTime * 8) * 0.1);
+        if (this.exposed > 0) drawGlow(ctx, this.x, this.y - 60 * sc, 120 * sc, '#ffd84a', 0.25 + Math.sin(state.gameTime * 12) * 0.12);
         const hover = this.sheet.flying ? Math.sin(state.gameTime * 2) * 8 : 0;
         if (!this.awake) ctx.globalAlpha = 0.75;
         if (this.hitFlash > 0) ctx.filter = 'brightness(2.2)';

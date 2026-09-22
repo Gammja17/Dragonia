@@ -111,7 +111,12 @@ export function rewardText(q) {
 
 function queueScene(title, lines) {
     if (!state.questScenes) state.questScenes = [];
-    state.questScenes.push({ title, lines });
+    state.questScenes.push({ title, lines: sceneLines(lines) });
+}
+/** 장면은 배열이거나, 지금 형편(짝·아이)을 보고 줄을 고르는 함수(state) → 배열 */
+export function sceneLines(scene) {
+    const raw = typeof scene === 'function' ? scene(state) : scene;
+    return (raw || []).filter(Boolean);
 }
 /** 재생할 장면이 있으면 하나 꺼낸다 (systems/chronicle.js 가 호출) */
 export function takeQuestScene() {

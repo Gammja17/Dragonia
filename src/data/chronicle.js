@@ -1,5 +1,10 @@
+import { BORDER_PARTNER } from './war.js';
+
 // 사건. 위에서부터 훑어서, 아직 안 본 것 중 조건이 맞는 첫 번째가 그 자리에서 재생된다.
-//   when(ctx)  ctx = { s(state), map(지도 id), biome, night, day, done(id), active(id), lessons, boss(id), relationOf(name) }
+//   when(ctx)  ctx = { s(state), map(지도 id), biome, night, day, done(id), active(id), lessons, boss(id), relationOf(name),
+//                      partner(짝 이름), kids, relic(id), dead(name), daysSince(name) }
+//   lines      대사 배열. 짝·아이가 있느냐로 줄이 달라지면 함수 (ctx) → 배열 로 쓴다 ({partner} 는 짝 이름으로 바뀐다)
+//   then(s)    장면이 끝난 뒤 작은 보상 (호감·체력 같은 것)
 //   grant      장면이 끝나면 저절로 맡게 되는 퀘스트 id (data/quests.js 에서 auto: true 인 것들)
 //
 // 보스는 더 이상 "가서 잡아라"로 시작하지 않는다. 밀림에 발을 들이면 무언가를 보고,
@@ -319,20 +324,31 @@ export const CHRONICLE = [
     {
         id: 'ev_border', title: '폭포의 두 줄', raid: 'war',
         when: c => c.map === 'FALLS' && c.active('m6w') && c.s.quests.active.m6w.step >= 1,
-        lines: [
-            { who: '나', text: "(폭포 아래에 용들이 두 줄로 서 있다. 한 줄은 우리 마을, 한 줄은 구름마루. 아무도 말을 안 한다.)" },
-            { who: 'Yuan', text: "한 발만 더 와 봐라." },
-            { who: '나', text: "(그렇게 말하면서도 유안의 눈은 우리 쪽 줄을 빠르게 훑고 있다. 누군가를 찾는 것 같더니, 없는 걸 확인하고서야 다시 이를 드러냈다.)" },
-            { who: 'Kairon', text: "유안, 네 자세를 누가 잡아 줬는지 잊었냐. 그 자세로는 나를 못 문다." },
-            { who: 'Yuan', text: "…스승님은 빠지십시오. 이건 스승님 일이 아닙니다." },
-            { who: 'Kairon', text: "스무 해 전에도 똑같은 소리를 들었다. 그때 빠졌더니 어떻게 됐는지는 너도 알 텐데." },
-            { who: 'Nara', text: "저쪽이 먼저 언니를 물었잖아요!" },
-            { who: 'Haru', text: "아니야! 너희가 먼저 우리 알 탓을—" },
-            { who: '나', text: "(그때, 아래쪽에서 길게 나팔 소리가 올라왔다. 마을 쪽이다.)" },
-            { who: 'Kairon', text: "…나팔? 지금? 마을에 누가 남았지?" },
-            { who: 'Nara', text: "아빠랑… 그론 아저씨랑, 포코랑…" },
-            { who: 'Kairon', text: "전부 뛰어! 너는 먼저 가라, 네가 제일 빠르다!" },
-        ],
+        // 짝이 어느 줄에 서 있느냐, 아이가 있느냐에 따라 줄이 조금 다르다 (data/war.js)
+        lines: (c) => {
+            const east = c.partner === 'Haru' || c.partner === 'Seiran';
+            const inLine = c.partner === 'Nara' || c.partner === 'Kairon';
+            const home = c.partner && !east && !inLine && c.partner !== 'Tiamat';   // 마을에 남아 있는 짝 (티아맷은 다쳐서 누워 있다)
+            const kids = c.kids.length > 0;
+            return [
+                { who: '나', text: "(폭포 아래에 용들이 두 줄로 서 있다. 한 줄은 우리 마을, 한 줄은 구름마루. 아무도 말을 안 한다.)" },
+                ...(east ? BORDER_PARTNER[c.partner] : []),
+                { who: 'Yuan', text: "한 발만 더 와 봐라." },
+                { who: '나', text: "(그렇게 말하면서도 유안의 눈은 우리 쪽 줄을 빠르게 훑고 있다. 누군가를 찾는 것 같더니, 없는 걸 확인하고서야 다시 이를 드러냈다.)" },
+                { who: 'Kairon', text: "유안, 네 자세를 누가 잡아 줬는지 잊었냐. 그 자세로는 나를 못 문다." },
+                { who: 'Yuan', text: "…스승님은 빠지십시오. 이건 스승님 일이 아닙니다." },
+                { who: 'Kairon', text: "스무 해 전에도 똑같은 소리를 들었다. 그때 빠졌더니 어떻게 됐는지는 너도 알 텐데." },
+                ...(inLine ? BORDER_PARTNER[c.partner] : []),
+                { who: 'Nara', text: "저쪽이 먼저 언니를 물었잖아요!" },
+                { who: 'Haru', text: "아니야! 너희가 먼저 우리 알 탓을—" },
+                { who: '나', text: "(그때, 아래쪽에서 길게 나팔 소리가 올라왔다. 마을 쪽이다.)" },
+                { who: 'Kairon', text: "…나팔? 지금? 마을에 누가 남았지?" },
+                { who: 'Nara', text: "아빠랑… 그론 아저씨랑, 포코랑…" },
+                ...(home ? BORDER_PARTNER.default : []),
+                kids ? { who: '나', text: c.partner === 'Tiamat' ? "(…그리고 날개를 묶고 누워 있는 티아맷과, 우리 아이들.)" : "(…그리고 우리 아이들.)" } : null,
+                { who: 'Kairon', text: "전부 뛰어! 너는 먼저 가라, 네가 제일 빠르다!" },
+            ];
+        },
     },
 
     // ---------- 밀회: 해 질 녘의 폭포 (text/story-bible.md 7절) ----------
@@ -403,6 +419,137 @@ export const CHRONICLE = [
             { who: 'Kairon', text: "(멀찍이서 듣고 있던 스승이 헛기침을 하더니 슬그머니 등을 돌린다. 어깨가 떨리는 걸 보니 웃음을 참고 있는 것 같다.)" },
             { who: 'Nara', text: "…근데 아빠가 요새 밥을 잘 드시긴 하더라. 엄마 돌아가시고 나서 아빠가 그렇게 웃는 건 나도 처음 봤어. 그러니까 우리 아빠 울리면 너 진짜 가만 안 둔다. 대련장에 끌고 와서 해 질 때까지 팰 거야." },
         ],
+    },
+
+    // ---------- 티아맷 · 미라 · 엠버의 작은 이야기 ----------
+    // 본 이야기 옆에서 조용히 굴러가는 것들. 한 사람이 몇 장면씩, 시간이 흐르면 그 뒤가 붙는다
+
+    // 티아맷 ① 망루의 돌 여섯. 가족 여섯을 사냥꾼에게 잃었다
+    {
+        id: 'ev_tiamat_stones', title: '망루의 돌 여섯',
+        when: c => c.map === 'VILLAGE' && (c.hour >= 21 || c.hour < 5) && c.done('m3') && c.relationOf('Tiamat') >= 45 && !c.s.raid.active,
+        lines: [
+            { who: '나', text: "(망루 위에 티아맷이 앉아 있다. 난간에 작은 돌이 여섯 개, 나란히 놓여 있다.)", look: 'PROP:TOWER', label: '망루' },
+            { who: 'Tiamat', text: "…봤어? 그냥 돌이야. 호숫가에서 주운 거." },
+            { who: 'Tiamat', text: "아버지, 어머니, 형 둘, 누나, 그리고 막내. 순서대로야. 밤마다 하나씩 닦아. 안 닦으면 이끼가 끼거든." },
+            { who: 'Tiamat', text: "여섯이 다 있는 걸 확인하고 나서야 순찰을 돌아. 이상하지. 돌이 어디 가는 것도 아닌데." },
+            { who: 'Tiamat', text: "…내려가. 밤바람 차. 이거 남한테 말하면 대련장에서 세 배로 팬다." },
+        ],
+        then: (s) => { const n = s.entities.npcs.find(x => x.config.name === 'Tiamat'); if (n) n.relation = Math.min(100, (n.relation || 0) + 5); },
+    },
+    // 티아맷 ② 찢어진 날개. 6장, 다들 폭포에 가 있는데 혼자 남았다
+    {
+        id: 'ev_tiamat_wing', title: '뜨는 것과 나는 것',
+        when: c => c.map === 'VILLAGE' && c.active('m6w') && c.s.quests.active.m6w.step === 1 && !c.night,
+        lines: [
+            { who: '나', text: "(광장 한쪽에서 티아맷이 날개를 펴고 있다. 찢어진 날개막이 바람에 펄럭인다.)" },
+            { who: 'Tiamat', text: "날 수 있어. 봐, 뜨잖아. …뜬다니까." },
+            { who: 'Mira', text: "뜨는 거랑 나는 건 달라. 앉아. 앉으라고." },
+            { who: 'Tiamat', text: "거기 다 있는데 나만 여기 있어. 카이론 아저씨도, 나라도, 위 마을 애들도. 스무 해 전에 우리 가족이 당했을 때도 나는 여기 있었어. 또 여기 있으라고?" },
+            { who: 'Mira', text: "그때 네가 거기 있었으면 지금 네가 없어. 앉아." },
+            { who: '나', text: "(내가 대신 간다고 했다. 티아맷은 한참을 보다가 날개를 접었다.)" },
+            { who: 'Tiamat', text: "…등 뒤 조심해. 저쪽 애들은 등 뒤에서 물어." },
+        ],
+    },
+    // 티아맷 ③ 새벽의 수련. 그론이 죽은 뒤, 포코가 싸우는 법을 배우겠다고 했다
+    {
+        id: 'ev_tiamat_poco', title: '새벽의 첫 불',
+        when: c => c.map === 'VILLAGE' && c.dead('Gron') && c.daysSince('Gron') >= 2 && c.hour >= 5 && c.hour < 7.5 && !c.s.raid.active,
+        lines: [
+            { who: '나', text: "(새벽 광장. 티아맷 앞에 포코가 서 있다. 눈이 부어 있다.)" },
+            { who: 'Tiamat', text: "숨을 크게 들이쉬고. 겁나면 겁난 채로 쉬어. 겁이 없어질 때까지 기다리면 평생 못 뱉어." },
+            { who: 'Poco', text: "(포코가 숨결을 뱉는다. 불꽃이 발 앞에서 픽 꺼진다.)" },
+            { who: 'Poco', text: "…누나, 나 무서운 거 안 없어져." },
+            { who: 'Tiamat', text: "안 없어져. 나도 아직 있어. 그래도 서 있는 거야. 오늘은 여기까지." },
+            { who: 'Poco', text: "내일도 해 줘. 모레도. …아저씨는 내가 뭘 해 달라고 하면 맨날 싫다고 하면서 다 해 줬어." },
+            { who: 'Tiamat', text: "…알아. 내일도 새벽에 나와." },
+        ],
+        then: (s) => { for (const n of s.entities.npcs) if (n.config.name === 'Tiamat' || n.config.name === 'Poco') n.relation = Math.min(100, (n.relation || 0) + 4); },
+    },
+
+    // 미라 ① 파란 열매. 약초를 캐는 용의 하루
+    {
+        id: 'ev_mira_berries', title: '파란 것과 붉은 것',
+        when: c => c.map === 'LAKE' && c.hour >= 8 && c.hour < 16 && c.done('m2') && c.relationOf('Mira') >= 25 && !c.s.raid.active,
+        lines: [
+            { who: 'Mira', text: "어, 왔네. 잠깐 이리 와 봐. 이거 무슨 열매게?" },
+            { who: '나', text: "(붉은 열매와 파란 열매가 바구니에 따로 담겨 있다.)" },
+            { who: 'Mira', text: "붉은 건 먹는 거. 파란 건 배탈. 근데 파란 걸 말려서 빻으면 열을 내려. 독이랑 약은 같은 풀에서 나. 양만 다르지." },
+            { who: 'Mira', text: "포코가 어릴 때 파란 걸 한 줌 먹고 사흘을 앓았어. 그때 내가 처음으로 약을 지었지. 그러니까 저 애가 내 첫 환자야." },
+            { who: 'Mira', text: "손 줘 봐. …발톱 사이에 흙 낀 거 봐. 이거 발라. 쓰라려도 참아." },
+        ],
+        then: (s) => { const p = s.player; p.hp = p.maxHp; const n = s.entities.npcs.find(x => x.config.name === 'Mira'); if (n) n.relation = Math.min(100, (n.relation || 0) + 5); },
+        toast: '미라가 상처를 봐 주었다 (체력 회복, 호감 ↑)', icon: '🌿',
+    },
+    // 미라 ② 열한 대. 그론의 등에서 뽑은 화살
+    {
+        id: 'ev_mira_arrows', title: '열한 대',
+        when: c => c.map === 'VILLAGE' && c.dead('Gron') && c.daysSince('Gron') >= 1 && c.daysSince('Gron') < 6 && c.night && c.relationOf('Mira') >= 25 && !c.s.raid.active,
+        lines: [
+            { who: '나', text: "(분수 앞에 미라가 쪼그리고 앉아 있다. 물에 뭔가를 씻고 있다.)", look: 'PROP:FOUNTAIN', label: '분수' },
+            { who: 'Mira', text: "…화살이야. 열한 대. 버리려고 했는데 못 버리겠더라." },
+            { who: 'Mira', text: "다친 용을 스무 해 넘게 봤는데, 다 보내 주고 나서 손이 이렇게 떨린 건 처음이야." },
+            { who: 'Mira', text: "엠버한테 줄 거야. 녹여서 뭐라도 만들라고. 못이라도. 그 아저씨는 버리는 걸 제일 싫어했으니까." },
+            { who: 'Mira', text: "…너는 들어가서 자. 어린 게 이 시간까지 뭘 돌아다녀. 아, 이 말 그론 아저씨가 맨날 하던 말이네." },
+        ],
+    },
+    // 미라 ③ 대낮의 폭포. 전쟁 뒤로는 숨지 않는다
+    {
+        id: 'ev_mira_open', title: '대낮의 폭포', flag: 'mira_open',
+        when: c => c.map === 'FALLS' && !c.night && c.done('m6w') && c.done('s1') && !c.gathering,
+        lines: [
+            { who: '나', text: "(해가 한창인 폭포. 물가에 미라와 유안이 나란히 앉아 있다. 숨지도, 둘러보지도 않는다.)" },
+            { who: 'Mira', text: "아, 왔어? 이제 안 숨어. 숨을 이유가 그날 밤에 다 타 버렸거든." },
+            { who: 'Yuan', text: "…어른께는 내가 말씀드렸다. 아무 말씀도 안 하시더군. 그게 대답이었겠지." },
+            { who: 'Mira', text: "약초 핑계도 이제 안 대. 그냥 만나러 온다고 해. 마을에서 수군대는 건 …뭐, 스무 해를 참았는데 그게 대수야." },
+            { who: 'Yuan', text: "가라. …아니, 앉았다 가라. 위에서 보던 아랫마을 얘기를 이 애한테 듣고 있었다. 너도 거들어라." },
+        ],
+        then: (s) => { for (const n of s.entities.npcs) if (n.config.name === 'Mira' || n.config.name === 'Yuan') n.relation = Math.min(100, (n.relation || 0) + 5); },
+    },
+
+    // 엠버 ① 휜 못. 그론이 살아 있을 때의 대장간
+    {
+        id: 'ev_ember_nails', title: '스물세 개',
+        when: c => c.map === 'VILLAGE' && c.hour >= 9 && c.hour < 17 && c.done('m3') && !c.dead('Gron') && c.relationOf('Ember') >= 25 && !c.s.raid.active,
+        lines: [
+            { who: 'Ember', text: "(엠버가 모루 밑에 뭔가를 쑤셔 넣다가 나를 보고 굳는다.) …못 본 걸로. 응? 못 본 걸로 해 줘." },
+            { who: '나', text: "(모루 밑에 휜 못이 수북하다.)" },
+            { who: 'Gron', text: "(등을 돌린 채로) 거기 스물세 개 있는 거 안다." },
+            { who: 'Ember', text: "!!" },
+            { who: 'Gron', text: "세지 말고 펴라. 휜 못은 펴면 되는데, 숨긴 못은 펼 수가 없어." },
+            { who: 'Ember', text: "…네. (작게) 스물네 개인데." },
+            { who: 'Gron', text: "들린다." },
+        ],
+        then: (s) => { const n = s.entities.npcs.find(x => x.config.name === 'Ember'); if (n) n.relation = Math.min(100, (n.relation || 0) + 5); },
+    },
+    // 엠버 ② 불씨. 그론이 떠난 뒤 사흘, 불이 안 붙는다
+    {
+        id: 'ev_ember_fire', title: '붙었었어',
+        when: c => c.map === 'VILLAGE' && c.dead('Gron') && c.daysSince('Gron') >= 1 && c.daysSince('Gron') < 3 && c.night && !c.s.raid.active,
+        lines: [
+            { who: '나', text: "(한밤의 대장간. 화덕 앞에 엠버와 포코가 나란히 쪼그리고 앉아 있다.)" },
+            { who: 'Ember', text: "풀무를 세 번 밟고 한 번 쉬어. 아저씨가 그랬어. 세 번… 한 번… 왜 안 붙어." },
+            { who: 'Poco', text: "내가 불어 볼게. (포코가 화덕에 대고 숨결을 뱉는다. 불꽃이 잠깐 일었다가 꺼진다.)" },
+            { who: 'Ember', text: "…봤지? 붙었었어. 방금. 붙었었지?" },
+            { who: 'Poco', text: "응. 나도 봤어. 붙었었어." },
+            { who: '나', text: "(둘 다 안다. 그건 포코의 불이었다. 그래도 둘 다 화덕에서 눈을 떼지 않았다.)" },
+        ],
+    },
+    // 엠버 ③ 첫 주문. 그론이 만들다 만 것을 건넨 뒤, 제 이름으로 받는 첫 일
+    {
+        id: 'ev_ember_first', title: '사다리 한 칸',
+        when: c => c.map === 'VILLAGE' && c.relic('GRON_PLATE') && c.hour >= 9 && c.hour < 17 && !c.s.raid.active && !c.dead('Tiamat'),
+        lines: [
+            { who: 'Tiamat', text: "(티아맷이 대장간 앞에 서 있다. 좀처럼 오지 않는 자리다.) …망루 사다리 한 칸이 흔들려. 그론 아저씨한테 말하려다가, 못 했어." },
+            { who: 'Ember', text: "……" },
+            { who: 'Ember', text: "치수 불러." },
+            { who: 'Tiamat', text: "…뭐?" },
+            { who: 'Ember', text: "사다리 칸. 치수. 아저씨가 받던 대로 받을 거야. 내 이름으로. 아저씨 이름으로 받으면 아저씨가 '네가 뭔데' 그럴 거니까." },
+            { who: 'Tiamat', text: "(티아맷이 잠깐 웃었다. 전쟁 뒤로 처음이다.) 발 두 개 반. 나무는 참나무로." },
+            { who: 'Ember', text: "참나무는 비싸. 아저씨는 그런 건 물푸레로 했어. …알았어, 참나무. 내일 아침까지." },
+        ],
+        then: (s) => { for (const n of s.entities.npcs) if (n.config.name === 'Ember' || n.config.name === 'Tiamat') n.relation = Math.min(100, (n.relation || 0) + 5); },
+        toast: '엠버가 제 이름으로 첫 주문을 받았다.', icon: '🔨',
     },
 
     // ---------- 탐험 중의 작은 발견 ----------

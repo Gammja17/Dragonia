@@ -14,7 +14,7 @@ import { showToast } from '../ui/toast.js';
 import { setBossBar } from '../ui/hud.js';
 import { offerFor, heldOffer, runningFor, reportableFor, talkQuestFor, bringQuestFor,
          completeStep, handOver, curStep, acceptQuest, turnInQuest, stepGoalText, questProgress, stepTotal,
-         notify } from './quests.js';
+         notify, sceneLines } from './quests.js';
 import { playScene } from './chronicle.js';
 import { isDead } from './routine.js';
 import { canOuting, outingWait, goOuting } from './family.js';
@@ -235,7 +235,7 @@ function askQuest(npc, q) {
     const st = curStep(q);
     close();
     completeStep(q, { quiet: true });
-    if (st && st.scene) playScene(q.title, st.scene, () => afterStep(npc));
+    if (st && st.scene) playScene(q.title, sceneLines(st.scene), () => afterStep(npc));
     else afterStep(npc);
 }
 
@@ -265,7 +265,7 @@ function bringToQuest(npc, q) {
                 close();
                 if (!handOver(q)) return;
                 completeStep(q, { quiet: true });
-                if (st.scene) playScene(q.title, st.scene, () => afterStep(npc));
+                if (st.scene) playScene(q.title, sceneLines(st.scene), () => afterStep(npc));
                 else afterStep(npc);
             },
         },
