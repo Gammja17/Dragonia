@@ -45,6 +45,7 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 | `earth_hit.png` | "Earth Spell Effect 01" by pimen | https://pimen.itch.io/ |
 | `grass.png`, `grass_hit.png` | "Acid Spell Effect" by pimen | https://pimen.itch.io/ |
 | `root.png` | "Wood Spell Effect" by pimen | https://pimen.itch.io/ |
+| `p_flame.png`, `p_magic.png`, `p_rune.png`, `p_light.png`, `p_streak.png`, `p_twirl.png`, `p_spark.png`, `p_star.png`, `p_arc.png`, `p_halo.png`, `p_sigil.png` (160px 로 줄임) | "Particle Pack" by Kenney (CC0) | https://kenney.nl/assets/particle-pack |
 | `star.png`, `ring.png`, `slash.png`, `scorch.png`, `twirl.png`, `spark.png`, `muzzle.png`, `dirt.png`, `flare.png`, `circle_magic.png`, `shockwave.png`, `heart.png`, `aura.png` | "Particle Pack" by Kenney (CC0) | https://kenney.nl/assets/particle-pack |
 
 ## UI (`assets/ui/`)
@@ -85,6 +86,8 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 | `step1~5.ogg` | "Impact Sounds" by Kenney — `footstep_grass_000~004` | CC0 | https://kenney.nl/assets/impact-sounds |
 | `hit1~3.ogg`, `crit1~3.ogg` | 같은 팩 — `impactPunch_medium/heavy_000~002` | CC0 | 〃 |
 | `guard1~3.ogg` | 같은 팩 — `impactMetal_light_000~002` | CC0 | 〃 |
+| `hurt1~3.ogg`, `boom1~3.ogg`, `die1~3.ogg`, `bigdie1~2.ogg`, `warn.ogg`, `thud1~2.ogg`, `glass1~3.ogg` | "Impact Sounds" by Kenney — `impactPunch_heavy`, `impactPlate_heavy`, `impactSoft_heavy`, `impactBell_heavy`, `impactWood_heavy`, `impactGlass` | CC0 | https://kenney.nl/assets/impact-sounds |
+| `pickup.ogg`, `chest.ogg`, `quest1~3.ogg`, `whoosh1~3.ogg` | "RPG Audio" by Kenney — `handleSmallLeather`, `metalLatch`, `bookFlip1~3`, `cloth1~3` | CC0 | https://kenney.nl/assets/rpg-audio |
 | `slash1~2.ogg`, `coin.ogg`, `ui.ogg` | "RPG Audio" by Kenney — `knifeSlice`, `handleCoins`, `metalClick` | CC0 | https://kenney.nl/assets/rpg-audio |
 
 나머지 효과음 40여 종은 파일 없이 WebAudio 로 그때그때 만든다 (`src/systems/audio.js`).

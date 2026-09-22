@@ -12,6 +12,10 @@ import { weatherDamageMult } from './weather.js';
 import { hasRelic } from './relics.js';
 import { skillPower, skillCdMult, skillRank, stat } from './growth.js';
 import { play } from './audio.js';
+import { hitStop, flash } from '../render/feedback.js';
+
+/** 여러 개를 시간차로 뿌린다 */
+function later(ms, fn) { setTimeout(() => { if (state.gameActive) fn(); }, ms); }
 
 // 플레이어 스킬의 실행부. 배운 스킬은 player.skills, 장착은 player.slots = { Q, F, R }.
 // 강화 단수(1~3)는 systems/growth.js 가 들고 있고, 여기서는 위력 배수 m 으로 받아 쓴다.
@@ -87,9 +91,10 @@ const CAST = {
             hurt(e, 34 * power(p, null, m));
             if (!e.statusImmune) { e.x += ((e.x - p.x) / (d || 1)) * 120; e.y += ((e.y - p.y) / (d || 1)) * 120; }
         }
-        spawnEffect('SLASH', p.x, p.y - 30, { size: 3.2, color: '#ffffff' });
-        spawnEffect('SLASH', p.x, p.y - 30, { size: 3.2, angle: Math.PI, color: '#ffe9a0' });
-        shake(5); play('slash');
+        for (let i = 0; i < 3; i++) later(i * 40, () => spawnEffect('ARC', p.x, p.y - 30, { size: 2.0, angle: i * 2.1 + p.angle, color: i ? '#ffd07a' : '#ffffff' }));
+        spawnEffect('SHOCKWAVE', p.x, p.y, { size: 1.3, color: '#ffe9a0' });
+        for (const e of foes()) if (dist(p, e) <= 210) { spawnEffect('EMBER', e.x, e.y - 24, { size: 1.1, color: '#ffd07a' }); burst(e.x, e.y - 20, '#ffe9a0', 0.8, 6); }
+        hitStop(0.05); shake(6); play('slash');
         if (hasRelic('TAIL_TWIN') && !p.tailTwin) {   // 유물 '두 번 치는 꼬리'
             p.tailTwin = true;
             setTimeout(() => { p.tailTwin = false; if (state.player === p) { CAST.TAIL_SWIPE(p, m * 0.6); } }, 260);
@@ -105,15 +110,18 @@ const CAST = {
             if (!e.statusImmune) { e.x += ((e.x - p.x) / (d || 1)) * 90; e.y += ((e.y - p.y) / (d || 1)) * 90; }
         }
         p.fury = 6;
-        spawnEffect('SHOCKWAVE', p.x, p.y, { size: 2.2, color: '#fff2a8' });
-        spawnEffect('RING', p.x, p.y - 40, { size: 3 });
-        shake(8); play('roar');
+        spawnEffect('BLOOM', p.x, p.y - 40, { size: 0.83, color: '#ffb347' });
+        for (let i = 0; i < 3; i++) later(i * 110, () => { spawnEffect('SHOCKWAVE', p.x, p.y, { size: 1.6 + i * 0.7, color: '#fff2a8' }); spawnEffect('RING', p.x, p.y - 40, { size: 2 + i, color: '#ffd07a' }); });
+        flash(0.25, '255,200,120');
+        hitStop(0.08); shake(10); play('roar');
     },
     METEOR(p, m) {
         const { x, y } = p.aimPoint(420);
         addHazard(x, y, { faction: 'ALLY', r: 185, delay: 0.6, linger: 2.5, damage: 48 * power(p, 'FIRE', m), dps: 6 * power(p, 'FIRE', m),
             color: '#ff6a2a', effect: 'FIRE_HIT', effectSize: 2.8, sound: 'boom', shake: 12, status: { type: 'BURN', duration: 4 } });
-        spawnEffect('MAGIC_CIRCLE', x, y, { size: 1.6, color: '#ff9a3c' });
+        spawnEffect('RUNE', x, y, { size: 1.7, color: '#ff9a3c' });
+        spawnEffect('FALLING_STAR', x, y - 40, { size: 1.6, color: '#ffb347', angle: 0.6 });
+        later(560, () => { spawnEffect('BLOOM', x, y - 20, { size: 1.32, color: '#ff7a2a' }); for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; spawnEffect('EMBER', x + Math.cos(a) * 70, y - 10 + Math.sin(a) * 45, { size: 1.2, color: '#ff9a3c' }); } });
         if (hasRelic('METEOR_RAIN')) for (let i = 0; i < 3; i++) {   // 유물 '별 부스러기'
             const a = (i / 3) * Math.PI * 2 + 0.5, r = 190;
             addHazard(x + Math.cos(a) * r, y + Math.sin(a) * r * 0.7, { faction: 'ALLY', r: 95, delay: 0.9 + i * 0.15, linger: 1, damage: 22 * power(p, 'FIRE', m), color: '#ff8a4a', effect: 'FIRE_HIT', effectSize: 1.6, sound: 'boom', shake: 4, status: { type: 'BURN', duration: 3 } });
@@ -133,13 +141,16 @@ const CAST = {
             if (hasRelic('GUST_BLADE')) { applyStatus(e, 'STUN', 1.2); spawnEffect('HIT_SPARK', e.x, e.y - 20, { size: 1.4, color: '#dff4ff' }); }   // 유물 '칼바람 깃'
         }
         for (const b of state.entities.bullets) if (b.faction === 'ENEMY' && dist(p, b) < 340) { b.remove = true; burst(b.x, b.y, '#cfe9ff', 0.4, 2); }
-        for (let i = 1; i <= 3; i++) spawnEffect('GUST', p.x + Math.cos(angle) * i * 90, p.y - 30 + Math.sin(angle) * i * 90, { size: 0.8 + i * 0.4, angle, color: '#dff4ff' });
+        for (let i = 1; i <= 3; i++) spawnEffect('WHIRL', p.x + Math.cos(angle) * i * 90, p.y - 30 + Math.sin(angle) * i * 90, { size: 0.7 + i * 0.35, angle, color: '#dff4ff' });
+        for (let i = 0; i < 5; i++) { const off = (i - 2) * 0.22; spawnEffect('STREAK', p.x + Math.cos(angle + off) * 120, p.y - 30 + Math.sin(angle + off) * 120, { size: 1.6, angle: angle + off, color: '#ffffff' }); }
         play('gust');
     },
     HEAL(p, m) {
         p.channels.push({ id: 'HEAL', m, time: 4, tick: 0 });
         for (const a of [...allies(), ...state.entities.babies]) if (dist(p, a) < 400 && a.maxHp) a.hp = Math.min(a.maxHp, a.hp + a.maxHp * 0.35 * m);
         spawnEffect('AURA', p.x, p.y - 40, { size: 2, color: '#8dffb0' });
+        spawnEffect('SIGIL', p.x, p.y, { size: 1.6, color: '#8dffb0' });
+        for (let i = 0; i < 10; i++) later(i * 120, () => spawnEffect('SPARKLE', p.x + rand(-60, 60), p.y - rand(0, 60), { size: 1, color: '#c8ffd8' }));
         play('heal');
     },
     SHED(p) {
@@ -161,7 +172,8 @@ const CAST = {
     },
     IRON_SCALE(p) {
         p.guard = 5;
-        spawnEffect('AURA', p.x, p.y - 40, { size: 1.8, color: '#cfd8e6' });
+        spawnEffect('HALO', p.x, p.y - 40, { size: 1.6, color: '#dfe8f4' });
+        spawnEffect('BLOOM', p.x, p.y - 40, { size: 0.66, color: '#cfd8e6' });
         play('guard');
     },
     RALLY(p, m) {
@@ -216,11 +228,15 @@ const CAST = {
             spawnEffect('ICE_SPIKE', e.x, e.y + 10, { size: 1.2 });
         }
         spawnEffect('SHOCKWAVE', p.x, p.y, { size: 2.6, color: '#aee6ff' });
+        spawnEffect('BLOOM', p.x, p.y - 40, { size: 1.1, color: '#aee6ff' });
+        for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; later(i * 25, () => spawnEffect('ICE_SPIKE', p.x + Math.cos(a) * 150, p.y + Math.sin(a) * 105, { size: 1.1 })); }
         burst(p.x, p.y - 40, '#aee6ff', 1, 40);
-        play('freeze');
+        hitStop(0.06); play('freeze');
     },
     STORM(p, m) {
         p.channels.push({ id: 'STORM', m, time: 3, tick: 0 });
+        spawnEffect('SIGIL', p.x, p.y, { size: 2.2, color: '#ffe27a' });
+        spawnEffect('BLOOM', p.x, p.y - 40, { size: 1.1, color: '#ffe27a' });
         play('thunder');
     },
     ICE_SPIKES(p, m) {
@@ -244,7 +260,9 @@ const CAST = {
                 damage: 30 * power(p, b.element, m), dps: 8 * power(p, b.element, m),
                 color: b.color, effect: b.effect, effectSize: 1.8, sound: i % 3 === 0 ? b.sound : null, status: b.status });
         }
-        spawnEffect('MAGIC_CIRCLE', p.x, p.y, { size: 2, color: '#c77dff' });
+        spawnEffect('RUNE', p.x, p.y, { size: 2.2, color: '#c77dff' });
+        spawnEffect('BLOOM', p.x, p.y - 40, { size: 1.43, color: '#e0b0ff' });
+        flash(0.2, '200,150,255');
         shake(8); play('evolve');
     },
     DIVE(p, m) {
@@ -256,6 +274,7 @@ const CAST = {
     },
     TEMPEST(p, m) {
         p.channels.push({ id: 'TEMPEST', m, time: 2, tick: 0, spin: 0 });
+        spawnEffect('WHIRL', p.x, p.y - 30, { size: 2.4, color: '#dff4ff' });
         shake(4); play('gust');
     },
     BLINK(p, m) {
@@ -307,7 +326,9 @@ export function updateChannels(p, dt) {
                 applyStatus(e, 'BURN', 3);
             }
             const r = rand(80, 300), a = angle + rand(-0.45, 0.45);
-            spawnEffect('FLAMES', p.x + Math.cos(a) * r, p.y - 10 + Math.sin(a) * r, { size: 0.7 + r / 400 });
+            spawnEffect('FLAMES', p.x + Math.cos(a) * r, p.y - 10 + Math.sin(a) * r, { size: 0.9 + r / 300 });
+            spawnEffect('EMBER', p.x + Math.cos(a) * r, p.y - 30 + Math.sin(a) * r, { size: 0.9, color: '#ff9a3c' });
+            spawnEffect('MUZZLE', p.x + Math.cos(angle) * 50, p.y - 40 + Math.sin(angle) * 50, { angle: angle + Math.PI / 2, size: 1.4, color: '#ff9a3c' });
             play('flame');
         } else if (c.id === 'TEMPEST') {
             // 회전하며 주변을 계속 베고 날아오는 탄을 지운다
@@ -327,6 +348,9 @@ export function updateChannels(p, dt) {
             p.diveHeight = Math.sin(k * Math.PI) * (big ? 160 : 45);   // 그릴 때 이만큼 떠오른다
             if (c.time <= 0) {
                 p.diveHeight = 0;
+                spawnEffect(big ? 'BLOOM' : 'DUST', p.x, p.y - (big ? 20 : 0), { size: big ? 2.2 : 1.4, color: big ? '#ffe9a0' : '#d8c8a8' });
+                for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; spawnEffect('STREAK', p.x + Math.cos(a) * 60, p.y + Math.sin(a) * 40, { size: big ? 1.4 : 0.9, angle: a, color: '#fff2c8' }); }
+                hitStop(big ? 0.08 : 0.04); shake(big ? 12 : 5); play(big ? 'boom' : 'thud');
                 if (!big && hasRelic('POUNCE_QUAKE')) {   // 유물 '무거운 착지'
                     for (const e of foes()) if (dist(p, e) < 200) applyStatus(e, 'STUN', 1.3);
                     spawnEffect('SHOCKWAVE', p.x, p.y, { size: 1.8, color: '#c9a06a' }); shake(6);

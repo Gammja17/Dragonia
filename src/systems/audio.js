@@ -46,6 +46,7 @@ const SOUNDS = {
     summon: [['sawtooth', 80, 240, 0.4, 0.06]],
     beam:   [['sawtooth', 300, 320, 0.5, 0.04]],
     step:   [['noise', 300, 150, 0.04, 0.02]],
+    thud:   [['noise', 200, 60, 0.12, 0.08]],
 };
 
 // 녹음된 소리. [음량, 파일들] — 여러 개면 울릴 때마다 하나를 골라서 같은 소리가 반복돼 들리지 않게 한다
@@ -57,6 +58,18 @@ const SAMPLES = {
     guard: [0.45, ['guard1', 'guard2', 'guard3']],
     coin:  [0.45, ['coin']],
     ui:    [0.35, ['ui']],
+    hurt:  [0.55, ['hurt1', 'hurt2', 'hurt3']],
+    boom:  [0.65, ['boom1', 'boom2', 'boom3']],
+    die:   [0.45, ['die1', 'die2', 'die3']],
+    dieBig: [0.8, ['bigdie1', 'bigdie2']],
+    pickup: [0.4, ['pickup']],
+    chest: [0.5, ['chest']],
+    quest: [0.5, ['quest1', 'quest2', 'quest3']],
+    gust:  [0.5, ['whoosh1', 'whoosh2', 'whoosh3']],
+    dash:  [0.35, ['whoosh1', 'whoosh2', 'whoosh3']],
+    warn:  [0.5, ['warn']],
+    thud:  [0.55, ['thud1', 'thud2']],
+    freeze: [0.5, ['glass1', 'glass2', 'glass3']],
 };
 const buffers = {};   // 파일 이름 → 풀어 놓은 소리. 못 받으면 비어 있고, 그러면 합성음으로 돌아간다
 

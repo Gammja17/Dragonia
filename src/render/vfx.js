@@ -29,6 +29,10 @@ const VFX_IMAGES = {
     slash: 'assets/vfx/slash.png', scorch: 'assets/vfx/scorch.png', twirl: 'assets/vfx/twirl.png', spark: 'assets/vfx/spark.png',
     muzzle: 'assets/vfx/muzzle.png', dirt: 'assets/vfx/dirt.png', flare: 'assets/vfx/flare.png', circle_magic: 'assets/vfx/circle_magic.png',
     shockwave: 'assets/vfx/shockwave.png', heart: 'assets/vfx/heart.png', aura: 'assets/vfx/aura.png',
+    // Kenney Particle Pack 에서 더 가져온 것 (160px, 흰색 → color 로 물들인다). 기술 연출의 재료
+    p_flame: 'assets/vfx/p_flame.png', p_magic: 'assets/vfx/p_magic.png', p_rune: 'assets/vfx/p_rune.png', p_light: 'assets/vfx/p_light.png',
+    p_streak: 'assets/vfx/p_streak.png', p_twirl: 'assets/vfx/p_twirl.png', p_spark: 'assets/vfx/p_spark.png', p_star: 'assets/vfx/p_star.png',
+    p_arc: 'assets/vfx/p_arc.png', p_halo: 'assets/vfx/p_halo.png', p_sigil: 'assets/vfx/p_sigil.png',
 };
 
 let images = null;
@@ -72,6 +76,17 @@ const EFFECTS = {
     RING:     { img: 'ring', life: 0.7, from: 0.2, to: 2.2, spin: 0.8, additive: true, light: { r: 300, color: '#ffe9a0' } },
     // 떨어지는 별의 꼬리 (systems/prologue.js). 다른 효과와 달리 뒤로 갈수록 작아진다 —
     // 커지면서 사라지는 STAR 로 꼬리를 그리면 뒤가 부풀어 흰 덩어리가 된다
+    // ---- 기술 연출 재료 (systems/skills.js). 크기·색은 spawnEffect 의 size·color 로 ----
+    ARC:      { img: 'p_arc', life: 0.26, from: 0.9, to: 1.7, spin: 2.2, additive: true },                       // 휘두른 자국
+    STREAK:   { img: 'p_streak', life: 0.32, from: 0.9, to: 2.0, spin: 0, additive: true },                     // 바람 줄기
+    BLOOM:    { img: 'p_light', life: 0.34, from: 0.2, to: 0.85, spin: 0.3, additive: true, light: { r: 320, color: '#fff2b0' } },   // 확 퍼지는 빛
+    RUNE:     { img: 'p_rune', life: 1.1, from: 1.2, to: 1.7, spin: 1.6, additive: true, flat: true },          // 바닥 문양
+    SIGIL:    { img: 'p_sigil', life: 0.9, from: 0.8, to: 1.9, spin: -1.2, additive: true, flat: true },
+    HALO:     { img: 'p_halo', life: 0.8, from: 0.7, to: 1.1, spin: 0.8, additive: true },                      // 둘러싸는 고리 (보호막)
+    SPARKLE:  { img: 'p_star', life: 0.7, from: 0.35, to: 0.05, spin: 2, additive: true, rise: 90 },           // 떠오르는 반짝임
+    EMBER:    { img: 'p_spark', life: 0.5, from: 0.35, to: 0.9, spin: 1.5, additive: true },                    // 튀는 불티
+    FALLING_STAR: { img: 'p_flame', life: 0.55, from: 1.5, to: 0.8, spin: 0.4, additive: true, rise: -460, light: { r: 260, color: '#ff9a3c' } },   // 하늘에서 떨어지는 운석
+    WHIRL:    { img: 'p_twirl', life: 0.5, from: 0.7, to: 2.2, spin: 7, additive: true },                      // 소용돌이
     METEOR:   { img: 'star', life: 0.34, from: 0.8, to: 0.12, spin: 1.2, additive: true, light: { r: 200, color: '#fff2b0' } },
 };
 

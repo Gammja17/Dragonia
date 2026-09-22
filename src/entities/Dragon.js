@@ -628,7 +628,10 @@ export class Dragon extends Entity {
         this.beam = { time: 2.6, angle: this.aimAngle().angle, tick: 0 };
         this.invuln = Math.max(this.invuln, 0.6);
         spawnEffect('SHOCKWAVE', this.x, this.y, { size: 3.5, color: '#ffffff' });
-        shake(14); play('evolve');
+        spawnEffect('RUNE', this.x, this.y, { size: 2.6, color: '#ffffff' });
+        spawnEffect('BLOOM', this.x, this.y - 40, { size: 1.65, color: '#fff2b0' });
+        flash(0.3, '255,255,255');
+        hitStop(0.1); shake(14); play('evolve');
     }
 
     updateBeam(dt) {
