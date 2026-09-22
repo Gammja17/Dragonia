@@ -22,6 +22,7 @@ export const state = {
     rally: 0,             // 용의 함성: 남은 시간 동안 아군 공격력 +50%
     story: { scenes: [], lessons: [], lessonDay: 0, events: [], bonds: [], rites: [], clues: [], today: {}, yesterday: {} },   // systems/story.js · clues: 정체의 단서 · today/yesterday: 그날 있었던 일 (아침 장면이 "어제"를 말할 때 읽는다)
     talkTarget: null,    // 지금 T·클릭으로 말을 걸 수 있는 상대
+    nav: null,           // 추적창을 눌러 알아서 걸어가는 중 (systems/guide.js)
     fadeTargets: [],     // 이번 프레임에 나무 뒤로 숨으면 안 되는 것들
     relics: [],          // 가진 유물 id (systems/relics.js)
     relicSlots: [],      // 실제로 끼운 유물. 앞쪽 몇 칸을 쓸 수 있는지는 성장 단계가 정한다
@@ -101,6 +102,7 @@ export function resetState() {
         elderTutorialDone: false,
         tutorial: { moved: false, journal: false, ate: false, toured: false, finished: false },
         tour: null,
+        nav: null,
         prologue: null,   // 떨어지던 밤 (systems/prologue.js). 새 게임에서만
         player: null,
         partner: null,

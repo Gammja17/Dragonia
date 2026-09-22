@@ -6,7 +6,7 @@ import { isDead } from './routine.js';
 // 마을 용들끼리의 잡담. 일과대로 서 있기만 하던 용들이 가까이 있으면 몇 마디 주고받는다.
 // 마을이 배경이 아니라 동네로 보이게 하는 것이 목적이라, 이야기와는 무관한 말만 한다.
 
-let timer = 12;
+let timer = 30;
 let running = null;   // { lines, i, t, npcs }
 
 export function updateChatter(dt) {
@@ -24,7 +24,7 @@ export function updateChatter(dt) {
     if (!['VILLAGE', 'CLOUDTOP', 'ROOTVALE', 'STONEBACK', 'VOLCANO'].includes(state.mapId) || state.raid.active || state.isDialogueOpen || state.tour || state.prologue) return;
     timer -= dt;
     if (timer > 0) return;
-    timer = rand(18, 32);
+    timer = rand(50, 90);   // 예전엔 18~32초. 말풍선이 쉴 새 없이 떠서 줄였다
     // 가까이 서 있는 두 용의 잡담 하나
     const here = {};
     for (const n of state.entities.npcs) if (n.config.fixed && !n.remove && !(n.downTimer > 0) && n.state === 'WANDER') here[n.config.name] = n;

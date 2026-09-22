@@ -80,40 +80,28 @@
         <button id="hud-show-btn">▶ 상태</button>
         <button id="right-show-btn">◀ 지도</button>
 
+        <!-- 왼쪽 위: 나. 초상 · 이름 · 단계, 그 밑에 막대 셋(글자는 막대 안에), 주머니 한 줄 -->
         <div class="hud-panel" id="hud-panel">
             <div class="hud-head">
                 <canvas class="portrait" id="ui-portrait" width="112" height="112"></canvas>
-                <div>
+                <div class="hud-id">
                     <div class="hud-name" id="ui-name">Player</div>
-                    <div class="hud-lvl">LVL <span id="ui-lvl">1</span> · <span id="ui-stage">해츨링</span></div>
-                    <div class="hud-partner">Partner: <span id="ui-partner">없음</span></div>
+                    <div class="hud-lvl">Lv.<span id="ui-lvl">1</span> <span class="hud-stage" id="ui-stage">해츨링</span></div>
                 </div>
+                <button id="hud-collapse-btn" title="접기 (U)">◀</button>
             </div>
 
-            <div class="stat-group">
-                <div class="stat-header"><span>EXP</span> <span id="ui-xp-text">0%</span></div>
-                <div class="progress-track"><div id="bar-xp" class="progress-fill xp-bar" style="width:0%"></div></div>
-            </div>
-            <div class="stat-group">
-                <div class="stat-header"><span>HP</span> <span id="ui-hp-text">100</span></div>
-                <div class="progress-track"><div id="bar-hp" class="progress-fill hp-bar" style="width:100%"></div></div>
-            </div>
-            <div class="stat-group">
-                <div class="stat-header"><span>HUNGER</span> <span id="ui-hunger-text">100%</span></div>
-                <div class="progress-track"><div id="bar-hunger" class="progress-fill hunger-bar" style="width:100%"></div></div>
-            </div>
+            <div class="bar hp"><div id="bar-hp" class="bar-fill" style="width:100%"></div><span class="bar-label">체력</span><span class="bar-num" id="ui-hp-text">100</span></div>
+            <div class="bar food"><div id="bar-hunger" class="bar-fill" style="width:100%"></div><span class="bar-label">허기</span><span class="bar-num" id="ui-hunger-text">100%</span></div>
+            <div class="bar xp"><div id="bar-xp" class="bar-fill" style="width:0%"></div><span class="bar-label">경험</span><span class="bar-num" id="ui-xp-text">0%</span></div>
 
             <div id="buff-row"></div>
-            <button id="points-chip" style="display:none;">🌟 성장 포인트 <b id="points-num">0</b></button>
+            <button id="points-chip" style="display:none;">🌟 성장 포인트 <b id="points-num">0</b> · 누르면 성장 나무</button>
             <div class="inv-row">
-                <div class="inv-slot"><span>고기</span> <span id="ui-meat">0</span></div>
-                <div class="inv-slot"><span>골드</span> <span id="ui-gold">0</span></div>
-                <div class="inv-slot" id="twig-slot"><span>가지</span> <span id="ui-twigs">0</span></div>
-            </div>
-
-            <div class="hud-buttons">
-                <button id="kids-toggle-btn">가족 (P)</button>
-                <button id="hud-collapse-btn">◀ 접기</button>
+                <div class="inv-slot" title="고기 (C 로 먹는다)"><span>🍖</span> <span id="ui-meat">0</span></div>
+                <div class="inv-slot" title="골드"><span>🪙</span> <span id="ui-gold">0</span></div>
+                <div class="inv-slot" id="twig-slot" title="둥지 재료"><span>🪵</span> <span id="ui-twigs">0</span></div>
+                <button class="inv-slot inv-btn" id="kids-toggle-btn" title="가족 (P)"><span>💞</span> <span id="ui-partner">없음</span></button>
             </div>
         </div>
     </div>
@@ -153,6 +141,14 @@
     </div>
 
     <div id="fade-screen"><div id="fade-text"></div></div>
+
+    <!-- 장이 넘어갈 때의 까만 화면 (ui/hud.js 의 showChapterCard) -->
+    <div id="chapter-card">
+        <div id="ch-no"></div>
+        <div class="ch-rule"></div>
+        <div id="ch-name"></div>
+        <div class="ch-rule"></div>
+    </div>
 
     <div id="den-panel" class="panel">
         <div class="panel-head">
@@ -207,7 +203,10 @@
             <div class="help-row"><b>1 ~ 6</b><span>숨결 속성 바꾸기</span></div>
             <div class="help-row"><b>Q F R</b><span>장착한 스킬 (대기 시간만 쓴다)</span></div>
             <div class="help-row"><b>K</b><span>스킬 나무 (장착·강화) · <b class="inline">G</b> 성장 나무 · <b class="inline">X</b> 필살기</span></div>
-            <div class="help-row"><b>Space · E</b><span>눈앞의 것과 상호작용. 말 걸기 · 상자 · 열매 · 줍기 · 낚시 · 석비 · 굴</span></div>
+            <div class="help-row"><b>Space</b><span>말 걸기. 상대가 없으면 눈앞의 것(상자 · 열매 · 석비 · 굴)을 쓴다. 따라오는 짝보다 눈앞의 물건이 먼저다</span></div>
+            <div class="help-row"><b>E</b><span>말은 걸지 않고 눈앞의 것만 쓴다. 상자 · 열매 · 줍기 · 낚시 · 석비 · 굴 · 게시판</span></div>
+            <div class="help-row"><b>T</b><span>곁의 용에게 말 걸기 (물건이 앞에 있어도)</span></div>
+            <div class="help-row"><b>길잡이</b><span>오른쪽 추적창을 누르면 목표까지 알아서 걸어간다. 금빛 화살표가 목표를 가리킨다</span></div>
             <div class="help-row"><b>C</b><span>고기 먹기 (상호작용과 섞이지 않게 따로 뺐다)</span></div>
             
             <div class="help-row"><b>방향키</b><span>대화 선택지 고르기 (Space 로 결정). 마음을 전하는 것도 대화 안에 있다</span></div>

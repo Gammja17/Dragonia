@@ -64,13 +64,26 @@ function stage(e) {
     m.to = spot;
     m.face = side > 0 ? 'left' : 'right';
 
-    // 처음 오를 때는 화면 밖에서 걸어 들어온다
+    // 처음 오를 때: 이미 곁에 있으면 그냥 제자리로 걸어오고, 멀리 있거나 딴 지도에 있던 용은
+    // 화면 밖에서 스르르 걸어 들어온다 (예전엔 화면 안 260px 자리에 툭 나타나서 밑도 끝도 없이 튀어나온 것처럼 보였다)
     if (!m.entered) {
         m.entered = true;
-        e.x = spot.x + side * 260;
-        e.y = spot.y + 30;
+        const farAway = m.guest || Math.hypot(e.x - spot.x, e.y - spot.y) > cam.w * 0.55;
+        if (farAway) {
+            e.x = spot.x + side * (cam.w * 0.5 + 120);
+            e.y = spot.y + 30;
+            e.stageAlpha = 0;      // 걸어오며 또렷해진다 (main.js 가 그릴 때 읽는다)
+        }
     }
     p.facing = side > 0 ? 'right' : 'left';
+}
+
+/** 이 개체가 지금 무대에 올라 있는가 (컷씬에서 무대 밖의 것은 그리지 않는다) */
+export function onStage(e) {
+    if (!scene.on) return true;
+    if (e === state.player) return true;
+    if (scene.poi && scene.poi.target === e) return true;
+    return cast.some(c => c.e === e);
 }
 
 /** 무대에 오른 이들을 제자리로 걸린다. 말하는 쪽은 반걸음 앞으로 */
@@ -88,6 +101,7 @@ function walkCast(dt) {
         } else {
             m.e.moving = false;
         }
+        if (m.e.stageAlpha !== undefined && m.e.stageAlpha < 1) m.e.stageAlpha = Math.min(1, m.e.stageAlpha + dt * 1.4);
         m.e.facing = m.face;
         m.e.vx = 0; m.e.vy = 0;
     }
@@ -105,10 +119,15 @@ function clearSpot(x, y) {
     return { x, y };
 }
 
-/** 컷씬 시작 */
-export function beginCutscene(title = '') {
+/**
+ * 컷씬 시작.
+ *   speakers: 이 장면에서 말할 이들. 처음부터 다 무대에 올려 두면 제 차례에 불쑥 나타나지 않고,
+ *             첫 대사가 흐르는 동안 걸어 들어와 있다
+ */
+export function beginCutscene(title = '', speakers = []) {
     scene.on = true;
     scene.snap = true;
+    for (const e of speakers) stage(e);
     scene.title = title || '';
     scene.titleT = title ? 2.6 : 0;
     document.body.classList.add('cutscene');
@@ -128,7 +147,7 @@ export function focusOn(entity) {
  */
 export function pointAt(target, label = '') {
     // 용은 말하는 동안 자리를 옮기기도 하므로 좌표를 베끼지 않고 대상을 들고 있는다
-    scene.poi = target ? { get x() { return target.x; }, get y() { return target.y; }, label } : null;
+    scene.poi = target ? { get x() { return target.x; }, get y() { return target.y; }, label, target } : null;
 }
 
 /** 컷씬 끝 */
@@ -136,6 +155,7 @@ export function endCutscene() {
     scene.poi = null;
     for (const m of cast) {
         m.e.x = m.x; m.e.y = m.y; m.e.facing = m.facing; m.e.moving = false;
+        delete m.e.stageAlpha;
         // 불러왔던 용은 다시 제 일과로 돌려보낸다
         if (m.guest) state.entities.npcs = state.entities.npcs.filter(n => n !== m.e);
     }

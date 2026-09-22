@@ -32,10 +32,19 @@ function element(id) {
     if (!pool[id]) {
         const a = new Audio(`assets/music/${id}.ogg`);
         a.loop = true;
-        a.preload = 'none';
+        a.preload = 'auto';   // 흘려 받다 끊기던 곡(숲길·수련장의 forest)이 있어서, 고른 곡은 통째로 받아 둔다
+        // 브라우저가 반복 재생을 놓치거나(끝에서 멈춤) 받다가 막히면 다시 올린다
+        a.addEventListener('ended', () => { if (playing && playing.el === a) a.play().catch(() => {}); });
+        a.addEventListener('stalled', () => { if (playing && playing.el === a && a.paused) a.play().catch(() => {}); });
         pool[id] = a;
     }
     return pool[id];
+}
+
+/** 곁 지도의 곡을 미리 받아 둔다. 문을 넘는 순간 곡이 끊기지 않게 */
+const NEIGHBORS = { village: ['forest', 'lake'], forest: ['village', 'hollow', 'dungeon'], lake: ['village', 'forest'] };
+function prefetch(id) {
+    for (const n of NEIGHBORS[id] || []) { const a = element(n); if (a.preload !== 'auto') a.preload = 'auto'; a.load && a.readyState === 0 && a.load(); }
 }
 
 function apply(track) {
@@ -43,11 +52,15 @@ function apply(track) {
     track.el.volume = Math.max(0, Math.min(1, v));
 }
 
+let watchdog = 0;
 function tick() {
     const step = TICK / FADE;
     if (playing) {
         if (playing.gain < 1) playing.gain = Math.min(1, playing.gain + step);
         apply(playing);   // 음량 손잡이나 음소거가 그새 바뀌었을 수도 있다
+        // 틀어 둔 곡이 어느새 멈춰 있으면(받다가 끊김·탭 전환) 2초마다 다시 올린다
+        watchdog += TICK;
+        if (watchdog >= 2) { watchdog = 0; if (playing.el.paused && !document.hidden) playing.el.play().catch(() => {}); }
     }
     for (const t of fading) {
         t.gain = Math.max(0, t.gain - step);
@@ -67,6 +80,7 @@ export function setScene(id) {
     playing = back >= 0 ? fading.splice(back, 1)[0] : { id, el: element(id), gain: 0 };
     apply(playing);
     playing.el.play().catch(() => {});   // 브라우저가 막으면 조용히 넘어간다
+    prefetch(id);
 }
 
 /** 지금 틀어야 할 곡. 위에 있는 줄이 먼저다 */

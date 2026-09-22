@@ -15,7 +15,9 @@ import { toggleKidsPanel } from './kidsPanel.js';
 import { dayPhaseName } from '../render/lighting.js';
 import { drawPortrait } from '../render/spritesheet.js';
 import { weatherName } from '../systems/weather.js';
-import { trackedLine, setQuestListener, notify } from '../systems/quests.js';
+import { trackedLine, setQuestListener, notify, suggestion, questMarker } from '../systems/quests.js';
+import { guideTarget, toggleAutoNav, navActive } from '../systems/guide.js';
+import { play } from '../systems/audio.js';
 import { refreshJournal, toggleJournal } from './journal.js';
 import { points, skillRank } from '../systems/growth.js';
 import { raidStatusText } from '../systems/raid.js';
@@ -69,6 +71,7 @@ export function initHud() {
     $('kids-toggle-btn').addEventListener('click', toggleKidsPanel);
     $('help-close').addEventListener('click', toggleHelp);
     $('points-chip').addEventListener('click', () => toggleJournal('growth'));
+    $('chapter-card').addEventListener('click', skipChapterCard);
     setQuestListener(refreshQuestTracker);
 }
 
@@ -160,6 +163,7 @@ export function updateHud() {
     }
     drawTutorial();
     drawMinimap();
+    refreshNavHint();
 }
 
 /** 처음 며칠의 조작 안내. 목록은 없앴고, 닥친 순간에 한 줄씩만 뜬다 (systems/tutorial.js) */
@@ -188,42 +192,91 @@ function drawMinimap() {
         g.fillStyle = color;
         g.beginPath(); g.arc(ox + x * k, oy + y * k, r, 0, Math.PI * 2); g.fill();
     };
+    // 점마다 검은 테를 둘러 바탕과 떨어져 보이게 한다 (초록 바탕 위의 초록 점은 안 보였다)
+    const ring = (x, y, r, color, edge = 'rgba(0,0,0,0.85)') => {
+        g.fillStyle = edge; g.beginPath(); g.arc(ox + x * k, oy + y * k, r + 1.2, 0, Math.PI * 2); g.fill();
+        dot(x, y, r, color);
+    };
+    const diamond = (x, y, r, color) => {
+        const cx = ox + x * k, cy = oy + y * k;
+        g.fillStyle = 'rgba(0,0,0,0.85)';
+        g.beginPath(); g.moveTo(cx, cy - r - 1.2); g.lineTo(cx + r + 1.2, cy); g.lineTo(cx, cy + r + 1.2); g.lineTo(cx - r - 1.2, cy); g.closePath(); g.fill();
+        g.fillStyle = color;
+        g.beginPath(); g.moveTo(cx, cy - r); g.lineTo(cx + r, cy); g.lineTo(cx, cy + r); g.lineTo(cx - r, cy); g.closePath(); g.fill();
+    };
+    const glyph = (x, y, text, color, size = 11) => {
+        g.font = `700 ${size}px "Mulmaru", sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.lineWidth = 3; g.strokeStyle = 'rgba(0,0,0,0.9)'; g.strokeText(text, ox + x * k, oy + y * k);
+        g.fillStyle = color; g.fillText(text, ox + x * k, oy + y * k);
+    };
     const E = state.entities;
+    // 문은 마름모, 그 옆에 어느 쪽인지 첫 글자
     for (const pr of E.props) {
-        if (pr.portal) dot(pr.x, pr.y, 3, '#9fe3ff');
-        else if (pr.type === 'WAYSTONE') dot(pr.x, pr.y, 3, isAwake(pr.stoneId) ? '#7fd4ff' : 'rgba(127,212,255,0.4)');
-        else if (pr.type === 'CAVE') dot(pr.x, pr.y, 3.5, '#c58aff');
-        else if (pr.type === 'DEN_MOUTH') dot(pr.x, pr.y, 3.5, pr.denId === 'DEN_MINE' ? '#ffd84a' : '#d8a86a');
-        else if (pr.type === 'STAIRS_DOWN') dot(pr.x, pr.y, 3, '#ff8a4a');
-        else if (pr.type === 'STAIRS_UP') dot(pr.x, pr.y, 3, '#ffe9b0');
-        else if (pr.type === 'CHEST' && !pr.opened) dot(pr.x, pr.y, 2.5, '#ffd84a');
+        if (pr.portal) diamond(pr.x, pr.y, 4, '#9fe3ff');
+        else if (pr.type === 'WAYSTONE') ring(pr.x, pr.y, 3, isAwake(pr.stoneId) ? '#7fd4ff' : 'rgba(127,212,255,0.45)');
+        else if (pr.type === 'CAVE') ring(pr.x, pr.y, 3.5, '#c58aff');
+        else if (pr.type === 'DEN_MOUTH') ring(pr.x, pr.y, 3.5, pr.denId === 'DEN_MINE' ? '#ffd84a' : '#d8a86a');
+        else if (pr.type === 'TOWER') ring(pr.x, pr.y, 3.5, '#e8d7a8');
+        else if (pr.type === 'STAIRS_DOWN') ring(pr.x, pr.y, 3, '#ff8a4a');
+        else if (pr.type === 'STAIRS_UP') ring(pr.x, pr.y, 3, '#ffe9b0');
+        else if (pr.type === 'CHEST' && !pr.opened) ring(pr.x, pr.y, 2.5, '#ffd84a');
     }
-    for (const n of E.nests) dot(n.x, n.y, 3, '#ffd84a');
-    for (const npc of E.npcs) if (npc.config.fixed) dot(npc.x, npc.y, 2.5, '#7dd36a');
-    for (const e of E.enemies) dot(e.x, e.y, e.elite ? 2.5 : 1.5, e.elite ? '#ffd84a' : 'rgba(255,120,120,0.75)');
-    for (const h of E.humans) dot(h.x, h.y, 2, '#ff9a9a');
-    for (const b of E.bosses) dot(b.x, b.y, 4.5, '#ff4d4d');
-    if (state.partner) dot(state.partner.x, state.partner.y, 2.5, '#ff7aa8');
-    if (state.companion) dot(state.companion.x, state.companion.y, 2.5, '#7dd3ff');
+    for (const n of E.nests) ring(n.x, n.y, 3, '#ffd84a');
+    for (const e of E.enemies) if (e.type !== 'PREY') dot(e.x, e.y, e.elite ? 2.5 : 1.5, e.elite ? '#ffd84a' : 'rgba(255,110,110,0.7)');
+    for (const h of E.humans) ring(h.x, h.y, 2, '#ff9a9a');
+    for (const b of E.bosses) ring(b.x, b.y, 4.5, '#ff4d4d');
+    // 마을 용은 초록 점. 부탁이 있거나 찾아가야 할 용은 점 대신 ! ? 글자
+    for (const npc of E.npcs) {
+        if (!npc.config.fixed || npc.remove || npc.hidden) continue;
+        const mark = questMarker(npc);
+        if (mark) glyph(npc.x, npc.y, mark, mark === '?' ? '#7dd36a' : '#ffd84a', 13);
+        else ring(npc.x, npc.y, 2.5, '#7dd36a');
+    }
+    if (state.partner) ring(state.partner.x, state.partner.y, 2.5, '#ff7aa8');
+    if (state.companion) ring(state.companion.x, state.companion.y, 2.5, '#7dd3ff');
+    // 길잡이 목표: 천천히 뛰는 금빛 테
+    const t = guideTarget();
+    if (t) {
+        const beat = (Math.sin(state.gameTime * 5) + 1) / 2;
+        g.strokeStyle = `rgba(255,216,74,${0.6 + beat * 0.4})`; g.lineWidth = 2;
+        g.beginPath(); g.arc(ox + t.x * k, oy + t.y * k, 6 + beat * 3, 0, Math.PI * 2); g.stroke();
+    }
+    // 나: 흰 화살촉이 보는 쪽을 가리킨다
     const p = state.player;
-    g.strokeStyle = '#000'; g.lineWidth = 2.5;
-    g.beginPath(); g.arc(ox + p.x * k, oy + p.y * k, 4, 0, Math.PI * 2); g.stroke();
-    dot(p.x, p.y, 3.5, '#fff');
+    const ang = { right: 0, left: Math.PI, down: Math.PI / 2, up: -Math.PI / 2 }[p.facing] ?? 0;
+    const px = ox + p.x * k, py = oy + p.y * k;
+    g.save();
+    g.translate(px, py); g.rotate(ang);
+    g.fillStyle = '#000';
+    g.beginPath(); g.moveTo(8, 0); g.lineTo(-6, -6.5); g.lineTo(-3, 0); g.lineTo(-6, 6.5); g.closePath(); g.fill();
+    g.fillStyle = '#fff';
+    g.beginPath(); g.moveTo(6, 0); g.lineTo(-4, -4.5); g.lineTo(-2, 0); g.lineTo(-4, 4.5); g.closePath(); g.fill();
+    g.restore();
 }
 
-/** 추적창에는 추적 중인 퀘스트 하나만. 나머지는 [J] 일지에서 본다 */
+/**
+ * 추적창에는 추적 중인 퀘스트 하나만. 나머지는 [J] 일지에서 본다.
+ * 맡은 일이 없으면 "다음에 할 만한 일"을 대신 띄운다.
+ * 줄을 누르면 그곳까지 알아서 걸어간다 (systems/guide.js).
+ */
 let lastTrackerKey = '';
 function refreshQuestTracker() {
     if (!state.player) return;
     el.tracker.innerHTML = '';
     el.questMore.textContent = '';
-    const line = trackedLine();
-    if (!line) { lastTrackerKey = ''; return; }
+    let line = trackedLine();
+    let suggest = false;
+    if (!line) {
+        const s = suggestion();
+        if (!s) { lastTrackerKey = ''; return; }
+        line = { title: s.title, goal: s.goal, complete: false, more: 0 };
+        suggest = true;
+    }
     const div = document.createElement('div');
-    div.className = 'quest-line' + (line.complete ? ' complete' : '');
+    div.className = 'quest-line' + (line.complete ? ' complete' : '') + (suggest ? ' suggest' : '');
     const kind = document.createElement('span');
     kind.className = 'ql-kind';
-    kind.textContent = line.complete ? '보고하러 간다' : line.training ? '오늘의 수련' : '지금 할 일';
+    kind.textContent = suggest ? '다음에 할 만한 일' : line.complete ? '보고하러 간다' : line.training ? '오늘의 수련' : '지금 할 일';
     const b = document.createElement('b');
     b.textContent = line.title;
     const goal = document.createElement('i');
@@ -231,13 +284,33 @@ function refreshQuestTracker() {
     div.append(kind, b, goal);
     if (line.where) { const w = document.createElement('span'); w.className = 'ql-where'; w.textContent = line.where; div.appendChild(w); }
     if (line.text) { const pr = document.createElement('span'); pr.className = 'ql-prog'; pr.textContent = line.text; div.appendChild(pr); }
+    const go = document.createElement('span');
+    go.className = 'ql-go';
+    go.id = 'ql-go';
+    div.appendChild(go);
+    div.addEventListener('click', () => { play('ui'); toggleAutoNav(); refreshNavHint(); });
     // 할 일이 바뀌면 한 번 번쩍여서 눈길을 끈다
     const key = line.title + '|' + line.goal;
     if (lastTrackerKey && key !== lastTrackerKey) div.classList.add('flash');
     lastTrackerKey = key;
     el.tracker.appendChild(div);
-    el.questMore.textContent = line.more > 0 ? `+ 맡은 일 ${line.more}개 · [J] 일지` : '[J] 일지';
+    refreshNavHint();
+    el.questMore.textContent = line.more > 0 ? `+ 맡은 일 ${line.more}개 · [J] 일지` : suggest ? '' : '[J] 일지';
     refreshJournal();
+}
+
+/** 추적창 맨 아래 줄: 누르면 가는지, 가는 중인지 */
+let lastNavKey = '';
+function refreshNavHint() {
+    const go = $('ql-go');
+    if (!go) return;
+    const t = guideTarget();
+    const text = navActive() ? '🧭 걸어가는 중… (누르거나 방향키로 멈춤)' : t ? `🧭 누르면 ${t.label || '그곳'}까지 알아서 간다` : '';
+    const key = text + (navActive() ? '1' : '0');
+    if (key === lastNavKey) return;
+    lastNavKey = key;
+    go.textContent = text;
+    go.parentElement.classList.toggle('nav', navActive());
 }
 
 let lastChips = '';
@@ -299,6 +372,40 @@ export function showRegionBanner(name, sub = '') {
     state.bannerUntil = state.gameTime + 3;   // 이 동안은 사건 컷씬을 띄우지 않는다 (systems/chronicle.js)
     clearTimeout(regionTimer);
     regionTimer = setTimeout(() => el0.classList.remove('on'), 2800);
+}
+
+/**
+ * 장이 넘어갈 때 까만 화면에 "제 1 장 · 웨스턴 마을" 을 띄운다. 그동안 세상은 멈춘다.
+ * done: 다시 밝아진 뒤
+ */
+let chapterTimers = [], chapterDone = null;
+export function showChapterCard(no, name, done) {
+    const card = $('chapter-card');
+    $('ch-no').textContent = no;
+    $('ch-name').textContent = name;
+    card.classList.add('on');
+    state.isDialogueOpen = true;
+    state.bannerUntil = state.gameTime + 6;   // 장 이름이 떠 있는 동안은 사건 컷씬을 띄우지 않는다
+    chapterDone = done || null;
+    play('quest');
+    chapterTimers = [setTimeout(() => {
+        card.classList.remove('on');
+        chapterTimers = [setTimeout(endChapterCard, 900)];
+    }, 3400)];
+}
+export function chapterCardOn() { return chapterTimers.length > 0; }
+/** [Esc]·클릭으로 건너뛴다 (main.js) */
+export function skipChapterCard() {
+    if (!chapterTimers.length) return;
+    $('chapter-card').classList.remove('on');
+    endChapterCard();
+}
+function endChapterCard() {
+    for (const t of chapterTimers) clearTimeout(t);
+    chapterTimers = [];
+    state.isDialogueOpen = false;
+    const done = chapterDone; chapterDone = null;
+    if (done) done();
 }
 
 export function showRaidWarning(text) {

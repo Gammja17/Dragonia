@@ -52,6 +52,7 @@ import { inCutscene } from '../systems/cutscene.js';
 import { toggleKidsPanel } from '../ui/kidsPanel.js';
 import { isTouchDevice } from '../ui/touch.js';
 import { startDialogue } from '../systems/dialogue.js';
+import { navAxis, cancelNav } from '../systems/guide.js';
 
 const WALK_SPEED = 260;
 const SPRINT_MULT = 1.5;
@@ -203,7 +204,7 @@ export class Dragon extends Entity {
         this.homeX = x; this.homeY = y;
         this.state = 'WANDER'; // WANDER | PARTNER_FOLLOW
         this.wanderTimer = 0;
-        this.chatTimer = rand(5, 15);
+        this.chatTimer = rand(20, 60);
         this.currentChat = null; this.chatFade = 0;
         this.relation = 0; // 0~100
     }
@@ -415,7 +416,10 @@ export class Dragon extends Entity {
     // ---------- 플레이어 ----------
     updatePlayer(dt) {
         if (state.prologue) { this.moving = false; return; }   // 떨어지던 밤엔 아직 내 몸이 아니다
-        const { dx, dy } = input.axis();
+        let { dx, dy } = input.axis();
+        // 추적창을 눌러 알아서 걸어가는 중이면 방향키 대신 길잡이가 방향을 준다. 방향키를 건드리면 멈춘다 (systems/guide.js)
+        if (dx || dy) cancelNav();
+        else if (state.nav) { const n = navAxis(this, dt); if (n) ({ dx, dy } = n); }
         if (this.fishing) this.updateFishing(dt, dx || dy);
         this.feast = (this.feast || 0) - dt;
         this.dashCd -= dt; this.invuln -= dt; this.fury -= dt; this.guard -= dt; this.slowTimer -= dt; this.gale -= dt;
@@ -466,7 +470,14 @@ export class Dragon extends Entity {
         const cursor = screenToWorld(mouse.x, mouse.y);
         const pointed = (mouse.inside || mouse.clicked) ? [...E0.npcs, ...E0.babies].filter(e => Math.hypot(e.x - cursor.x, e.y - 50 - cursor.y) < 90)
             .sort((p, q) => Math.hypot(p.x - cursor.x, p.y - cursor.y) - Math.hypot(q.x - cursor.x, q.y - cursor.y))[0] || null : null;
-        const target = (pointed && dist(this, pointed) < TALK_RANGE ? pointed : null) || near(E0.npcs, INTERACT_RANGE) || near(E0.babies, 130);
+        let target = (pointed && dist(this, pointed) < TALK_RANGE ? pointed : null) || near(E0.npcs, INTERACT_RANGE) || near(E0.babies, 130);
+        // 대련·술래잡기·수련 중에는 누구에게도 말을 걸 수 없다 (한창 싸우다 대화창이 열리던 것)
+        if (state.activity) target = null;
+        // 눈앞의 것이 먼저다. 짝이 뒤를 졸졸 따라오면 상자·석비·열매 앞에 서도 늘 짝에게 말만 걸렸다.
+        // 따라오는 용은 물건보다 뒤로 밀리고, 물건이 용보다 가까워도 물건이 먼저다. 마우스로 콕 집은 용만 예외
+        const thing = state.activity ? null : this.nearbyThing();
+        const follower = target && !E0.babies.includes(target) && target.state && target.state !== 'WANDER';
+        if (thing && target && target !== pointed && (follower || thing.d < dist(this, target))) target = null;
         const isKid = target && E0.babies.includes(target);
         const nestNear = !target && E0.nests[0] && dist(this, E0.nests[0]) < 110 ? E0.nests[0] : null;
         state.talkTarget = target;   // 그릴 때 발밑에 표시한다
@@ -481,6 +492,7 @@ export class Dragon extends Entity {
         else if (stoneFirst) setInteractTarget(stone, `${TAP} 석비로 건너뛴다`);
         else if (target) setInteractTarget(target, `${TAP} ${isKid ? '아이와 대화' : '대화'}`);
         else if (mouth) setInteractTarget(mouth, mouth.denId === 'DEN_MINE' ? 'E 내 굴에 들어간다 (둥지)' : 'E 굴에 들어간다');
+        else if (thing) setInteractTarget(thing.at, `${TAP === '탭' ? '탭' : 'E · Space'} ${thing.label}`);
         else if (inMyDen()) setInteractTarget(this, 'E 굴 꾸미기');
         else setInteractTarget(null);
 
@@ -489,6 +501,8 @@ export class Dragon extends Entity {
         const tapped = mouse.clicked && !mouse.inside;
         const wantTalk = !this.flying && (input.pressed('confirm') || input.pressed('talk') || (tapped && pointed && pointed === target));
         if (tapped && pointed && pointed !== target) showToast('너무 멀어요. 가까이 가서 말을 거세요.', '💬');
+        // [T] 는 물건이 앞에 있어도 곁의 용에게 말을 건다 (따라오는 짝에게 말을 걸 길)
+        if (input.pressed('talk') && !target && !state.activity && !this.flying) { const n = near(E0.npcs, INTERACT_RANGE); if (n) { startDialogue(n, 'TALK'); return; } }
         if (wantTalk && stoneFirst) openTravelMenu(stone);
         else if (wantTalk && target) { if (isKid) openKidHub(target); else startDialogue(target, 'TALK'); }
         else if (wantTalk && nestNear) openNestMenu();
@@ -507,6 +521,7 @@ export class Dragon extends Entity {
         if ((input.down('attack') || mouse.down) && this.fireTimer <= 0) this.attack();
         for (const slot of SKILL_SLOTS) if (input.pressed('skill' + slot)) useSlot(this, slot);
         if (input.pressed('ultimate')) this.useUltimate();
+        if (input.pressed('nextElement')) this.cycleElement();   // 터치의 [속성] 버튼
         if (this.beam) this.updateBeam(dt);
         if (input.pressed('interact')) this.interact();
         if (input.pressed('eat')) this.eat();
@@ -738,8 +753,40 @@ export class Dragon extends Entity {
         return true;
     }
 
+    /**
+     * 눈앞에 있는 물건 (말 걸 상대 말고). interact() 와 같은 순서로 본다.
+     *   { label, d, at }  없으면 null
+     */
+    nearbyThing() {
+        const E = state.entities;
+        const hit = (list, range, label) => {
+            let best = null, bd = range;
+            for (const x of list) { const d = dist(this, x); if (d < bd) { bd = d; best = x; } }
+            return best ? { label, d: bd, at: best } : null;
+        };
+        if (this.fishing) return null;
+        return (this.carrying === 'EGG' && E.nests[0] && hit(E.nests, 110, '알을 둥지에 놓는다'))
+            || hit(E.props.filter(x => x.type === 'CAVE'), 120, '굴에 들어간다')
+            || hit(E.props.filter(x => x.type === 'STAIRS_DOWN' || x.type === 'STAIRS_UP'), 100, '오르내린다')
+            || (!this.carrying && hit(E.props.filter(x => x.type === 'BOARD'), 90, '게시판을 본다'))
+            || hit(E.items.filter(x => !x.remove && (x.type === 'MEAT' || (x.type === 'EGG' && !this.carrying))), 60, '줍는다')
+            || (!state.den.built && hit(E.props.filter(x => x.type === 'STUMP' && x.ripe), 80, '나뭇가지를 줍는다'))
+            || (this.hunger < 95 && hit(E.props.filter(x => x.type === 'BERRY' && x.ripe), 80, '열매를 딴다'))
+            || hit(E.props.filter(x => x.type === 'CHEST' && !x.opened), 80, '상자를 연다')
+            || null;
+    }
+
+    /** 다음 숨결 속성으로 (터치 기기의 [속성] 버튼. 키보드는 1·2·3) */
+    cycleElement() {
+        const have = Object.keys(ELEMENTS).filter(el => this.elements.includes(el));
+        if (have.length < 2) return;
+        this.element = have[(have.indexOf(this.element) + 1) % have.length];
+        showToast(`숨결: ${ELEMENTS[this.element].name}`, '🔥');
+    }
+
     interact() {
         const E = state.entities;
+        if (state.activity) return;   // 대련·술래잡기 중에는 상자도 석비도 나중이다
 
         // 0) 알을 들고 둥지 앞에 섰으면 놓는 것이 먼저다.
         //    내 굴 안에서는 아래 tryDenInteract 가 [E] 를 늘 채 가기 때문에(둥지 곁이면 잠자기,
@@ -842,8 +889,10 @@ export class Dragon extends Entity {
     updateNpc(dt) {
         this.chatTimer -= dt;
         if (this.chatTimer <= 0) {
-            this.say(this.idleLine());
-            this.chatTimer = rand(14, 32);
+            // 마을에 아홉 용이 서 있으면 2~3초마다 누군가 떠들었다. 내 곁에 있는 용만, 한 번에 둘까지, 뜸하게
+            const talking = state.entities.npcs.reduce((n, o) => n + (o.chatFade > 0 && o.currentChat ? 1 : 0), 0);
+            if (dist(this, state.player) < 640 && talking < 2 && !state.isDialogueOpen) this.say(this.idleLine());
+            this.chatTimer = rand(45, 100);
         }
 
         if (state.activity && state.activity.npc === this) { updateActivityNpc(this, dt); return; }
@@ -871,8 +920,7 @@ export class Dragon extends Entity {
         const night = state.dayTime < 0.22 || state.dayTime > 0.82;
         const wet = state.weather.type === 'RAIN' || state.weather.type === 'SNOW';
         const r = Math.random();
-        // 지금 하는 일을 흘리듯 말한다 — 이게 있어야 "저 용이 뭘 하는 중"이 읽힌다
-        if (this.doing && r < 0.3) return `(${this.doing}.)`;
+        // 지금 하는 일은 말풍선이 아니라 대화창 머리와 일지에서 보여 준다 ("(망루 앞에서 밤을 지새운다.)" 가 말풍선으로 뜨면 지문을 읽는 것 같다)
         if (wet && r < 0.5) return pick(RAIN_LINES);
         if (night && r < 0.55) return pick(NIGHT_LINES);
         const lines = IDLE_LINES[this.config.personality];

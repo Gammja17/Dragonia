@@ -170,6 +170,7 @@ function endRaid() {
     showToast(`습격 ${raid.count}차 격퇴! (${gold}G, 마을 용들의 호감 ↑)`, '🛡️');
     p.gainXp(60 + raid.count * 30);
     state.story.today.raid = true;   // 내일 아침 "어제 습격" 이야기가 나올 수 있다
+    state.story.today.raidEndedAt = state.gameTime;   // 이 뒤로 한동안은 잠자리로 끌려가지 않는다 (systems/story.js)
     const ob = raid.objective;
     if (ob) {
         const npc = state.entities.npcs.find(n => n.config.name === ob.name);

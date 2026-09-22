@@ -17,7 +17,7 @@ import { offerFor, heldOffer, runningFor, reportableFor, talkQuestFor, bringQues
          notify } from './quests.js';
 import { playScene } from './chronicle.js';
 import { isDead } from './routine.js';
-import { anyNpc } from './world.js';
+import { anyNpc, travelTo } from './world.js';
 import { play } from './audio.js';
 import { canOuting, outingWait, goOuting } from './family.js';
 import { loveIntercept, moodGreeting, heartClosed, isSulking, onDate, onPartnered, apologize, breakUp, canVow, vowHint, vowed, makeVow } from './romance.js';
@@ -71,6 +71,7 @@ function show(npc, text, options) {
 export function openNpcHub(npc, skipErrand = false) {
     const talk = NPC_TALK[npc.config.name];
     if (!npc.config.fixed || !talk) return false;
+    if (state.activity) { state.isDialogueOpen = false; state.currentNpc = null; return true; }   // 대련·술래잡기 중에는 말을 걸 수 없다
     const tier = relationTier(npc.relation);
     const name = npc.config.name;
     const opts = [];
@@ -548,8 +549,32 @@ function openGoods(npc) {
 }
 
 // ---------- 티아맷: 대련 ----------
+// 대련은 마을 한복판에서 느닷없이 시작되지 않는다. 수련장으로 자리를 옮겨 붙는다
 function startSpar(npc) {
     close();
+    if (state.mapId !== 'DOJO') {
+        show(npc, '여기서? 광장 한복판에서 번개를 쏘면 촌장님한테 둘 다 혼나. 수련장으로 가자.', [
+            { label: '⚔️ 수련장으로 간다', onSelect: () => { close(); goSpar(npc); } },
+            { label: '다음에 하자', onSelect: close },
+        ]);
+        return;
+    }
+    beginSpar(npc);
+}
+
+/** 티아맷과 함께 수련장으로 옮겨 가서 붙는다 */
+function goSpar(npc) {
+    fadeScreen('수련장으로', () => {
+        travelTo('DOJO');
+        const spot = state.dojoSpot || { x: state.player.x, y: state.player.y };
+        state.player.x = spot.x - 120; state.player.y = spot.y + 40;
+        npc.x = spot.x + 140; npc.y = spot.y + 40;
+        npc.remove = false; npc.hidden = false; npc.walkTo = null;
+        if (!state.entities.npcs.includes(npc)) state.entities.npcs.push(npc);
+    }, () => beginSpar(npc));
+}
+
+function beginSpar(npc) {
     state.activity = { type: 'SPAR', npc, hp: SPAR_HP, max: SPAR_HP, timer: 1.5 };
     npc.say('봐주지 않는다!');
     showToast('대련 시작! 티아맷의 기력을 모두 깎으세요. (체력 25% 아래로 떨어지면 패배)', '⚔️');

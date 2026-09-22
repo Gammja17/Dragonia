@@ -268,6 +268,32 @@ export function runningFor(npc) { return activeQuests().find(q => q.giver === np
 /** 이 NPC에게 보고할 수 있는 퀘스트 */
 export function reportableFor(npc) { return activeQuests().find(q => isComplete(q) && turnInNpc(q) === npc.config.name); }
 
+/**
+ * 맡은 일이 없을 때 "다음에 할 만한 일". 처음 하는 사람이 퀘스트 하나를 끝내고 멍하니 서 있지 않게.
+ *   { who: 말을 걸 용 | null, title, goal }
+ */
+export function suggestion() {
+    const Q = state.quests;
+    if (!Q) return null;
+    const ready = (q) => !(q.id in Q.active) && !Q.done.includes(q.id) && (!q.requires || Q.done.includes(q.requires)) && (!q.needs || q.needs(state));
+    // 본 이야기는 누구에게 가면 되는지 바로 알려 주고, 곁가지 부탁은 "누군가 할 말이 있는 눈치" 정도로만 귀띔한다
+    // — 다 알려 주면 마을을 돌아다니며 찾아내는 재미가 없다
+    const main = QUESTS.find(q => !q.auto && q.act === 'main' && ready(q));
+    if (main) {
+        const plan = planFor(main.giver);
+        return { who: main.giver, main: true, title: `${npcName(main.giver)}에게 말을 걸어 보자`, goal: plan ? `지금 ${plan.mapName}에 있다 · ${plan.doing}` : '마을 어딘가에 있다' };
+    }
+    const side = QUESTS.filter(q => !q.auto && ready(q));
+    if (side.length) {
+        const where = [...new Set(side.map(q => { const p = planFor(q.giver); return p ? p.mapName : null; }).filter(Boolean))];
+        return { who: side[0].giver, main: false, title: '누군가 할 말이 있는 눈치다', goal: `마을 용들에게 말을 걸어 보자. 머리 위에 ! 가 뜬 용이 있다${where.length ? ` (${where.slice(0, 2).join(' · ')} 쪽)` : ''}` };
+    }
+    const t = training.line();
+    if (t) return { who: 'Kairon', title: '오늘의 수련', goal: t.goal || '카이론을 찾아간다' };
+    if (QUESTS.some(q => q.auto && ready(q))) return { who: null, title: '세상을 돌아다녀 보자', goal: '숲길·호수를 걷다 보면 다음 이야기가 열린다. 굴을 파 보거나 마을 용들과 이야기해도 좋다' };
+    return { who: null, title: '한숨 돌리자', goal: '굴을 꾸미거나, 게시판의 잡일을 맡거나, 마을 용들과 이야기해 보자' };
+}
+
 /** NPC 머리 위 표시: '?' 지금 찾아갈 곳, '!' 새 부탁, 없으면 null */
 export function questMarker(npc) {
     if (!npc.config.name || !state.quests) return null;
@@ -327,6 +353,8 @@ export function turnInQuest(q, npc, choiceId = null) {
     const opt = (q.choice && (q.choice.options || []).find(o => o.id === choiceId)) || null;
     if (opt && opt.scene) queueScene(q.title, opt.scene);
     if (r.scene) queueScene(q.title, r.scene);
+    // 끝냈으면 다음에 할 만한 일을 한 번 귀띔한다 (추적창에도 남는다)
+    if (!activeQuests().length) { const s = suggestion(); if (s) questBanner('다음에 할 만한 일', s.title, s.goal); }
     onChange();
 }
 

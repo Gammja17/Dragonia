@@ -23,7 +23,7 @@ import { Projectile, addBullet } from '../entities/Projectile.js';
 import { spawnEffect } from '../render/vfx.js';
 import { dialogueUI } from '../ui/dialogueUI.js';
 import { showToast } from '../ui/toast.js';
-import { setBossBar, fadeScreen, showRegionBanner } from '../ui/hud.js';
+import { setBossBar, fadeScreen, showChapterCard } from '../ui/hud.js';
 import { currentChapter } from '../data/chapters.js';
 import { learnSkill } from './skills.js';
 import { saveGame } from './save.js';
@@ -411,21 +411,23 @@ function killNpc(name) {
 }
 
 // ---------- 장 ----------
-/** 매 프레임 (main.js). 장이 넘어가면 이름을 한 번 띄운다 */
+/** 매 프레임 (main.js). 장이 넘어가면 까만 화면에 "제 N 장 · 이름" 을 띄운다 (ui/hud.js 의 showChapterCard) */
 export function updateChapter() {
-    if (state.isDialogueOpen || state.prologue || state.activity || state.raid.active) return;
+    if (state.isDialogueOpen || state.prologue || state.activity || state.raid.active || state.tour || state.nav) return;
+    if (state.bannerUntil && state.gameTime < state.bannerUntil) return;   // 지역 이름·퀘스트 배너가 떠 있는 동안은 기다린다
     const ch = currentChapter(state);
     if (state.story.chapter === ch.id) return;
     const turned = state.story.chapterTitle !== ch.title;   // 한 장이 앞뒤로 나뉜 경우엔 이름을 다시 띄우지 않는다
     state.story.chapter = ch.id;
     state.story.chapterTitle = ch.title;
-    if (turned) showRegionBanner(`${ch.title}. ${ch.name}`, '');
-    saveGame();
+    if (turned) showChapterCard(`제 ${ch.title.replace('장', '')} 장`, ch.name, saveGame);
+    else saveGame();
 }
 
 // ---------- 어린 용의 잘 시간 ----------
 // 성체가 되기 전에는 밤이 깊으면 알아서 잠든다. 밤을 새우다 아침 장면을 통째로 놓치는 일이 있었다.
 const BEDTIME = 0.93, YAWN = 0.88, ADULT = STAGES.findIndex(st => st.id === 'ADULT');
+const RAID_GRACE = 180;   // 습격 뒤 잠들지 않는 시간(초)
 const BEDTIME_LINES = {
     Elder: "아직도 안 자고 뭐 하느냐. 어린것들은 잘 시간이란다… 어서 들어가거라.",
     Kairon: "너 아직도 안 잤냐. 용은 자면서 큰다고 내가 몇 번을 말했는데. 얼른 들어가서 자라.",
@@ -446,6 +448,14 @@ export function updateBedtime() {
     if (!(t >= BEDTIME || t < 0.2)) return;
     // 한창 일이 벌어지는 중에는 재우지 않는다. 습격을 기다리는 밤도 마찬가지다
     if (isGatherNow()) return;   // 달맞이 모임은 밤에 선다
+    // 습격을 막아 낸 직후에는 3분쯤 숨을 돌린다. 나팔 소리가 그치자마자 "자러 가라"고 하면 영문을 모른다
+    // (떨어진 물건을 줍고, 티아맷에게 말을 걸 틈이 있어야 한다)
+    const ended = state.story.today.raidEndedAt;
+    if (ended != null && state.gameTime - ended < RAID_GRACE) {
+        if (!state.story.today.graceToast) { state.story.today.graceToast = true; showToast('습격이 끝났다. 잠들기 전에 마을을 한 바퀴 돌아보자.', '🌙'); }
+        return;
+    }
+    if (state.nav) return;   // 알아서 걸어가는 중이면 다 가고 나서
     if (state.raid.active || state.ambush || raidWanted() || state.activity || state.dungeon || state.tour || state.prologue || state.entities.bosses.some(b => b.awake)) return;
     const near = state.entities.npcs.find(n => BEDTIME_LINES[n.config.name] && dist(n, p) < 500);
     const lines = near ? [{ who: near.config.name, text: BEDTIME_LINES[near.config.name] }] : [];

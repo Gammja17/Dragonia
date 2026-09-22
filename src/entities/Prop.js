@@ -26,7 +26,7 @@ function furnitureLight(prop) {
 }
 
 // 코드로 찍은 픽셀 아이콘으로 그리는 소품: [배율, 발에서 위로 올릴 px]
-const ICON_PROPS = { CAVE: [8, 48], DEN_MOUTH: [8, 48], STAIRS_DOWN: [5, 24], STAIRS_UP: [5, 24], ARENA: [4, 26] };
+const ICON_PROPS = { CAVE: [8, 48], DEN_MOUTH: [8, 48], STAIRS_DOWN: [5, 24], STAIRS_UP: [5, 24], ARENA: [4, 26], TOWER: [7, 77] };
 
 export class Prop extends Entity {
     constructor(x, y, type) {
@@ -51,6 +51,7 @@ export class Prop extends Entity {
             case 'STAIRS_UP': return { r: 200, color: '#ffe9b0', intensity: 0.9, dy: -20, emissive: true };
             case 'CAVE': return { r: 170, color: '#c58aff', intensity: 0.6, dy: -34, emissive: true };
             case 'DEN_MOUTH': return { r: 190, color: '#ffc87a', intensity: 0.75, dy: -34, emissive: true };
+            case 'TOWER': return { r: 230, color: '#ffc87a', intensity: 0.8, dy: -120, emissive: true };   // 망루의 등불
             case 'FURNITURE': return furnitureLight(this);
             case 'PORTAL': return { r: 150, color: '#9fe3ff', intensity: 0.7, dy: -40, emissive: true };
             case 'WATERFALL': return { r: 260, color: '#bfe9ff', intensity: 0.45, dy: -160 };
@@ -110,6 +111,7 @@ export class Prop extends Entity {
         if (this.type === 'PORTAL') { this.drawPortal(ctx); return; }
         if (this.type === 'WAYSTONE') { this.drawWaystone(ctx); return; }
         if (this.type === 'CAVE') { this.drawCave(ctx); return; }
+        if (this.type === 'TOWER') { this.drawTower(ctx); return; }
         if (ICON_PROPS[this.type]) { drawIcon(ctx, this.type, this.x, this.y - ICON_PROPS[this.type][1], ICON_PROPS[this.type][0]); return; }
         if (this.sprite) { this.drawSprite(ctx); return; }
         // 모닥불: 장작(코드로 찍은 픽셀) + 불꽃 애니메이션
@@ -232,6 +234,27 @@ export class Prop extends Entity {
         ctx.fillRect(-w / 2, -126, w, 19);
         ctx.fillStyle = '#d9b8ff';
         ctx.fillText(label, 0, -112);
+        ctx.restore();
+    }
+
+    /** 마을 망루. 퀘스트가 "망루로 가라"고 하는데 어디가 망루인지 몰라서, 그림과 이름표를 단다 */
+    drawTower(ctx) {
+        drawIcon(ctx, 'TOWER', this.x, this.y - ICON_PROPS.TOWER[1], ICON_PROPS.TOWER[0]);
+        const t = state.gameTime * 2 + this.seed * 5;
+        drawGlow(ctx, this.x, this.y - 118, 46 + Math.sin(t) * 4, '#ffc87a', 0.32 + Math.sin(t) * 0.06);
+        if (inCutscene()) return;
+        ctx.save();
+        ctx.translate(Math.round(this.x), Math.round(this.y));
+        const k = 1 / cam.zoom;
+        ctx.scale(k, k);
+        ctx.textAlign = 'center';
+        ctx.font = '700 12px "Mulmaru", sans-serif';
+        const label = '망루';
+        const w = Math.ceil(ctx.measureText(label).width) + 16;
+        ctx.fillStyle = 'rgba(10, 9, 16, 0.85)';
+        ctx.fillRect(-w / 2, -178 * cam.zoom - 19, w, 19);
+        ctx.fillStyle = '#ffd98a';
+        ctx.fillText(label, 0, -178 * cam.zoom - 5);
         ctx.restore();
     }
 

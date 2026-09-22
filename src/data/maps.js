@@ -44,6 +44,7 @@ export const MAPS = {
             { t: 'PROP', type: 'HOUSE', at: [7, 6] }, { t: 'PROP', type: 'HOUSE', at: [16, 6] },
             { t: 'PROP', type: 'HOUSE', at: [9, 12] }, { t: 'PROP', type: 'HOUSE', at: [16, 12] },
             { t: 'PROP', type: 'CAMPFIRE', at: [12, 10] },
+            { t: 'PROP', type: 'TOWER', at: [17, 6] },      // 동쪽 망루. 티아맷이 밤에 그 앞 [17,7] 에 선다 (data/routines.js)
             { t: 'PROP', type: 'BOARD', at: [11, 9] },      // 잡일 게시판 (systems/chores.js)
             { t: 'PROP', type: 'BARREL', at: [14, 6] }, { t: 'PROP', type: 'CRATE', at: [15, 11] },
             { t: 'WAYSTONE', at: [12, 12] },

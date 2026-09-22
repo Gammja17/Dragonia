@@ -36,6 +36,7 @@ const FOOTPRINT = {
     VINE_PILLAR: [14, 9],
     STUMP_TABLE: [30, 16],
     BARRELS: [22, 12],
+    TOWER: [30, 14],
     CRATE_BIG: [16, 11],
 };
 

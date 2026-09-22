@@ -10,8 +10,9 @@ import { updateRaid } from './systems/raid.js';
 import { updateWeather, drawWeather } from './systems/weather.js';
 import { saveGame, readSave, applySave } from './systems/save.js';
 import { startDialogue, closeDialogue } from './systems/dialogue.js';
+import { questsChanged } from './systems/quests.js';
 import { startPrologue, updatePrologue, skipPrologue } from './systems/prologue.js';
-import { initHud, showGameUI, updateHud } from './ui/hud.js';
+import { initHud, showGameUI, updateHud, showChapterCard, chapterCardOn, skipChapterCard } from './ui/hud.js';
 import { initKidsPanel, refreshKidsPanel } from './ui/kidsPanel.js';
 import { initCustomizer } from './ui/customizer.js';
 import { preloadDragonSprites } from './render/dragonSprites.js';
@@ -29,7 +30,9 @@ import { toggleDebug, updateDebug, drawDebug } from './render/debugOverlay.js';
 import { initWaystones, updateTravel } from './systems/travel.js';
 import { inDungeon } from './systems/delve.js';
 import { updateChronicle } from './systems/chronicle.js';
-import { updateCutscene, drawCutscene, inCutscene } from './systems/cutscene.js';
+import { updateCutscene, drawCutscene, inCutscene, onStage } from './systems/cutscene.js';
+import { drawGuideMarker, drawGuideEdge } from './systems/guide.js';
+import { updateTouch } from './ui/touch.js';
 import { updateRoutine } from './systems/routine.js';
 import { updateTour } from './systems/tour.js';
 import { updateTraining } from './systems/training.js';
@@ -116,7 +119,10 @@ async function startGame(config, loadSave = false) {
     if (!save) {
         state.quests.active.m0 = { step: 0, n: 0 };   // 첫날의 길잡이 (data/quests.js)
         state.quests.tracked = 'm0';
-        setTimeout(() => startPrologue(() => startDialogue(elder, 'TALK')), 500);
+        questsChanged();   // 추적창이 첫 일거리를 바로 보여 준다
+        // 떨어지던 밤 → 까만 화면에 "제 1 장 · 웨스턴 마을" → 눈을 뜨고 촌장과 첫 대화
+        state.story.chapter = 'c1'; state.story.chapterTitle = '1장';
+        setTimeout(() => startPrologue(() => showChapterCard('제 1 장', '웨스턴 마을', () => startDialogue(elder, 'TALK'))), 500);
     }
     lastTime = performance.now();
     requestAnimationFrame(loop);
@@ -134,15 +140,18 @@ function loop(now) {
     if (input.pressed('debug')) showToast(`밸런스 오버레이 ${toggleDebug() ? '켬' : '끔'}`, '🛠️');
     if (mouse.wheel) stepZoom(mouse.wheel, canvas.width, canvas.height);   // 휠은 조용히 (알림이 정신 사납다고 해서)
     // [Esc]: 하던 것부터 닫고, 닫을 게 없으면 설정 창
+    let cardSkipped = false;
     if (input.pressed('cancel')) {
-        if (state.prologue) skipPrologue();
+        if (chapterCardOn()) { skipChapterCard(); cardSkipped = true; }   // 건너뛴 그 Esc 가 바로 열린 대화까지 닫지 않게
+        else if (state.prologue) skipPrologue();
         else if (isPlacing()) cancelPlacing();
         else if (isDecorPanelOpen()) closeDecorPanel();
         else if (closeTopPanel()) { /* 창 하나 닫음 */ }
         else if (!state.isDialogueOpen && !inCutscene()) toggleSettings();
     }
     if (state.isDialogueOpen) {
-        if (input.pressed('cancel')) closeDialogue();
+        if (state.nav) state.nav = null;   // 대화·장면이 열리면 자동 이동은 거기서 끝난다
+        if (input.pressed('cancel') && !cardSkipped) closeDialogue();
         else dialogueUI.handleKeys(input);   // 방향키 + Space 로 선택
     } else {
         update(dt);
@@ -154,7 +163,7 @@ function loop(now) {
     render();
 
     hudAccumulator += dt;
-    if (hudAccumulator > 0.1) { updateHud(); updateMusic(); hudAccumulator = 0; }
+    if (hudAccumulator > 0.1) { updateHud(); updateTouch(); updateMusic(); hudAccumulator = 0; }
     saveAccumulator += dt;
     if (saveAccumulator > AUTOSAVE_INTERVAL && !state.prologue) { saveGame(); saveAccumulator = 0; }   // 프롤로그 도중의 한밤중을 저장하지 않는다
 
@@ -208,16 +217,23 @@ function render() {
     for (const e of E.enemies) if (e.drawGround) e.drawGround(ctx);   // 공격 예고는 바닥에
 
     // 화면 근처 것만 골라 y 좌표 순으로 그린다 (아래쪽 개체가 앞에 오도록)
-    const drawables = [...E.props, ...E.nests, ...E.items, ...E.babies, ...E.npcs, ...E.enemies, ...E.humans, ...E.bosses, state.player]
+    // 컷씬에서는 무대에 오른 이들만 보인다. 적이 화면을 가로지르고 딴 용이 어슬렁대면 장면이 장면 같지 않다
+    const cut = inCutscene();
+    const actors = [...E.babies, ...E.npcs, ...E.enemies, ...E.humans, ...E.bosses, state.player].filter(e => !cut || onStage(e));
+    const drawables = [...E.props, ...E.nests, ...E.items, ...actors]
         .filter(e => !e.hidden && isOnScreen(e, 420));   // hidden: 프롤로그가 잠시 감춰 둔 것들
     // 나무 뒤에 가려지면 안 되는 것들 (entities/Prop.js 가 이 목록을 보고 나무를 투명하게 한다)
     state.fadeTargets = drawables.filter(e => !e.sprite || (e.type === 'CHEST' && !e.opened) || (e.type === 'BERRY' && e.ripe));
     drawables.sort((a, b) => a.y - b.y);
-    for (const e of drawables) e.draw(ctx);
+    for (const e of drawables) {
+        if (e.stageAlpha !== undefined && e.stageAlpha < 1) { ctx.globalAlpha = e.stageAlpha; e.draw(ctx); ctx.globalAlpha = 1; }   // 무대로 걸어 들어오는 중
+        else e.draw(ctx);
+    }
 
     drawDenGhost(ctx);                         // 놓을 자리에 반투명하게
-    for (const b of E.bullets) b.draw(ctx);
+    if (!cut) for (const b of E.bullets) b.draw(ctx);   // 허공에 멈춘 화살은 장면을 깬다
     for (const fx of E.effects) fx.draw(ctx);
+    drawGuideMarker(ctx);                      // 퀘스트 목표 위의 화살표 (systems/guide.js)
     drawEvents(ctx);
     ctx.globalCompositeOperation = 'lighter'; // 파티클은 빛 알갱이
     for (const p of E.particles) p.draw(ctx);
@@ -232,6 +248,7 @@ function render() {
     ctx.restore();
 
     drawFeedback(ctx, canvas.width, canvas.height);   // 피격 번쩍임·위기 비네트
+    drawGuideEdge(ctx, canvas.width, canvas.height);  // 목표가 화면 밖이면 가장자리 화살표
     drawDebug(ctx, canvas.width, canvas.height);
     drawCutscene(ctx, canvas.width, canvas.height);   // 레터박스·스포트라이트는 배율 밖에서
 

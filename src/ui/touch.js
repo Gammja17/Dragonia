@@ -1,7 +1,15 @@
 import { input } from '../core/input.js';
+import { state } from '../core/state.js';
+import { canFuse, ELEMENTS } from '../data/elements.js';
+import { SKILLS } from '../data/skills.js';
 
 // 모바일(터치) 조작: 왼쪽 아래 가상 스틱 + 오른쪽 아래 버튼 무리. 터치 기기에서만 나타난다.
 // 버튼은 키보드와 같은 동작 이름(core/input.js)을 누른 것처럼 처리한다.
+//
+// 버튼이 열여섯 개나 떠서 화면이 조종석 같았다. 지금 쓸 수 있는 것만 보인다:
+//   · 기술 Q·F·R 은 그 칸에 기술을 끼운 뒤에, 필살기 X 는 융합이 열린 뒤에
+//   · [속성] 은 숨결이 둘 이상일 때 — 1·2·3 칩 셋 대신 하나로 돌려 가며 고른다
+//   · [비행] 은 성체부터, [먹기] 는 고기가 있을 때, [가족] 은 짝이나 아이가 생긴 뒤에
 //
 // 버튼 자리는 px 가 아니라 한 단위 u(짧은 변의 11%, 38~60px)로 잡는다.
 // 폰 세로 화면(390px)에서도 무리 전체가 스틱과 겹치지 않게 하려면 화면에 따라 줄어야 한다.
@@ -17,11 +25,12 @@ const BUTTONS = [
     ['ultimate', 'X',    1.75, 2.55, 0.8],
 ];
 const TOP_BUTTONS = [
-    ['skillbook', '스킬'], ['journal', '일지'], ['kids', '가족'], ['eat', '먹기'], ['fly', '비행'], ['cancel', '설정'],
-    ['num1', '1'], ['num2', '2'], ['num3', '3'],
+    ['journal', '일지'], ['nextElement', '속성'], ['eat', '먹기'], ['fly', '비행'], ['kids', '가족'], ['cancel', '설정'],
 ];
 
 export function isTouchDevice() { return 'ontouchstart' in window || navigator.maxTouchPoints > 0; }
+
+const btn = {};    // 동작 → 버튼 요소
 
 export function initTouch() {
     if (!isTouchDevice()) return;
@@ -102,6 +111,7 @@ export function initTouch() {
         if (size >= 1.4) b.classList.add('big');
         bind(b, action);
         layer.appendChild(b);
+        btn[action] = b;
     }
     const top = document.createElement('div');
     top.id = 'touch-top';
@@ -111,6 +121,33 @@ export function initTouch() {
         b.textContent = label;
         bind(b, action);
         top.appendChild(b);
+        btn[action] = b;
     }
     layer.appendChild(top);
+    updateTouch();
+}
+
+/** 매 0.1초 (main.js). 지금 쓸 수 있는 버튼만 남긴다 */
+export function updateTouch() {
+    const p = state.player;
+    if (!btn.attack || !p) return;
+    const off = (action, hide) => btn[action].classList.toggle('off', hide);
+    for (const slot of ['Q', 'F', 'R']) {
+        const id = p.slots && p.slots[slot];
+        off('skill' + slot, !id);
+        if (id) {
+            const b = btn['skill' + slot];
+            const name = SKILLS[id] ? SKILLS[id].name : slot;
+            if (b.dataset.skill !== id) { b.dataset.skill = id; b.innerHTML = ''; b.append(slot, Object.assign(document.createElement('small'), { textContent: name })); b.style.lineHeight = '1.15'; b.style.display = 'flex'; b.style.flexDirection = 'column'; b.style.alignItems = 'center'; b.style.justifyContent = 'center'; }
+            const cd = (p.cooldowns[id] || 0) > 0;
+            b.style.opacity = cd ? '0.45' : '';
+        }
+    }
+    off('ultimate', !canFuse(p));
+    btn.ultimate.classList.toggle('ready', p.ult >= 100);
+    off('nextElement', p.elements.length < 2);
+    if (p.elements.length >= 2) btn.nextElement.textContent = `속성: ${ELEMENTS[p.element] ? ELEMENTS[p.element].name : ''}`;
+    off('eat', p.inventory.meat <= 0);
+    off('fly', p.stageIndex < 2);
+    off('kids', !state.partner && !state.kids.length);
 }

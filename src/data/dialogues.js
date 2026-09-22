@@ -104,103 +104,104 @@ export const NPC_SCRIPTS = {
             options: [{ t: "(기둥 뒤로 주황색 꼬리가 삐죽 나와 있다.)", next: 'end', eff: 0 }],
         },
     },
-    // 떠돌이 용들. 이름도 사연도 없는 손님이라 짧게, 그날 할 일 이야기로 끝낸다
+    // 떠돌이 용들. 이름도 사연도 없는 손님이라 짧게, 길에서 스친 사람처럼 말한다.
+    // "한판 붙을래?" 하고는 아무 일도 안 생기던 식의 빈말은 뺐다. 말한 건 다 그 자리에서 끝난다
     WISE: {
         intro: {
-            text: "처음 보는 얼굴이군. 마을 아이인가.",
+            text: "마을 아이로구나. 나는 지나는 길이다. 물 한 모금 얻어 마시고 갈 참이야.",
             options: [
-                { t: "이 근처는 어때요?", next: 'wisdom', eff: 5 },
-                { t: "지나가던 길이에요.", next: 'end', eff: 0 },
+                { t: "어디서 오셨어요?", next: 'wisdom', eff: 5 },
+                { t: "네, 편히 쉬다 가세요.", next: 'end', eff: 0 },
             ],
         },
         wisdom: {
-            text: "숲 안쪽은 아직 가지 마라. 슬라임까지는 괜찮은데 그 너머는 사람이 돈다.",
+            text: "동쪽 숲길 너머. 오다 보니 길가에 사람 발자국이 있더라. 덫도 하나 봤고. 숲 안쪽으로 혼자 가지는 마라.",
             options: [
-                { t: "알겠어요.", next: 'end', eff: 8 },
-                { t: "저 정도는 이길 수 있어요.", next: 'arrogant', eff: -5 },
+                { t: "고마워요. 조심할게요.", next: 'end', eff: 8 },
+                { t: "덫 정도는 저도 피해요.", next: 'arrogant', eff: -5 },
             ],
         },
         arrogant: {
-            text: "그러다 다친 애를 여럿 봤다. 뭐, 네 날개니까.",
-            options: [{ t: "(머쓱하게 물러난다)", next: 'end', eff: 0 }],
+            text: "그 말을 한 애들이 다리를 절며 돌아오는 걸 몇 번 봤다. 뭐, 네 다리니까.",
+            options: [{ t: "…조심할게요.", next: 'end', eff: 0 }],
         },
-        end: { text: "해 지기 전에 들어가라.", options: [] },
+        end: { text: "해 지기 전에 들어가라. 밤 숲은 낮이랑 딴 데다.", options: [] },
     },
     BRAVE: {
         intro: {
-            text: "야. 너 눈빛 괜찮네. 한판 붙을래?",
+            text: "어, 여기 애구나. 나 서쪽에서 왔는데, 이 마을 망루지기가 그렇게 세다며? 구경 왔어.",
             options: [
-                { t: "좋아요! (전투 연습)", next: 'fight', eff: 10 },
-                { t: "됐어요.", next: 'coward', eff: -5 },
+                { t: "티아맷요? 세요.", next: 'fight', eff: 10 },
+                { t: "글쎄요, 직접 보세요.", next: 'coward', eff: -5 },
             ],
         },
         fight: {
-            text: "하! 좋아. 수련장에서 보자. 도망가지 말고.",
-            options: [{ t: "누가 도망가는지 보죠.", next: 'end', eff: 5 }],
+            text: "역시. 소문이 여기까지 났다니까. 나도 언젠가 한 판 청해 보려고. 지더라도 배우는 게 있겠지.",
+            options: [{ t: "먼저 대련 신청해 보세요.", next: 'end', eff: 5 }],
         },
         coward: {
-            text: "뭐야, 쫄았어? 아직 애구나.",
-            options: [{ t: "세져서 올게요.", next: 'end', eff: 2 }],
+            text: "칫, 정 없네. 그래도 마을은 좋다. 모닥불 냄새가 나.",
+            options: [{ t: "…그렇긴 해요.", next: 'end', eff: 2 }],
         },
-        end: { text: "다음에 봐.", options: [] },
+        end: { text: "다음에 또 보자. 그때는 네가 더 커 있으려나.", options: [] },
     },
     PLAYFUL: {
         intro: {
-            text: "어! 처음 보는 애다! 나랑 놀래, 아니면 얘기할래?",
+            text: "어! 처음 보는 애다! 너 혹시 그 하늘에서 떨어졌다는 애야? 진짜야? 아팠어?",
             options: [
-                { t: "놀자!", next: 'play', eff: 12 },
-                { t: "얘기나 하죠.", next: 'chat', eff: 5 },
-                { t: "지금은 바빠요.", next: 'busy', eff: -3 },
+                { t: "응, 그게 나야.", next: 'play', eff: 12 },
+                { t: "그건 어디서 들었어?", next: 'chat', eff: 5 },
+                { t: "지금은 바빠.", next: 'busy', eff: -3 },
             ],
         },
         play: {
-            text: "내가 술래! 도망쳐~!",
-            options: [{ t: "같이 뛰어논다.", next: 'end', eff: 5 }],
+            text: "우와, 진짜다! 떨어질 때 무슨 생각 했어? 나 같으면 소리부터 질렀을 텐데. 아, 미안, 너무 물어봤다.",
+            options: [{ t: "괜찮아. 기억은 안 나.", next: 'end', eff: 5 }],
         },
         chat: {
-            text: "어제 구름 봤어? 딱 용 꼬리 모양이었는데. 아무도 안 믿어.",
-            options: [{ t: "나는 믿어.", next: 'end', eff: 5 }],
+            text: "호숫가에서 들었어. 다들 그 얘기만 해. 별이 떨어졌다느니 용이 떨어졌다느니.",
+            options: [{ t: "소문이 빠르네.", next: 'end', eff: 5 }],
         },
         busy: {
-            text: "다들 바쁘대. 나중엔 꼭 놀아 줘야 돼?",
-            options: [{ t: "미안, 다음엔 꼭.", next: 'end', eff: 2 }],
+            text: "다들 바쁘대. 알았어, 나중에 얘기해 줘. 꼭이다?",
+            options: [{ t: "미안, 다음에 꼭.", next: 'end', eff: 2 }],
         },
-        end: { text: "또 봐!", options: [] },
+        end: { text: "또 봐! 나 여기 며칠 더 있을 거야.", options: [] },
     },
     GRUMPY: {
         intro: {
-            text: "또 누구야. 뭐.",
+            text: "뭘 봐. 길 가다 잠깐 쉬는 것도 안 되나.",
             options: [
                 { t: "인사하러 왔어요.", next: 'polite', eff: 4 },
-                { t: "좀 비켜 주세요.", next: 'angry', eff: -8 },
+                { t: "거기 제 자리인데요.", next: 'angry', eff: -8 },
             ],
         },
         polite: {
-            text: "인사는 됐고. 뭐, 나쁜 애는 아니구나.",
-            options: [{ t: "방해해서 죄송해요.", next: 'end', eff: 0 }],
+            text: "인사는 됐다. …발톱은 뭐 그렇게 뜯어. 자라는 중이라 그래. 나도 그랬다.",
+            options: [{ t: "쉬시는데 방해했네요.", next: 'end', eff: 0 }],
         },
         angry: {
-            text: "뭐? 여기가 네 길이야?",
-            options: [{ t: "죄송합니다!", next: 'end', eff: 0 }],
+            text: "땅에 이름 써 놨냐. 잠깐 앉는 거다.",
+            options: [{ t: "…죄송합니다.", next: 'end', eff: 0 }],
         },
-        end: { text: "용건 없으면 가.", options: [] },
+        end: { text: "용건 없으면 가라. 나도 곧 뜬다.", options: [] },
     },
     FLIRT: {
         low: {
-            text: "어, 우리 아직 그렇게 친한 사이는 아니지 않아?",
-            options: [{ t: "미안, 너무 급했네요.", next: 'end', eff: 0 }],
+            text: "응? 우리 오늘 처음 봤잖아. 급하다, 너.",
+            options: [{ t: "미안, 너무 급했다.", next: 'end', eff: 0 }],
         },
         mid: {
-            text: "너, 생각보다 괜찮네. 좀 더 같이 있어 볼까?",
-            options: [{ t: "천천히 알아가요.", next: 'end', eff: 6 }],
+            text: "너, 생각보다 괜찮네. 근데 나는 떠도는 용이라. 며칠 뒤면 여기 없어.",
+            options: [{ t: "그럼 있는 동안만이라도.", next: 'end', eff: 6 }],
         },
         high: {
-            text: "사실 나도 기다리고 있었어. 둥지, 같이 지켜 볼래?",
+            text: "…사실 요 며칠 떠나는 걸 미루고 있었어. 네가 말 걸어 줄까 봐.",
             options: [
                 { t: "나도 같은 마음이야.", next: 'partner', eff: 10 },
-                { t: "아직 마음의 준비가.", next: 'end', eff: -3 },
+                { t: "아직 마음의 준비가 안 됐어.", next: 'end', eff: -3 },
             ],
         },
-        end: { text: "일단은 여기까지.", options: [] },
+        end: { text: "오늘은 여기까지. 내일도 있을 거야.", options: [] },
     },
 };

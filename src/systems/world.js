@@ -248,10 +248,13 @@ function populate(id) {
     // 4) 일과대로 지금 이 지도에 있어야 하는 용들
     placeByRoutine(id, pools, getNpc);
 
-    // 5) 떠돌이 용 (마을과 숲길에만 한둘)
-    if (!spec.clearings && spec.wanderer !== false && rng() < 0.7) {
+    // 5) 떠돌이 용 (마을과 숲길에만 한둘). 광장 한복판에 불쑥 서 있으면 "쟤 어디서 났어" 소리가 나서,
+    //    지도 가장자리(문 근처)에 놓고 마을에는 드물게만 온다
+    if (!spec.clearings && spec.wanderer !== false && rng() < (id === 'VILLAGE' ? 0.35 : 0.7)) {
         const species = rng() < 0.8 ? 'LOOK' : pick(WANDER_SPECIES);
-        const x = map.w * (0.3 + rng() * 0.4), y = map.h * (0.3 + rng() * 0.4);
+        const side = rng() < 0.5 ? 0.16 + rng() * 0.1 : 0.74 + rng() * 0.1;
+        const wx = rng() < 0.5, x0 = map.w * (wx ? side : 0.25 + rng() * 0.5), y0 = map.h * (wx ? 0.25 + rng() * 0.5 : side);
+        const { x, y } = clearSpot(x0, y0, map);
         pools.npcs.push(new Dragon(x, y, {
             name: pick(WANDER_NAMES), personality: pick(WANDER_PERSONALITIES), species,
             colors: SPECIES_COLORS[species] || SPECIES_COLORS.WESTERN,

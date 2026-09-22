@@ -168,14 +168,15 @@ function lookTarget(look) {
 export function playScene(title, lines, then, { cinematic = true, place = null } = {}) {
     // 장면이 벌어질 곳이 따로 있으면 먼저 그리로 간다. 그 자리에서 촌장이 튀어나오는 것보다 낫다
     if (place && place !== state.mapId && !state.dungeon) travelTo(place);
-    if (cinematic) beginCutscene(title || '');
-    else if (title) showToast(title, '📖');
-
     // 말하는 용이 지금 이 지도에 없어도 찾아낸다 (초상화가 비면 장면이 허전하다)
     const find = (who) => who === '나' ? state.player
         : state.entities.bosses.find(b => b.id === who || (b.def && b.def.name === who))
         || anyNpc(who)
         || null;
+    // 말할 이들은 처음부터 무대에 올린다 — 제 차례에 불쑥 튀어나오지 않게
+    const speakers = [...new Set(lines.map(l => find(l.who)).filter(e => e && e !== state.player && !(e.def && e.def.scale)))];
+    if (cinematic) beginCutscene(title || '', speakers);
+    else if (title) showToast(title, '📖');
 
     let i = 0;
     const step = () => {

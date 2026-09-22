@@ -8,6 +8,7 @@ import { LESSONS } from '../data/story.js';
 import { BOSSES } from '../data/enemies.js';
 import { saveGame } from '../systems/save.js';
 import { showToast } from './toast.js';
+import { GUIDE_LEVELS, guideLevel, cycleGuideLevel } from '../systems/guide.js';
 
 // 설정 창. [Esc] 로 연다. 열려 있는 다른 창이 있으면 Esc 는 그것부터 닫는다 (main.js).
 //   소리: 배경음·효과음 슬라이더, 전체 끄기
@@ -79,6 +80,12 @@ function render() {
     body.append(section('화면'));
     body.append(row('시점 (V · 휠)', button(zoomName(), () => cycleZoom(window.innerWidth, window.innerHeight))));
     body.append(row('좌우 정보 창 (U)', button('접기 · 펴기', toggleUi)));
+    body.append(section('길잡이'));
+    body.append(row('목표 화살표 · 자동 이동', button(GUIDE_LEVELS[guideLevel()], cycleGuideLevel)));
+    const gnote = document.createElement('div');
+    gnote.className = 'settings-note';
+    gnote.textContent = '"본 이야기만" 이면 본 줄기의 할 일만 화살표가 가리키고, 마을 용들의 부탁과 "그 자리에 가 있기" 대목은 스스로 찾는다. 헤매기 싫으면 "맡은 일 전부", 다 찾아내고 싶으면 "끔".';
+    body.append(gnote);
     // 테스트용. 뒷이야기를 확인하려고 둔 것이라 진행이 그대로 건너뛰어진다
     body.append(section('테스트 (진행을 건너뛴다)'));
     body.append(row(`레벨 ${state.player.level} → 16`, button('올린다', () => {
