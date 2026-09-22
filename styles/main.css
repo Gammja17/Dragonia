@@ -725,12 +725,16 @@ button.start-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
     --u: clamp(38px, 11vmin, 60px);
 }
 body.touch.playing #touch-layer { display: block; }   /* 시작 화면에서는 안 보인다 */
+/* 스틱을 받는 자리: 왼쪽 아래를 짚으면 어디든 그 자리에 스틱이 선다 (ui/touch.js) */
+#stick-zone { position: absolute; left: 0; bottom: 0; width: 46%; height: 58%; pointer-events: auto; }
 #stick-base {
     position: absolute; left: 16px; bottom: 18px; border-radius: 50%;
     width: calc(3.4 * var(--u)); height: calc(3.4 * var(--u));
     background: rgba(255, 255, 255, 0.07); border: 2px solid rgba(255, 255, 255, 0.22);
-    pointer-events: auto; display: flex; align-items: center; justify-content: center;
+    pointer-events: none; display: flex; align-items: center; justify-content: center;
+    opacity: 0.5; transition: opacity 0.12s ease;
 }
+#stick-base.on { opacity: 1; }
 #stick-knob {
     width: calc(1.4 * var(--u)); height: calc(1.4 * var(--u)); border-radius: 50%;
     background: rgba(255, 216, 74, 0.5); border: 2px solid rgba(255, 255, 255, 0.55);
