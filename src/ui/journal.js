@@ -22,6 +22,7 @@ import { skillCooldown } from '../systems/skills.js';
 import { play } from '../systems/audio.js';
 import { markTutorial } from '../systems/tutorial.js';
 import { roster } from '../systems/routine.js';
+import { getTileImage } from '../world/terrain.js';
 import { dayPhaseName } from '../render/lighting.js';
 import { isGatherNow, isGatherDay, daysToGather, knowsCloudtop } from '../systems/gathering.js';
 
@@ -500,13 +501,45 @@ function equip(id, slot, unequip) {
     play('ui');
 }
 
+/** 적의 얼굴: 던전 시트의 16px 칸을 3배로 (색이 다른 변종은 그 필터로) */
+function enemyFace(def) {
+    const c = document.createElement('canvas');
+    c.width = 48; c.height = 48;
+    const sheet = getTileImage('dungeon');
+    if (sheet && def.sprite) {
+        const g = c.getContext('2d');
+        g.imageSmoothingEnabled = false;
+        if (def.filter) g.filter = def.filter;
+        g.drawImage(sheet, def.sprite[0] * 16, def.sprite[1] * 16, 16, 16, 0, 0, 48, 48);
+    }
+    c.className = 'codex-face';
+    return c;
+}
+
 function renderCodex(body) {
     const kills = state.stats.kills;
-    const names = { ...ENEMIES, HUNTER: { name: '사냥꾼' } };
-    body.appendChild(section('도감', [
-        ...Object.keys(names).filter(id => !names[id].noLoot).map(id => kills[id] ? [names[id].name, `${kills[id]}마리`] : ['???', '아직 만나지 못함', true]),
-        ...Object.entries(BOSSES).map(([id, b]) => state.bossesDefeated[id] ? [b.name, '처치'] : ['???', b.title, true]),
-    ]));
+    const grid = document.createElement('div');
+    grid.className = 'codex-grid';
+    const cell = (face, name, sub, dim) => {
+        const d = document.createElement('div');
+        d.className = 'codex-cell' + (dim ? ' dim' : '');
+        if (face) d.appendChild(face);
+        const n = document.createElement('b'); n.textContent = name;
+        const s = document.createElement('span'); s.textContent = sub;
+        d.append(n, s);
+        grid.appendChild(d);
+    };
+    for (const id of Object.keys(ENEMIES)) {
+        const def = ENEMIES[id];
+        if (def.noLoot) continue;
+        const met = !!kills[id];
+        cell(enemyFace(def), met ? def.name : '???', met ? `${kills[id]}마리` : '아직 만나지 못함', !met);
+    }
+    cell(null, kills.HUNTER ? '사냥꾼' : '???', kills.HUNTER ? `${kills.HUNTER}명` : '아직 만나지 못함', !kills.HUNTER);
+    const h = document.createElement('div'); h.className = 'journal-title'; h.textContent = '큰 용들';
+    body.appendChild(grid);
+    body.appendChild(h);
+    body.appendChild(section('', Object.entries(BOSSES).map(([id, b]) => state.bossesDefeated[id] ? [b.name, '처치'] : ['???', b.title, true])));
 }
 
 /**

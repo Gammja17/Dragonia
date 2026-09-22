@@ -22,6 +22,7 @@ import { applyHitStop, updateFeedback, drawFeedback, flashAmount } from './rende
 import { updateFlow, worldTimeScale } from './systems/flow.js';
 import { updateAmbush } from './systems/ambush.js';
 import { updateRelicOffer } from './systems/relicOffer.js';
+import { updateChatter } from './systems/chatter.js';
 import { initPostFx, resizePostFx, renderPostFx } from './render/postfx.js';
 import { setCrispLayer, beginCrispWorld, endCrispWorld } from './render/overlay.js';
 import { toggleDebug, updateDebug, drawDebug } from './render/debugOverlay.js';
@@ -187,7 +188,7 @@ function update(dt) {
         if (inMyDen()) updateDenPlace();                      // 굴 안: 살림살이 놓기
         else updateSpawns(dt);
         updateTravel(); updatePortals(); updateRoutine(dt, getNpc); updateTour(dt); updateChronicle(dt);
-        updateBedtime(); updateChapter();
+        updateBedtime(); updateChapter(); updateChatter(dt);
     }
     updateTraining();
 }

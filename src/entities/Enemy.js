@@ -103,7 +103,7 @@ export class Enemy extends Entity {
     die() {
         this.remove = true;
         if (!this.def.noLoot) onKill(this.elite);
-        if (this.def.noLoot) { spawnEffect('PUFF', this.x, this.y - 16); play('die'); return; }
+        if (this.def.noLoot) { spawnEffect('PUFF', this.x, this.y - 16); play('die'); notify('kill', this.type); return; }   // 허수아비도 첫 퀘스트가 센다
         if (this.affix && this.affix.id === 'SPLIT' && !this.splitChild) {   // 둘로 갈라진다 (한 번만)
             for (const side of [-1, 1]) {
                 const c = new Enemy(this.x + side * 34, this.y + 8, this.type, false);

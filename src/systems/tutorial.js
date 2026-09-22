@@ -1,6 +1,7 @@
 import { state } from '../core/state.js';
 import { dist } from '../core/utils.js';
 import { showToast } from '../ui/toast.js';
+import { Enemy } from '../entities/Enemy.js';
 
 // 처음 며칠의 조작 안내.
 //
@@ -15,6 +16,11 @@ const HINTS = [
         id: 'fight', icon: '🔥',
         when: s => s.mapId !== 'VILLAGE' && s.entities.enemies.some(e => e.type !== 'PREY' && dist(e, s.player) < 420),
         text: '마우스로 겨누고 클릭하면 숨결이 나간다. 꾹 누르면 계속 나가고, [Shift]로 피한다.',
+    },
+    {
+        id: 'dummy', icon: '🎯',
+        when: s => s.mapId === 'VILLAGE' && s.entities.enemies.some(e => e.type === 'DUMMY'),
+        text: '허수아비를 마우스로 겨누고 클릭. 꾹 누르면 계속 나간다. [Shift]를 탁 누르면 대시로 피한다.',
     },
     {
         id: 'eat', icon: '🍖',
@@ -33,6 +39,11 @@ export function updateTutorial() {
     const t = state.tutorial;
     if (!t || t.finished || state.isDialogueOpen || state.prologue) return;
     if (state.quests.done.includes('m1')) { t.finished = true; return; }
+    // 첫 퀘스트의 허수아비 대목: 광장에 허수아비 둘이 서 있어야 한다 (지도를 오가도 다시 선다)
+    const m0 = state.quests.active.m0;
+    if (m0 && m0.step === 2 && state.mapId === 'VILLAGE' && !state.entities.enemies.some(e => e.type === 'DUMMY')) {
+        for (const [tx, ty] of [[10, 9], [13, 9]]) { const d = new Enemy(tx * 96 + 48, ty * 96 + 48, 'DUMMY'); d.maxHp = d.hp = 30; state.entities.enemies.push(d); }
+    }
     t.hints = t.hints || {};
     const hint = HINTS.find(h => !t.hints[h.id] && h.when(state));
     if (!hint) return;

@@ -538,6 +538,14 @@ body.cutscene #flow-bar { display: none; }
 .q-step .q-replay:hover { color: var(--parch); background: var(--ink-hover); }
 .q-done-text { color: var(--parch-mid); font-style: italic; line-height: 1.55; margin: 4px 0 6px; padding-left: 9px; border-left: 2px solid #4e5560; }
 
+/* 도감: 얼굴 격자. 못 만난 놈은 실루엣만 */
+.codex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; margin-bottom: 8px; }
+.codex-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; background: var(--ink-raise); font-size: 0.72rem; text-align: center; }
+.codex-cell b { color: var(--parch); font-weight: 700; }
+.codex-cell span { color: var(--parch-dim); font-size: 0.66rem; }
+.codex-cell.dim .codex-face { filter: brightness(0) opacity(0.35); }
+.codex-face { width: 48px; height: 48px; image-rendering: pixelated; }
+
 /* 유물 장착 */
 .relic-note { color: var(--parch-dim); font-size: 0.72rem; line-height: 1.55; margin: 0 0 8px; }
 .relic-slots { display: flex; gap: 5px; margin-bottom: 4px; }

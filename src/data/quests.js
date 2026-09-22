@@ -34,6 +34,8 @@ export const QUESTS = [
         steps: [
             { goal: { type: 'talk', target: 'Elder' }, hint: "곁에 앉아 있는 늙은 용에게 말을 건다. ([WASD]로 걷고, 가까이 가서 [Space])" },
             { goal: { type: 'tour' }, hint: "포코를 따라 마을을 둘러본다." },
+            // 숲에 나가기 전에 광장에서 쏘기와 피하기만 익힌다. 첫날에 조작이 한꺼번에 쏟아지지 않게
+            { goal: { type: 'kill', target: 'DUMMY', count: 2 }, hint: "광장의 허수아비 둘을 숨결로 부순다. (마우스로 겨누고 클릭, [Shift]로 대시)", toast: '허수아비를 다 부쉈다. 엘더에게 돌아가자.', icon: '🎯' },
         ],
         done: "다 둘러보았느냐. 포코가 귀찮게 굴지는 않았고? 허허… 저 아이가 저렇게 신이 난 건 참 오랜만이구나.",
         reward: { xp: 20 },

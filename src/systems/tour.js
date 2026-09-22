@@ -95,6 +95,7 @@ function endTour() {
     if (e) e.walkTo = null;
     state.tour = null;
     markTutorial('toured');
-    notify('tour');       // m0: 마을을 둘러본다 → 엘더에게 돌아간다
+    notify('tour');       // m0: 마을을 둘러본다 → 허수아비 → 엘더에게 돌아간다
+    showToast('포코가 광장 한쪽의 허수아비를 가리킨다. 마우스로 겨누고 클릭해서 부숴 보자.', '🎯');
     saveGame();
 }
