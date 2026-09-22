@@ -236,7 +236,7 @@ class FloatText {
     draw(ctx) {
         ctx.save();
         ctx.globalAlpha = Math.min(1, (0.9 - this.t) * 3);
-        ctx.font = `900 ${this.size}px Fredoka`;
+        ctx.font = `900 ${this.size}px "KOTRA LEAP", sans-serif`;
         ctx.textAlign = 'center';
         ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,0.75)';
         ctx.strokeText(this.text, this.x, this.y);

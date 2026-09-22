@@ -78,8 +78,15 @@ initCustomizer(startGame);
 initMusic();
 window.addEventListener('beforeunload', saveGame);
 
+// 캔버스 글씨는 CSS 처럼 글꼴을 알아서 기다려 주지 않는다. 미리 받아 둬야 이름표가 기본 글꼴로 한 번 깜빡이지 않는다
+function preloadFonts() {
+    if (!document.fonts) return Promise.resolve();
+    const faces = ['12px "Bookk Myungjo"', '600 12px "Bookk Myungjo"', '900 30px "KOTRA LEAP"'];
+    return Promise.all(faces.map(f => document.fonts.load(f, '용 0'))).catch(() => {});
+}
+
 // 드래곤 시트와 타일셋은 페이지 로드 직후부터 받기 시작한다
-const assetsReady = Promise.all([preloadDragonSprites(), preloadTerrain(), preloadVfx()]).catch(err => { console.error(err); });
+const assetsReady = Promise.all([preloadDragonSprites(), preloadTerrain(), preloadVfx(), preloadFonts()]).catch(err => { console.error(err); });
 
 let lastTime = 0;
 let hudAccumulator = 0;

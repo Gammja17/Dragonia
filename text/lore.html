@@ -1,27 +1,30 @@
 <title>드래고니아 설정집</title>
 <meta charset="utf-8">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
 <style>
+@font-face { font-family: "Bookk Myungjo"; src: url("../assets/fonts/bookk-myungjo-light.woff2") format("woff2"); font-weight: 100 400; font-display: swap; }
+@font-face { font-family: "Bookk Myungjo"; src: url("../assets/fonts/bookk-myungjo-bold.woff2") format("woff2"); font-weight: 500 900; font-display: swap; }
+@font-face { font-family: "KOTRA LEAP"; src: url("../assets/fonts/kotra-leap.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 :root {
     --ink: #13121d; --ink-2: #1b1a28; --raise: rgba(255,255,255,0.055); --line: rgba(216,178,90,0.28);
     --gold: #d8b25a; --gold-lit: #ffd84a; --parch: #ece3cf; --mid: #b6ae9a; --dim: #857e6e;
     --hp: #e0453a; --cold: #7fd4ff; --good: #7dd36a; --food: #f0913c; --xp: #b06bff;
-    --serif: "Gowun Batang", "Nanum Myeongjo", serif; --sans: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+    --serif: "Bookk Myungjo", "Nanum Myeongjo", serif; --sans: "Bookk Myungjo", serif;
+    --title: "KOTRA LEAP", "Bookk Myungjo", sans-serif;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--ink); color: var(--parch); font-family: var(--sans); font-size: 15px; line-height: 1.75; }
 a { color: var(--gold); text-decoration: none; }
 .wrap { display: grid; grid-template-columns: 200px minmax(0, 720px); gap: 48px; max-width: 1000px; margin: 0 auto; padding: 32px 20px 80px; }
 nav { position: sticky; top: 24px; align-self: start; font-size: 13px; }
-nav .brand { font-family: var(--serif); font-size: 20px; color: var(--gold); margin-bottom: 4px; }
+nav .brand { font-family: var(--title); font-size: 20px; color: var(--gold); margin-bottom: 4px; }
 nav .sub { color: var(--dim); font-size: 12px; margin-bottom: 18px; }
 nav a { display: block; color: var(--mid); padding: 3px 0 3px 10px; border-left: 2px solid transparent; }
 nav a:hover { color: var(--parch); border-left-color: var(--gold); }
 main { min-width: 0; }
-h1 { font-family: var(--serif); font-weight: 700; font-size: 34px; line-height: 1.25; margin: 0 0 6px; text-wrap: balance; }
+h1 { font-family: var(--title); font-weight: 700; font-size: 34px; line-height: 1.25; margin: 0 0 6px; text-wrap: balance; }
 .lead { color: var(--mid); font-size: 15px; margin-bottom: 40px; border-bottom: 1px solid var(--line); padding-bottom: 24px; }
-h2 { font-family: var(--serif); font-size: 24px; color: var(--gold); margin: 56px 0 16px; padding-top: 16px; border-top: 1px solid var(--line); text-wrap: balance; }
-h3 { font-size: 16px; font-weight: 700; margin: 26px 0 8px; color: var(--parch); }
+h2 { font-family: var(--title); font-size: 24px; color: var(--gold); margin: 56px 0 16px; padding-top: 16px; border-top: 1px solid var(--line); text-wrap: balance; }
+h3 { font-family: var(--title); font-size: 16px; font-weight: 700; margin: 26px 0 8px; color: var(--parch); }
 p { margin: 0 0 12px; max-width: 66ch; }
 ul { margin: 0 0 12px; padding-left: 20px; max-width: 66ch; }
 li { margin-bottom: 4px; }

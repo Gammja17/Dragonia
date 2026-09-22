@@ -89,6 +89,17 @@ CC BY-SA 에셋(`behemoth`, `bone`)을 수정한 결과물은 같은 CC BY-SA 3.
 
 나머지 효과음 40여 종은 파일 없이 WebAudio 로 그때그때 만든다 (`src/systems/audio.js`).
 
+## 글꼴 (`assets/fonts/`)
+
+| 파일 | 원작 | 라이선스 | 출처 |
+|---|---|---|---|
+| `kotra-leap.woff2` | 코트라 도약체 (KOTRA LEAP) © 2021 KOTRA | KOGL 제1유형 (출처표시 / 상업적 이용·변형 가능) | 공유마당 https://gongu.copyright.or.kr/gongu/wrt/wrt/view.do?wrtSn=13302257 |
+| `bookk-myungjo-light.woff2`, `bookk-myungjo-bold.woff2` | 부크크 명조 (Bookk Myungjo) © Bookk Co., Ltd. | **웹 임베딩·서브셋 재배포 조건 확인 필요** | https://bookk.io/ |
+
+변경 사항: 원본 ttf/otf 를 게임에 쓰는 글자(라틴, 한글 11,172자, 문장부호·괘선)만 남겨
+서브셋한 뒤 woff2 로 압축했다. 글꼴 파일 자체를 따로 배포하거나 팔지 않는다.
+
 ## 라이선스 전문
 - CC BY 3.0: https://creativecommons.org/licenses/by/3.0/
 - CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/
+- KOGL 제1유형: https://www.kogl.or.kr/info/license.do
