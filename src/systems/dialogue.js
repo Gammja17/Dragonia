@@ -66,6 +66,7 @@ function renderNode(group, key, npc) {
         onClose: closeDialogue,
         sheet: npc.sheet,
         npc,
+        face: node.face,   // 대사 노드에 표정(neutral·happy·angry·sad·surprised·worried)을 적어 두면 초상화가 따라간다
     });
 }
 

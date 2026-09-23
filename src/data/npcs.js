@@ -25,58 +25,58 @@ export const KID_NAMES = [
 export const FIXED_NPCS = [
     {
         name: 'Elder', personality: 'WISE', role: 'ELDER', canPartner: true, elder: true,
-        species: 'LOOK', look: 12, accessory: 'CROWN', scale: 1.15, colors: { body: '#7d4fb3', belly: '#af7ac5', wing: '#d4a017' }, element: 'ICE', maxHp: 420, power: 14,
+        species: 'CAST', look: 0, accessory: null, scale: 1.15, colors: { body: '#7d4fb3', belly: '#af7ac5', wing: '#d4a017' }, element: 'ICE', maxHp: 420, power: 14,
         x: 1200, y: 1200,
     },
     {
         name: 'Tiamat', personality: 'BRAVE', canPartner: true,
-        species: 'LOOK', look: 6, accessory: 'PLUME', colors: { body: '#2f6fb5', belly: '#3498db', wing: '#c9c9c9' }, element: 'THUNDER', maxHp: 300, power: 12,
+        species: 'CAST', look: 1, accessory: null, colors: { body: '#2f6fb5', belly: '#3498db', wing: '#c9c9c9' }, element: 'THUNDER', maxHp: 300, power: 12,
         x: 1776, y: 1290,   // 동쪽 망루의 보금자리
     },
     {
         name: 'Poco', personality: 'PLAYFUL', canPartner: true,
-        species: 'LOOK', look: 17, accessory: 'FLOWER', scale: 0.8, colors: { body: '#e67e22', belly: '#f1c40f', wing: '#f7d354' }, element: 'FIRE', maxHp: 220, power: 8,
+        species: 'CAST', look: 2, accessory: null, scale: 0.8, colors: { body: '#e67e22', belly: '#f1c40f', wing: '#f7d354' }, element: 'FIRE', maxHp: 220, power: 8,
         x: 816, y: 1860,    // 남서쪽 꽃밭의 보금자리
     },
     {
         name: 'Gron', personality: 'GRUMPY', canPartner: true,
-        species: 'LOOK', look: 4, accessory: 'HELM', colors: { body: '#6f7d7d', belly: '#95a5a6', wing: '#b08d57' }, element: 'FIRE', maxHp: 380, power: 10,
+        species: 'CAST', look: 3, accessory: null, colors: { body: '#2f5d3a', belly: '#d8c48a', wing: '#7a8a5a' }, element: 'FIRE', maxHp: 380, power: 10,
         x: 1430, y: 1120,   // 광장의 가게 앞
     },
     {
         // 나라: 나와 같은 날 수련을 시작한 또래. 늘 한 발 앞서 가려 한다
         name: 'Nara', personality: 'RIVAL', canPartner: true,
-        species: 'LOOK', look: 9, accessory: 'PLUME', scale: 0.92, colors: { body: '#c0563b', belly: '#f0a868', wing: '#e8d7a8' }, element: 'FIRE', maxHp: 280, power: 11,
+        species: 'CAST', look: 4, accessory: null, scale: 0.92, colors: { body: '#5a86c8', belly: '#dbe9f6', wing: '#eef4fa' }, element: 'FIRE', maxHp: 280, power: 11,
         x: 2300, y: 1320,   // 수련장 한켠
     },
     {
         name: 'Kairon', personality: 'WISE', role: 'MASTER', canPartner: true, elder: true,
-        species: 'LOOK', look: 22, accessory: 'HAT', colors: { body: '#8a2f2a', belly: '#d8a24a', wing: '#3a2a2a' }, element: 'FIRE', maxHp: 600, power: 16, scale: 1.18,
+        species: 'CAST', look: 5, accessory: null, colors: { body: '#8a2f2a', belly: '#d8a24a', wing: '#3a2a2a' }, element: 'FIRE', maxHp: 600, power: 16, scale: 1.18,
         x: 2448, y: 1000,   // 수련장
     },
     {
         // 엠버: 그론의 조수. 떠돌다 눌러앉았다. 손도 입도 빠르고, 맨날 혼난다 (text/story-bible.md 4절)
         name: 'Ember', personality: 'PLAYFUL', canPartner: false,
-        species: 'LOOK', look: 11, accessory: null, scale: 0.9, colors: { body: '#b8323a', belly: '#e8a07a', wing: '#7a1f2a' }, element: 'FIRE', maxHp: 260, power: 9,
+        species: 'CAST', look: 6, accessory: null, scale: 0.9, colors: { body: '#b8323a', belly: '#e8a07a', wing: '#7a1f2a' }, element: 'FIRE', maxHp: 260, power: 9,
         x: 1500, y: 1180,   // 대장간 옆
     },
     {
         // 미라: 약초를 캐고 다친 용을 돌본다. 약초 핑계로 폭포 쪽에 자주 간다
         name: 'Mira', personality: 'WISE', canPartner: false,
-        species: 'LOOK', look: 7, accessory: 'LEAF', scale: 0.95, colors: { body: '#4f7f4a', belly: '#b8d89a', wing: '#8a6a3a' }, element: 'ICE', maxHp: 240, power: 8,
+        species: 'CAST', look: 7, accessory: null, scale: 0.95, colors: { body: '#4f7f4a', belly: '#b8d89a', wing: '#8a6a3a' }, element: 'ICE', maxHp: 240, power: 8,
         x: 900, y: 900,
     },
     {
         // 베스나: 잿마루의 문지기이자 이그나르의 사자. 웨스턴에서 났고, 예순 해 전에 그를 따라 나갔다
         name: 'Vesna', personality: 'WISE', canPartner: false,
-        species: 'LOOK', look: 20, accessory: null, scale: 1.08, colors: { body: '#2a2630', belly: '#5a4a5a', wing: '#8a3a2a' }, element: 'FIRE', maxHp: 420, power: 14,
+        species: 'CAST', look: 8, accessory: null, scale: 1.08, colors: { body: '#2a2630', belly: '#5a4a5a', wing: '#8a3a2a' }, element: 'FIRE', maxHp: 420, power: 14,
         x: 0, y: 0,
     },
     {
         // 결말 뒤의 이그나르. 교화 결말이면 웨스턴 마을 밖 호숫가에, 어둠의 결말이면 잿마루에 산다 (data/routines.js 의 when)
         // 곁에 두고 다닐 수도 있고(의탁), 마음을 나눌 수도 있다
         name: 'Ignar', personality: 'WISE', role: 'FALLEN', canPartner: true, elder: true,
-        species: 'SHADOW', accessory: null, scale: 0.62, colors: { body: '#3a2a4a', belly: '#5a4a6a', wing: '#ff5a1f' }, element: 'FIRE', maxHp: 900, power: 22,
+        species: 'CAST', look: 9, accessory: null, scale: 1.3, colors: { body: '#3a2a4a', belly: '#5a4a6a', wing: '#ff5a1f' }, element: 'FIRE', maxHp: 900, power: 22,
         x: 0, y: 0,
     },
     // ---- 웨스턴의 부부. 도란은 호숫가에서 낚시를 하고 미루는 마을에서 살림을 한다. 둘 다 짝은 안 된다 (이미 부부다) ----
@@ -126,12 +126,12 @@ export const FIXED_NPCS = [
     // ---- 뿌리골: 밀림 깊은 곳, 풀의 용들 ----
     {
         name: 'Moss', personality: 'WISE', role: 'ELDER_ROOT', canPartner: false, elder: true,
-        species: 'LOOK', look: 5, accessory: 'LEAF', scale: 1.12, colors: { body: '#5f8f4a', belly: '#cfe0a0', wing: '#8a6a3a' }, element: 'ICE', maxHp: 400, power: 12,
+        species: 'CAST', look: 10, accessory: null, scale: 1.12, colors: { body: '#5f8f4a', belly: '#cfe0a0', wing: '#8a6a3a' }, element: 'ICE', maxHp: 400, power: 12,
         x: 0, y: 0,
     },
     {
         name: 'Fern', personality: 'PLAYFUL', canPartner: false,
-        species: 'LOOK', look: 15, accessory: 'FLOWER', scale: 0.82, colors: { body: '#8fcf6a', belly: '#f0e0b0', wing: '#c8e0a0' }, element: 'ICE', maxHp: 220, power: 8,
+        species: 'CAST', look: 11, accessory: null, scale: 0.82, colors: { body: '#8fcf6a', belly: '#f0e0b0', wing: '#c8e0a0' }, element: 'ICE', maxHp: 220, power: 8,
         x: 0, y: 0,
     },
     {
@@ -143,12 +143,12 @@ export const FIXED_NPCS = [
     // ---- 바윗골: 사막의 바위 고원, 땅의 용들 ----
     {
         name: 'Garam', personality: 'GRUMPY', role: 'ELDER_STONE', canPartner: false, elder: true,
-        species: 'LOOK', look: 24, accessory: 'HELM', scale: 1.2, colors: { body: '#7a5a3a', belly: '#c9a06a', wing: '#5a4030' }, element: 'FIRE', maxHp: 520, power: 15,
+        species: 'CAST', look: 12, accessory: null, scale: 1.2, colors: { body: '#7a5a3a', belly: '#c9a06a', wing: '#5a4030' }, element: 'FIRE', maxHp: 520, power: 15,
         x: 0, y: 0,
     },
     {
         name: 'Dol', personality: 'BRAVE', canPartner: false,
-        species: 'LOOK', look: 25, accessory: null, scale: 0.85, colors: { body: '#8a6a4a', belly: '#d8b88a', wing: '#6a5040' }, element: 'FIRE', maxHp: 260, power: 9,
+        species: 'CAST', look: 13, accessory: null, scale: 0.85, colors: { body: '#8a6a4a', belly: '#d8b88a', wing: '#6a5040' }, element: 'FIRE', maxHp: 260, power: 9,
         x: 0, y: 0,
     },
 
@@ -164,19 +164,19 @@ export const FIXED_NPCS = [
     {
         // 리운: 구름마루의 어른. 물이 하는 말을 듣는다는 소문이 있다
         name: 'Riun', personality: 'WISE', role: 'ELDER_EAST', canPartner: false, east: true, elder: true,
-        species: 'LOOK', look: 3, accessory: null, scale: 1.22, colors: { body: '#2a5f8f', belly: '#7fc4e8', wing: '#d8b25a' }, element: 'ICE', maxHp: 440, power: 15,
+        species: 'CAST', look: 14, accessory: null, scale: 1.22, colors: { body: '#2a5f8f', belly: '#7fc4e8', wing: '#d8b25a' }, element: 'ICE', maxHp: 440, power: 15,
         x: 0, y: 0,
     },
     {
         // 세이란: 물을 읽는 자. 폭포에 비친 것으로 앞일을 점친다
         name: 'Seiran', personality: 'WISE', role: 'SEER', canPartner: true, east: true,
-        species: 'LOOK', look: 16, accessory: 'FLOWER', scale: 1.0, colors: { body: '#2f8f6f', belly: '#9fe0c4', wing: '#e8d7a8' }, element: 'ICE', maxHp: 300, power: 11,
+        species: 'CAST', look: 15, accessory: null, scale: 1.0, colors: { body: '#2f8f6f', belly: '#9fe0c4', wing: '#e8d7a8' }, element: 'ICE', maxHp: 300, power: 11,
         x: 0, y: 0,
     },
     {
         // 하루: 구름마루의 또래 수련생. 바깥 이야기를 제일 궁금해한다
         name: 'Haru', personality: 'PLAYFUL', canPartner: true, east: true,
-        species: 'LOOK', look: 8, accessory: 'LEAF', scale: 0.88, colors: { body: '#7f5fc0', belly: '#c9a8f0', wing: '#f0d890' }, element: 'THUNDER', maxHp: 250, power: 10,
+        species: 'CAST', look: 16, accessory: null, scale: 0.88, colors: { body: '#7f5fc0', belly: '#c9a8f0', wing: '#f0d890' }, element: 'THUNDER', maxHp: 250, power: 10,
         x: 0, y: 0,
     },
     {
@@ -194,7 +194,7 @@ export const FIXED_NPCS = [
     {
         // 유안: 경계를 도는 자. 폭포 아래로 내려오는 것을 가장 싫어한다
         name: 'Yuan', personality: 'GRUMPY', canPartner: false, east: true,
-        species: 'LOOK', look: 14, accessory: 'HELM', scale: 1.06, colors: { body: '#1f6f9f', belly: '#6fc0e0', wing: '#b8c8d0' }, element: 'ICE', maxHp: 360, power: 13,
+        species: 'CAST', look: 17, accessory: null, scale: 1.06, colors: { body: '#1f6f9f', belly: '#6fc0e0', wing: '#b8c8d0' }, element: 'ICE', maxHp: 360, power: 13,
         x: 0, y: 0,
     },
 ];

@@ -11,6 +11,7 @@
 | `behemoth.png`, `bone.png` | "Stendhal Dragons" © 2017-2018 Kimmo Rundelin | CC BY-SA 3.0 | https://opengameart.org/node/81282 |
 
 | `looks.png` (앉은 용 26종) | **출처·라이선스 확인 필요** — 사용자가 내려받은 `pxl drAHHgon.png`, `image (84).png` 를 64px 칸으로 재배치 | (확인 후 기입) |
+| `cast.png` (마을 인물 18명), `assets/portraits/*.png` (대화창 초상화 6표정) | 이 게임을 위해 만든 원작 디자인. 바르코(3d.varco.ai) 워크플로우의 GPT-image 로 뽑아 `tools/build_cast.py` 로 도트화 | 자체 제작 |
 | `shadow.png` (최종 보스) | "Shadow Demon Dragon Asset Pack" — 프레임을 잘라 절반 크기로 재배치. **작가·라이선스 확인 필요** | itch.io (확인 후 기입) |
 
 변경 사항: 게임 실행 중에 플레이어/NPC 색상에 맞춰 색조를 바꿔 그린다(`src/render/tint.js`).

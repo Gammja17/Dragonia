@@ -122,6 +122,39 @@ DRAGON_SHEETS.LOOK = {
     scale: 2.5, anchor: { x: 0.5, y: 0.97 }, flying: false, zones: [],
     head: { left: [0.2, 0.3], right: [0.8, 0.3], up: [0.2, 0.3], down: [0.2, 0.3] },
 };
+// CAST: 마을 인물 18명의 전용 그림 (192x160 칸, 6열 × 3행, 모두 왼쪽을 본다). config.look 이 칸 번호 = CAST_NAMES 의 차례.
+//       바르코(GPT-image)로 뽑아 고른 그림을 tools/build_cast.py 가 도트로 줄여 시트로 만든다. 색은 그림에 박혀 있어 색조 교체 없음.
+//       한 장짜리라 움직임은 LOOK 과 같은 procedural.
+export const CAST_NAMES = ['elder', 'tiamat', 'poco', 'gron', 'nara', 'kairon', 'ember', 'mira', 'vesna',
+    'ignar', 'moss', 'fern', 'garam', 'dol', 'riun', 'seiran', 'haru', 'yuan'];
+DRAGON_SHEETS.CAST = {
+    type: 'static',
+    images: { sheet: D + 'cast.png' },
+    fw: 192, fh: 160, cols: 6,
+    boxes: [
+        { x: 30, y: 40, w: 131, h: 120 },   // elder
+        { x: 46, y: 40, w: 100, h: 120 },   // tiamat
+        { x: 23, y: 40, w: 146, h: 120 },   // poco
+        { x: 23, y: 40, w: 146, h: 120 },   // gron
+        { x: 21, y: 55, w: 150, h: 105 },   // nara
+        { x: 21, y: 89, w: 150, h: 71 },    // kairon
+        { x: 26, y: 40, w: 140, h: 120 },   // ember
+        { x: 21, y: 41, w: 150, h: 119 },   // mira
+        { x: 33, y: 40, w: 126, h: 120 },   // vesna
+        { x: 35, y: 40, w: 121, h: 120 },   // ignar
+        { x: 21, y: 48, w: 150, h: 112 },   // moss
+        { x: 37, y: 40, w: 118, h: 120 },   // fern
+        { x: 29, y: 40, w: 134, h: 120 },   // garam
+        { x: 26, y: 40, w: 139, h: 120 },   // dol
+        { x: 37, y: 40, w: 117, h: 120 },   // riun
+        { x: 34, y: 40, w: 123, h: 120 },   // seiran
+        { x: 32, y: 40, w: 128, h: 120 },   // haru
+        { x: 30, y: 40, w: 131, h: 120 },   // yuan
+    ],
+    anims: { idle: { fps: 1 }, move: { fps: 1 }, attack: { fps: 4, loop: false, count: 2 }, hit: { fps: 6, loop: false, count: 2 } },
+    scale: 1.25, anchor: { x: 0.5, y: 0.97 }, flying: false, zones: [],
+    head: { left: [0.2, 0.25], right: [0.8, 0.25], up: [0.2, 0.25], down: [0.2, 0.25] },
+};
 // SHADOW: Shadow Demon Dragon — 좌우 애니메이션만 있는 큰 용. 행 = idle/move/attack/hit, 왼쪽을 본다
 DRAGON_SHEETS.SHADOW = {
     type: 'side',
