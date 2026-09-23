@@ -283,6 +283,9 @@ export function suggestion() {
         const plan = planFor(main.giver);
         return { who: main.giver, main: true, title: `${npcName(main.giver)}에게 말을 걸어 보자`, goal: plan ? `지금 ${plan.mapName}에 있다 · ${plan.doing}` : '마을 어딘가에 있다' };
     }
+    // 돌아다니다 저절로 열리는 본 이야기. 어디로 가야 열리는지는 lead 가 귀띔한다 (그론이 죽은 뒤 사막으로 가야 하는 걸 아무도 안 알려 주던 것)
+    const auto = QUESTS.find(q => q.auto && q.act === 'main' && q.lead && ready(q));
+    if (auto) return { who: null, main: true, place: auto.lead.map, title: auto.lead.text, goal: `${mapName(auto.lead.map)} 쪽으로 가 본다` };
     const side = QUESTS.filter(q => !q.auto && ready(q));
     if (side.length) {
         const where = [...new Set(side.map(q => { const p = planFor(q.giver); return p ? p.mapName : null; }).filter(Boolean))];

@@ -102,6 +102,7 @@ function wanted() {
     } else {
         const s = suggestion();
         if (s && s.who && s.main) who = s.who;   // 곁가지 부탁은 누가 줄지 귀띔만 하고 가리키지는 않는다
+        else if (s && s.place && s.main) place = { map: s.place };   // 저절로 열리는 이야기는 그 지도로 가는 문을 가리킨다
     }
     if (who) {
         const here = state.entities.npcs.find(n => n.config.name === who && !n.remove && !n.hidden);

@@ -197,6 +197,7 @@ export const QUESTS = [
     {
         // 3장. 숨결은 빼앗는 게 아니라 물려받는 것이다 (text/story-bible.md 5절)
         id: 'm4', auto: true, giver: 'Elder', turnIn: 'Elder', act: 'main', requires: 'm3', title: '골짜기의 옛 수호룡',
+        lead: { map: 'HOLLOW', text: '동쪽 숲길 너머 달빛 골짜기에서 밤마다 울음이 들린다고 한다' },   // 저절로 열리는 퀘스트: 어디로 가 보라는 귀띔 (systems/quests.js 의 suggestion)
         offer: "골짜기에서 우는 건 [모르가스] 어른이란다. 우리 마을의 수호룡이셨지… 보내 드려야 하는데, 우리 늙은이들은 차마 손을 못 댔구나.\n\n다만 골짜기 안쪽의 냉기는 어린 몸으로는 못 견딘단다. 카이론에게 가서 성체 시험을 청하려무나. 그 애도 이제는 허락할 게다.",
         summary: "모르가스는 예순 해 전까지 웨스턴 마을의 수호룡이었다. 죽고도 골짜기를 떠나지 못했고, 그 냉기가 폭포로 가는 길을 얼려 놓았다. 제자인 카이론은 차마 손을 못 댄다.",
         steps: [
@@ -319,6 +320,7 @@ export const QUESTS = [
     {
         // 5장. 두 마을이 스무 해 만에 같이 움직인다. 그리고 그게 6장의 도화선이 된다
         id: 'm5a', auto: true, giver: 'Elder', act: 'main', requires: 'm5g', title: '맡긴 알',
+        lead: { map: 'VILLAGE', text: '마을로 돌아가 본다. 무언가 이상하다' },
         offer: "예순 해 전에 두 마을이 알을 전부 글라시아에게 맡겼단다. 그 봉우리가 이제야 열리려나 보구나. 리운이 부른다니 가 보거라.",
         summary: "예순 해 전 전쟁 때, 두 마을은 알을 전부 북쪽 봉우리의 글라시아에게 맡겼다. 봉우리는 그 뒤로 닫혔고, 이제 그 냉기가 두 마을까지 내려온다.",
         steps: [
@@ -439,6 +441,7 @@ export const QUESTS = [
     {
         // 7장. 그론의 동료들이 멈춘 자리. 이제 창을 가져다줄 그론이 없다
         id: 'm5b', auto: true, giver: 'Elder', turnIn: 'Ember', act: 'main', requires: 'm6w', title: '죽은 사구의 폭군',
+        lead: { map: 'DESERT', text: '엘더가 말한 사막 너머의 도시. 남쪽 숲길 서쪽 문으로 나가 죽은 사구로 간다' },
         offer: "[남서쪽 끝] 사막의 모래 폭군 [바실]. 젊은 그론의 무릎을, 그리고 동료 셋을 앗아간 놈이다.",
         summary: "그론이 대장간 밖을 나가지 않던 이유. 젊은 그론은 동료 셋과 사막에 갔다가 혼자 기어 돌아왔다. 사막 너머로 가려면 그 길을 지나야 한다.",
         steps: [
