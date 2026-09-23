@@ -27,6 +27,18 @@ import { startAmbush } from './ambush.js';
 
 let checkTimer = 0;
 let playing = false;
+// 지금 흐르는 장면. Esc 로 대화창만 닫아 버리면 장면의 끝(then)이 영영 안 불려서
+// playing 이 참으로 굳고, 그 뒤로는 어떤 사건도 터지지 않았다 (사막에 가도 아무 일이 없던 것)
+let current = null;     // { skip }  장면을 통째로 건너뛰는 손잡이
+let choosing = false;   // 사건 끝의 선택지가 떠 있다 (건너뛸 수 없다)
+
+/** [Esc]: 장면이면 끝까지 건너뛰고 true. 선택지가 떠 있으면 아무것도 안 하고 true. 장면이 아니면 false (main.js) */
+export function skipScene() {
+    if (choosing) return true;
+    if (!current) return false;
+    current.skip();
+    return true;
+}
 
 function context() {
     const p = state.player;
@@ -120,7 +132,8 @@ function choose(ev, done) {
         });
     };
     state.isDialogueOpen = true;
-    dialogueUI.show({ name: '', text: ev.choice.prompt, sheet: null, onClose: () => {}, options: options.map(o => ({ label: o.label, onSelect: () => pickOne(o) })) });
+    choosing = true;
+    dialogueUI.show({ name: '', text: ev.choice.prompt, sheet: null, onClose: () => {}, options: options.map(o => ({ label: o.label, onSelect: () => { choosing = false; pickOne(o); } })) });
 }
 
 function fire(ev) {
@@ -179,8 +192,11 @@ export function playScene(title, lines, then, { cinematic = true, place = null }
     else if (title) showToast(title, '📖');
 
     let i = 0;
+    const me = { skip: () => { i = lines.length; step(); } };
+    current = me;
     const step = () => {
         if (i >= lines.length) {
+            if (current === me) current = null;
             state.isDialogueOpen = false;
             dialogueUI.hide();
             if (cinematic) endCutscene();

@@ -4,7 +4,7 @@ import { cam, followCamera, isOnScreen, resizeCamera, cycleZoom, stepZoom } from
 import { clamp } from './core/utils.js';
 import { preloadTerrain, drawTerrain } from './world/terrain.js';
 import { updateSpawns } from './world/spawn.js';
-import { initWorld, updatePortals, getNpc, refreshDen } from './systems/world.js';
+import { initWorld, updatePortals, getNpc, refreshDen, travelTo } from './systems/world.js';
 import { resolveCombat, pruneEntities } from './systems/combat.js';
 import { updateRaid } from './systems/raid.js';
 import { updateWeather, drawWeather } from './systems/weather.js';
@@ -97,7 +97,7 @@ let hudAccumulator = 0;
 let saveAccumulator = 0;
 
 // 디버그/테스트용 훅 (콘솔에서 __dragonia.step(dt) 로 한 프레임 진행)
-window.__dragonia = { state, step(dt) { update(dt); followCamera(state.player); render(); updateHud(); } };
+window.__dragonia = { state, travelTo, step(dt) { update(dt); followCamera(state.player); render(); updateHud(); } };
 
 /** config: 새 게임 설정. loadSave 가 true 면 저장된 진행 상황을 이어서 한다 */
 async function startGame(config, loadSave = false) {

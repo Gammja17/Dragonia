@@ -120,7 +120,7 @@ export const CHRONICLE = [
     },
     {
         id: 'ev_basil', title: '모래 속의 발자국', grant: 'm5b',
-        when: c => c.done('m5a') && (c.done('m6w') || c.boss('BASIL')) && !c.done('m5b') && !c.active('m5b') && c.map === 'DESERT',
+        when: c => (c.done('m6w') || c.boss('BASIL')) && !c.done('m5b') && !c.active('m5b') && c.map === 'DESERT',   // m5a 는 m6w 의 전제라 따로 묻지 않는다 (옛 세이브에 m5a 기록이 없을 수 있다)
         lines: [
             { who: '나', text: "(모래 위에 깊게 팬 자국이 이어져 있다. 발자국이 아니다. 뭔가 땅속을 헤엄친 자국이다.)" },
             { who: 'Ember', text: "잠깐만, 거기서 더 들어가지 마! …헉, 헉. 따라오느라 죽는 줄 알았네." },
