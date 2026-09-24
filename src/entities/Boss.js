@@ -46,7 +46,7 @@ export class Boss extends Entity {
         this.home = { x: def.x, y: def.y };
         this.hp = def.hp;
         this.statusImmune = true;
-        this.sheet = getDragonSheet(def.species, def.colors);
+        this.sheet = getDragonSheet(def.species, def.colors, def.look || 0);
         this.animator = new Animator(this.sheet);
         this.facing = 'down';
         this.awake = false;

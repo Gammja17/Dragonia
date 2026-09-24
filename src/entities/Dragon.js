@@ -29,6 +29,7 @@ import { play, toggleMute } from '../systems/audio.js';
 import { toggleJournal } from '../ui/journal.js';
 import { openKidHub } from '../systems/kidActions.js';
 import { getDragonSheet } from '../render/dragonSprites.js';
+import { heroStageSlot } from '../data/sprites.js';
 import { Animator, drawFrame, averageColor } from '../render/spritesheet.js';
 import { crisp } from '../render/overlay.js';
 import { rgbToHsl, hslToRgb } from '../render/tint.js';
@@ -196,6 +197,8 @@ export class Dragon extends Entity {
         this.fishing = null;  // { x, y, wait, bite } 낚시 중일 때
 
         this.look = config.look || 0;                   // species 'LOOK' 일 때의 외형 번호
+        this.preset = config.look || 0;                 // species 'HERO' 일 때의 프리셋 번호. 칸 번호(look)는 성장 단계에 따라 고른다
+        if (this.species === 'HERO') this.look = this.preset * 3 + heroStageSlot(this.stageIndex);
         this.sheet = getDragonSheet(this.species, this.colors, this.look);
         this.animator = this.sheet ? new Animator(this.sheet) : null;
         this.animPhase = Math.random() * 5;
@@ -350,6 +353,10 @@ export class Dragon extends Entity {
 
     update(dt) {
         if (this.chatFade > 0) this.chatFade -= dt * 0.3;
+        if (this.species === 'HERO') {   // 자라면 다음 단계 그림으로 (저장을 불러온 뒤에도 여기서 맞춰진다)
+            const want = this.preset * 3 + heroStageSlot(this.stageIndex);
+            if (want !== this.look) { this.look = want; this.sheet = null; }
+        }
         if (!this.sheet) {
             this.sheet = getDragonSheet(this.species, this.colors, this.look);
             if (this.sheet) this.animator = new Animator(this.sheet);
@@ -1055,7 +1062,7 @@ export class Dragon extends Entity {
             drawFrame(ctx, this.sheet, f, this.x, this.y + (this.downTimer > 0 ? 18 : this.hoverY) - this.diveHeight, sc,
                 { t: state.gameTime + this.animPhase, moving: this.moving, attacking: this.animator.name === 'attack' && !this.animator.done,
                   hurt: this.animator.name === 'hit' && !this.animator.done ? Math.max(0, 1 - this.animator.t * 4) : 0,
-                  shape: this.isPlayer ? this.stage.shape : null },   // 자라면서 몸 비율이 바뀌는 건 내 용뿐이다 (마을 용은 다 성체)
+                  shape: this.isPlayer && this.species !== 'HERO' ? this.stage.shape : null },   // 자라면서 몸 비율이 바뀌는 건 내 용뿐이다 (마을 용은 다 성체). HERO 는 단계마다 그림이 따로 있다
                 (this._outline || (this._outline = outlineFor(f, this.isPlayer))));
             ctx.globalAlpha = 1;
             drawAccessory(ctx, this.sheet, this.config.accessory, this.facing, this.x, this.y + this.hoverY - this.diveHeight, sc);

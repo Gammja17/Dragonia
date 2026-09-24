@@ -82,45 +82,45 @@ export const FIXED_NPCS = [
     // ---- 웨스턴의 부부. 도란은 호숫가에서 낚시를 하고 미루는 마을에서 살림을 한다. 둘 다 짝은 안 된다 (이미 부부다) ----
     {
         name: 'Doran', personality: 'WISE', canPartner: false,
-        species: 'LOOK', look: 13, accessory: 'HAT', scale: 1.0, colors: { body: '#4a6f8a', belly: '#9ab8c8', wing: '#6a8a9a' }, element: 'ICE', maxHp: 260, power: 9,
+        species: 'CAST', look: 18, accessory: null, scale: 1.0, colors: { body: '#4a6f8a', belly: '#9ab8c8', wing: '#6a8a9a' }, element: 'ICE', maxHp: 260, power: 9,
         x: 0, y: 0,
     },
     {
         name: 'Miru', personality: 'PLAYFUL', canPartner: false,
-        species: 'LOOK', look: 19, accessory: 'FLOWER', scale: 0.95, colors: { body: '#c87a5a', belly: '#f0c8a0', wing: '#e8a878' }, element: 'FIRE', maxHp: 240, power: 8,
+        species: 'CAST', look: 19, accessory: null, scale: 0.95, colors: { body: '#c87a5a', belly: '#f0c8a0', wing: '#e8a878' }, element: 'FIRE', maxHp: 240, power: 8,
         x: 0, y: 0,
     },
     {
         // 이슬: 도란과 미루의 아이. 4장 뒤에 알이 생기고 엿새 뒤 아침에 깬다 (data/chronicle.js). 이름은 플레이어가 지어 준다
         name: 'Iseul', personality: 'PLAYFUL', canPartner: false, kid: true,
-        species: 'LOOK', look: 23, accessory: null, scale: 0.5, colors: { body: '#6a8fa8', belly: '#d8ecf0', wing: '#a8c8d8' }, element: 'ICE', maxHp: 80, power: 3,
+        species: 'CAST', look: 20, accessory: null, scale: 0.5, colors: { body: '#6a8fa8', belly: '#d8ecf0', wing: '#a8c8d8' }, element: 'ICE', maxHp: 80, power: 3,
         x: 0, y: 0,
     },
     // ---- 웨스턴의 세 식구. 단은 나무를 하고 소이는 아이를 보고, 누리는 포코 뒤를 졸졸 따라다닌다 ----
     {
         name: 'Dan', personality: 'GRUMPY', canPartner: false,
-        species: 'LOOK', look: 21, accessory: null, scale: 1.05, colors: { body: '#5a6a3a', belly: '#b8c890', wing: '#7a8a5a' }, element: 'FIRE', maxHp: 300, power: 11,
+        species: 'CAST', look: 21, accessory: null, scale: 1.05, colors: { body: '#5a6a3a', belly: '#b8c890', wing: '#7a8a5a' }, element: 'FIRE', maxHp: 300, power: 11,
         x: 0, y: 0,
     },
     {
         name: 'Soi', personality: 'WISE', canPartner: false,
-        species: 'LOOK', look: 18, accessory: 'FLOWER', scale: 0.95, colors: { body: '#a86a8a', belly: '#f0c8e0', wing: '#c890b0' }, element: 'ICE', maxHp: 240, power: 8,
+        species: 'CAST', look: 22, accessory: null, scale: 0.95, colors: { body: '#a86a8a', belly: '#f0c8e0', wing: '#c890b0' }, element: 'ICE', maxHp: 240, power: 8,
         x: 0, y: 0,
     },
     {
         name: 'Nuri', personality: 'PLAYFUL', canPartner: false, kid: true,
-        species: 'LOOK', look: 23, accessory: null, scale: 0.55, colors: { body: '#8aa86a', belly: '#e0f0b0', wing: '#a8c880' }, element: 'FIRE', maxHp: 90, power: 3,
+        species: 'CAST', look: 23, accessory: null, scale: 0.55, colors: { body: '#8aa86a', belly: '#e0f0b0', wing: '#a8c880' }, element: 'FIRE', maxHp: 90, power: 3,
         x: 0, y: 0,
     },
     // ---- 잿마루: 이그나르를 따라간 용들 ----
     {
         name: 'Heukdan', personality: 'GRUMPY', canPartner: false,
-        species: 'LOOK', look: 4, accessory: 'HELM', scale: 1.1, colors: { body: '#2a2a30', belly: '#5a5058', wing: '#8a3a2a' }, element: 'FIRE', maxHp: 460, power: 15,
+        species: 'CAST', look: 24, accessory: null, scale: 1.1, colors: { body: '#2a2a30', belly: '#5a5058', wing: '#8a3a2a' }, element: 'FIRE', maxHp: 460, power: 15,
         x: 0, y: 0,
     },
     {
         name: 'Jaetbyeol', personality: 'PLAYFUL', canPartner: false, kid: true,
-        species: 'LOOK', look: 17, accessory: null, scale: 0.55, colors: { body: '#4a3a4a', belly: '#c8b0c0', wing: '#ff8a5a' }, element: 'FIRE', maxHp: 90, power: 3,
+        species: 'CAST', look: 25, accessory: null, scale: 0.55, colors: { body: '#4a3a4a', belly: '#c8b0c0', wing: '#ff8a5a' }, element: 'FIRE', maxHp: 90, power: 3,
         x: 0, y: 0,
     },
     // ---- 뿌리골: 밀림 깊은 곳, 풀의 용들 ----
@@ -137,7 +137,7 @@ export const FIXED_NPCS = [
     {
         // 버들: 펀의 어머니. 약초를 말리고 남의 집 아이까지 먹인다
         name: 'Beodeul', personality: 'WISE', canPartner: false,
-        species: 'LOOK', look: 1, accessory: 'LEAF', scale: 1.0, colors: { body: '#4a7a4a', belly: '#c8e0a0', wing: '#8aa860' }, element: 'ICE', maxHp: 260, power: 8,
+        species: 'CAST', look: 26, accessory: null, scale: 1.0, colors: { body: '#4a7a4a', belly: '#c8e0a0', wing: '#8aa860' }, element: 'ICE', maxHp: 260, power: 8,
         x: 0, y: 0,
     },
     // ---- 바윗골: 사막의 바위 고원, 땅의 용들 ----
@@ -155,7 +155,7 @@ export const FIXED_NPCS = [
     {
         // 자갈: 돌의 할머니. 바윗골에서 제일 오래 살았고, 제일 말이 많다
         name: 'Jagal', personality: 'WISE', canPartner: false,
-        species: 'LOOK', look: 0, accessory: 'HAT', scale: 0.9, colors: { body: '#9a8a6a', belly: '#e0d0b0', wing: '#7a6a50' }, element: 'FIRE', maxHp: 240, power: 7,
+        species: 'CAST', look: 27, accessory: null, scale: 0.9, colors: { body: '#9a8a6a', belly: '#e0d0b0', wing: '#7a6a50' }, element: 'FIRE', maxHp: 240, power: 7,
         x: 0, y: 0,
     },
 
@@ -182,13 +182,13 @@ export const FIXED_NPCS = [
     {
         // 온: 구름마루의 할머니. 스무 해 전 전쟁을 두 눈으로 봤고, 그 얘기를 아무한테나 한다
         name: 'On', personality: 'WISE', canPartner: false, east: true,
-        species: 'LOOK', look: 2, accessory: 'HAT', scale: 0.95, colors: { body: '#3a5f7f', belly: '#a8c8e0', wing: '#c8d8e0' }, element: 'ICE', maxHp: 250, power: 7,
+        species: 'CAST', look: 28, accessory: null, scale: 0.95, colors: { body: '#3a5f7f', belly: '#a8c8e0', wing: '#c8d8e0' }, element: 'ICE', maxHp: 250, power: 7,
         x: 0, y: 0,
     },
     {
         // 비류: 물길을 달리는 젊은 용. 하루의 단짝이고 유안의 잔소리를 같이 듣는다
         name: 'Biryu', personality: 'BRAVE', canPartner: false, east: true,
-        species: 'LOOK', look: 10, accessory: 'PLUME', scale: 0.92, colors: { body: '#2a7f9f', belly: '#9fe0f0', wing: '#e0f0f8' }, element: 'ICE', maxHp: 280, power: 11,
+        species: 'CAST', look: 29, accessory: null, scale: 0.92, colors: { body: '#2a7f9f', belly: '#9fe0f0', wing: '#e0f0f8' }, element: 'ICE', maxHp: 280, power: 11,
         x: 0, y: 0,
     },
     {
@@ -202,8 +202,8 @@ export const FIXED_NPCS = [
 export const WANDER_NAMES = ['Kirin', 'Raze', 'Dusk', 'Iro', 'Sora', 'Flint'];   // 나라·엠버·미라·구름마루 용들은 고정 NPC라 뺀다
 // 몸이 긴 동양용 외형(3 · 8 · 12 · 14 · 16)은 떠돌이에게 주지 않는다.
 // 12는 엘더, 나머지는 구름마루 용들 것이고, 9는 나라 것이다
-export const WANDER_LOOKS = [0, 1, 2, 10];   // 고정 인물과 겹치는 칸은 색을 달리 쓴다   // 5는 모스, 7은 미라, 11은 엠버, 15는 펀, 20은 베스나, 24·25는 바윗골
-export const WANDER_ACCESSORIES = [null, null, 'LEAF', 'FLOWER', 'PLUME'];
+export const WANDER_LOOKS = [30, 31, 32, 33];   // CAST 시트의 떠돌이 넷 (data/sprites.js CAST_NAMES)   // 고정 인물과 겹치는 칸은 색을 달리 쓴다   // 5는 모스, 7은 미라, 11은 엠버, 15는 펀, 20은 베스나, 24·25는 바윗골
+export const WANDER_ACCESSORIES = [null];   // 새 그림에는 장신구를 얹지 않는다
 export const WANDER_PERSONALITIES = ['WISE', 'BRAVE', 'PLAYFUL', 'GRUMPY'];
 // 'RIVAL' 은 나라 전용 성격이라 떠돌이에게는 주지 않는다
 export const WANDER_SPECIES = ['WESTERN', 'WYVERN', 'HYDRA', 'BEHEMOTH'];

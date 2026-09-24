@@ -126,7 +126,9 @@ DRAGON_SHEETS.LOOK = {
 //       바르코(GPT-image)로 뽑아 고른 그림을 tools/build_cast.py 가 도트로 줄여 시트로 만든다. 색은 그림에 박혀 있어 색조 교체 없음.
 //       한 장짜리라 움직임은 LOOK 과 같은 procedural.
 export const CAST_NAMES = ['elder', 'tiamat', 'poco', 'gron', 'nara', 'kairon', 'ember', 'mira', 'vesna',
-    'ignar', 'moss', 'fern', 'garam', 'dol', 'riun', 'seiran', 'haru', 'yuan'];
+    'ignar', 'moss', 'fern', 'garam', 'dol', 'riun', 'seiran', 'haru', 'yuan',
+    'doran', 'miru', 'iseul', 'dan', 'soi', 'nuri', 'heukdan', 'jaetbyeol', 'beodeul', 'jagal', 'on', 'biryu',
+    'wander1', 'wander2', 'wander3', 'wander4'];   // 30~33 은 떠돌이 (WANDER_LOOKS)
 DRAGON_SHEETS.CAST = {
     type: 'static',
     images: { sheet: D + 'cast.png' },
@@ -150,9 +152,80 @@ DRAGON_SHEETS.CAST = {
         { x: 34, y: 40, w: 123, h: 120 },   // seiran
         { x: 32, y: 40, w: 128, h: 120 },   // haru
         { x: 30, y: 40, w: 131, h: 120 },   // yuan
+        { x: 21, y: 46, w: 150, h: 114 },   // doran
+        { x: 25, y: 40, w: 141, h: 120 },   // miru
+        { x: 31, y: 40, w: 129, h: 120 },   // iseul
+        { x: 21, y: 42, w: 150, h: 118 },   // dan
+        { x: 34, y: 40, w: 124, h: 120 },   // soi
+        { x: 26, y: 40, w: 140, h: 120 },   // nuri
+        { x: 25, y: 40, w: 142, h: 120 },   // heukdan
+        { x: 29, y: 40, w: 133, h: 120 },   // jaetbyeol
+        { x: 31, y: 40, w: 130, h: 120 },   // beodeul
+        { x: 21, y: 47, w: 150, h: 113 },   // jagal
+        { x: 28, y: 40, w: 136, h: 120 },   // on
+        { x: 27, y: 40, w: 138, h: 120 },   // biryu
+        { x: 24, y: 40, w: 144, h: 120 },   // wander1
+        { x: 21, y: 41, w: 150, h: 119 },   // wander2
+        { x: 30, y: 40, w: 132, h: 120 },   // wander3
+        { x: 21, y: 40, w: 150, h: 120 },   // wander4
     ],
     anims: { idle: { fps: 1 }, move: { fps: 1 }, attack: { fps: 4, loop: false, count: 2 }, hit: { fps: 6, loop: false, count: 2 } },
     scale: 1.25, anchor: { x: 0.5, y: 0.97 }, flying: false, zones: [],
+    head: { left: [0.2, 0.25], right: [0.8, 0.25], up: [0.2, 0.25], down: [0.2, 0.25] },
+};
+// BOSS: 우두머리 넷의 전용 그림 (288x240 칸). data/enemies.js 의 look 이 칸 번호. 이그나르 보스전은 SHADOW 그대로.
+//       def.scale(2.0 안팎)이 곱해지므로 시트 배율은 낮춰 둔다
+export const BOSS_NAMES = ['boss_morgas', 'boss_zalgora', 'boss_glacia', 'boss_basil'];
+DRAGON_SHEETS.BOSS = {
+    type: 'static',
+    images: { sheet: D + 'bosses.png' },
+    fw: 288, fh: 240, cols: 4,
+    boxes: [
+        { x: 29, y: 24, w: 230, h: 216 },   // boss_morgas
+        { x: 23, y: 24, w: 241, h: 216 },   // boss_zalgora
+        { x: 36, y: 24, w: 216, h: 216 },   // boss_glacia
+        { x: 14, y: 56, w: 260, h: 184 },   // boss_basil
+    ],
+    anims: { idle: { fps: 1 }, move: { fps: 1 }, attack: { fps: 4, loop: false, count: 2 }, hit: { fps: 6, loop: false, count: 2 } },
+    scale: 0.65, anchor: { x: 0.5, y: 0.97 }, flying: false, zones: [],
+    head: { left: [0.2, 0.2], right: [0.8, 0.2], up: [0.2, 0.2], down: [0.2, 0.2] },
+};
+// HERO: 주인공 프리셋 다섯 × 성장 단계 셋 (아기·청소년·성체). 칸 번호 = 프리셋 × 3 + 단계.
+//       그림은 빨간 몸·분홍 배·노란 날개·파란 눈과 문양으로 고정해 두고, 색조 구역으로 몸·날개·문양(=눈) 색을 바꾼다.
+//       단계마다 그림이 따로 있으니 LOOK 처럼 몸 비율(stage.shape)을 주무르지 않는다 (entities/Dragon.js)
+export const HERO_PRESETS = [
+    { id: 'WEST', name: '서양룡' }, { id: 'WYV', name: '와이번' }, { id: 'TANK', name: '땅룡' }, { id: 'EAST', name: '동양룡' }, { id: 'HYDRA', name: '쌍두룡' },
+];
+/** 성장 단계 번호(STAGES 의 index) → 그림 단계 (해츨링 0 · 어린 용 1 · 성체부터 2) */
+export const heroStageSlot = (stageIndex) => Math.min(2, stageIndex);
+DRAGON_SHEETS.HERO = {
+    type: 'static',
+    images: { sheet: D + 'hero.png' },
+    fw: 192, fh: 160, cols: 3,
+    boxes: [
+        { x: 27, y: 40, w: 138, h: 120 },   // west_baby
+        { x: 26, y: 40, w: 140, h: 120 },   // west_teen
+        { x: 28, y: 40, w: 136, h: 120 },   // west_adult
+        { x: 44, y: 40, w: 104, h: 120 },   // wyv_baby
+        { x: 35, y: 40, w: 121, h: 120 },   // wyv_teen
+        { x: 31, y: 40, w: 129, h: 120 },   // wyv_adult
+        { x: 27, y: 40, w: 138, h: 120 },   // tank_baby
+        { x: 29, y: 40, w: 133, h: 120 },   // tank_teen
+        { x: 26, y: 40, w: 139, h: 120 },   // tank_adult
+        { x: 25, y: 40, w: 141, h: 120 },   // east_baby
+        { x: 27, y: 40, w: 137, h: 120 },   // east_teen
+        { x: 33, y: 40, w: 125, h: 120 },   // east_adult
+        { x: 30, y: 40, w: 131, h: 120 },   // hydra_baby
+        { x: 25, y: 40, w: 142, h: 120 },   // hydra_teen
+        { x: 32, y: 40, w: 128, h: 120 },   // hydra_adult
+    ],
+    anims: { idle: { fps: 1 }, move: { fps: 1 }, attack: { fps: 4, loop: false, count: 2 }, hit: { fps: 6, loop: false, count: 2 } },
+    scale: 1.25, anchor: { x: 0.5, y: 0.97 }, flying: false,
+    zones: [
+        { hue: 0, range: 30, refL: 0.5, target: 'body' },     // 빨간 몸 (분홍 배도 같은 색상대라 몸 색을 따라 밝게)
+        { hue: 48, range: 22, refL: 0.57, target: 'wing' },   // 노란 날개막·지느러미
+        { hue: 215, range: 35, refL: 0.6, target: 'mark' },   // 파란 문양 — 눈도 같은 파랑이라 함께 바뀐다 (의도)
+    ],
     head: { left: [0.2, 0.25], right: [0.8, 0.25], up: [0.2, 0.25], down: [0.2, 0.25] },
 };
 // SHADOW: Shadow Demon Dragon — 좌우 애니메이션만 있는 큰 용. 행 = idle/move/attack/hit, 왼쪽을 본다

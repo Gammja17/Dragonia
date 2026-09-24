@@ -45,7 +45,7 @@ export const BIOME_ENEMIES = {
 export const BOSSES = {
     MORGATH: {
         needs: 'ev_morgath',   // 이 사건을 겪기 전에는 둥지가 비어 있다
-        name: '옛 수호룡 모르가스', title: '달빛 골짜기의 주인', species: 'BONE', colors: { body: '#ffffff', wing: '#ffffff' },
+        name: '옛 수호룡 모르가스', title: '달빛 골짜기의 주인', species: 'BOSS', look: 0, colors: { body: '#ffffff', wing: '#ffffff' },
         x: 4400, y: 1500, scale: 2.0, hp: 1100, speed: 120, contact: 18, xp: 600,
         element: 'ICE', unlock: 'ICE', revive: true, patterns: ['RING', 'SUMMON', 'AIMED', 'BONE_RAIN'],
         phases: [
@@ -55,7 +55,7 @@ export const BOSSES = {
     },
     ZALGORA: {
         needs: 'ev_zalgora',   // 이 사건을 겪기 전에는 둥지가 비어 있다
-        name: '쌍두룡 잘고라', title: '환영의 밀림의 폭군', species: 'HYDRA', colors: { body: '#a3262b', wing: '#e0a020' },
+        name: '쌍두룡 잘고라', title: '환영의 밀림의 폭군', species: 'BOSS', look: 1, colors: { body: '#a3262b', wing: '#e0a020' },
         x: 1500, y: 4400, scale: 1.9, hp: 1600, speed: 150, contact: 22, xp: 900,
         element: 'THUNDER', unlock: 'THUNDER', twin: true, patterns: ['TWIN_BEAM', 'AIMED', 'SPIRAL', 'AIMED', 'CHARGE'],
         phases: [
@@ -66,7 +66,7 @@ export const BOSSES = {
     },
     GLACIA: {
         needs: 'ev_glacia',   // 이 사건을 겪기 전에는 둥지가 비어 있다
-        name: '서리 여왕 글라시아', title: '얼어붙은 봉우리의 지배자', species: 'WYVERN', colors: { body: '#cfeaff', wing: '#7fb8ff' },
+        name: '서리 여왕 글라시아', title: '얼어붙은 봉우리의 지배자', species: 'BOSS', look: 2, colors: { body: '#cfeaff', wing: '#7fb8ff' },
         x: 6800, y: 1600, scale: 2.1, hp: 2300, speed: 165, contact: 24, xp: 1300,
         element: 'ICE', unlock: null, patterns: ['HOMING', 'ICE_FIELD', 'BLIZZARD', 'RING', 'HOMING'],
         phases: [
@@ -77,7 +77,7 @@ export const BOSSES = {
     },
     BASIL: {
         needs: 'ev_basil',   // 이 사건을 겪기 전에는 둥지가 비어 있다
-        name: '모래 폭군 바실', title: '죽은 사구의 포식자', species: 'BEHEMOTH', colors: { body: '#c9a24a', wing: '#8a5a2a' },
+        name: '모래 폭군 바실', title: '죽은 사구의 포식자', species: 'BOSS', look: 3, colors: { body: '#c9a24a', wing: '#8a5a2a' },
         x: 2000, y: 6800, scale: 2.1, hp: 2800, speed: 140, contact: 30, xp: 1600,
         element: 'FIRE', unlock: null, chargeChain: true, patterns: ['BURROW', 'CHARGE', 'QUAKE', 'AIMED', 'BURROW'],
         phases: [

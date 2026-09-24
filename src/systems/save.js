@@ -34,7 +34,7 @@ export function saveGame() {
         v: 1,
         savedAt: Date.now(),
         player: {
-            config: { name: p.config.name, species: p.species, colors: p.colors, accessory: p.config.accessory || null, look: p.look },
+            config: { name: p.config.name, species: p.species, colors: p.colors, accessory: p.config.accessory || null, look: p.species === 'HERO' ? p.preset : p.look },
             level: p.level, xp: p.xp, maxXp: p.maxXp, hp: p.hp, maxHp: p.maxHp, hunger: p.hunger,
             meat: p.inventory.meat, gold: p.gold, x: p.x, y: p.y, carrying: p.carrying,
             stageIndex: p.stageIndex, elements: p.elements, element: p.element, skills: p.skills, slots: p.slots,

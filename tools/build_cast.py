@@ -1,6 +1,6 @@
 """마을 인물 스프라이트 시트(assets/sprites/dragons/cast.png)와 대화창 초상화(assets/portraits/)를 만든다.
 
-원본은 git 에 안 올리는 assets/raw/pixellab_test/picks/<이름>.png (바르코 GPT-image 로 뽑아 고른 1024px 그림) 와
+원본은 git 에 안 올리는 assets/raw/pixellab_test/picks/ 와 picks2/ 의 <이름>.png (바르코 GPT-image 로 뽑아 고른 1024px 그림) 와
 assets/raw/pixellab_test/portraits/final/<이름>_<표정>.png (96px). 그림은 전부 왼쪽을 본다 (static 시트 규칙).
 
     python tools/build_cast.py
@@ -16,7 +16,12 @@ ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / 'assets/raw/pixellab_test'
 # src/data/sprites.js 의 CAST_NAMES 와 같은 순서
 NAMES = ['elder', 'tiamat', 'poco', 'gron', 'nara', 'kairon', 'ember', 'mira', 'vesna',
-         'ignar', 'moss', 'fern', 'garam', 'dol', 'riun', 'seiran', 'haru', 'yuan']
+         'ignar', 'moss', 'fern', 'garam', 'dol', 'riun', 'seiran', 'haru', 'yuan',
+         'doran', 'miru', 'iseul', 'dan', 'soi', 'nuri', 'heukdan', 'jaetbyeol', 'beodeul', 'jagal', 'on', 'biryu',
+         'wander1', 'wander2', 'wander3', 'wander4']
+# 보스 (BOSS 시트, 288x240 칸) · 주인공 프리셋 (HERO 시트, 종족 × 아기·청소년·성체)
+BOSS_NAMES = ['boss_morgas', 'boss_zalgora', 'boss_glacia', 'boss_basil']
+HERO_NAMES = [f'{sp}_{st}' for sp in ['west', 'wyv', 'tank', 'east', 'hydra'] for st in ['baby', 'teen', 'adult']]
 CW, CH, COLS = 192, 160, 6      # 칸 크기·열 수
 FIT_W, FIT_H = 150, 120         # 그림이 들어갈 최대 크기 (체구 차이는 npcs.js 의 scale 이 준다)
 COLORS = 32
@@ -57,23 +62,37 @@ def pixelize(im, fit_w, fit_h, colors=COLORS):
     return rgb
 
 
-def main():
-    rows = (len(NAMES) + COLS - 1) // COLS
-    sheet = Image.new('RGBA', (CW * COLS, CH * rows), (0, 0, 0, 0))
+def find_pick(name):
+    """picks/ (1차 18명) 에 없으면 picks2/ (2차: 마을 나머지·보스·떠돌이·주인공)"""
+    for d in ('picks', 'picks2'):
+        p = RAW / d / f'{name}.png'
+        if p.exists():
+            return p
+    raise FileNotFoundError(name)
+
+
+def build_sheet(names, cw, ch, cols, fit_w, fit_h, out):
+    rows = (len(names) + cols - 1) // cols
+    sheet = Image.new('RGBA', (cw * cols, ch * rows), (0, 0, 0, 0))
     boxes = []
-    for i, name in enumerate(NAMES):
-        sp = pixelize(cut_border(Image.open(RAW / 'picks' / f'{name}.png')), FIT_W, FIT_H)
-        cx, cy = (i % COLS) * CW, (i // COLS) * CH
-        x, y = (CW - sp.width) // 2, CH - sp.height      # 가로 가운데, 발은 칸 바닥
+    for i, name in enumerate(names):
+        sp = pixelize(cut_border(Image.open(find_pick(name))), fit_w, fit_h)
+        cx, cy = (i % cols) * cw, (i // cols) * ch
+        x, y = (cw - sp.width) // 2, ch - sp.height      # 가로 가운데, 발은 칸 바닥
         sheet.paste(sp, (cx + x, cy + y), sp)
         boxes.append((x, y, sp.width, sp.height))
-    out = ROOT / 'assets/sprites/dragons/cast.png'
     sheet.save(out)
     print('wrote', out, sheet.size)
     print('boxes: [')
-    for (x, y, w, h), name in zip(boxes, NAMES):
+    for (x, y, w, h), name in zip(boxes, names):
         print(f'        {{ x: {x}, y: {y}, w: {w}, h: {h} }},   // {name}')
     print('],')
+
+
+def main():
+    build_sheet(NAMES, CW, CH, COLS, FIT_W, FIT_H, ROOT / 'assets/sprites/dragons/cast.png')
+    build_sheet(BOSS_NAMES, 288, 240, 4, 260, 216, ROOT / 'assets/sprites/dragons/bosses.png')
+    build_sheet(HERO_NAMES, CW, CH, 3, FIT_W, FIT_H, ROOT / 'assets/sprites/dragons/hero.png')
 
     pdir = ROOT / 'assets/portraits'
     pdir.mkdir(exist_ok=True)

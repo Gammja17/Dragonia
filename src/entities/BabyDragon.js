@@ -21,7 +21,7 @@ export class BabyDragon extends Entity {
     /** genes: { species, colors } — 부모에게서 물려받은 모습 */
     constructor(x, y, genes) {
         super(x, y);
-        this.genes = genes || { species: state.player.species, colors: { ...state.player.colors }, look: state.player.look };
+        this.genes = genes || { species: state.player.species, colors: { ...state.player.colors }, look: state.player.species === 'HERO' ? state.player.preset * 3 : state.player.look };   // HERO 는 아기 칸
         this.sheet = getDragonSheet(this.genes.species, this.genes.colors, this.genes.look || 0);
         this.petTimer = 0;
         this.followGap = Math.random() * 60;
