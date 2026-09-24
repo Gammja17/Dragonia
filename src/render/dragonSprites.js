@@ -1,4 +1,4 @@
-import { DRAGON_SHEETS, CAST_NAMES } from '../data/sprites.js';
+import { DRAGON_SHEETS, CAST_NAMES, BOSS_NAMES } from '../data/sprites.js';
 import { loadImages } from './assets.js';
 import { tintImage } from './tint.js';
 import { buildSheet } from './spritesheet.js';
@@ -31,6 +31,7 @@ export function getDragonSheet(species, colors, look = 0) {
     }
     const sheet = buildSheet(desc, images, look);
     if (species === 'CAST') sheet.portrait = CAST_NAMES[look];   // 대화창 초상화 파일 이름 (assets/portraits/<이름>_<표정>.png)
+    if (species === 'BOSS') sheet.portrait = BOSS_NAMES[look];
     sheetCache.set(key, sheet);
     return sheet;
 }
