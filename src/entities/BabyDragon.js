@@ -85,6 +85,10 @@ export class BabyDragon extends Entity {
             const a = state.gameTime * 7;
             this.x += Math.cos(a) * 160 * dt; this.y += Math.sin(a) * 160 * dt;
         }
+        if (this.genes.species === 'HERO') {   // 주인공 프리셋의 아이는 자라면 청소년·성체 칸으로 (Dragon 과 같은 규칙)
+            const want = this.genes.look - this.genes.look % 3 + ({ BABY: 0, TEEN: 1, ADULT: 2 }[this.stage] || 0);
+            if (want !== this.heroLook) { this.heroLook = want; this.sheet = getDragonSheet('HERO', this.genes.colors, want); this.animator = new Animator(this.sheet); }
+        }
         const kid = findKid(this);
         if (this.stage !== 'BABY') this.fight(dt, kid);
         // 성체이거나 '둥지 지키기'를 시킨 아이는 둥지 주변에 머문다
