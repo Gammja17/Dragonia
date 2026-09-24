@@ -79,6 +79,8 @@ def main():
     pdir.mkdir(exist_ok=True)
     n = 0
     for f in sorted((RAW / 'portraits/final').glob('*_*.png')):
+        if f.name.startswith('sheet'):
+            continue
         shutil.copy(f, pdir / f.name)
         n += 1
     print('portraits copied:', n)
