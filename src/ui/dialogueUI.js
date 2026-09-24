@@ -2,6 +2,7 @@
 import { drawPortrait } from '../render/spritesheet.js';
 import { play } from '../systems/audio.js';
 import { state } from '../core/state.js';
+import { faceFor } from '../systems/face.js';
 
 const $ = (id) => document.getElementById(id);
 const TIERS = ['낯선 사이', '아는 사이', '친구', '절친'];
@@ -66,10 +67,10 @@ function highlight() {
 export const dialogueUI = {
     /** options: [{ label, onSelect }]. 비어 있으면 '닫기' 버튼만 표시 */
     /** npc 를 넘기면 머리에 맡은 일·사이·호감도 막대를 함께 보여 준다 */
-    /** face 는 초상화 표정 (없으면 neutral) */
+    /** face 는 초상화 표정. 안 주면 대사를 읽어 고른다 (systems/face.js) */
     show({ name, text, options, onClose, sheet, npc, face }) {
         text = fillName(text);
-        drawFace($('d-portrait'), sheet, face);
+        drawFace($('d-portrait'), sheet, face || faceFor(text));
         $('dialogue-overlay').style.display = 'flex';
         $('d-name').textContent = name;
         const job = npc && npc.job ? npc.job : '';
